@@ -87,7 +87,7 @@ void CMainScreen::Init()
 
     g_OrionWindow.SetSize(Wisp::CSize(640, 480));
     g_OrionWindow.NoResize = true;
-    g_OrionWindow.SetTitle("Ultima Online");
+    g_OrionWindow.SetTitle(SiebenwindClient::WindowTitle);
     g_GL.UpdateRect();
 
     if (!m_SavePassword->Checked)

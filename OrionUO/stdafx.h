@@ -334,3 +334,5 @@ class CGump;
 #include "ScreenStages/SelectProfessionScreen.h"
 #include "ScreenStages/SelectTownScreen.h"
 #include "ScreenStages/ServerScreen.h"
+
+#include "SiebenwindClient.h"

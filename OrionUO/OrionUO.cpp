@@ -2057,7 +2057,7 @@ void COrion::LoginComplete(bool reload)
 
     if (load && g_Player != nullptr)
     {
-        string title = "Ultima Online - " + g_Player->GetName();
+        string title = SiebenwindClient::WindowTitle + " - " + g_Player->GetName();
         CServer *server = g_ServerList.GetSelectedServer();
         if (server != nullptr)
         {

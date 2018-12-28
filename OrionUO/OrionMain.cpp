@@ -40,7 +40,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
     socket_init();
     g_OrionWindow.hInstance = hInstance;
-    if (!g_OrionWindow.Create("Orion UO Client", "Ultima Online", true, 640, 480))
+    if (!g_OrionWindow.Create(SiebenwindClient::WindowTitle.c_str(), SiebenwindClient::WindowTitle.c_str(), true, 640, 480))
     {
         socket_shutdown();
         return 0;
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 
     if (!g_isHeadless)
     {
-        if (!g_OrionWindow.Create("Orion UO Client", "Ultima Online", false, 640, 480))
+        if (!g_OrionWindow.Create(SiebenwindClient::WindowTitle.c_str(), SiebenwindClient::WindowTitle.c_str(), false, 640, 480))
         {
             SDL_LogWarn(
                 SDL_LOG_CATEGORY_APPLICATION,
