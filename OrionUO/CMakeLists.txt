@@ -348,6 +348,8 @@ set(orion_src
   Sockets.cpp
   OrionMain.cpp
   Platform.cpp
+  
+  SiebenwindClient.cpp
 )
 
 if(ORION_WINDOWS)
