@@ -1267,6 +1267,7 @@ void COrion::Process(bool rendering)
 
     if (g_GameState >= GS_CHARACTER && (g_LastSendTime + SEND_TIMEOUT_DELAY) < g_Ticks)
     {
+		g_LastSendTime = g_Ticks;
         uint8_t ping[2] = { 0x73, 0 };
         Send(ping, 2);
     }
@@ -1992,7 +1993,13 @@ int COrion::Send(uint8_t *buf, int size)
     if (result != 0)
     {
         g_LastPacketTime = ticks;
-        g_LastSendTime = ticks;
+    
+		// Siebenwind issue #1:
+		// Uncommenting this results in more frequently sent pings/"keep alive"
+		// packets in the COrion::Process(..) method.
+		// TODO: Fix the server, so that it is no longer necessary
+		// to change the client behavior.
+		// g_LastSendTime = ticks;
     }
 
     return result;

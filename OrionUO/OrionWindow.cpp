@@ -526,7 +526,13 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
                 type.Name);
 
             g_LastPacketTime = ticks;
-            g_LastSendTime = ticks;
+
+			// Siebenwind issue #1:
+			// Uncommenting this results in more frequently sent pings/"keep alive"
+			// packets in the COrion::Process(..) method.
+			// TODO: Fix the server, so that it is no longer necessary
+			// to change the client behavior.
+			// g_LastSendTime = ticks;
 
             if (*buf == 0x80 || *buf == 0x91)
             {
