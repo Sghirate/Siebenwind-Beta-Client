@@ -820,22 +820,9 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                         break;
                 }
 
-                if (g_PacketManager.GetClientVersion() >= CV_500A)
-                {
-                    CPacketUnicodeSpeechRequest(
-                        ToWString(mos->m_String).c_str(),
-                        st,
-                        3,
-                        g_ConfigManager.SpeechColor,
-                        (uint8_t *)g_Language.c_str())
-                        .Send();
-                }
-                else
-                {
-                    CPacketASCIISpeechRequest(
-                        mos->m_String.c_str(), st, 3, g_ConfigManager.SpeechColor)
-                        .Send();
-                }
+                // Always send unicode speech requests to the Siebenwind Server.
+                CPacketUnicodeSpeechRequest(ToWString(mos->m_String).c_str(), st, 3,
+                    g_ConfigManager.SpeechColor, (uint8_t *)g_Language.c_str()).Send();
             }
 
             break;
