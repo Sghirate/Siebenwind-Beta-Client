@@ -3379,7 +3379,8 @@ PACKET_HANDLER(UnicodeTalk)
             }
             else if (obj->GetName().length() != 0u)
             {
-                obj->JournalPrefix = obj->GetName() + ": ";
+                // Use the name that was sent by the Siebenwind Server.
+                obj->JournalPrefix = name + ": ";
             }
         }
 
