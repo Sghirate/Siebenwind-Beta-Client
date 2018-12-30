@@ -2260,7 +2260,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                 {
                     dropX = rwo->GetX();
                     dropY = rwo->GetY();
-                    dropZ = rwo->GetZ();
+                    dropZ = rwo->PriorityZ;
                 }
                 else
                 {
