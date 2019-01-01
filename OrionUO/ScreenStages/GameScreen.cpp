@@ -2241,7 +2241,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                         }
                         dropX = target->GetX();
                         dropY = target->GetY();
-                        dropZ = target->GetZ();
+                        dropZ = target->PriorityZ;
                     }
                 }
                 else
