@@ -145,6 +145,7 @@ void CGumpProfile::OnTextInput(const TextEvent &ev)
     const auto ch = EvChar(ev);
     g_EntryPointer->Insert(ch);
     RecalculateHeight();
+    Changed = true;
     WantRedraw = true;
 }
 
