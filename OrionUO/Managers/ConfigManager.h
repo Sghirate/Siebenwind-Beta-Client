@@ -192,7 +192,8 @@ public:
     bool GetChangeFieldsGraphic() { return m_ChangeFieldsGraphic; };
     void SetChangeFieldsGraphic(bool val);
 
-    bool GetPaperdollSlots() { return m_PaperdollSlots; };
+    // Siebenwind does not use these extra slots.
+    bool GetPaperdollSlots() { return false; };
     void SetPaperdollSlots(bool val);
 
     uint8_t GetDrawAuraState() { return m_DrawAuraState; };

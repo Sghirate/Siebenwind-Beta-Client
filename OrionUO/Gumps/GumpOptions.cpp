@@ -1601,16 +1601,6 @@ void CGumpOptions::DrawPage2()
     checkbox->Checked = g_OptionsConfig.GetChangeFieldsGraphic();
     checkbox->SetTextParameters(0, L"Change animated fields to tiles", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
-        new CGUICheckbox(ID_GO_P2_PAPERDOLL_SLOTS, 0x00D2, 0x00D3, 0x00D2, 0, 550));
-    checkbox->Checked = g_OptionsConfig.GetPaperdollSlots();
-    checkbox->SetTextParameters(0, L"Add paperdoll slots", g_OptionsTextColor);
-
-    checkbox = (CGUICheckbox *)html->Add(new CGUICheckbox(
-        ID_GO_P2_SCALE_IMAGES_IN_PAPERDOLL_SLOTS, 0x00D2, 0x00D3, 0x00D2, 200, 550));
-    checkbox->Checked = g_OptionsConfig.GetScaleImagesInPaperdollSlots();
-    checkbox->SetTextParameters(0, L"Scale images in slots", g_OptionsTextColor);
-
     checkbox = (CGUICheckbox *)html->Add(new CGUICheckbox(
         ID_GO_P2_REMOVE_STATUSBARS_WITHOUT_OBJECTS, 0x00D2, 0x00D3, 0x00D2, 0, 570));
     checkbox->Checked = g_OptionsConfig.RemoveStatusbarsWithoutObjects;
