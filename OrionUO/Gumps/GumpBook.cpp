@@ -22,7 +22,7 @@ CGumpBook::CGumpBook(
     : CGump(GT_BOOK, serial, x, y)
     , PageCount(pageCount)
     , Writable(writable)
-    , Unicode(unicode)
+    , Unicode(true) // The Siebenwind Server will send and receive all book data in Unicode.
 {
     DEBUG_TRACE_FUNCTION;
     m_ChangedPage = new bool[pageCount + 1];
@@ -40,26 +40,19 @@ CGumpBook::CGumpBook(
 
     Add(new CGUIPage(0));
     CGUIText *text = (CGUIText *)Add(new CGUIText(0x0386, 78, 32));
-    g_FontManager.UnusePartialHue = true;
-    text->CreateTextureA(9, "Title");
-    g_FontManager.UnusePartialHue = false;
 
     uint8_t entryFont = 1;
-    if (!Unicode)
-    {
-        entryFont = 4;
-    }
 
-    Add(new CGUIHitBox(ID_GB_TEXT_AREA_TITLE, 41, 65, 150, (Unicode ? 22 : 44)));
+    Add(new CGUIHitBox(ID_GB_TEXT_AREA_TITLE, 41, 65, 150, 22));
 
     m_EntryTitle = (CGUITextEntry *)Add(
         new CGUITextEntry(ID_GB_TEXT_AREA_TITLE, 0, 0, 0, 41, 65, 140, Unicode, entryFont));
     m_EntryTitle->ReadOnly = !Writable;
     m_EntryTitle->CheckOnSerial = true;
 
-    text = (CGUIText *)Add(new CGUIText(0x0386, 88, 134));
+    text = (CGUIText *)Add(new CGUIText(0x0386, 41, 134));
     g_FontManager.UnusePartialHue = true;
-    text->CreateTextureA(9, "by");
+    text->CreateTextureA(9, "von");
     g_FontManager.UnusePartialHue = false;
 
     Add(new CGUIHitBox(ID_GB_TEXT_AREA_AUTHOR, 41, 160, 150, 22));
@@ -69,12 +62,7 @@ CGumpBook::CGumpBook(
     m_EntryAuthor->ReadOnly = !Writable;
     m_EntryAuthor->CheckOnSerial = true;
 
-    uint16_t textColor = 0x0012;
-
-    if (Unicode)
-    {
-        textColor = 0x001B;
-    }
+    uint16_t textColor = 0x2681;
 
     for (int i = 0; i <= PageCount; i++)
     {
@@ -85,7 +73,7 @@ CGumpBook::CGumpBook(
         {
             Add(new CGUIPage(i));
             CGUIHitBox *box =
-                (CGUIHitBox *)Add(new CGUIHitBox(ID_GB_TEXT_AREA_PAGE_LEFT, 38, 34, 160, 166));
+                (CGUIHitBox *)Add(new CGUIHitBox(ID_GB_TEXT_AREA_PAGE_LEFT, 38, 42, 160, 166));
             box->MoveOnDrag = true;
 
             CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
@@ -94,7 +82,7 @@ CGumpBook::CGumpBook(
                 textColor,
                 textColor,
                 38,
-                34,
+                42,
                 0,
                 Unicode,
                 entryFont));
@@ -103,7 +91,7 @@ CGumpBook::CGumpBook(
             entry->CheckOnSerial = true;
             entry->MoveOnDrag = true;
 
-            text = (CGUIText *)Add(new CGUIText(0x0386, 112, 202));
+            text = (CGUIText *)Add(new CGUIText(0x0386, 112, 190));
             text->CreateTextureA(9, std::to_string(i));
         }
 
@@ -116,7 +104,7 @@ CGumpBook::CGumpBook(
 
             Add(new CGUIPage(i));
             CGUIHitBox *box =
-                (CGUIHitBox *)Add(new CGUIHitBox(ID_GB_TEXT_AREA_PAGE_RIGHT, 224, 34, 160, 166));
+                (CGUIHitBox *)Add(new CGUIHitBox(ID_GB_TEXT_AREA_PAGE_RIGHT, 224, 42, 160, 166));
             box->MoveOnDrag = true;
 
             CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
@@ -125,7 +113,7 @@ CGumpBook::CGumpBook(
                 textColor,
                 textColor,
                 224,
-                34,
+                42,
                 0,
                 Unicode,
                 entryFont));
@@ -134,7 +122,7 @@ CGumpBook::CGumpBook(
             entry->CheckOnSerial = true;
             entry->MoveOnDrag = true;
 
-            text = (CGUIText *)Add(new CGUIText(0x0386, 299, 202));
+            text = (CGUIText *)Add(new CGUIText(0x0386, 299, 190));
             text->CreateTextureA(9, std::to_string(i));
         }
     }

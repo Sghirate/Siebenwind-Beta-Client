@@ -5743,8 +5743,8 @@ PACKET_HANDLER(OpenBook) // 0x93
     CGumpBook *gump = new CGumpBook(
         serial, 0, 0, pageCount, flags != 0, (g_PacketManager.GetClientVersion() >= CV_308Z));
 
-    gump->m_EntryTitle->m_Entry.SetTextA(ReadString(60));
-    gump->m_EntryAuthor->m_Entry.SetTextA(ReadString(30));
+    gump->m_EntryTitle->m_Entry.SetTextW(DecodeUTF8(ReadString(60)));
+    gump->m_EntryAuthor->m_Entry.SetTextW(DecodeUTF8(ReadString(30)));
 
     g_GumpManager.AddGump(gump);
 }
@@ -5768,14 +5768,14 @@ PACKET_HANDLER(OpenBookNew) // 0xD4
 
     if (titleLen > 0)
     {
-        gump->m_EntryTitle->m_Entry.SetTextA(ReadString(titleLen));
+        gump->m_EntryTitle->m_Entry.SetTextW(DecodeUTF8(ReadString(titleLen)));
     }
 
     int authorLen = ReadUInt16BE();
 
     if (authorLen > 0)
     {
-        gump->m_EntryAuthor->m_Entry.SetTextA(ReadString(authorLen));
+        gump->m_EntryAuthor->m_Entry.SetTextW(DecodeUTF8(ReadString(authorLen)));
     }
 
     g_GumpManager.AddGump(gump);
