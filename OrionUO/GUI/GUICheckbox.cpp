@@ -42,7 +42,7 @@ void CGUICheckbox::SetTextParameters(
 {
     DEBUG_TRACE_FUNCTION;
     TextPosition = textPosition;
-    g_FontManager.GenerateA(font, Text, text, color, textWidth, align, textFlags);
+    g_FontManager.GenerateA(font, Text, SiebenwindClient::LocalizeA(text), color, textWidth, align, textFlags);
     UpdateTextPosition();
 }
 

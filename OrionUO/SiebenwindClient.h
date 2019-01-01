@@ -11,4 +11,7 @@ class SiebenwindClient
 public:
     static const string WindowTitle;
     static string GetBuildInfo();
+    
+    static string LocalizeA(const string &untranslated);
+    static wstring LocalizeW(const wstring &untranslated);
 };

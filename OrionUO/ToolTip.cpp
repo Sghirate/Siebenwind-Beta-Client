@@ -86,7 +86,7 @@ void CToolTip::Set(const wstring &str, int maxWidth)
     Timer = g_Ticks + g_ConfigManager.ToolTipsDelay;
     m_Object = object;
     Use = false;
-    Data = str;
+    Data = SiebenwindClient::LocalizeW(str);
     ClilocID = 0;
     MaxWidth = maxWidth;
 

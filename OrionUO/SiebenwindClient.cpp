@@ -43,3 +43,87 @@ string SiebenwindClient::GetBuildInfo()
     stream << dwBuild;
     return "Build " + stream.str();
 }
+
+string SiebenwindClient::LocalizeA(const string &untranslated)
+{
+    if (untranslated == "Save Password")
+    {
+        return "Passwort speichern";
+    }
+    else if (untranslated == "Auto Login")
+    {
+        return "Auto-Login";
+    }
+    else if (untranslated == "Log in to Ultima Online")
+    {
+        return "Anmelden bei Siebenwind";
+    }
+    else if (untranslated == "Account Name")
+    {
+        return "Benutzer";
+    }
+    else if (untranslated == "Password")
+    {
+        return "Passwort";
+    }
+    /* use this for new entries:
+    else if (untranslated == "")
+    {
+        return "";
+    }
+    else if (untranslated == "")
+    {
+        return "";
+    }
+    else if (untranslated == "")
+    {
+        return "";
+    }
+    */
+
+    return untranslated;
+}
+
+wstring SiebenwindClient::LocalizeW(const wstring &untranslated)
+{
+    if (untranslated == L"Quit Ultima Online")
+    {
+        return L"Siebenwind beenden.";
+    }
+    else if (untranslated == L"Next screen")
+    {
+        return L"Anmelden";
+    }
+    else if (untranslated == L"Click here to enter your user name")
+    {
+        return L"Hier den Benutzernamen eingeben.";
+    }
+    else if (untranslated == L"Click here to enter your password")
+    {
+        return L"Hier das Passwort eingeben.";
+    }
+    else if (untranslated == L"Save your password in config file")
+    {
+        return L"Das Passwort in der Konfigurationsdatei im Klartext (!) speichern.";
+    }
+    else if (untranslated == L"Auto LogIn (without selection screens)")
+    {
+        return L"Automatischer Login ohne Charakter-Auswahl.";
+    }
+    /* use this for new entries:
+    else if (untranslated == L"")
+    {
+        return L"";
+    }
+    else if (untranslated == L"")
+    {
+        return L"";
+    }
+    else if (untranslated == L"")
+    {
+        return L"";
+    }
+    */
+
+    return untranslated;
+}

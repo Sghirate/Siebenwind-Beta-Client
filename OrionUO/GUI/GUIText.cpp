@@ -16,7 +16,7 @@ void CGUIText::CreateTextureA(
     uint8_t font, const string &str, int width, TEXT_ALIGN_TYPE align, uint16_t flags)
 {
     DEBUG_TRACE_FUNCTION;
-    g_FontManager.GenerateA(font, m_Texture, str, Color, width, align, flags);
+    g_FontManager.GenerateA(font, m_Texture, SiebenwindClient::LocalizeA(str), Color, width, align, flags);
 }
 
 void CGUIText::CreateTextureW(
