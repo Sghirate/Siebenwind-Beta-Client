@@ -26,10 +26,11 @@ enum
     ID_GP_COUNT,
 };
 
+// Siebenwind uses a specific order of the layers, where arms have less priority.
 int CGumpPaperdoll::UsedLayers[m_LayerCount] = {
-    OL_CLOAK,    OL_RING,  OL_SHIRT,  OL_ARMS,  OL_PANTS,  OL_SHOES,    OL_LEGS,    OL_TORSO,
-    OL_BRACELET, OL_15,    OL_GLOVES, OL_TUNIC, OL_SKIRT,  OL_NECKLACE, OL_HAIR,    OL_ROBE,
-    OL_EARRINGS, OL_BEARD, OL_HELMET, OL_WAIST, OL_1_HAND, OL_2_HAND,   OL_TALISMAN
+    OL_CLOAK, OL_RING, OL_SHIRT, OL_PANTS, OL_SHOES, OL_LEGS, OL_TORSO, OL_BRACELET,
+    OL_15, OL_GLOVES, OL_TUNIC, OL_ARMS, OL_SKIRT, OL_NECKLACE, OL_HAIR, OL_ROBE,
+    OL_EARRINGS, OL_BEARD, OL_HELMET, OL_WAIST, OL_1_HAND, OL_2_HAND, OL_TALISMAN
 };
 
 CGumpPaperdoll::CGumpPaperdoll(uint32_t serial, short x, short y, bool minimized)
