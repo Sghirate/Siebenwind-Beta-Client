@@ -7,7 +7,6 @@ CPlayer::CPlayer(int serial)
     : CGameCharacter(serial)
 {
     DEBUG_TRACE_FUNCTION;
-    CPacketSkillsRequest(Serial).Send();
 }
 
 CPlayer::~CPlayer()
