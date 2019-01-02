@@ -130,8 +130,12 @@ void CGUIShopItem::CreateNameText()
         textColor = 0x0021;
     }
 
-    string str = Name + " at " + std::to_string(Price) + "gp";
-    g_FontManager.GenerateA(9, m_NameText, str, textColor, 90);
+    string str = Name + " für " + std::to_string(Price) + " Dukaten";
+
+    // Convert the name of the item from ISO-8859-1 to UTF16. This is not ideal,
+    // in the long run we should make the Siebenwind Server send UTF16.
+    wstring unicode = SiebenwindClient::Iso8859ToUtf16(str);
+    g_FontManager.GenerateW(1, m_NameText, unicode, textColor, 30, 120);
 }
 
 void CGUIShopItem::CreateCountText(int lostCount)
