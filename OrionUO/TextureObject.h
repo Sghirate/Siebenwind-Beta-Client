@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "Constants.h"
+#include "Backend.h"
+
 struct UOPAnimationData
 {
     os_path path;
@@ -49,6 +52,6 @@ public:
     CTextureAnimationGroup();
     virtual ~CTextureAnimationGroup();
 
-    CTextureAnimationDirection m_Direction[5];
+    CTextureAnimationDirection m_Direction[MAX_MOBILE_DIRECTIONS];
     UOPAnimationData m_UOPAnimData;
 };

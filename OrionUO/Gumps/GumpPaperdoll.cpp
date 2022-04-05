@@ -2,6 +2,24 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpPaperdoll.h"
+#include "../Config.h"
+#include "../OrionUO.h"
+#include "../ToolTip.h"
+#include "../Target.h"
+#include "../PressedObject.h"
+#include "../SelectedObject.h"
+#include "../ClickObject.h"
+#include "../Managers/AnimationManager.h"
+#include "../Managers/FontsManager.h"
+#include "../Managers/MouseManager.h"
+#include "../Managers/ConfigManager.h"
+#include "../Managers/UOFileReader.h"
+#include "../GameObjects/GameItem.h"
+#include "../GameObjects/GameWorld.h"
+#include "../GameObjects/ObjectOnCursor.h"
+#include "../GameObjects/GamePlayer.h"
+#include "../Network/Packets.h"
+#include "../TextEngine/TextData.h"
 
 enum
 {
@@ -18,7 +36,7 @@ enum
     ID_GP_BUTTON_MINIMIZE,
     ID_GP_PROFILE_SCROLL,
     ID_GP_PARTY_MANIFEST_SCROLL,
-    ID_GP_BUTTON_VIRTURE,
+    ID_GP_BUTTON_VIRTUE,
     ID_GP_COMBAT_BOOK,
     ID_GP_RACIAL_ABILITIES_BOOK,
     ID_GP_LOCK_MOVING,
@@ -68,7 +86,7 @@ CGumpPaperdoll::CGumpPaperdoll(uint32_t serial, short x, short y, bool minimized
         Add(new CGUIButton(ID_GP_BUTTON_OPTIONS, 0x07D6, 0x07D8, 0x07D7, 185, 71));
         Add(new CGUIButton(ID_GP_BUTTON_LOGOUT, 0x07D9, 0x07DB, 0x07DA, 185, 98));
 
-        if (g_PacketManager.GetClientVersion() >= CV_500A)
+        if (g_Config.ClientVersion >= CV_500A)
         {
             Add(new CGUIButton(ID_GP_BUTTON_JOURNAL_OR_QUESTS, 0x57B5, 0x57B6, 0x57B7, 185, 125));
         }
@@ -79,7 +97,7 @@ CGumpPaperdoll::CGumpPaperdoll(uint32_t serial, short x, short y, bool minimized
 
         Add(new CGUIButton(ID_GP_BUTTON_SKILLS, 0x07DF, 0x07E1, 0x07E0, 185, 152));
 
-        if (g_PacketManager.GetClientVersion() >= CV_500A)
+        if (g_Config.ClientVersion >= CV_500A)
         {
             Add(new CGUIButton(ID_GP_BUTTON_CHAT_OR_GUILD, 0x57B2, 0x57B3, 0x57B4, 185, 179));
         }
@@ -109,13 +127,13 @@ CGumpPaperdoll::CGumpPaperdoll(uint32_t serial, short x, short y, bool minimized
         }
 
         //UO->DrawGump(0x0FA1, 0, posX + 80, posY + 4); //Paperdoll mail bag
-        Add(new CGUIButton(ID_GP_BUTTON_VIRTURE, 0x0071, 0x0071, 0x0071, 80, 4));
+        Add(new CGUIButton(ID_GP_BUTTON_VIRTUE, 0x0071, 0x0071, 0x0071, 80, 4));
 
         if (g_PaperdollBooks)
         {
             Add(new CGUIButton(ID_GP_COMBAT_BOOK, 0x2B34, 0x2B34, 0x2B34, 156, 200));
 
-            if (g_PacketManager.GetClientVersion() >= CV_7000)
+            if (g_Config.ClientVersion >= CV_7000)
             {
                 Add(new CGUIButton(ID_GP_RACIAL_ABILITIES_BOOK, 0x2B28, 0x2B28, 0x2B28, 23, 200));
                 profileX += SCROLLS_STEP;
@@ -199,7 +217,7 @@ void CGumpPaperdoll::InitToolTip()
             }
             case ID_GP_BUTTON_JOURNAL_OR_QUESTS:
             {
-                if (g_PacketManager.GetClientVersion() >= CV_500A)
+                if (g_Config.ClientVersion >= CV_500A)
                 {
                     g_ToolTip.Set(L"Open the quests gump");
                 }
@@ -217,7 +235,7 @@ void CGumpPaperdoll::InitToolTip()
             }
             case ID_GP_BUTTON_CHAT_OR_GUILD:
             {
-                if (g_PacketManager.GetClientVersion() >= CV_500A)
+                if (g_Config.ClientVersion >= CV_500A)
                 {
                     g_ToolTip.Set(L"Open the guild gump");
                 }
@@ -253,9 +271,9 @@ void CGumpPaperdoll::InitToolTip()
                 g_ToolTip.Set(L"Double click for open party manifest gump");
                 break;
             }
-            case ID_GP_BUTTON_VIRTURE:
+            case ID_GP_BUTTON_VIRTUE:
             {
-                g_ToolTip.Set(L"Open server's virture gump");
+                g_ToolTip.Set(L"Open server's virtue gump");
                 break;
             }
             case ID_GP_COMBAT_BOOK:
@@ -340,7 +358,7 @@ void CGumpPaperdoll::PrepareContent()
         g_PressedObject.LeftSerial != 0xFFFFFFFF &&
         g_MouseManager.LastLeftButtonClickTimer < g_Ticks)
     {
-        Wisp::CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
 
         if (CanBeDraggedByOffset(offset) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
@@ -829,9 +847,9 @@ CRenderObject *CGumpPaperdoll::Select()
 
     if (!Minimized)
     {
-        Wisp::CPoint2Di oldPos = g_MouseManager.Position;
+        CPoint2Di oldPos = g_MouseManager.Position;
         g_MouseManager.Position =
-            Wisp::CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
+            CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
 
         m_TextRenderer.Select(this);
 
@@ -863,7 +881,7 @@ void CGumpPaperdoll::GUMP_BUTTON_EVENT_C
         }
         case ID_GP_BUTTON_JOURNAL_OR_QUESTS: //Paperdoll button Journal
         {
-            if (g_PacketManager.GetClientVersion() >= CV_500A)
+            if (g_Config.ClientVersion >= CV_500A)
             {
                 CPacketQuestMenuRequest().Send();
             }
@@ -880,7 +898,7 @@ void CGumpPaperdoll::GUMP_BUTTON_EVENT_C
         }
         case ID_GP_BUTTON_CHAT_OR_GUILD: //Paperdoll button Chat
         {
-            if (g_PacketManager.GetClientVersion() >= CV_500A)
+            if (g_Config.ClientVersion >= CV_500A)
             {
                 CPacketGuildMenuRequest().Send();
             }
@@ -1069,9 +1087,9 @@ bool CGumpPaperdoll::OnLeftMouseButtonDoubleClick()
 
             result = true;
         }
-        else if (serial == ID_GP_BUTTON_VIRTURE)
+        else if (serial == ID_GP_BUTTON_VIRTUE)
         {
-            CPacketVirtureRequest(1).Send();
+            CPacketVirtueRequest(1).Send();
 
             result = true;
         }

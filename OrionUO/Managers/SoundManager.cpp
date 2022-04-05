@@ -1,6 +1,11 @@
 // MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "SoundManager.h"
+#include "ConfigManager.h"
+#include "../OrionUO.h"
+#include "../OrionWindow.h"
+
 #if 0
 #define SOUND_DEBUG_TRACE DEBUG_TRACE_FUNCTION
 #else
@@ -41,7 +46,7 @@ static AudioSource *s_MusicSource[] = { &s_MusicStream[0], &s_MusicStream[1] };
 static handle s_Music[] = { 0, 0 };
 
 #define GetErrorDescription() __FUNCTION__
-#define MAX_SOUNDS 256
+#define MAX_SOUNDS 2048
 #define VOLUME_FACTOR 1.0f
 
 struct SoundInfo
@@ -470,7 +475,7 @@ bool CSoundManager::IsPlayingNormalMusic()
 #endif
 }
 
-void CSoundManager::PlayMP3(const std::string &fileName, int index, bool loop, bool warmode)
+void CSoundManager::PlayMP3(const string &fileName, int index, bool loop, bool warmode)
 {
     SOUND_DEBUG_TRACE;
 

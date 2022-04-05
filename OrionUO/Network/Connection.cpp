@@ -1,7 +1,9 @@
 // MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Connection.h"
 #include "../Sockets.h"
+#include "../Crypt/CryptEntry.h"
 
 CSocket::CSocket(bool gameSocket)
     : GameSocket(gameSocket)
@@ -229,19 +231,12 @@ vector<uint8_t> CSocket::Decompression(vector<uint8_t> data)
     DEBUG_TRACE_FUNCTION;
     if (GameSocket)
     {
-        intptr_t inSize = (intptr_t)data.size();
-
-        if (g_NetworkPostAction != nullptr)
-        {
-            g_NetworkPostAction(&data[0], &data[0], (int)inSize);
-        }
+        auto inSize = (intptr_t)data.size();
+        Crypt::Decrypt(&data[0], &data[0], (int)inSize);
 
         vector<uint8_t> decBuf(inSize * 4 + 2);
-
         int outSize = 65536;
-
         m_Decompressor((char *)&decBuf[0], (char *)&data[0], outSize, inSize);
-
         if (inSize != data.size())
         {
             DebugMsg("decompression buffer too small\n");
@@ -251,9 +246,7 @@ vector<uint8_t> CSocket::Decompression(vector<uint8_t> data)
         {
             decBuf.resize(outSize);
         }
-
         return decBuf;
     }
-
     return data;
 }

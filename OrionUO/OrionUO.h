@@ -3,15 +3,16 @@
 
 #pragma once
 
+#include "FileSystem.h"
+#include "IndexObject.h"
+#include "GameObjects/GameWorld.h"
 #include "plugin/plugininterface.h"
 
-bool __cdecl PluginRecvFunction(uint8_t *buf, size_t size);
-bool __cdecl PluginSendFunction(uint8_t *buf, size_t size);
+class CUopMappedFile;
 
 class COrion
 {
 public:
-    string ClientVersionText = "2.0.3";
     int TexturesDataCount = 0;
     string m_OverrideServerAddress;
     int m_OverrideServerPort = 0;
@@ -37,7 +38,6 @@ private:
 
     string m_GameServerIP = "";
 
-    bool LoadClientConfig();
     void LoadAutoLoginNames();
     void LoadTiledata(int landSize, int staticsSize);
     void LoadIndexFiles();
@@ -142,8 +142,8 @@ public:
     uint64_t GetLandFlags(uint16_t id);
     uint64_t GetStaticFlags(uint16_t id);
     uint16_t GetLightColor(uint16_t id) { return m_StaticDataIndex[id].LightColor; }
-    Wisp::CSize GetStaticArtDimension(uint16_t id);
-    Wisp::CSize GetGumpDimension(uint16_t id);
+    CSize GetStaticArtDimension(uint16_t id);
+    CSize GetGumpDimension(uint16_t id);
     CGLTexture *ExecuteGump(uint16_t id);
     CGLTexture *ExecuteLandArt(uint16_t id);
     CGLTexture *ExecuteStaticArt(uint16_t id);

@@ -1,7 +1,20 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
-#include "Profiler.h"
+#include "Gump.h"
+#include "../OrionUO.h"
+#include "../Point.h"
+#include "../Profiler.h"
+#include "../PressedObject.h"
+#include "../SelectedObject.h"
+#include "../ClickObject.h"
+#include "../OrionWindow.h"
+#include "../Managers/FontsManager.h"
+#include "../Managers/MouseManager.h"
+#include "../Managers/ConfigManager.h"
+#include "../GameObjects/ObjectOnCursor.h"
+#include "../ScreenStages/BaseScreen.h"
+#include "../ScreenStages/GameScreen.h"
 
 CGump *g_ResizedGump = nullptr;
 CGump *g_CurrentCheckGump = nullptr;
@@ -452,7 +465,7 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
     bool currentScissorState = true;
     CGUIComboBox *combo = nullptr;
 
-    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
+    CPoint2Di oldPos = g_MouseManager.Position;
 
     QFOR(item, start, CBaseGUI *)
     {
@@ -507,7 +520,7 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                     CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
 
                     g_MouseManager.Position =
-                        Wisp::CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
+                        CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
 
                     CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
 
@@ -529,7 +542,7 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                         int offsetX = htmlGump->DataOffset.X - htmlGump->CurrentOffset.X;
                         int offsetY = htmlGump->DataOffset.Y - htmlGump->CurrentOffset.Y;
 
-                        g_MouseManager.Position = Wisp::CPoint2Di(
+                        g_MouseManager.Position = CPoint2Di(
                             g_MouseManager.Position.X - offsetX,
                             g_MouseManager.Position.Y - offsetY);
 
@@ -666,8 +679,8 @@ void CGump::TestItemsLeftMouseDown(
                 {
                     if (g_SelectedObject.Object == ((CGUIShopResult *)item)->m_MinMaxButtons)
                     {
-                        Wisp::CPoint2Di oldPos = g_MouseManager.Position;
-                        g_MouseManager.Position = Wisp::CPoint2Di(
+                        CPoint2Di oldPos = g_MouseManager.Position;
+                        g_MouseManager.Position = CPoint2Di(
                             g_MouseManager.Position.X - item->GetX(),
                             g_MouseManager.Position.Y - item->GetY());
 
@@ -864,9 +877,9 @@ void CGump::TestItemsLeftMouseDown(
 
                     htmlTextBackgroundCanBeColored = !htmlGump->HaveBackground;
 
-                    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
+                    CPoint2Di oldPos = g_MouseManager.Position;
                     g_MouseManager.Position =
-                        Wisp::CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
+                        CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
 
                     CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
 
@@ -880,7 +893,7 @@ void CGump::TestItemsLeftMouseDown(
                     int offsetX = htmlGump->DataOffset.X - htmlGump->CurrentOffset.X;
                     int offsetY = htmlGump->DataOffset.Y - htmlGump->CurrentOffset.Y;
 
-                    g_MouseManager.Position = Wisp::CPoint2Di(
+                    g_MouseManager.Position = CPoint2Di(
                         g_MouseManager.Position.X - offsetX, g_MouseManager.Position.Y - offsetY);
 
                     TestItemsLeftMouseDown(gump, item, currentPage, draw2Page);
@@ -1233,9 +1246,9 @@ void CGump::TestItemsScrolling(
                     {
                         CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
 
-                        Wisp::CPoint2Di oldPos = g_MouseManager.Position;
-                        g_MouseManager.Position = Wisp::CPoint2Di(
-                            oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
+                        CPoint2Di oldPos = g_MouseManager.Position;
+                        g_MouseManager.Position =
+                            CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
 
                         CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
 
@@ -1254,7 +1267,7 @@ void CGump::TestItemsScrolling(
                         int offsetX = htmlGump->DataOffset.X - htmlGump->CurrentOffset.X;
                         int offsetY = htmlGump->DataOffset.Y - htmlGump->CurrentOffset.Y;
 
-                        g_MouseManager.Position = Wisp::CPoint2Di(
+                        g_MouseManager.Position = CPoint2Di(
                             g_MouseManager.Position.X - offsetX,
                             g_MouseManager.Position.Y - offsetY);
 
@@ -1349,9 +1362,9 @@ void CGump::TestItemsDragging(
                 {
                     CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
 
-                    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
+                    CPoint2Di oldPos = g_MouseManager.Position;
                     g_MouseManager.Position =
-                        Wisp::CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
+                        CPoint2Di(oldPos.X - htmlGump->GetX(), oldPos.Y - htmlGump->GetY());
 
                     CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
 
@@ -1365,7 +1378,7 @@ void CGump::TestItemsDragging(
                     int offsetX = htmlGump->DataOffset.X - htmlGump->CurrentOffset.X;
                     int offsetY = htmlGump->DataOffset.Y - htmlGump->CurrentOffset.Y;
 
-                    g_MouseManager.Position = Wisp::CPoint2Di(
+                    g_MouseManager.Position = CPoint2Di(
                         g_MouseManager.Position.X - offsetX, g_MouseManager.Position.Y - offsetY);
 
                     TestItemsDragging(gump, item, currentPage, draw2Page);
@@ -1541,9 +1554,9 @@ CRenderObject *CGump::Select()
         FrameCreated = false;
     }
 
-    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
+    CPoint2Di oldPos = g_MouseManager.Position;
     g_MouseManager.Position =
-        Wisp::CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
+        CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
 
     CRenderObject *selected = nullptr;
 
@@ -1577,23 +1590,23 @@ void CGump::RecalculateSize()
     PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
 
-    Wisp::CPoint2Di minPosition(999, 999);
-    Wisp::CPoint2Di maxPosition;
-    Wisp::CPoint2Di offset;
+    CPoint2Di minPosition(999, 999);
+    CPoint2Di maxPosition;
+    CPoint2Di offset;
 
     GetItemsSize(this, (CBaseGUI *)m_Items, minPosition, maxPosition, offset, -1, Page, Draw2Page);
 
-    Wisp::CSize size(maxPosition.X - minPosition.X, maxPosition.Y - minPosition.Y);
+    CSize size(maxPosition.X - minPosition.X, maxPosition.Y - minPosition.Y);
 
-    GumpRect = Wisp::CRect(minPosition, size);
+    GumpRect = CRect(minPosition, size);
 }
 
 void CGump::GetItemsSize(
     CGump *gump,
     CBaseGUI *start,
-    Wisp::CPoint2Di &minPosition,
-    Wisp::CPoint2Di &maxPosition,
-    Wisp::CPoint2Di &offset,
+    CPoint2Di &minPosition,
+    CPoint2Di &maxPosition,
+    CPoint2Di &offset,
     int count,
     int currentPage,
     int draw2Page)
@@ -1660,7 +1673,7 @@ void CGump::GetItemsSize(
             case GOT_XFMHTMLGUMP:
             case GOT_XFMHTMLTOKEN:
             {
-                Wisp::CPoint2Di htmlOffset(offset.X + item->GetX(), offset.X + item->GetY());
+                CPoint2Di htmlOffset(offset.X + item->GetX(), offset.X + item->GetY());
                 CGump::GetItemsSize(
                     gump,
                     (CBaseGUI *)item->m_Items,
@@ -1689,7 +1702,7 @@ void CGump::GetItemsSize(
                     minPosition.Y = y;
                 }
 
-                Wisp::CSize itemSize = item->GetSize();
+                CSize itemSize = item->GetSize();
 
                 x += itemSize.Width;
                 y += itemSize.Height;
@@ -1714,8 +1727,8 @@ void CGump::OnLeftMouseButtonDown()
 {
     DEBUG_TRACE_FUNCTION;
     g_CurrentCheckGump = this;
-    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = Wisp::CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
+    CPoint2Di oldPos = g_MouseManager.Position;
+    g_MouseManager.Position = CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
 
     TestItemsLeftMouseDown(this, (CBaseGUI *)m_Items, Page, Draw2Page);
 
@@ -1736,8 +1749,8 @@ void CGump::OnMidMouseButtonScroll(bool up)
 {
     DEBUG_TRACE_FUNCTION;
     g_CurrentCheckGump = this;
-    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = Wisp::CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
+    CPoint2Di oldPos = g_MouseManager.Position;
+    g_MouseManager.Position = CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
 
     TestItemsScrolling(this, (CBaseGUI *)m_Items, up, Page, Draw2Page);
 
@@ -1749,8 +1762,8 @@ void CGump::OnDragging()
 {
     DEBUG_TRACE_FUNCTION;
     g_CurrentCheckGump = this;
-    Wisp::CPoint2Di oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = Wisp::CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
+    CPoint2Di oldPos = g_MouseManager.Position;
+    g_MouseManager.Position = CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
 
     TestItemsDragging(this, (CBaseGUI *)m_Items, Page, Draw2Page);
 

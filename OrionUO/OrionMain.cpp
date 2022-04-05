@@ -1,14 +1,21 @@
+// GPLv3 License
+// Copyright (C) 2019 Danny Angelo Carminati Grein
 
 #include "FileSystem.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "OrionWindow.h"
+#include "OrionApplication.h"
 #include <SDL.h>
 #include <time.h>
+#include "Managers/ConfigManager.h"
 
 #if USE_WISP
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
     DEBUG_TRACE_FUNCTION;
-    INITLOGGER(L"uolog.txt");
+    INITLOGGER(L"orionuo.log");
 
     //ParseCommandLine(); // FIXME
     if (SDL_Init(SDL_INIT_TIMER) < 0)
@@ -19,6 +26,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
     }
 
     g_App.Init();
+    LoadGlobalConfig();
     g_ConfigManager.Init();
     auto path = g_App.ExeFilePath("crashlogs");
     fs_path_create(path);
@@ -68,12 +76,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 #include "plugin/plugininterface.h"
 
-#if USE_ORIONDLL
-ENCRYPTION_TYPE g_EncryptionType;
-#endif
-
 static bool g_isHeadless = false;
-extern ENCRYPTION_TYPE g_EncryptionType;
 
 #if !defined(ORION_WINDOWS)
 ORION_EXPORT int plugin_main(int argc, char **argv)
@@ -82,6 +85,18 @@ int main(int argc, char **argv)
 #endif
 {
     DEBUG_TRACE_FUNCTION;
+
+    if (SDL_Init(SDL_INIT_TIMER) < 0)
+    {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize SDL: %s\n", SDL_GetError());
+        return EXIT_FAILURE;
+    }
+
+    SDL_Log("SDL Initialized.");
+    g_App.Init();
+    INITLOGGER(ToPath("orionuo.log"));
+    LoadGlobalConfig();
 
     // TODO: good cli parsing api
     // keep this simple for now just for travis-ci
@@ -93,25 +108,14 @@ int main(int argc, char **argv)
         }
         else if (strcmp(argv[i], "--nocrypt") == 0)
         {
-            g_EncryptionType = ET_NOCRYPT;
+            g_Config.EncryptionType = ET_NOCRYPT;
         }
     }
 
-    if (SDL_Init(SDL_INIT_TIMER) < 0)
-    {
-        SDL_LogError(
-            SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize SDL: %s\n", SDL_GetError());
-        return EXIT_FAILURE;
-    }
-
-    SDL_Log("SDL Initialized.");
-    g_App.Init();
-    INITLOGGER("uolog.txt");
-    auto path = g_App.ExeFilePath("crashlogs");
-    fs_path_create(path);
-
     // FIXME: log stuff
     /*
+    auto path = g_App.ExeFilePath("crashlogs");
+    fs_path_create(path);
     char buf[100]{};
     auto t = time(nullptr);
     auto now = *localtime(&t);

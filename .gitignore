@@ -66,3 +66,7 @@ external/
 /test_bin64/OrionUO.pdb
 /bin/OrionUO.exe
 /bin/OrionUO.pdb
+
+# Jetbrains tools ignore files
+.idea/
+cmake-build-debug
