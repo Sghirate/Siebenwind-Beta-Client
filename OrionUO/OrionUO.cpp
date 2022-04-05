@@ -1,35 +1,167 @@
 // MIT License
 // Copyright (C) August 2016 Hotride
 
-#include <SDL_loadso.h>
-#include <SDL_keyboard.h>
-#include <SDL_rect.h>
+#include "OrionUO.h"
+
+#include <SDL.h>
+
 #include "GitRevision.h"
-#include "Wisp/WispGlobal.h"
-#include "FileSystem.h"
+#include "Config.h"
+#include "Misc.h"
+
+#include "Point.h"
+#include "Macro.h"
+#include "DefinitionMacro.h"
+#include "CityList.h"
+#include "Target.h"
+#include "Weather.h"
+#include "TargetGump.h"
+#include "StumpsData.h"
+#include "Party.h"
+#include "ShaderData.h"
+#include "ServerList.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "ClickObject.h"
+#include "OrionWindow.h"
+#include "UseItemsList.h"
+#include "ContainerStack.h"
+#include "Container.h"
+#include "CharacterList.h"
+#include "DateTimeStamp.h"
+#include "OrionApplication.h"
+
+#include "Utility/PingThread.h"
 #include "Crypt/CryptEntry.h"
+
+#include "plugin/commoninterfaces.h"
+
 #include "Profiler.h"
 
+#include "Walker/Walker.h"
+#include "Walker/PathFinder.h"
+
+#include "GameObjects/LandObject.h"
+#include "GameObjects/GamePlayer.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "GameObjects/MapBlock.h"
+#include "GameObjects/GameCharacter.h"
+
+#include "TextEngine/EntryText.h"
+#include "TextEngine/GameConsole.h"
+#include "TextEngine/Journal.h"
+#include "TextEngine/RenderTextObject.h"
+#include "TextEngine/TextData.h"
+#include "TextEngine/TextRenderer.h"
+
+#include "Network/UOHuffman.h"
+#include "Network/Packets.h"
+#include "Network/PluginPackets.h"
+#include "Network/Connection.h"
+
+#include "Managers/FileManager.h"
+#include "Managers/AnimationManager.h"
+#include "Managers/CityManager.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/CustomHousesManager.h"
+#include "Managers/IntlocManager.h"
+#include "Managers/ObjectPropertiesManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/ConnectionManager.h"
+#include "Managers/CreateCharacterManager.h"
+#include "Managers/EffectManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/MacroManager.h"
+#include "Managers/MapManager.h"
+#include "Managers/MouseManager.h"
+#include "Managers/OptionsMacroManager.h"
+#include "Managers/PacketManager.h"
+#include "Managers/PluginManager.h"
+#include "Managers/ProfessionManager.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Managers/SkillGroupManager.h"
+#include "Managers/SoundManager.h"
+#include "Managers/SpeechManager.h"
+#include "Managers/UOFileReader.h"
+#include "Managers/CorpseManager.h"
+#include "Managers/SkillsManager.h"
+
+#include "ScreenStages/BaseScreen.h"
+#include "ScreenStages/CharacterListScreen.h"
+#include "ScreenStages/ConnectionScreen.h"
+#include "ScreenStages/CreateCharacterScreen.h"
+#include "ScreenStages/GameBlockedScreen.h"
+#include "ScreenStages/GameScreen.h"
+#include "ScreenStages/MainScreen.h"
+#include "ScreenStages/SelectProfessionScreen.h"
+#include "ScreenStages/SelectTownScreen.h"
+#include "ScreenStages/ServerScreen.h"
+
+#include "Gumps/GumpAbility.h"
+#include "Gumps/GumpBaseScroll.h"
+#include "Gumps/GumpBook.h"
+#include "Gumps/GumpBuff.h"
+#include "Gumps/GumpBulletinBoard.h"
+#include "Gumps/GumpBulletinBoardItem.h"
+#include "Gumps/GumpCombatBook.h"
+#include "Gumps/GumpConsoleType.h"
+#include "Gumps/GumpContainer.h"
+#include "Gumps/GumpCustomHouse.h"
+#include "Gumps/GumpDrag.h"
+#include "Gumps/GumpSelectColor.h"
+#include "Gumps/GumpDye.h"
+#include "Gumps/GumpGeneric.h"
+#include "Gumps/GumpGrayMenu.h"
+#include "Gumps/GumpJournal.h"
+#include "Gumps/GumpMap.h"
+#include "Gumps/GumpMenu.h"
+#include "Gumps/GumpMenubar.h"
+#include "Gumps/GumpMinimap.h"
+#include "Gumps/GumpNotify.h"
+#include "Gumps/GumpOptions.h"
+#include "Gumps/GumpPaperdoll.h"
+#include "Gumps/GumpPartyManifest.h"
+#include "Gumps/GumpPopupMenu.h"
+#include "Gumps/GumpProfile.h"
+#include "Gumps/GumpQuestion.h"
+#include "Gumps/GumpRacialAbilitiesBook.h"
+#include "Gumps/GumpRacialAbility.h"
+#include "Gumps/GumpScreenCharacterList.h"
+#include "Gumps/GumpScreenConnection.h"
+#include "Gumps/GumpScreenCreateCharacter.h"
+#include "Gumps/GumpScreenGame.h"
+#include "Gumps/GumpScreenMain.h"
+#include "Gumps/GumpScreenSelectProfession.h"
+#include "Gumps/GumpScreenSelectTown.h"
+#include "Gumps/GumpScreenServer.h"
+#include "Gumps/GumpSecureTrading.h"
+#include "Gumps/GumpSelectFont.h"
+#include "Gumps/GumpShop.h"
+#include "Gumps/GumpSkill.h"
+#include "Gumps/GumpSkills.h"
+#include "Gumps/GumpSpell.h"
+#include "Gumps/GumpSpellbook.h"
+#include "Gumps/GumpStatusbar.h"
+#include "Gumps/GumpTargetSystem.h"
+#include "Gumps/GumpTextEntryDialog.h"
+#include "Gumps/GumpTip.h"
+#include "Gumps/GumpWorldMap.h"
+#include "Gumps/GumpProperty.h"
+#include "Gumps/GumpPropertyIcon.h"
+
 #if !defined(ORION_WINDOWS)
-#define __cdecl
 REVERSE_PLUGIN_INTERFACE g_oaReverse;
 #endif
 
-// REMOVE
-typedef void __cdecl PLUGIN_INIT_TYPE_OLD(vector<string> &, vector<string> &, vector<uint32_t> &);
-static PLUGIN_INIT_TYPE_OLD *g_PluginInitOld = nullptr; // FIXME: REMOVE
-
 PLUGIN_CLIENT_INTERFACE g_PluginClientInterface = {};
 
-typedef void __cdecl PLUGIN_INIT_TYPE_NEW(PLUGIN_INFO *);
-static PLUGIN_INIT_TYPE_NEW *g_PluginInitNew = nullptr;
+bool CDECL PluginRecvFunction(uint8_t *buf, size_t size);
+bool CDECL PluginSendFunction(uint8_t *buf, size_t size);
 
-#if USE_ORIONDLL
-typedef size_t __cdecl PLUGIN_GET_COUNT_FUNC();
-PLUGIN_GET_COUNT_FUNC *GetPluginsCount = nullptr;
-#else
-extern ENCRYPTION_TYPE g_EncryptionType;
-#endif
+typedef void CDECL PLUGIN_INIT_TYPE(PLUGIN_INFO *);
+static PLUGIN_INIT_TYPE *g_PluginInit = nullptr;
 
 COrion g_Orion;
 
@@ -101,7 +233,7 @@ void COrion::ParseCommandLine() // FIXME: move this out
 #if defined(ORION_WINDOWS)
     int argc = 0;
     auto *args = CommandLineToArgvW(GetCommandLineW(), &argc);
-    auto defaultPluginPath{ g_App.ExeFilePath("OA/OrionAssistant.dll") };
+    auto defaultPluginPath{ g_App.ExeFilePath("OrionAssistant.dll") };
     string defaultPluginFunction = "Install";
 #else
     // FIXME: again, move this out! and receive args from the real main
@@ -219,12 +351,10 @@ void COrion::ParseCommandLine() // FIXME: move this out
         {
             g_ShowWarnings = false;
         }
-#if !USE_ORIONDLL
         else if (str == "nocrypt")
         {
-            g_EncryptionType = ET_NOCRYPT;
+            g_Config.EncryptionType = ET_NOCRYPT;
         }
-#endif
     }
 
 #if defined(ORION_WINDOWS)
@@ -252,46 +382,28 @@ bool COrion::Install()
     LOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
     CRASHLOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
 
-    auto clientCuoPath{ g_App.UOFilesPath("Client.cuo") };
-    if (!fs_path_exists(clientCuoPath))
-    {
-        clientCuoPath = g_App.ExeFilePath("Client.cuo");
-        if (!fs_path_exists(clientCuoPath))
-        {
-            LOG("Client.cuo is missing!\n");
-            CRASHLOG("Client.cuo is missing!\n");
-            g_OrionWindow.ShowMessage(
-                "Configuration file 'Client.cuo' not found in " + ToString(clientCuoPath) +
-                    "! Client can't be started!",
-                "Error!");
-            return false;
-        }
-    }
-
     for (int i = 0; i < 256; i++)
     {
         m_CRC_Table[i] = Reflect((int)i, 8) << 24;
-
         for (int j = 0; j < 8; j++)
         {
             m_CRC_Table[i] =
                 (m_CRC_Table[i] << 1) ^ ((m_CRC_Table[i] & (1 << 31)) != 0u ? 0x04C11DB7 : 0);
         }
-
         m_CRC_Table[i] = Reflect(m_CRC_Table[i], 32);
+    }
+
+    for (int i = 0; i < MAX_MAPS_COUNT; i++)
+    {
+        g_MapBlockSize[i].Width = g_MapSize[i].Width / 8;
+        g_MapBlockSize[i].Height = g_MapSize[i].Height / 8;
     }
 
     Platform::SetLanguageFromSystemLocale();
     fs_path_create(g_App.ExeFilePath("screenshots"));
 
-    LOG("Loading client config.\n");
-    if (!LoadClientConfig())
-    {
-        return false;
-    }
-
     LOG("Client config loaded!\n");
-    if (g_PacketManager.GetClientVersion() >= CV_305D)
+    if (g_Config.ClientVersion >= CV_305D)
     {
         CGumpSpellbook::m_SpellReagents1[4] = "Sulfurous ash";                 //Magic Arrow
         CGumpSpellbook::m_SpellReagents1[17] = "Black pearl";                  //Fireball
@@ -303,7 +415,7 @@ bool COrion::Install()
 
     LOG("Load files\n");
 
-    if (g_PacketManager.GetClientVersion() >= CV_7000)
+    if (g_Config.ClientVersion >= CV_7000)
     {
         g_FileManager.TryReadUOPAnimations();
     }
@@ -331,7 +443,7 @@ bool COrion::Install()
 
     int staticsCount = 512;
 
-    if (g_PacketManager.GetClientVersion() >= CV_7090)
+    if (g_Config.ClientVersion >= CV_7090)
     {
         staticsCount = (int)(g_FileManager.m_TiledataMul.Size - (512 * sizeof(LAND_GROUP_NEW))) /
                        sizeof(STATIC_GROUP_NEW);
@@ -381,7 +493,7 @@ bool COrion::Install()
 
     CheckStaticTileFilterFiles();
 
-    Wisp::CSize statusbarDims = GetGumpDimension(0x0804);
+    CSize statusbarDims = GetGumpDimension(0x0804);
 
     CGumpStatusbar::m_StatusbarDefaultWidth = statusbarDims.Width;
     CGumpStatusbar::m_StatusbarDefaultHeight = statusbarDims.Height;
@@ -502,13 +614,12 @@ bool COrion::Install()
 
     LOG("Update main screen content\n");
     g_MainScreen.UpdateContent();
-    g_MainScreen.LoadGlobalConfig();
 
     LOG("Init screen...\n");
 
     InitScreen(GS_MAIN);
 
-    if (g_PacketManager.GetClientVersion() >= CV_7000)
+    if (g_Config.ClientVersion >= CV_7000)
     {
         LOG("Waiting for FileManager to try & load AnimationFrame files\n");
         g_FileManager.m_AutoResetEvent.WaitOne();
@@ -525,7 +636,8 @@ void COrion::Uninstall()
     DEBUG_TRACE_FUNCTION;
     LOG("COrion::Uninstall()\n");
     SaveLocalConfig(g_PacketManager.ConfigSerial);
-    g_MainScreen.SaveGlobalConfig();
+    g_MainScreen.Save();
+    SaveGlobalConfig();
     g_GumpManager.OnDelete();
 
     Disconnect();
@@ -667,7 +779,7 @@ void COrion::CheckStaticTileFilterFiles()
     auto filePath{ path + PATH_SEP + ToPath("cave.txt") };
     if (!fs_path_exists(filePath))
     {
-        Wisp::CLogger file;
+        CLogger file;
 
         file.Init(filePath);
         file.Print("#Format: graphic\n");
@@ -682,7 +794,7 @@ void COrion::CheckStaticTileFilterFiles()
     }
 
     filePath = path + PATH_SEP + ToPath("vegetation.txt");
-    Wisp::CLogger vegetationFile;
+    CLogger vegetationFile;
 
     if (!fs_path_exists(filePath))
     {
@@ -727,7 +839,7 @@ void COrion::CheckStaticTileFilterFiles()
 
     if (!fs_path_exists(filePath))
     {
-        Wisp::CLogger file;
+        CLogger file;
 
         file.Init(filePath);
         file.Print("#Format: graphic hatched\n");
@@ -957,7 +1069,7 @@ void COrion::LoadContainerOffsets()
 
     if (!fs_path_exists(filePath))
     {
-        Wisp::CLogger file;
+        CLogger file;
 
         file.Init(filePath);
         file.Print("#Format: gump open_sound close_sound minX minY maxX maxY\n");
@@ -978,220 +1090,6 @@ void COrion::LoadContainerOffsets()
 
     LOG("g_ContainerOffset.size()=%zd\n", g_ContainerOffset.size());
 }
-
-#if !USE_ORIONDLL
-bool COrion::LoadClientConfig()
-{
-    DEBUG_TRACE_FUNCTION;
-
-    Wisp::CMappedFile config;
-
-    if (config.Load(g_App.UOFilesPath("Client.cuo")) ||
-        config.Load(g_App.ExeFilePath("Client.cuo")))
-    {
-        unsigned char data[1024] = {};
-        size_t dataSize = sizeof(data);
-        CryptInstallNew(config.Start, config.Size, data, dataSize);
-        config.Unload();
-
-        if (dataSize == 0u)
-        {
-            g_OrionWindow.ShowMessage("Corrupted config data!", "Error!");
-            return false;
-        }
-
-        Wisp::CDataReader file(data, dataSize);
-
-        uint8_t version = file.ReadInt8();
-        uint8_t dllVersion = file.ReadInt8();
-        uint8_t subVersion = file.ReadInt8();
-        g_PacketManager.SetClientVersion((CLIENT_VERSION)file.ReadInt8());
-
-        if (g_PacketManager.GetClientVersion() >= CV_70331)
-        {
-            g_MaxViewRange = MAX_VIEW_RANGE_NEW;
-        }
-        else
-        {
-            g_MaxViewRange = MAX_VIEW_RANGE_OLD;
-        }
-
-        int len = file.ReadInt8();
-        ClientVersionText = file.ReadString(len);
-
-#if defined(_M_IX86)
-        g_NetworkInit = (NETWORK_INIT_TYPE *)file.ReadUInt32LE();
-        g_NetworkAction = (NETWORK_ACTION_TYPE *)file.ReadUInt32LE();
-        g_NetworkPostAction = (NETWORK_POST_ACTION_TYPE *)file.ReadUInt32LE();
-        g_PluginInitNew = (PLUGIN_INIT_TYPE_NEW *)file.ReadUInt32LE();
-#else
-        g_NetworkInit = (NETWORK_INIT_TYPE *)file.ReadUInt64LE();
-        g_NetworkAction = (NETWORK_ACTION_TYPE *)file.ReadUInt64LE();
-        g_NetworkPostAction = (NETWORK_POST_ACTION_TYPE *)file.ReadUInt64LE();
-        g_PluginInitNew = (PLUGIN_INIT_TYPE_NEW *)file.ReadUInt64LE();
-#endif
-
-        int mapsCount = MAX_MAPS_COUNT;
-
-        if (version >= 4)
-        {
-            mapsCount = file.ReadUInt8();
-        }
-        else
-        {
-            file.Move(1);
-        }
-
-        for (int i = 0; i < mapsCount; i++)
-        {
-            g_MapSize[i].Width = file.ReadUInt16LE();
-            g_MapSize[i].Height = file.ReadUInt16LE();
-
-            g_MapBlockSize[i].Width = g_MapSize[i].Width / 8;
-            g_MapBlockSize[i].Height = g_MapSize[i].Height / 8;
-        }
-
-        g_CharacterList.ClientFlag = file.ReadInt8();
-        g_FileManager.UseVerdata = (file.ReadInt8() != 0);
-
-        LOG("\tCUO Version: %d\n", version);
-        LOG("\tClient Version: %d\n", g_PacketManager.GetClientVersion());
-        LOG("\tClient Text: %s\n", ClientVersionText.c_str());
-        LOG("\tMaps Count: %d\n", mapsCount);
-        LOG("\tUse Verdata: %d\n", g_FileManager.UseVerdata);
-
-        return true;
-    }
-
-    return false;
-}
-#else
-bool COrion::LoadClientConfig()
-{
-    DEBUG_TRACE_FUNCTION;
-    auto path = g_App.ExeFilePath("Orion.dll");
-    auto orionDll = SDL_LoadObject(CStringFromPath(path));
-
-    if (orionDll == 0)
-    {
-        g_OrionWindow.ShowMessage("Orion.dll not found in " + ToString(path), "Error!");
-        return false;
-    }
-
-    typedef void __cdecl installFuncOld(uint8_t *, int, vector<uint8_t> *);
-    typedef void __cdecl installFuncNew(uint8_t *, size_t, uint8_t *, size_t &);
-
-    installFuncOld *installOld = (installFuncOld *)SDL_LoadFunction(orionDll, "Install");
-    installFuncNew *installNew = (installFuncNew *)SDL_LoadFunction(orionDll, "InstallNew");
-
-    if (installNew == nullptr)
-    {
-        if (installOld == nullptr)
-        {
-            g_OrionWindow.ShowMessage(
-                "Install of InstallNew function in Orion.dll not found!", "Error!");
-            return false;
-        }
-    }
-    else
-        installOld = nullptr;
-
-    Wisp::CMappedFile config;
-
-    if (config.Load(g_App.UOFilesPath("Client.cuo")) ||
-        config.Load(g_App.ExeFilePath("Client.cuo")))
-    {
-        vector<uint8_t> realData(config.Size * 2, 0);
-        size_t realSize = 0;
-
-        if (installOld != nullptr)
-        {
-            installOld(config.Start, (int)config.Size, &realData);
-            realSize = realData.size();
-        }
-        else
-            installNew(config.Start, config.Size, &realData[0], realSize);
-
-        config.Unload();
-
-        if (!realSize)
-        {
-            g_OrionWindow.ShowMessage("Corrupted config data!", "Error!");
-            return false;
-        }
-
-        GetPluginsCount = (PLUGIN_GET_COUNT_FUNC *)SDL_LoadFunction(orionDll, "GetPluginsCount");
-
-        Wisp::CDataReader file(&realData[0], realSize);
-
-        uint8_t version = file.ReadInt8();
-        uint8_t dllVersion = file.ReadInt8();
-        uint8_t subVersion = 0;
-
-        if (dllVersion != 0xFE)
-        {
-            g_OrionWindow.ShowMessage(
-                "Old version of Orion.dll detected!!!\nClient may be crashed in process.",
-                "Warning!");
-            file.Move(-1);
-        }
-        else
-            subVersion = file.ReadInt8();
-
-        g_PacketManager.SetClientVersion((CLIENT_VERSION)file.ReadInt8());
-
-        if (g_PacketManager.GetClientVersion() >= CV_70331)
-            g_MaxViewRange = MAX_VIEW_RANGE_NEW;
-        else
-            g_MaxViewRange = MAX_VIEW_RANGE_OLD;
-
-        int len = file.ReadInt8();
-        ClientVersionText = file.ReadString(len);
-
-#if defined(_M_IX86)
-        g_NetworkInit = (NETWORK_INIT_TYPE *)file.ReadUInt32LE();
-        g_NetworkAction = (NETWORK_ACTION_TYPE *)file.ReadUInt32LE();
-        if (dllVersion == 0xFE)
-            g_NetworkPostAction = (NETWORK_POST_ACTION_TYPE *)file.ReadUInt32LE();
-
-        if (installOld != nullptr)
-            g_PluginInitOld = (PLUGIN_INIT_TYPE_OLD *)file.ReadUInt32LE();
-        else
-            g_PluginInitNew = (PLUGIN_INIT_TYPE_NEW *)file.ReadUInt32LE();
-#else
-        g_NetworkInit = (NETWORK_INIT_TYPE *)file.ReadUInt64LE();
-        g_NetworkAction = (NETWORK_ACTION_TYPE *)file.ReadUInt64LE();
-        if (dllVersion == 0xFE)
-            g_NetworkPostAction = (NETWORK_POST_ACTION_TYPE *)file.ReadUInt64LE();
-
-        if (installOld != nullptr)
-            g_PluginInitOld = (PLUGIN_INIT_TYPE_OLD *)file.ReadUInt64LE();
-        else
-            g_PluginInitNew = (PLUGIN_INIT_TYPE_NEW *)file.ReadUInt64LE();
-#endif
-
-        int mapsCount = MAX_MAPS_COUNT;
-
-        if (version >= 4)
-            mapsCount = file.ReadUInt8();
-        else
-            file.Move(1);
-
-        for (int i = 0; i < mapsCount; i++)
-        {
-            g_MapSize[i].Width = file.ReadUInt16LE();
-            g_MapSize[i].Height = file.ReadUInt16LE();
-
-            g_MapBlockSize[i].Width = g_MapSize[i].Width / 8;
-            g_MapBlockSize[i].Height = g_MapSize[i].Height / 8;
-        }
-
-        g_CharacterList.ClientFlag = file.ReadInt8();
-        g_FileManager.UseVerdata = (file.ReadInt8() != 0);
-    }
-    return true;
-}
-#endif
 
 void COrion::LoadAutoLoginNames()
 {
@@ -1590,30 +1488,21 @@ void COrion::LoadPluginConfig()
     vector<string> functions;
     vector<uint32_t> flags;
 
-    if (g_PluginInitOld != nullptr)
+    size_t pluginsInfoCount = Crypt::GetPluginsCount();
+    if (pluginsInfoCount == 0u)
     {
-        g_PluginInitOld(libName, functions, flags);
+        return;
     }
-    else
+
+    PLUGIN_INFO *pluginsInfo = new PLUGIN_INFO[pluginsInfoCount];
+    g_PluginInit(pluginsInfo);
+    for (int i = 0; i < (int)pluginsInfoCount; i++)
     {
-        size_t pluginsInfoCount = GetPluginsCount();
-        if (pluginsInfoCount == 0u)
-        {
-            return;
-        }
-
-        PLUGIN_INFO *pluginsInfo = new PLUGIN_INFO[pluginsInfoCount];
-        g_PluginInitNew(pluginsInfo);
-
-        for (int i = 0; i < (int)pluginsInfoCount; i++)
-        {
-            libName.push_back(pluginsInfo[i].FileName);
-            functions.push_back(pluginsInfo[i].FunctionName);
-            flags.push_back((uint32_t)pluginsInfo[i].Flags);
-        }
-
-        delete[] pluginsInfo;
+        libName.push_back(pluginsInfo[i].FileName);
+        functions.push_back(pluginsInfo[i].FunctionName);
+        flags.push_back((uint32_t)pluginsInfo[i].Flags);
     }
+    delete[] pluginsInfo;
 
     for (int i = 0; i < (int)libName.size(); i++)
     {
@@ -2086,12 +1975,12 @@ void COrion::LoginComplete(bool reload)
 
         //CPacketOpenChat({}).Send();
         //CPacketRazorAnswer().Send();
-        if (g_PacketManager.GetClientVersion() >= CV_306E)
+        if (g_Config.ClientVersion >= CV_306E)
         {
             CPacketClientType().Send();
         }
 
-        if (g_PacketManager.GetClientVersion() >= CV_305D)
+        if (g_Config.ClientVersion >= CV_305D)
         {
             CPacketClientViewRange(g_ConfigManager.UpdateRange).Send();
         }
@@ -3619,10 +3508,10 @@ void COrion::LoadLogin(string &login, int &port)
         return;
     }
 
-    if (!g_App.m_ServerAddress.empty())
+    if (!g_Config.ServerAddress.empty())
     {
-        login = g_App.m_ServerAddress;
-        port = g_App.m_ServerPort;
+        login = g_Config.ServerAddress;
+        port = g_Config.ServerPort;
         return;
     }
 
@@ -3648,12 +3537,12 @@ void COrion::GoToWebLink(const string &url)
     if (url.length() != 0u)
     {
         std::size_t found = url.find("http://");
-        if (found == std::string::npos)
+        if (found == string::npos)
         {
             found = url.find("https://");
         }
         const string header = "http://";
-        if (found != std::string::npos)
+        if (found != string::npos)
         {
             Platform::OpenBrowser(url.c_str());
         }
@@ -3671,7 +3560,7 @@ void COrion::LoadTiledata(int landSize, int staticsSize)
 
     if (file.Size != 0u)
     {
-        bool isOldVersion = (g_PacketManager.GetClientVersion() < CV_7090);
+        bool isOldVersion = (g_Config.ClientVersion < CV_7090);
         file.ResetPtr();
 
         m_LandData.resize(landSize * 32);
@@ -4613,7 +4502,7 @@ void COrion::PatchFiles()
 
     Wisp::CMappedFile &file = g_FileManager.m_VerdataMul;
 
-    if (!g_FileManager.UseVerdata || (file.Size == 0u))
+    if (!g_Config.UseVerdata || (file.Size == 0u))
     {
         g_ColorManager.CreateHuesPalette();
         return;
@@ -4689,7 +4578,7 @@ void COrion::PatchFiles()
                 {
                     LAND_TILES &tile = m_LandData[offset + j];
 
-                    if (g_PacketManager.GetClientVersion() < CV_7090)
+                    if (g_Config.ClientVersion < CV_7090)
                     {
                         tile.Flags = file.ReadUInt32LE();
                     }
@@ -4717,7 +4606,7 @@ void COrion::PatchFiles()
                 {
                     STATIC_TILES &tile = m_StaticData[offset + j];
 
-                    if (g_PacketManager.GetClientVersion() < CV_7090)
+                    if (g_Config.ClientVersion < CV_7090)
                     {
                         tile.Flags = file.ReadUInt32LE();
                     }
@@ -4757,7 +4646,7 @@ void COrion::PatchFiles()
 void COrion::IndexReplaces()
 {
     DEBUG_TRACE_FUNCTION;
-    if (g_PacketManager.GetClientVersion() < CV_305D)
+    if (g_Config.ClientVersion < CV_305D)
     { //CV_204C
         return;
     }
@@ -4772,7 +4661,7 @@ void COrion::IndexReplaces()
     Wisp::CTextFileParser soundParser(g_App.UOFilesPath("Sound.def"), " \t", "#;//", "{}");
     Wisp::CTextFileParser mp3Parser(g_App.UOFilesPath("Music/Digital/Config.txt"), " ,", "#;", "");
 
-    DEBUGLOG("Replace arts\n");
+    LOG("Replace arts\n");
     while (!artParser.IsEOF())
     {
         vector<string> strings = artParser.ReadTokens();
@@ -4829,7 +4718,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    DEBUGLOG("Replace textures\n");
+    LOG("Replace textures\n");
     while (!textureParser.IsEOF())
     {
         vector<string> strings = textureParser.ReadTokens();
@@ -4870,7 +4759,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    DEBUGLOG("Replace gumps\n");
+    LOG("Replace gumps\n");
     while (!gumpParser.IsEOF())
     {
         vector<string> strings = gumpParser.ReadTokens();
@@ -4908,7 +4797,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    DEBUGLOG("Replace multi\n");
+    LOG("Replace multi\n");
     while (!multiParser.IsEOF())
     {
         vector<string> strings = multiParser.ReadTokens();
@@ -4943,7 +4832,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    DEBUGLOG("Replace sounds\n");
+    LOG("Replace sounds\n");
     while (!soundParser.IsEOF())
     {
         vector<string> strings = soundParser.ReadTokens();
@@ -5004,7 +4893,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    DEBUGLOG("Loading mp3 config\n");
+    LOG("Loading mp3 config\n");
     while (!mp3Parser.IsEOF())
     {
         vector<string> strings = mp3Parser.ReadTokens();
@@ -5291,11 +5180,11 @@ void COrion::LoadClientStartupConfig()
     g_SoundManager.SetMusicVolume(g_ConfigManager.GetMusicVolume());
     if (g_ConfigManager.GetMusic())
     {
-        if (g_PacketManager.GetClientVersion() >= CV_7000)
+        if (g_Config.ClientVersion >= CV_7000)
         {
             PlayMusic(78);
         }
-        else if (g_PacketManager.GetClientVersion() > CV_308Z)
+        else if (g_Config.ClientVersion > CV_308Z)
         { //from 4.x the music played is 0, the first one
             PlayMusic(0);
         }
@@ -5319,7 +5208,7 @@ void COrion::PlayMusic(int index, bool warmode)
         return;
     }
 
-    if (g_PacketManager.GetClientVersion() >= CV_306E)
+    if (g_Config.ClientVersion >= CV_306E)
     {
         CIndexMusic &mp3Info = m_MP3Data[index];
         g_SoundManager.PlayMP3(mp3Info.FilePath, index, mp3Info.Loop, warmode);
@@ -5332,7 +5221,7 @@ void COrion::PlayMusic(int index, bool warmode)
 
 void COrion::PlaySoundEffectAtPosition(uint16_t id, int x, int y)
 {
-    auto distance = GetDistance(g_Player, Wisp::CPoint2Di(x, y));
+    auto distance = GetDistance(g_Player, CPoint2Di(x, y));
     g_Orion.PlaySoundEffect(id, g_SoundManager.GetVolumeValue(distance));
 }
 
@@ -6644,7 +6533,7 @@ void COrion::DropItem(int container, uint16_t x, uint16_t y, char z)
     DEBUG_TRACE_FUNCTION;
     if (g_ObjectInHand.Enabled && g_ObjectInHand.Serial != container)
     {
-        if (g_PacketManager.GetClientVersion() >= CV_6017)
+        if (g_Config.ClientVersion >= CV_6017)
         {
             CPacketDropRequestNew(g_ObjectInHand.Serial, x, y, z, 0, container).Send();
         }
@@ -7034,7 +6923,7 @@ uint64_t COrion::GetStaticFlags(uint16_t id)
     return 0;
 }
 
-Wisp::CSize COrion::GetStaticArtDimension(uint16_t id)
+CSize COrion::GetStaticArtDimension(uint16_t id)
 {
     DEBUG_TRACE_FUNCTION;
 
@@ -7042,23 +6931,23 @@ Wisp::CSize COrion::GetStaticArtDimension(uint16_t id)
 
     if (th != nullptr)
     {
-        return Wisp::CSize(th->Width, th->Height);
+        return CSize(th->Width, th->Height);
     }
 
-    return Wisp::CSize();
+    return CSize();
 }
 
-Wisp::CSize COrion::GetGumpDimension(uint16_t id)
+CSize COrion::GetGumpDimension(uint16_t id)
 {
     DEBUG_TRACE_FUNCTION;
     CGLTexture *th = ExecuteGump(id);
 
     if (th != nullptr)
     {
-        return Wisp::CSize(th->Width, th->Height);
+        return CSize(th->Width, th->Height);
     }
 
-    return Wisp::CSize();
+    return CSize();
 }
 
 void COrion::OpenStatus(uint32_t serial)

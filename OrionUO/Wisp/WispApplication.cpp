@@ -4,6 +4,7 @@
 #include "WispThread.h"
 #include "Profiler.h"
 #include <SDL_timer.h>
+#include "../OrionWindow.h"
 
 namespace Wisp
 {
@@ -18,7 +19,6 @@ void CApplication::Init()
     DEBUG_TRACE_FUNCTION;
     m_ExePath = fs_path_current();
     m_UOPath = fs_path_current();
-    g_MainScreen.LoadCustomPath();
 }
 
 CApplication::~CApplication()

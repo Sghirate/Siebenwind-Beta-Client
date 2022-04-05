@@ -1,12 +1,16 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
-#include "Profiler.h"
+#include "EffectManager.h"
+#include "MapManager.h"
+#include "../OrionUO.h"
+#include "../Profiler.h"
+#include "../GameObjects/GameWorld.h"
+#include "../GameObjects/GameEffectMoving.h"
 
 CEffectManager g_EffectManager;
 
 CEffectManager::CEffectManager()
-
 {
 }
 

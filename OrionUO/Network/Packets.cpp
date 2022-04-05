@@ -1,6 +1,28 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Packets.h"
+#include "../Config.h"
+#include "../OrionUO.h"
+#include "../CityList.h"
+#include "../ServerList.h"
+#include "../Profession.h"
+#include "../CharacterList.h"
+#include "../ScreenStages/MainScreen.h"
+#include "../ScreenStages/SelectTownScreen.h"
+#include "../Managers/PacketManager.h"
+#include "../Managers/ProfessionManager.h"
+#include "../Managers/CreateCharacterManager.h"
+#include "../Managers/ConnectionManager.h"
+#include "../Managers/SpeechManager.h"
+#include "../Managers/ConfigManager.h"
+#include "../GUI/BaseGUI.h"
+#include "../Gumps/GumpGeneric.h"
+#include "../Gumps/GumpShop.h"
+#include "../Gumps/GumpBook.h"
+#include "../Gumps/GumpTextEntryDialog.h"
+#include "../Gumps/GumpSecureTrading.h"
+
 CPacket::CPacket(size_t size, bool autoResize)
     : Wisp::CDataWriter(size, autoResize)
 {
@@ -19,7 +41,7 @@ CPacketFirstLogin::CPacketFirstLogin()
 {
     WriteUInt8(0x80);
 
-    if (g_TheAbyss)
+    if (g_Config.TheAbyss)
     {
         m_Data[61] = 0xFF;
     }
@@ -48,7 +70,7 @@ CPacketSecondLogin::CPacketSecondLogin()
 
     int passLen = 30;
 
-    if (g_TheAbyss)
+    if (g_Config.TheAbyss)
     {
         WriteUInt16BE(0xFF07);
         passLen = 28;
@@ -63,7 +85,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const string &name)
     int skillsCount = 3;
     uint32_t packetID = 0x00;
 
-    if (g_PacketManager.GetClientVersion() >= CV_70160)
+    if (g_Config.ClientVersion >= CV_70160)
     {
         skillsCount++;
         Resize(106, true);
@@ -81,7 +103,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const string &name)
     WriteUInt16BE(0x0000); //?
 
     uint32_t clientFlag = 0;
-    for (int i = 0; i < g_CharacterList.ClientFlag; i++)
+    for (int i = 0; i < g_Config.ClientFlag; i++)
     {
         clientFlag |= (1 << i);
     }
@@ -95,7 +117,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const string &name)
     WriteUInt8(val); //profession
     Move(15);        //?
 
-    if (g_PacketManager.GetClientVersion() < CV_4011D)
+    if (g_Config.ClientVersion < CV_4011D)
     {
         val = (uint8_t)g_CreateCharacterManager.GetFemale();
     }
@@ -103,7 +125,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const string &name)
     {
         val = (uint8_t)g_CreateCharacterManager.GetRace();
 
-        if (g_PacketManager.GetClientVersion() < CV_7000)
+        if (g_Config.ClientVersion < CV_7000)
         {
             val--;
         }
@@ -140,7 +162,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const string &name)
     WriteUInt16BE(g_CreateCharacterManager.GetBeard(g_CreateCharacterManager.BeardStyle).GraphicID);
     WriteUInt16BE(g_CreateCharacterManager.BeardColor);
 
-    if (g_PacketManager.GetClientVersion() >= CV_70160)
+    if (g_Config.ClientVersion >= CV_70160)
     {
         uint16_t location = g_SelectTownScreen.m_City->LocationIndex;
 
@@ -172,7 +194,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const string &name)
         WriteUInt8(serverIndex); //server index
 
         uint8_t location = g_SelectTownScreen.m_City->LocationIndex;
-        if (g_PacketManager.GetClientVersion() < CV_70130)
+        if (g_Config.ClientVersion < CV_70130)
         {
             location--;
         }
@@ -223,7 +245,7 @@ CPacketSelectCharacter::CPacketSelectCharacter(int index, const string &name)
 
     uint32_t clientFlag = 0;
 
-    for (int i = 0; i < g_CharacterList.ClientFlag; i++)
+    for (int i = 0; i < g_Config.ClientFlag; i++)
     {
         clientFlag |= (1 << i);
     }
@@ -452,7 +474,7 @@ CPacketUnicodeSpeechRequest::CPacketUnicodeSpeechRequest(
 CPacketCastSpell::CPacketCastSpell(int index)
     : CPacket(1)
 {
-    if (g_PacketManager.GetClientVersion() >= CV_60142)
+    if (g_Config.ClientVersion >= CV_60142)
     {
         Resize(9, true);
 
@@ -616,7 +638,7 @@ CPacketGumpResponse::CPacketGumpResponse(CGumpGeneric *gump, int code)
     }
 }
 
-CPacketVirtureGumpResponse::CPacketVirtureGumpResponse(CGump *gump, int code)
+CPacketVirtueGumpResponse::CPacketVirtueGumpResponse(CGump *gump, int code)
     : CPacket(15)
 {
     g_PacketManager.SetCachedGumpCoords(gump->ID, gump->GetX(), gump->GetY());
@@ -1043,7 +1065,7 @@ CPacketClientType::CPacketClientType()
 
     uint32_t clientFlag = 0;
 
-    for (int i = 0; i < g_CharacterList.ClientFlag; i++)
+    for (int i = 0; i < g_Config.ClientFlag; i++)
     {
         clientFlag |= (1 << i);
     }
@@ -1130,7 +1152,7 @@ CPacketEquipLastWeapon::CPacketEquipLastWeapon()
     WriteUInt8(0x0A);
 }
 
-CPacketVirtureRequest::CPacketVirtureRequest(int buttonID)
+CPacketVirtueRequest::CPacketVirtueRequest(int buttonID)
     : CPacket(23)
 {
     WriteUInt8(0xB1);
@@ -1142,7 +1164,7 @@ CPacketVirtureRequest::CPacketVirtureRequest(int buttonID)
     WriteUInt32BE(g_PlayerSerial);
 }
 
-CPacketInvokeVirtureRequest::CPacketInvokeVirtureRequest(uint8_t id)
+CPacketInvokeVirtueRequest::CPacketInvokeVirtueRequest(uint8_t id)
     : CPacket(6)
 {
     WriteUInt8(0x12);

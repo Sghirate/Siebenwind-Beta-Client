@@ -2,6 +2,10 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpBulletinBoardItem.h"
+#include "../Config.h"
+#include "../Managers/GumpManager.h"
+#include "../Network/Packets.h"
+#include "../GameObjects/GamePlayer.h"
 
 enum
 {
@@ -33,7 +37,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
     ID = id;
     m_MinHeight = 200;
 
-    bool useUnicode = (g_PacketManager.GetClientVersion() >= CV_305D);
+    bool useUnicode = (g_Config.ClientVersion >= CV_305D);
     int unicodeFontIndex = 1;
     int unicodeHeightOffset = 0;
     uint16_t textColor = 0x0386;

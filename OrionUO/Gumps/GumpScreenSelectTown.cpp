@@ -2,6 +2,12 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpScreenSelectTown.h"
+#include "../Config.h"
+#include "../CityList.h"
+#include "../DefinitionMacro.h"
+#include "../Managers/ClilocManager.h"
+#include "../Managers/FontsManager.h"
+#include "../ScreenStages/SelectTownScreen.h"
 
 enum
 {
@@ -23,15 +29,15 @@ CGumpScreenSelectTown::CGumpScreenSelectTown()
     NoClose = true;
 
     //!Список точек для отображения кнопок городов
-    m_TownButtonText.push_back(Wisp::CPoint2Di(105, 130));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(245, 90));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(165, 200));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(395, 160));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(200, 305));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(335, 250));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(160, 395));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(100, 250));
-    m_TownButtonText.push_back(Wisp::CPoint2Di(270, 130));
+    m_TownButtonText.push_back(CPoint2Di(105, 130));
+    m_TownButtonText.push_back(CPoint2Di(245, 90));
+    m_TownButtonText.push_back(CPoint2Di(165, 200));
+    m_TownButtonText.push_back(CPoint2Di(395, 160));
+    m_TownButtonText.push_back(CPoint2Di(200, 305));
+    m_TownButtonText.push_back(CPoint2Di(335, 250));
+    m_TownButtonText.push_back(CPoint2Di(160, 395));
+    m_TownButtonText.push_back(CPoint2Di(100, 250));
+    m_TownButtonText.push_back(CPoint2Di(270, 130));
 }
 
 CGumpScreenSelectTown::~CGumpScreenSelectTown()
@@ -64,7 +70,7 @@ void CGumpScreenSelectTown::UpdateContent()
     Add(new CGUIGumppic(0x157C, 0, 0));
     Add(new CGUIGumppic(0x15A0, 0, 4));
 
-    if (g_PacketManager.GetClientVersion() >= CV_70130)
+    if (g_Config.ClientVersion >= CV_70130)
     {
         Add(new CGUIGumppic(0x15D9 + map, 62, 54));
         Add(new CGUIGumppic(0x15DF, 57, 49));
@@ -100,7 +106,7 @@ void CGumpScreenSelectTown::UpdateContent()
 
     for (int i = 0; i < (int)g_CityList.CityCount(); i++)
     {
-        if (g_PacketManager.GetClientVersion() >= CV_70130)
+        if (g_Config.ClientVersion >= CV_70130)
         {
             city = g_CityList.GetCity((uint32_t)i);
         }

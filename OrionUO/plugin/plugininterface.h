@@ -58,7 +58,11 @@ struct PluginEvent
     void *data2 = nullptr;
 };
 
-#ifndef SDL_h_
+#if defined(_SDL_H) || defined(SDL_h_)
+#define USING_SDL_STRUCTS
+#endif
+
+#ifndef USING_SDL_STRUCTS
 // Because we share events with Orion Assistant
 
 typedef uint32_t Keycode;
@@ -86,7 +90,7 @@ struct KeyEvent
     // keycode = wparam
     // scancode = lparam
 };
-#endif // SDL_h_
+#endif // USING_SDL_STRUCTS
 
 struct PLUGIN_INFO
 {
@@ -159,4 +163,4 @@ struct REVERSE_PLUGIN_INTERFACE
 #pragma pack(pop)
 
 extern REVERSE_PLUGIN_INTERFACE g_oaReverse;
-#define ORIONUO_CLIENT "orion.so"
+#define ORIONUO_CLIENT "./orion.so"

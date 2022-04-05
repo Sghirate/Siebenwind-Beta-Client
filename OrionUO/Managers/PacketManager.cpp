@@ -1,10 +1,85 @@
 // MIT License
 // Copyright (C) August 2016 Hotride
 
-#include "PacketManager.h"
-#include "../Sockets.h"
-#include "Profiler.h"
 #include <miniz.h>
+
+#include "PacketManager.h"
+#include "GumpManager.h"
+#include "ConfigManager.h"
+#include "CustomHousesManager.h"
+#include "ClilocManager.h"
+#include "MacroManager.h"
+#include "ObjectPropertiesManager.h"
+#include "ColorManager.h"
+#include "FontsManager.h"
+#include "AnimationManager.h"
+#include "EffectManager.h"
+#include "ScreenEffectManager.h"
+#include "CorpseManager.h"
+#include "SkillsManager.h"
+#include "MapManager.h"
+#include "ConnectionManager.h"
+#include "PluginManager.h"
+#include "FileManager.h"
+#include "MultiMap.h"
+#include "../Point.h"
+#include "../Sockets.h"
+#include "../Config.h"
+#include "../OrionUO.h"
+#include "../Macro.h"
+#include "../CityList.h"
+#include "../ToolTip.h"
+#include "../Target.h"
+#include "../Weather.h"
+#include "../TargetGump.h"
+#include "../Party.h"
+#include "../ServerList.h"
+#include "../QuestArrow.h"
+#include "../OrionWindow.h"
+#include "../Multi.h"
+#include "../ContainerStack.h"
+#include "../Container.h"
+#include "../CharacterList.h"
+#include "../TextEngine/GameConsole.h"
+#include "../GameObjects/GameItem.h"
+#include "../GameObjects/GameWorld.h"
+#include "../GameObjects/ObjectOnCursor.h"
+#include "../GameObjects/GamePlayer.h"
+#include "../GameObjects/GameEffectMoving.h"
+#include "../Gumps/Gump.h"
+#include "../Gumps/GumpAbility.h"
+#include "../Gumps/GumpSecureTrading.h"
+#include "../Gumps/GumpStatusbar.h"
+#include "../Gumps/GumpShop.h"
+#include "../Gumps/GumpBook.h"
+#include "../Gumps/GumpMap.h"
+#include "../Gumps/GumpTip.h"
+#include "../Gumps/GumpProfile.h"
+#include "../Gumps/GumpDye.h"
+#include "../Gumps/GumpGeneric.h"
+#include "../Gumps/GumpMenu.h"
+#include "../Gumps/GumpBuff.h"
+#include "../Gumps/GumpGrayMenu.h"
+#include "../Gumps/GumpPopupMenu.h"
+#include "../Gumps/GumpSpellbook.h"
+#include "../Gumps/GumpPaperdoll.h"
+#include "../Gumps/GumpTextEntryDialog.h"
+#include "../Gumps/GumpBulletinBoard.h"
+#include "../Gumps/GumpBulletinBoardItem.h"
+#include "../Gumps/GumpCustomHouse.h"
+#include "../Gumps/GumpContainer.h"
+#include "../Gumps/GumpSkills.h"
+#include "../GUI/GUIShopItem.h"
+#include "../GUI/GUIHTMLGump.h"
+#include "../Profiler.h"
+#include "../ScreenStages/MainScreen.h"
+#include "../ScreenStages/GameScreen.h"
+#include "../ScreenStages/ConnectionScreen.h"
+#include "../ScreenStages/CharacterListScreen.h"
+#include "../Network/Packets.h"
+#include "../Walker/Walker.h"
+#include "../Walker/PathFinder.h"
+#include "../TextEngine/TextData.h"
 
 CPacketManager g_PacketManager;
 
@@ -348,10 +423,9 @@ bool CPacketManager::AutoLoginNameExists(const string &name)
 #define CVPRINT(s)
 #endif //CV_PRINT!=0
 
-void CPacketManager::SetClientVersion(CLIENT_VERSION newClientVersion)
+void CPacketManager::ConfigureClientVersion(uint32_t newClientVersion)
 {
     DEBUG_TRACE_FUNCTION;
-    m_ClientVersion = newClientVersion;
 
     if (newClientVersion >= CV_500A)
     {
@@ -466,11 +540,11 @@ void CPacketManager::SetClientVersion(CLIENT_VERSION newClientVersion)
         CVPRINT("Set new length for packet 0xEF (>= 7.0.0.0)\n");
         m_Packets[0xEF].Size = 0x2000;
         /*CVPRINT("Set new length for packet 0xF0 (>= 7.0.0.0)\n");
-		m_Packets[0xF0].size = 0x2000;
-		CVPRINT("Set new length for packet 0xF1 (>= 7.0.0.0)\n");
-		m_Packets[0xF1].size = 0x2000;
-		CVPRINT("Set new length for packet 0xF2 (>= 7.0.0.0)\n");
-		m_Packets[0xF2].size = 0x2000;*/
+        m_Packets[0xF0].size = 0x2000;
+        CVPRINT("Set new length for packet 0xF1 (>= 7.0.0.0)\n");
+        m_Packets[0xF1].size = 0x2000;
+        CVPRINT("Set new length for packet 0xF2 (>= 7.0.0.0)\n");
+        m_Packets[0xF2].size = 0x2000;*/
     }
     else
     {
@@ -479,11 +553,11 @@ void CPacketManager::SetClientVersion(CLIENT_VERSION newClientVersion)
         CVPRINT("Set standart length for packet 0xEF (<= 7.0.0.0)\n");
         m_Packets[0xEF].Size = 0x15;
         /*CVPRINT("Set standart length for packet 0xF0 (<= 7.0.0.0)\n");
-		m_Packets[0xF0].size = PACKET_VARIABLE_SIZE;
-		CVPRINT("Set standart length for packet 0xF1 (<= 7.0.0.0)\n");
-		m_Packets[0xF1].size = PACKET_VARIABLE_SIZE;
-		CVPRINT("Set standart length for packet 0xF2 (<= 7.0.0.0)\n");
-		m_Packets[0xF2].size = PACKET_VARIABLE_SIZE;*/
+        m_Packets[0xF0].size = PACKET_VARIABLE_SIZE;
+        CVPRINT("Set standart length for packet 0xF1 (<= 7.0.0.0)\n");
+        m_Packets[0xF1].size = PACKET_VARIABLE_SIZE;
+        CVPRINT("Set standart length for packet 0xF2 (<= 7.0.0.0)\n");
+        m_Packets[0xF2].size = PACKET_VARIABLE_SIZE;*/
     }
 
     if (newClientVersion >= CV_7090)
@@ -497,7 +571,7 @@ void CPacketManager::SetClientVersion(CLIENT_VERSION newClientVersion)
         CVPRINT("Set new length for packet 0xF3 (>= 7.0.9.0)\n");
         m_Packets[0xF3].Size = 0x1A;
 
-        //В клиенте 7.0.8.2 уже изменено
+        // Already changed in client 7.0.8.2
         CVPRINT("Set new length for packet 0xF1 (>= 7.0.9.0)\n");
         m_Packets[0xF1].Size = 0x09;
         CVPRINT("Set new length for packet 0xF2 (>= 7.0.9.0)\n");
@@ -514,7 +588,7 @@ void CPacketManager::SetClientVersion(CLIENT_VERSION newClientVersion)
         CVPRINT("Set standart length for packet 0xF3 (<= 7.0.9.0)\n");
         m_Packets[0xF3].Size = 0x18;
 
-        //В клиенте 7.0.8.2 уже изменено
+        // Already changed in client 7.0.8.2
         CVPRINT("Set standart length for packet 0xF1 (<= 7.0.9.0)\n");
         m_Packets[0xF1].Size = PACKET_VARIABLE_SIZE;
         CVPRINT("Set standart length for packet 0xF2 (<= 7.0.9.0)\n");
@@ -550,7 +624,7 @@ void CPacketManager::SendMegaClilocRequests()
     DEBUG_TRACE_FUNCTION;
     if (g_TooltipsEnabled && !m_MegaClilocRequests.empty())
     {
-        if (m_ClientVersion >= CV_500A)
+        if (g_Config.ClientVersion >= CV_500A)
         {
             while (!m_MegaClilocRequests.empty())
             {
@@ -754,7 +828,7 @@ PACKET_HANDLER(CharacterList)
     HandleResendCharacterList();
     uint8_t locCount = ReadUInt8();
     g_CityList.Clear();
-    if (m_ClientVersion >= CV_70130)
+    if (g_Config.ClientVersion >= CV_70130)
     {
         for (int i = 0; i < locCount; i++)
         {
@@ -799,7 +873,7 @@ PACKET_HANDLER(CharacterList)
     //g_SendLogoutNotification = (bool)(g_ClientFlag & LFF_RE);
     g_PopupEnabled = (bool)(g_ClientFlag & CLF_CONTEXT_MENU);
     g_TooltipsEnabled =
-        (bool)(((g_ClientFlag & CLF_PALADIN_NECROMANCER_TOOLTIPS) != 0u) && (g_PacketManager.GetClientVersion() >= CV_308Z));
+        (bool)(((g_ClientFlag & CLF_PALADIN_NECROMANCER_TOOLTIPS) != 0u) && (g_Config.ClientVersion >= CV_308Z));
     g_PaperdollBooks = (bool)(g_ClientFlag & CLF_PALADIN_NECROMANCER_TOOLTIPS);
 
     g_CharacterListScreen.UpdateContent();
@@ -969,14 +1043,14 @@ PACKET_HANDLER(EnterWorld)
     g_LastSpellIndex = 1;
     g_LastSkillIndex = 1;
 
-    CPacketClientVersion(g_Orion.ClientVersionText).Send();
+    CPacketClientVersion(g_Config.ClientVersionString).Send();
 
-    if (m_ClientVersion >= CV_200)
+    if (g_Config.ClientVersion >= CV_200)
     {
         CPacketGameWindowSize().Send();
     }
 
-    if (m_ClientVersion >= CV_200)
+    if (g_Config.ClientVersion >= CV_200)
     {
         CPacketLanguage(g_Language).Send();
     }
@@ -1105,7 +1179,7 @@ PACKET_HANDLER(NewHealthbarUpdate)
         return;
     }
 
-    if (*Start == 0x16 && m_ClientVersion < CV_500A)
+    if (*Start == 0x16 && g_Config.ClientVersion < CV_500A)
     {
         return;
     }
@@ -1128,7 +1202,7 @@ PACKET_HANDLER(NewHealthbarUpdate)
             uint8_t poisonFlag = 0x04;
             if (enable != 0u)
             {
-                if (m_ClientVersion >= CV_7000)
+                if (g_Config.ClientVersion >= CV_7000)
                 {
                     obj->SA_Poisoned = true;
                 }
@@ -1139,7 +1213,7 @@ PACKET_HANDLER(NewHealthbarUpdate)
             }
             else
             {
-                if (m_ClientVersion >= CV_7000)
+                if (g_Config.ClientVersion >= CV_7000)
                 {
                     obj->SA_Poisoned = false;
                 }
@@ -1188,6 +1262,9 @@ PACKET_HANDLER(UpdatePlayer)
     uint16_t serverID = ReadUInt16BE();
     uint8_t direction = ReadUInt8();
     char z = ReadUInt8();
+
+    // Invert character wakthrough bit.
+    flags ^= 0x10;
 
     LOG("0x%08X 0x%04X %i 0x%04X 0x%02X %i %i %i %i %i\n",
         serial,
@@ -1302,7 +1379,7 @@ PACKET_HANDLER(CharacterStatus)
             }
             else
             {
-                if (m_ClientVersion >= CV_500A)
+                if (g_Config.ClientVersion >= CV_500A)
                 {
                     g_Player->MaxWeight = 7 * (g_Player->Str / 2) + 40;
                 }
@@ -1391,7 +1468,7 @@ PACKET_HANDLER(UpdateItem)
 
     uint16_t graphic = ReadUInt16BE();
 
-    if (g_TheAbyss && (graphic & 0x7FFF) == 0x0E5C)
+    if (g_Config.TheAbyss && (graphic & 0x7FFF) == 0x0E5C)
     {
         return;
     }
@@ -1593,7 +1670,7 @@ PACKET_HANDLER(UpdateObject)
         uint8_t layer = ReadUInt8();
         uint16_t itemColor = 0;
 
-        if (m_ClientVersion >= CV_70331)
+        if (g_Config.ClientVersion >= CV_70331)
         {
             itemColor = ReadUInt16BE();
         }
@@ -1708,7 +1785,7 @@ PACKET_HANDLER(UpdateContainedItem)
     uint16_t x = ReadUInt16BE();
     uint16_t y = ReadUInt16BE();
 
-    if (m_ClientVersion >= CV_6017)
+    if (g_Config.ClientVersion >= CV_6017)
     {
         Move(1);
     }
@@ -1739,7 +1816,7 @@ PACKET_HANDLER(UpdateContainedItems)
         uint16_t x = ReadUInt16BE();
         uint16_t y = ReadUInt16BE();
 
-        if (m_ClientVersion >= CV_6017)
+        if (g_Config.ClientVersion >= CV_6017)
         {
             Move(1);
         }
@@ -2061,6 +2138,19 @@ PACKET_HANDLER(UpdateCharacter)
     uint8_t flags = ReadUInt8();
     uint8_t notoriety = ReadUInt8();
 
+    // Bug #78
+    // Outlands server somewhat sends back what seems to be invalid direction data
+    // Looking at RunUO source, mobile directions flag is valid to be at most 0x87
+    // https://github.com/runuo/runuo/blob/d715573172fc432a673825b0136444bdab7863b5/Server/Mobile.cs#L390-L405
+    // But in Outlands when a Mobile has low HP and start running away, if the player
+    // forces it to change direction by circling it, eventually a bad packet with a
+    // direction of 0x08 will come in.
+    if ((direction & 0x87) != direction)
+    {
+        LOG("Clamping invalid/unknown direction: %d\n", direction);
+        direction &= 0x87;
+    }
+
     obj->Notoriety = notoriety;
 
     if (obj->IsPlayer())
@@ -2166,7 +2256,7 @@ PACKET_HANDLER(OpenPaperdoll)
 PACKET_HANDLER(ClientVersion)
 {
     DEBUG_TRACE_FUNCTION;
-    CPacketClientVersion(g_Orion.ClientVersionText).Send();
+    CPacketClientVersion(g_Config.ClientVersionString).Send();
 }
 
 PACKET_HANDLER(Ping)
@@ -2279,7 +2369,7 @@ PACKET_HANDLER(LightLevel)
 PACKET_HANDLER(EnableLockedFeatures)
 {
     DEBUG_TRACE_FUNCTION;
-    if (m_ClientVersion >= CV_60142)
+    if (g_Config.ClientVersion >= CV_60142)
     {
         g_LockedClientFeatures = ReadUInt32BE();
     }
@@ -3895,7 +3985,7 @@ PACKET_HANDLER(AssistVersion)
 {
     DEBUG_TRACE_FUNCTION;
     uint32_t version = ReadUInt32BE();
-    CPacketAssistVersion(version, g_Orion.ClientVersionText).Send();
+    CPacketAssistVersion(version, g_Config.ClientVersionString).Send();
 }
 
 PACKET_HANDLER(CharacterListNotification)
@@ -4582,7 +4672,7 @@ PACKET_HANDLER(OpenMenu)
             nameLen = ReadUInt8();
             name = ReadString(nameLen);
 
-            Wisp::CSize size = g_Orion.GetStaticArtDimension(graphic);
+            CSize size = g_Orion.GetStaticArtDimension(graphic);
 
             if ((size.Width != 0) && (size.Height != 0))
             {
@@ -4723,7 +4813,7 @@ void CPacketManager::AddHTMLGumps(CGump *gump, vector<HTMLGumpDataInfo> &list)
 
         CGUIHTMLText *htmlText = (CGUIHTMLText *)htmlGump->Add(new CGUIHTMLText(
             data.TextID,
-            (uint8_t)(m_ClientVersion >= CV_305D),
+            (uint8_t)(g_Config.ClientVersion >= CV_305D),
             color,
             0,
             0,
@@ -4761,8 +4851,7 @@ PACKET_HANDLER(OpenGump)
     int x = ReadInt32BE();
     int y = ReadInt32BE();
 
-    std::unordered_map<uint32_t, GumpCoords>::iterator found = m_GumpsCoordsCache.find(id);
-
+    auto found = m_GumpsCoordsCache.find(id);
     if (found != m_GumpsCoordsCache.end())
     {
         x = found->second.X;
@@ -5132,7 +5221,7 @@ PACKET_HANDLER(OpenGump)
                 int graphic = ToInt(list[3]);
                 int color = 0;
 
-                if (listSize >= 5 && m_ClientVersion >= CV_305D)
+                if (listSize >= 5 && g_Config.ClientVersion >= CV_305D)
                 {
                     Wisp::CTextFileParser gumppicParser({}, "=", "", "");
                     vector<string> hueList = gumppicParser.GetTokens(list[4].c_str());
@@ -5155,7 +5244,7 @@ PACKET_HANDLER(OpenGump)
                             if (ToLowerA(classList[0]) == "class" &&
                                 ToLowerA(Trim(classList[1])) == "virtuegumpitem")
                             {
-                                go = new CGUIVirtureGump(graphic, x, y);
+                                go = new CGUIVirtueGump(graphic, x, y);
                             }
                         }
                     }
@@ -5414,7 +5503,7 @@ PACKET_HANDLER(DyeData)
     Move(2);
     uint16_t graphic = ReadUInt16BE();
 
-    Wisp::CSize gumpSize = g_Orion.GetGumpDimension(0x0906);
+    CSize gumpSize = g_Orion.GetGumpDimension(0x0906);
 
     auto x = int16_t((g_OrionWindow.GetSize().Width / 2) - (gumpSize.Width / 2));
     auto y = int16_t((g_OrionWindow.GetSize().Height / 2) - (gumpSize.Height / 2));
@@ -5445,7 +5534,7 @@ PACKET_HANDLER(DisplayMap)
 
     CGumpMap *gump = new CGumpMap(serial, gumpid, startX, startY, endX, endY, width, height);
 
-    if (*Start == 0xF5 || m_ClientVersion >= CV_308Z) //308z или выше?
+    if (*Start == 0xF5 || g_Config.ClientVersion >= CV_308Z) //308z или выше?
     {
         uint16_t facet = 0;
 
@@ -5743,8 +5832,8 @@ PACKET_HANDLER(OpenBook) // 0x93
     uint8_t flags = ReadUInt8();
     Move(1);
     auto pageCount = ReadUInt16BE();
-    CGumpBook *gump = new CGumpBook(
-        serial, 0, 0, pageCount, flags != 0, (g_PacketManager.GetClientVersion() >= CV_308Z));
+    CGumpBook *gump =
+        new CGumpBook(serial, 0, 0, pageCount, flags != 0, (g_Config.ClientVersion >= CV_308Z));
 
     gump->m_EntryTitle->m_Entry.SetTextW(DecodeUTF8(ReadString(60)));
     gump->m_EntryAuthor->m_Entry.SetTextW(DecodeUTF8(ReadString(30)));
@@ -6463,7 +6552,7 @@ PACKET_HANDLER(OrionMessages)
                 MACRO_CODE macroCode = MC_NONE;
                 for (int i = 0; i < CMacro::MACRO_ACTION_NAME_COUNT; i++)
                 {
-                    std::string macroName = CMacro::m_MacroActionName[i];
+                    string macroName = CMacro::m_MacroActionName[i];
                     if (strcmp(name.c_str(), macroName.c_str()) == 0)
                     {
                         macroCode = (MACRO_CODE)i;
@@ -6593,8 +6682,7 @@ PACKET_HANDLER(Pathfinding)
 
 void CPacketManager::SetCachedGumpCoords(uint32_t id, int x, int y)
 {
-    std::unordered_map<uint32_t, GumpCoords>::iterator found = m_GumpsCoordsCache.find(id);
-
+    auto found = m_GumpsCoordsCache.find(id);
     if (found != m_GumpsCoordsCache.end())
     {
         found->second.X = x;

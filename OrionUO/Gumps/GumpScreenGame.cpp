@@ -1,6 +1,21 @@
 // MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "GumpScreenGame.h"
+#include "GumpConsoleType.h"
+#include "GumpOptions.h"
+#include "../Config.h"
+#include "../OrionUO.h"
+#include "../ToolTip.h"
+#include "../PressedObject.h"
+#include "../SelectedObject.h"
+#include "../OrionWindow.h"
+#include "../Managers/GumpManager.h"
+#include "../Managers/ConfigManager.h"
+#include "../Managers/MouseManager.h"
+#include "../ScreenStages/GameScreen.h"
+#include "../Network/Packets.h"
+
 CGumpScreenGame::CGumpScreenGame()
     : CGump(GT_NONE, 0, 0, 0)
 {
@@ -27,7 +42,7 @@ void CGumpScreenGame::UpdateContent()
 
     if (g_PressedObject.LeftGump == this)
     {
-        Wisp::CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
 
         if (g_PressedObject.LeftObject == m_Items) //resizer
         {
@@ -241,7 +256,7 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
     screenX -= 20;
     screenY -= 60;
 
-    Wisp::CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+    CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
 
     if (g_PressedObject.LeftObject == m_Items) //resizer
     {
@@ -268,7 +283,7 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
             g_ConfigManager.GameWindowHeight = screenY;
         }
 
-        if (g_PacketManager.GetClientVersion() >= CV_200)
+        if (g_Config.ClientVersion >= CV_200)
         {
             CPacketGameWindowSize().Send();
         }

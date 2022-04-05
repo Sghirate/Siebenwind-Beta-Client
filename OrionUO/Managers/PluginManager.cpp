@@ -1,16 +1,18 @@
 ﻿// MIT License
 // Copyright (C) September 2016 Hotride
 
-#if defined(ORION_WINDOWS)
-#include <Windows.h>
-#else
-#include <stdint.h>
-#define __cdecl
-#endif
+#include "PluginManager.h"
+#include "../Platform.h"
+#include "plugin/commoninterfaces.h"
+
+#include "PacketManager.h"
+#include "ConnectionManager.h"
+#include "../Config.h"
+#include "../OrionWindow.h"
 
 CPluginManager g_PluginManager;
 
-bool __cdecl PluginRecvFunction(uint8_t *buf, size_t size)
+bool CDECL PluginRecvFunction(uint8_t *buf, size_t size)
 {
     DEBUG_TRACE_FUNCTION;
     auto owned = (uint8_t *)malloc(size);
@@ -19,7 +21,7 @@ bool __cdecl PluginRecvFunction(uint8_t *buf, size_t size)
     return true;
 }
 
-bool __cdecl PluginSendFunction(uint8_t *buf, size_t size)
+bool CDECL PluginSendFunction(uint8_t *buf, size_t size)
 {
     DEBUG_TRACE_FUNCTION;
 
@@ -59,8 +61,8 @@ CPlugin::CPlugin(uint32_t flags)
     m_PPS = new PLUGIN_INTERFACE();
     memset(m_PPS, 0, sizeof(PLUGIN_INTERFACE));
     m_PPS->Handle = g_OrionWindow.Handle;
-    m_PPS->ClientVersion = g_PacketManager.GetClientVersion();
-    m_PPS->ClientFlags = (g_FileManager.UseVerdata ? 0x01 : 0);
+    m_PPS->ClientVersion = g_Config.ClientVersion;
+    m_PPS->ClientFlags = (g_Config.UseVerdata ? 0x01 : 0);
 }
 
 CPlugin::~CPlugin()
