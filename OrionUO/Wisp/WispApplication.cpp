@@ -2,7 +2,9 @@
 
 #include "FileSystem.h"
 #include "WispThread.h"
+#include "Profiler.h"
 #include <SDL_timer.h>
+
 namespace Wisp
 {
 CApplication::CApplication()
@@ -33,6 +35,7 @@ int CApplication::Run(HINSTANCE hinstance)
     MSG msg = { 0 };
     while (msg.message != WM_QUIT)
     {
+        PROFILER_FRAME("MainThread");
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             TranslateMessage(&msg);

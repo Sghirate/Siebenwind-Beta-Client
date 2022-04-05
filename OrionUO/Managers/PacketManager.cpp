@@ -3,6 +3,7 @@
 
 #include "PacketManager.h"
 #include "../Sockets.h"
+#include "Profiler.h"
 #include <miniz.h>
 
 CPacketManager g_PacketManager;
@@ -545,6 +546,7 @@ int CPacketManager::GetPacketSize(const vector<uint8_t> &packet, int &offsetToSi
 
 void CPacketManager::SendMegaClilocRequests()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_TooltipsEnabled && !m_MegaClilocRequests.empty())
     {
@@ -658,6 +660,7 @@ void CPacketManager::SavePluginReceivePacket(uint8_t *buf, int size)
 
 void CPacketManager::ProcessPluginPackets()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
 
     LOCK(m_Mutex);

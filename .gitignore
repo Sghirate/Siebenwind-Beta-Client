@@ -1,4 +1,5 @@
 Dependencies/
+external/
 *.user
 *.obj
 *.o

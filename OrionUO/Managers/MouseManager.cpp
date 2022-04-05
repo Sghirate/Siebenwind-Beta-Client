@@ -1,6 +1,8 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CMouseManager g_MouseManager;
 
 uint16_t g_CursorData[2][16] = { { 0x206A,
@@ -148,6 +150,7 @@ uint16_t CMouseManager::GetGameCursor()
 
 void CMouseManager::ProcessWalking()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     bool mouseInWindow = true;
 
@@ -326,6 +329,7 @@ bool CMouseManager::LoadCursorTextures()
 
 void CMouseManager::Draw(uint16_t id)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_GameState >= GS_GAME)
     {

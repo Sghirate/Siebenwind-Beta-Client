@@ -1,6 +1,8 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CEffectManager g_EffectManager;
 
 CEffectManager::CEffectManager()
@@ -131,6 +133,7 @@ void CEffectManager::CreateExplodeEffect(CGameEffect *effect, const EFFECT_TYPE 
 
 void CEffectManager::UpdateEffects()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     for (CGameEffect *effect = (CGameEffect *)m_Items; effect != nullptr;)
     {

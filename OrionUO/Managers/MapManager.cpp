@@ -1,6 +1,8 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CMapManager g_MapManager;
 
 CIndexMap::CIndexMap()
@@ -569,6 +571,7 @@ void CMapManager::ClearUsedBlocks()
 
 void CMapManager::Init(bool delayed)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_Player == nullptr)
     {

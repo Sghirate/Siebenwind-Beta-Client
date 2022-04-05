@@ -3,6 +3,7 @@
 
 #include <SDL_rect.h>
 #include "GameScreen.h"
+#include "Profiler.h"
 
 CGameScreen g_GameScreen;
 RENDER_VARIABLES_FOR_GAME_WINDOW g_RenderBounds;
@@ -314,6 +315,7 @@ void CGameScreen::CheckFoliageUnion(uint16_t graphic, int x, int y, int z)
 
 void CGameScreen::CalculateRenderList()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     m_RenderListCount = 0;
 
@@ -857,6 +859,7 @@ void CGameScreen::AddTileToRenderList(
 
         if (m_RenderListCount >= (int)m_RenderList.size())
         {
+            PROFILER_EVENT("GrowRenderList");
             size_t newSize = m_RenderList.size() + 1000;
 
             m_RenderList.resize(newSize);
@@ -999,6 +1002,7 @@ void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject *obj, bool useO
 
 void CGameScreen::CalculateGameWindowBounds()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     g_GrayedPixels = g_Player->Dead();
 
@@ -1271,6 +1275,7 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
 
 void CGameScreen::DrawGameWindow(bool render)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     const int playerZPlus5 = g_RenderBounds.PlayerZ + 5;
     if (render)
@@ -1419,6 +1424,7 @@ void CGameScreen::DrawGameWindow(bool render)
 
 void CGameScreen::DrawGameWindowLight()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -1513,6 +1519,7 @@ void CGameScreen::DrawGameWindowLight()
 
 void CGameScreen::DrawGameWindowText(bool render)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (render)
     {
@@ -1599,6 +1606,7 @@ void CGameScreen::DrawGameWindowText(bool render)
 
 void CGameScreen::PrepareContent()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     g_WorldTextRenderer.CalculateWorldPositions(false);
 
@@ -1670,6 +1678,7 @@ void CGameScreen::PrepareContent()
 
 void CGameScreen::PreRender()
 {
+    PROFILER_EVENT();
     if (!RenderListInitalized)
     {
         CalculateRenderList();
@@ -1692,6 +1701,7 @@ void CGameScreen::PreRender()
 
 void CGameScreen::Render()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     PreRender();
 

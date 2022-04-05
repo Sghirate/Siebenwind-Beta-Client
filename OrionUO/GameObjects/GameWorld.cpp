@@ -1,6 +1,8 @@
 // MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CGameWorld *g_World = nullptr;
 
 CGameWorld::CGameWorld(int serial)
@@ -36,6 +38,7 @@ void CGameWorld::ResetObjectHandlesState()
 
 void CGameWorld::ProcessSound(int ticks, CGameCharacter *gc)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_ConfigManager.FootstepsSound && gc->IsHuman() && !gc->Hidden())
     {
@@ -73,6 +76,7 @@ void CGameWorld::ProcessSound(int ticks, CGameCharacter *gc)
 
 void CGameWorld::ProcessAnimation()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     int delay =
         (g_ConfigManager.StandartCharactersAnimationDelay ? ORIGINAL_CHARACTERS_ANIMATION_DELAY :
