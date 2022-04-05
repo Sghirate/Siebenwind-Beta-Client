@@ -60,7 +60,6 @@ endif()
 #
 # Dependencies
 #
-
 include(CheckCXXSourceRuns)
 
 set(EXTERNAL_DIR "${CMAKE_SOURCE_DIR}/external")
