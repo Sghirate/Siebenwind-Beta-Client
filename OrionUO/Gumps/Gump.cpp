@@ -1,6 +1,8 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CGump *g_ResizedGump = nullptr;
 CGump *g_CurrentCheckGump = nullptr;
 
@@ -180,6 +182,7 @@ bool CGump::TestLockerClick()
 
 void CGump::CalculateGumpState()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     g_GumpPressed =
         (!g_ObjectInHand.Enabled &&
@@ -226,6 +229,7 @@ void CGump::CalculateGumpState()
 
 void CGump::ProcessListing()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.LeftGump != nullptr && !g_PressedObject.LeftGump->NoProcess &&
         g_PressedObject.LeftObject != nullptr && g_PressedObject.LeftObject->IsGUI())
@@ -333,6 +337,7 @@ bool CGump::ApplyTransparent(CBaseGUI *item, int page, int currentPage, const in
 
 void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     float alpha[2] = { 1.0f, 0.7f };
     CGUIComboBox *combo = nullptr;
@@ -437,6 +442,7 @@ void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
 
 CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Page)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     CRenderObject *selected = nullptr;
 
@@ -1420,6 +1426,7 @@ void CGump::GenerateFrame(bool stop)
 
 void CGump::Draw()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     CalculateGumpState();
 
@@ -1521,6 +1528,7 @@ void CGump::Draw()
 
 CRenderObject *CGump::Select()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     g_CurrentCheckGump = this;
     CalculateGumpState();
@@ -1566,6 +1574,7 @@ CRenderObject *CGump::Select()
 
 void CGump::RecalculateSize()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
 
     Wisp::CPoint2Di minPosition(999, 999);

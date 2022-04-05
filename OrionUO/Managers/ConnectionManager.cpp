@@ -1,6 +1,8 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CConnectionManager g_ConnectionManager;
 
 NETWORK_INIT_TYPE *g_NetworkInit = nullptr;
@@ -219,6 +221,7 @@ void CConnectionManager::Disconnect()
 
 void CConnectionManager::Recv()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (m_IsLoginSocket)
     {

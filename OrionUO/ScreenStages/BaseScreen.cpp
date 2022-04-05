@@ -1,6 +1,8 @@
 ﻿// MIT License
 // Copyright (C) August 2016 Hotride
 
+#include "Profiler.h"
+
 CBaseScreen *g_CurrentScreen = nullptr;
 
 CBaseScreen::CBaseScreen(CGump &gump)
@@ -10,6 +12,7 @@ CBaseScreen::CBaseScreen(CGump &gump)
 
 void CBaseScreen::Render()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
 
     g_GL.BeginDraw();

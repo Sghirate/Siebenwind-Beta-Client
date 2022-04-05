@@ -3,6 +3,7 @@
 
 #include <SDL_rect.h>
 #include "PathFinder.h"
+#include "Profiler.h"
 
 CPathFinder g_PathFinder;
 
@@ -1087,6 +1088,7 @@ bool CPathFinder::WalkTo(int x, int y, int z, int distance)
 
 void CPathFinder::ProcessAutowalk()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (AutoWalking && g_Player != nullptr && (g_DeathScreenTimer == 0u) &&
         g_Walker.StepsCount < MAX_STEPS_COUNT && g_Walker.LastStepRequestTime <= g_Ticks)

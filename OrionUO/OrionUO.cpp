@@ -8,6 +8,7 @@
 #include "Wisp/WispGlobal.h"
 #include "FileSystem.h"
 #include "Crypt/CryptEntry.h"
+#include "Profiler.h"
 
 #if !defined(ORION_WINDOWS)
 #define __cdecl
@@ -1214,6 +1215,7 @@ void COrion::LoadAutoLoginNames()
 
 void COrion::ProcessDelayedClicks()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_ClickObject.Enabled && g_ClickObject.Timer < g_Ticks)
     {
@@ -1254,6 +1256,7 @@ void COrion::ProcessDelayedClicks()
 
 void COrion::Process(bool rendering)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen == nullptr)
     {
@@ -1461,6 +1464,7 @@ void COrion::Process(bool rendering)
 
 void COrion::LoadStartupConfig(int serial)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     char buf[MAX_PATH] = { 0 };
     CServer *server = g_ServerList.GetSelectedServer();
@@ -1658,6 +1662,7 @@ string COrion::FixServerName(string name)
 
 void COrion::LoadLocalConfig(int serial)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_ConfigLoaded)
     {
@@ -1747,6 +1752,7 @@ void COrion::LoadLocalConfig(int serial)
 
 void COrion::SaveLocalConfig(int serial)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (!g_ConfigLoaded)
     {
@@ -1907,6 +1913,7 @@ void COrion::ClearUnusedTextures()
 
 void COrion::Connect()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     InitScreen(GS_MAIN_CONNECT);
     Process(true);
@@ -1931,6 +1938,7 @@ void COrion::Connect()
 
 void COrion::Disconnect()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     g_AbyssPacket03First = true;
     g_PluginManager.Disconnect();
@@ -2053,6 +2061,7 @@ void COrion::CharacterSelection(int pos)
 
 void COrion::LoginComplete(bool reload)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     bool load = reload;
     if (!load && !g_ConnectionScreen.GetCompleted())
@@ -2092,6 +2101,7 @@ void COrion::LoginComplete(bool reload)
 
 void COrion::ChangeSeason(const SEASON_TYPE &season, int music)
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
 
     g_Season = season;
@@ -4513,6 +4523,7 @@ uint16_t COrion::CalculateLightColor(uint16_t id)
 
 void COrion::ProcessStaticAnimList()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if ((static_cast<unsigned int>(!m_AnimData.empty()) != 0u) &&
         g_ProcessStaticAnimationTimer < g_Ticks)
@@ -6836,6 +6847,7 @@ void COrion::AllNames()
 
 void COrion::RemoveRangedObjects()
 {
+    PROFILER_EVENT();
     DEBUG_TRACE_FUNCTION;
     if (g_World != nullptr)
     {

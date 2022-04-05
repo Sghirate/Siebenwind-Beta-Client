@@ -68,11 +68,11 @@ typedef SoundInfo *SoundHandle;
 #include <tchar.h>
 
 // FIXME
-#include "../Dependencies/include/glew.h"
-#include "../Dependencies/include/wglew.h"
+#include "../external/GLEW/include/glew.h"
+#include "../external/GLEW/include/wglew.h"
 #if USE_BASS
-#include "../Dependencies/include/bass.h"
-#include "../Dependencies/include/bassmidi.h"
+#include "../external/GLEW/include/bass.h"
+#include "../external/GLEW/include/bassmidi.h"
 #endif
 
 #pragma comment(lib, "Winmm.lib")
@@ -82,26 +82,26 @@ typedef SoundInfo *SoundHandle;
 
 #if !defined(ORION_CMAKE)
 #if defined(_M_IX86)
-#pragma comment(lib, "../Dependencies/lib/Win32/glew32.lib")
+#pragma comment(lib, "../external/GLEW/x86/lib/glew32.lib")
 #if USE_BASS
-#pragma comment(lib, "../Dependencies/lib/Win32/bass.lib")
-#pragma comment(lib, "../Dependencies/lib/Win32/bassmidi.lib")
+#pragma comment(lib, "../external/BASS/x86/lib/bass.lib")
+#pragma comment(lib, "../external/BASS/x86/lib/bassmidi.lib")
 #endif
-#pragma comment(lib, "../Dependencies/lib/Win32/Psapi.lib")
-#pragma comment(lib, "../Dependencies/lib/Win32/SDL2.lib")
-#pragma comment(lib, "../Dependencies/lib/Win32/SDL2main.lib")
-//#pragma comment(lib, "../Dependencies/lib/Win32/SDL2test.lib")
+#pragma comment(lib, "../external/psapi/x86/lib/Psapi.lib")
+#pragma comment(lib, "../external/SDL2/x86/lib/SDL2.lib")
+#pragma comment(lib, "../external/SDL2/x86/lib/SDL2main.lib")
+//#pragma comment(lib, "../external/SDL2/x86/lib/SDL2test.lib")
 
 #else
-#pragma comment(lib, "../Dependencies/lib/x64/glew32.lib")
+#pragma comment(lib, "../external/GLEW/x64/lib/glew32.lib")
 #if USE_BASS
-#pragma comment(lib, "../Dependencies/lib/x64/bass.lib")
-#pragma comment(lib, "../Dependencies/lib/x64/bassmidi.lib")
+#pragma comment(lib, "../external/BASS/x64/lib/bass.lib")
+#pragma comment(lib, "../external/BASS/x64/lib/bassmidi.lib")
 #endif
-#pragma comment(lib, "../Dependencies/lib/x64/Psapi.lib")
-#pragma comment(lib, "../Dependencies/lib/x64/SDL2.lib")
-#pragma comment(lib, "../Dependencies/lib/x64/SDL2main.lib")
-//#pragma comment(lib, "../Dependencies/lib/x64/SDL2test.lib")
+#pragma comment(lib, "../external/psapi/x64/lib/Psapi.lib")
+#pragma comment(lib, "../external/SDL2/x64/lib/SDL2.lib")
+#pragma comment(lib, "../external/SDL2/x64/lib/SDL2main.lib")
+//#pragma comment(lib, "../external/SDL2/x64/lib/SDL2test.lib")
 #endif
 #endif
 
