@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.8)
 find_program(CMAKE_C_COMPILER NAMES $ENV{CC} clang PATHS ENV PATH NO_DEFAULT_PATH)
 find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} clang++ PATHS ENV PATH NO_DEFAULT_PATH)
 
@@ -21,8 +21,25 @@ list(APPEND CMAKE_MODULE_PATH
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Folders to include
+set(INC_BASE)
+set(INC_DEBUG)
+set(INC_RELEASE)
+
 # Libraries to link
-set(LIBS)
+set(LIBS_BASE)
+set(LIBS_DEBUG)
+set(LIBS_RELEASE)
+
+# Library binaries to copy
+set(BINS_BASE)
+set(BINS_DEBUG)
+set(BINS_RELEASE)
+
+# Defines to apply
+set(DEFINES_BASE)
+set(DEFINES_DEBUG)
+set(DEFINES_RELEASE)
 
 # CMake Customizations
 include(cotire)
@@ -46,31 +63,49 @@ endif()
 
 include(CheckCXXSourceRuns)
 
-set(EXTERNAL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external")
+set(EXTERNAL_DIR "${CMAKE_SOURCE_DIR}/external")
+set(EXTRA_DIR "${EXTERNAL_DIR}/extra")
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(ORION_ARCH "x64")
+	set(ORION_64BITS 1)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+	set(ORION_ARCH "x86")
+	set(ORION_64BITS 0)
+endif()
 
 if(ORION_WINDOWS)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+	
+	# GLEW
+	set(INC_BASE
+		"${INC_BASE}"
+		"${EXTERNAL_DIR}/GLEW/include")
+	set(LIBS_BASE
+		"${LIBS_BASE}"
+		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/lib/glew32.lib")
+	set(BINS_BASE
+		"${BINS_BASE}"
+		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")
 
-	if(NOT "${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
-		set(ORION_ARCH "x86")
-		set(ORION_64BITS 0)
-	else()
-		set(ORION_ARCH "x64")
-		set(ORION_64BITS 1)
-	endif()
+	# SDL2
+	set(INC_BASE
+		"${INC_BASE}"
+		"${EXTERNAL_DIR}/SDL2/include"
+		"${EXTERNAL_DIR}/SDL2/include/SDL2")
+	set(LIBS_BASE
+		"${LIBS_BASE}"
+		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2.lib"
+		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2main.lib")
+	set(BINS_BASE
+		"${BINS_BASE}"
+		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/bin/SDL2.dll")
 
-	set(DEP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/Dependencies/include")
-	set(DEP_LIB_DIR "${CMAKE_SOURCE_DIR}/Dependencies/${ORION_ARCH}/lib/")
-
-	set(GLEW_INCLUDE_DIR "${DEP_INCLUDE_DIR}")
-	set(GLEW_LIBRARIES "${DEP_LIB_DIR}glew32.lib")
-
-	set(SDL2_INCLUDE_DIRS "${DEP_INCLUDE_DIR}/SDL2")
-	set(SDL2_LIBRARIES "${DEP_LIB_DIR}sdl2.lib" "${DEP_LIB_DIR}sdl2main.lib")
-
-	# temporary hijacking to use other libs
-	set(SDL2_LIBRARIES ${SDL2_LIBRARIES} "${DEP_LIB_DIR}psapi.lib")
+	# PSAPI
+	set(LIBS_BASE
+		"${LIBS_BASE}"
+		"${EXTERNAL_DIR}/psapi/${ORION_ARCH}/lib/psapi.lib")
 else()
 	set(ORION_DLL_STATIC ON)
 	set(ORION_WISP OFF)
@@ -86,12 +121,14 @@ endif()
 
 find_package(OpenGL REQUIRED)
 
-include_directories(${EXTERNAL_INCLUDE_DIR})
-include_directories(${DEP_INCLUDE_DIR})
+include_directories(${EXTRA_DIR})
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${SDL2_INCLUDE_DIRS})
 include_directories(${SDL2_IMAGE_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_DIR})
+include_directories(${INC_BASE})
+include_directories($<$<CONFIG:Debug>:${INC_DEBUG}>
+					$<$<CONFIG:Release>:${INC_RELEASE}>)
 #
 # Project Files
 #

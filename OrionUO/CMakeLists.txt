@@ -438,13 +438,38 @@ else()
   endif()
 endif()
 
-target_link_libraries(OrionUO PUBLIC ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${THREAD})
+# Link correct libraries
+if(LIBS_BASE)
+  target_link_libraries(OrionUO PUBLIC ${LIBS_BASE})
+endif()
+if(LIBS_DEBUG)
+  target_link_libraries(OrionUO PUBLIC debug ${LIBS_DEBUG})
+endif()
+if(LIBS_RELEASE)
+  target_link_libraries(OrionUO PUBLIC optimized ${LIBS_RELEASE})
+endif()
+# Apply defines
+if (DEFINES_BASE)
+  target_compile_definitions(OrionUO PUBLIC ${DEFINES_BASE})
+endif()
+if (DEFINES_DEBUG)
+  target_compile_definitions(OrionUO PUBLIC "$<$<CONFIG:DEBUG>:DEFINES_DEBUG>")
+endif()
+if (DEFINES_RELEASE)
+  target_compile_definitions(OrionUO PUBLIC "$<$<CONFIG:RELEASE>:DEFINES_RELEASE>")
+endif()
+# Copy binaries
+set(BINS_COPY
+  ${BINS_BASE}
+  $<$<CONFIG:debug>:${BINS_DEBUG}>$<$<CONFIG:release>:${BINS_RELEASE}>)
+if(BINS_COPY)
+  add_custom_command(TARGET OrionUO POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${BINS_COPY}" $<TARGET_FILE_DIR:OrionUO> COMMAND_EXPAND_LISTS)
+endif()
 
 if(ORION_WINDOWS)
   set_target_properties(OrionUO PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
   cotire(OrionUO)
   set_target_properties(OrionUO PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
   set_target_properties(OrionUO_unity PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
-  add_custom_command(TARGET OrionUO POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/Dependencies/${ORION_ARCH}/bin" $<TARGET_FILE_DIR:OrionUO>)
-  add_custom_command(TARGET OrionUO_unity POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/Dependencies/${ORION_ARCH}/bin" $<TARGET_FILE_DIR:OrionUO_unity>)
 endif()
