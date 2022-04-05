@@ -55,6 +55,7 @@ int CApplication::Run()
     bool quit = false;
     while (!quit)
     {
+        PROFILER_FRAME("MainThread");
 #if USE_TIMERTHREAD
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0)

@@ -104,6 +104,31 @@ if(ORION_WINDOWS)
 	set(LIBS_BASE
 		"${LIBS_BASE}"
 		"${EXTERNAL_DIR}/psapi/${ORION_ARCH}/lib/psapi.lib")
+
+	# Optick
+	if (ORION_ARCH STREQUAL "x64")
+		set(INC_BASE
+			"${INC_BASE}"
+			"${EXTERNAL_DIR}/Optick/include")
+		set(LIBS_DEBUG
+			"${LIBS_DEBUG}"
+			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.lib")
+		set(BINS_DEBUG
+			"${BINS_DEBUG}"
+			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.dll"
+			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.pdb")
+		set(LIBS_RELEASE
+			"${LIBS_RELEASE}"
+			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.lib")
+		set(BINS_RELEASE
+			"${BINS_RELEASE}"
+			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.dll"
+			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.pdb")
+		set(DEFINES_BASE
+			"${DEFINES_BASE}"
+			"WITH_OPTICK")
+	endif()
+
 else()
 	set(ORION_WISP OFF)
 	set(ORION_BASS OFF)
