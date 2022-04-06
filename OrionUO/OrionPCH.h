@@ -55,14 +55,9 @@ using std::wstring;
 #define ToColorB(x) ((x >> 16) & 0xff)
 #define ToColorA(x) ((x >> 24) & 0xff)
 
-#if USE_BASS
-typedef DWORD SoundHandle;
-#define SOUND_NULL 0
-#else
 struct SoundInfo;
 typedef SoundInfo *SoundHandle;
 #define SOUND_NULL nullptr
-#endif
 
 #if defined(ORION_WINDOWS)
 
@@ -85,11 +80,6 @@ typedef SoundInfo *SoundHandle;
 #include <Mmsystem.h>
 #include <tchar.h>
 
-#if USE_BASS
-#include "../external/GLEW/include/bass.h"
-#include "../external/GLEW/include/bassmidi.h"
-#endif
-
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -98,10 +88,6 @@ typedef SoundInfo *SoundHandle;
 #if !defined(ORION_CMAKE)
 #if defined(_M_IX86)
 #pragma comment(lib, "../external/GLEW/x86/lib/glew32.lib")
-#if USE_BASS
-#pragma comment(lib, "../external/BASS/x86/lib/bass.lib")
-#pragma comment(lib, "../external/BASS/x86/lib/bassmidi.lib")
-#endif
 #pragma comment(lib, "../external/psapi/x86/lib/Psapi.lib")
 #pragma comment(lib, "../external/SDL2/x86/lib/SDL2.lib")
 #pragma comment(lib, "../external/SDL2/x86/lib/SDL2main.lib")
@@ -109,10 +95,6 @@ typedef SoundInfo *SoundHandle;
 
 #else
 #pragma comment(lib, "../external/GLEW/x64/lib/glew32.lib")
-#if USE_BASS
-#pragma comment(lib, "../external/BASS/x64/lib/bass.lib")
-#pragma comment(lib, "../external/BASS/x64/lib/bassmidi.lib")
-#endif
 #pragma comment(lib, "../external/psapi/x64/lib/Psapi.lib")
 #pragma comment(lib, "../external/SDL2/x64/lib/SDL2.lib")
 #pragma comment(lib, "../external/SDL2/x64/lib/SDL2main.lib")

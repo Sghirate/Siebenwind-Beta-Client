@@ -23,12 +23,6 @@ else()
   add_definitions(-DUSE_WISP=0)
 endif()
 
-if(ORION_BASS)
-  add_definitions(-DUSE_BASS=1)
-else()
-  add_definitions(-DUSE_BASS=0)
-endif()
-
 if(ORION_THREADED)
     add_definitions(-DUSE_TIMERTHREAD=1)
 else()
