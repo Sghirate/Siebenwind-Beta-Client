@@ -285,7 +285,7 @@ const char *s_HotkeyText[0x100] = {
 #define KeyName(x) SDL_GetKeyName(x)
 #endif
 
-const uint16_t g_OptionsTextColor = 0;
+const u16 g_OptionsTextColor = 0;
 const int g_OptionsPolygoneColorOffset = 12;
 
 enum
@@ -478,7 +478,6 @@ CGumpOptions::~CGumpOptions()
 
 void CGumpOptions::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
     if (g_GumpPressed)
@@ -490,13 +489,13 @@ void CGumpOptions::CalculateGumpState()
 
             if (Minimized)
             {
-                g_GumpTranslate.X = (float)MinimizedX;
-                g_GumpTranslate.Y = (float)MinimizedY;
+                g_GumpTranslate.x = (float)MinimizedX;
+                g_GumpTranslate.y = (float)MinimizedY;
             }
             else
             {
-                g_GumpTranslate.X = (float)m_X;
-                g_GumpTranslate.Y = (float)m_Y;
+                g_GumpTranslate.x = (float)m_X;
+                g_GumpTranslate.y = (float)m_Y;
             }
         }
         else
@@ -508,7 +507,6 @@ void CGumpOptions::CalculateGumpState()
 
 void CGumpOptions::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_WantRedrawMacroData)
     {
         RedrawMacroData();
@@ -518,7 +516,6 @@ void CGumpOptions::PrepareContent()
 
 void CGumpOptions::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     //Body
@@ -582,20 +579,18 @@ void CGumpOptions::UpdateContent()
 
 void CGumpOptions::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     g_OptionsMacroManager.LoadFromMacro();
     g_OptionsDeveloperMode = g_DeveloperMode;
 
-    m_MacroPointer = (CMacro *)g_OptionsMacroManager.m_Items;
-    m_MacroObjectPointer = (CMacroObject *)m_MacroPointer->m_Items;
+    m_MacroPointer = (Macro *)g_OptionsMacroManager.m_Items;
+    m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
 
     WantUpdateContent = true;
 }
 
 void CGumpOptions::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     switch (id)
     {
@@ -1288,7 +1283,6 @@ void CGumpOptions::InitToolTip()
 
 void CGumpOptions::DrawPage1()
 {
-    DEBUG_TRACE_FUNCTION;
     //Sound and Music
     Add(new CGUIPage(1));
 
@@ -1370,7 +1364,6 @@ void CGumpOptions::DrawPage1()
 
 void CGumpOptions::DrawPage2()
 {
-    DEBUG_TRACE_FUNCTION;
     //Orion's configuration
     Add(new CGUIPage(2));
 
@@ -1751,7 +1744,6 @@ void CGumpOptions::DrawPage2()
 
 void CGumpOptions::DrawPage3()
 {
-    DEBUG_TRACE_FUNCTION;
     //Language
     Add(new CGUIPage(3));
 
@@ -1793,7 +1785,7 @@ void CGumpOptions::DrawPage3()
 
     Add(new CGUIButton(ID_GO_P3_TEXT_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 151));
 
-    uint32_t color = 0xFF7F7F7F;
+    u32 color = 0xFF7F7F7F;
 
     if (g_OptionsConfig.ToolTipsTextColor != 0xFFFF)
     {
@@ -1816,7 +1808,6 @@ void CGumpOptions::DrawPage3()
 
 void CGumpOptions::DrawPage4()
 {
-    DEBUG_TRACE_FUNCTION;
     //Chat
     Add(new CGUIPage(4));
 
@@ -1830,7 +1821,7 @@ void CGumpOptions::DrawPage4()
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 90));
 
-    uint32_t color = 0xFF7F7F7F;
+    u32 color = 0xFF7F7F7F;
 
     if (g_OptionsConfig.ChatColorInputText != 0xFFFF)
     {
@@ -2138,7 +2129,6 @@ void CGumpOptions::DrawPage4()
 
 void CGumpOptions::RedrawMacroData()
 {
-    DEBUG_TRACE_FUNCTION;
     m_WantRedrawMacroData = false;
     WantUpdateContent = true;
     m_MacroDataBox->Clear();
@@ -2150,10 +2140,10 @@ void CGumpOptions::RedrawMacroData()
 
     if (m_MacroPointer != nullptr)
     {
-        alt = m_MacroPointer->Alt;
-        ctrl = m_MacroPointer->Ctrl;
-        shift = m_MacroPointer->Shift;
-        key = m_MacroPointer->Key;
+        alt = m_MacroPointer->GetAlt();
+        ctrl = m_MacroPointer->GetCtrl();
+        shift = m_MacroPointer->GetShift();
+        key = m_MacroPointer->GetKey();
     }
 
     m_MacroCheckboxShift->Checked = shift;
@@ -2161,7 +2151,7 @@ void CGumpOptions::RedrawMacroData()
     m_MacroCheckboxCtrl->Checked = ctrl;
     m_MacroKey->m_Entry.SetTextA(KeyName(key));
 
-    CMacroObject *obj = m_MacroObjectPointer;
+    MacroObject *obj = m_MacroObjectPointer;
     if (obj != nullptr)
     {
         if (obj->m_Prev != nullptr)
@@ -2188,18 +2178,16 @@ void CGumpOptions::RedrawMacroData()
                 0,
                 20,
                 true));
-            combobox->SelectedIndex = obj->Code;
+            combobox->SelectedIndex = obj->GetCode();
 
-            for (int i = 0; i < CMacro::MACRO_ACTION_NAME_COUNT; i++)
-            {
-                combobox->Add(new CGUIComboboxText(0x0386, 1, CMacro::GetActionName(i)));
-            }
+            for (int i = 0; i < Macro::kMacroActionNamesCount; i++)
+                combobox->Add(new CGUIComboboxText(0x0386, 1, Macro::GetActionName(i)));
 
-            if (obj->HasSubMenu == 1)
+            if (obj->HasSubMenu() == 1)
             {
                 int macroListOffset = 0;
                 int macroListCount = 0;
-                CMacro::GetBoundByCode(obj->Code, macroListCount, macroListOffset);
+                Macro::GetBoundByCode(obj->GetCode(), macroListCount, macroListOffset);
 
                 combobox = (CGUIComboBox *)m_MacroDataBox->Add(new CGUIComboBox(
                     ID_GO_P5_ACTION_SELECTION + (macroCount * ID_GO_P5_MACRO_START),
@@ -2211,20 +2199,20 @@ void CGumpOptions::RedrawMacroData()
                     0,
                     20,
                     true));
-                combobox->SelectedIndex = obj->SubCode - macroListOffset;
+                combobox->SelectedIndex = obj->GetSubCode() - macroListOffset;
 
                 for (int i = 0; i < macroListCount; i++)
                 {
                     combobox->Add(new CGUIComboboxText(
                         0x0386,
                         1,
-                        CMacro::GetAction(macroListOffset + (int)i),
+                        Macro::GetAction(macroListOffset + (int)i),
                         150,
                         TS_LEFT,
                         UOFONT_FIXED));
                 }
             }
-            else if (obj->HasSubMenu == 2)
+            else if (obj->HasSubMenu() == 2)
             {
                 m_MacroDataBox->Add(new CGUIGumppic(0x098E, 245, y));
                 m_MacroDataBox->Add(new CGUIScissor(true, 0, 0, 251, y + 5, 150, 20));
@@ -2246,13 +2234,13 @@ void CGumpOptions::RedrawMacroData()
                     false,
                     1));
                 entry->CheckOnSerial = true;
-                entry->m_Entry.SetTextA(((CMacroObjectString *)obj)->m_String);
+                entry->m_Entry.SetTextA(((MacroObjectString *)obj)->GetString());
                 m_MacroDataBox->Add(new CGUIScissor(false));
             }
 
             macroCount++;
             y += 26;
-            obj = (CMacroObject *)obj->m_Next;
+            obj = (MacroObject *)obj->m_Next;
         }
 
         if (macroCount >= maxMacroDraw)
@@ -2265,7 +2253,6 @@ void CGumpOptions::RedrawMacroData()
 
 void CGumpOptions::DrawPage5()
 {
-    DEBUG_TRACE_FUNCTION;
     Add(new CGUIPage(5));
 
     Add(new CGUIGumppic(0x00EC, 0, 309));
@@ -2329,7 +2316,6 @@ void CGumpOptions::DrawPage5()
 
 void CGumpOptions::DrawPage6()
 {
-    DEBUG_TRACE_FUNCTION;
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
@@ -2505,7 +2491,6 @@ void CGumpOptions::DrawPage6()
 
 void CGumpOptions::DrawPage7()
 {
-    DEBUG_TRACE_FUNCTION;
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
@@ -2589,7 +2574,7 @@ void CGumpOptions::DrawPage7()
 
     Add(new CGUIButton(ID_GO_P7_SPEECH_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 204));
 
-    uint32_t color = 0xFF7F7F7F;
+    u32 color = 0xFF7F7F7F;
 
     if (g_OptionsConfig.SpeechColor != 0xFFFF)
     {
@@ -2718,7 +2703,6 @@ void CGumpOptions::DrawPage7()
 
 void CGumpOptions::DrawPage8()
 {
-    DEBUG_TRACE_FUNCTION;
 
     //Reputation System
     Add(new CGUIPage(8));
@@ -2736,7 +2720,7 @@ void CGumpOptions::DrawPage8()
 
     Add(new CGUIButton(ID_GO_P8_INNOCENT_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 90));
 
-    uint32_t color = 0xFF7F7F7F;
+    u32 color = 0xFF7F7F7F;
 
     if (g_OptionsConfig.InnocentColor != 0xFFFF)
     {
@@ -2854,7 +2838,6 @@ void CGumpOptions::DrawPage8()
 
 void CGumpOptions::DrawPage9()
 {
-    DEBUG_TRACE_FUNCTION;
 
     //Miscellaneous
     Add(new CGUIPage(9));
@@ -2928,15 +2911,13 @@ void CGumpOptions::DrawPage9()
 
 void CGumpOptions::DrawPage10()
 {
-    DEBUG_TRACE_FUNCTION;
     //Filter Options
     Add(new CGUIPage(10));
     Add(new CGUIGumppic(0x00EA, 576, 309));
 }
 
-void CGumpOptions::UpdateColor(const SELECT_COLOR_GUMP_STATE &state, uint16_t color)
+void CGumpOptions::UpdateColor(const SELECT_COLOR_GUMP_STATE &state, u16 color)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (state)
     {
         case SCGS_OPT_TOOLTIP_TEXT:
@@ -3142,7 +3123,6 @@ void CGumpOptions::UpdateColor(const SELECT_COLOR_GUMP_STATE &state, uint16_t co
 
 void CGumpOptions::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GO_PAGE_6)
     {
         m_ContainerOffsetX->m_Entry.SetTextA(std::to_string(g_ContainerRect.DefaultX));
@@ -3275,8 +3255,8 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
             {
                 if (serial == ID_GO_P5_BUTTON_ADD) //Add button
                 {
-                    m_MacroPointer = CMacro::CreateBlankMacro();
-                    m_MacroObjectPointer = (CMacroObject *)m_MacroPointer->m_Items;
+                    m_MacroPointer = Macro::CreateBlankMacro();
+                    m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
                     g_OptionsMacroManager.Add(m_MacroPointer);
                     m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->Key));
                     RedrawMacroData();
@@ -3285,22 +3265,22 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_LastChangeMacroTime < g_Ticks)
                     {
-                        CMacro *newpointer = (CMacro *)m_MacroPointer->m_Next;
+                        Macro *newpointer = (Macro *)m_MacroPointer->m_Next;
 
                         if (newpointer == nullptr)
                         {
-                            newpointer = (CMacro *)m_MacroPointer->m_Prev;
+                            newpointer = (Macro *)m_MacroPointer->m_Prev;
                         }
 
                         g_OptionsMacroManager.Delete(m_MacroPointer);
                         if (newpointer == nullptr)
                         {
-                            newpointer = CMacro::CreateBlankMacro();
+                            newpointer = Macro::CreateBlankMacro();
                             g_OptionsMacroManager.Add(newpointer);
                         }
 
                         m_MacroPointer = newpointer;
-                        m_MacroObjectPointer = (CMacroObject *)m_MacroPointer->m_Items;
+                        m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
                         m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->Key));
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
@@ -3310,8 +3290,8 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroPointer->m_Prev != nullptr && m_LastChangeMacroTime < g_Ticks)
                     {
-                        m_MacroPointer = (CMacro *)m_MacroPointer->m_Prev;
-                        m_MacroObjectPointer = (CMacroObject *)m_MacroPointer->m_Items;
+                        m_MacroPointer = (Macro *)m_MacroPointer->m_Prev;
+                        m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
                     }
@@ -3321,8 +3301,8 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroPointer->m_Next != nullptr)
                     {
-                        m_MacroPointer = (CMacro *)m_MacroPointer->m_Next;
-                        m_MacroObjectPointer = (CMacroObject *)m_MacroPointer->m_Items;
+                        m_MacroPointer = (Macro *)m_MacroPointer->m_Next;
+                        m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
                     }
@@ -3331,7 +3311,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroObjectPointer->m_Prev != nullptr)
                     {
-                        m_MacroObjectPointer = (CMacroObject *)m_MacroObjectPointer->m_Prev;
+                        m_MacroObjectPointer = (MacroObject *)m_MacroObjectPointer->m_Prev;
                         RedrawMacroData();
                     }
                 }
@@ -3339,7 +3319,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroObjectPointer->m_Next != nullptr)
                     {
-                        m_MacroObjectPointer = (CMacroObject *)m_MacroObjectPointer->m_Next;
+                        m_MacroObjectPointer = (MacroObject *)m_MacroObjectPointer->m_Next;
                         RedrawMacroData();
                     }
                 }
@@ -3399,7 +3379,6 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
 
 void CGumpOptions::GUMP_CHECKBOX_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     switch (Page)
     {
         case 1: //Sound and Music
@@ -3478,7 +3457,7 @@ void CGumpOptions::GUMP_CHECKBOX_EVENT_C
             }
             else if (serial == ID_GO_P2_TRANSPARENT_SPELL_ICONS)
             {
-                g_OptionsConfig.TransparentSpellIcons = static_cast<uint8_t>(state);
+                g_OptionsConfig.TransparentSpellIcons = static_cast<u8>(state);
             }
             else if (serial == ID_GO_P2_OLD_STYLE_STATUSBAR)
             {
@@ -3720,7 +3699,6 @@ void CGumpOptions::GUMP_CHECKBOX_EVENT_C
 
 void CGumpOptions::GUMP_RADIO_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (!state)
     {
         return;
@@ -3889,13 +3867,11 @@ void CGumpOptions::GUMP_RADIO_EVENT_C
 
 void CGumpOptions::GUMP_SLIDER_CLICK_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     OnSliderMove(serial);
 }
 
 void CGumpOptions::GUMP_SLIDER_MOVE_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     switch (Page)
     {
         case 1: //Sound and Music
@@ -3993,7 +3969,6 @@ void CGumpOptions::GUMP_SLIDER_MOVE_EVENT_C
 
 void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     bool isAction = false;
     int index = serial - ID_GO_P5_MACRO_SELECTION;
     if (serial >= ID_GO_P5_ACTION_SELECTION)
@@ -4009,7 +3984,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
         macroIndex++;
     }
 
-    CMacroObject *obj = m_MacroObjectPointer;
+    MacroObject *obj = m_MacroObjectPointer;
 
     if (obj != nullptr)
     {
@@ -4024,7 +3999,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
             }
 
             macroCount++;
-            obj = (CMacroObject *)obj->m_Next;
+            obj = (MacroObject *)obj->m_Next;
         }
     }
 
@@ -4036,7 +4011,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
 
             if (obj->Code != code)
             {
-                CMacroObject *newobj = CMacro::CreateMacro(code);
+                MacroObject *newobj = Macro::CreateMacro(code);
 
                 if (obj == m_MacroObjectPointer)
                 {
@@ -4051,16 +4026,16 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
             {
                 if (obj->m_Next == nullptr)
                 {
-                    m_MacroPointer->Add(new CMacroObject(MC_NONE, MSC_NONE));
+                    m_MacroPointer->Add(new MacroObject(MC_NONE, MSC_NONE));
                 }
             }
             else if (
                 obj->m_Next != nullptr && obj->m_Next->m_Next == nullptr &&
-                ((CMacroObject *)obj->m_Next)->Code == MC_NONE)
+                ((MacroObject *)obj->m_Next)->Code == MC_NONE)
             {
                 if (obj == m_MacroObjectPointer)
                 {
-                    m_MacroObjectPointer = (CMacroObject *)obj->m_Next;
+                    m_MacroObjectPointer = (MacroObject *)obj->m_Next;
                 }
 
                 m_MacroPointer->Delete(obj);
@@ -4070,7 +4045,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
         {
             int macroListOffset = 0;
             int macroListCount = 0;
-            CMacro::GetBoundByCode(obj->Code, macroListCount, macroListOffset);
+            Macro::GetBoundByCode(obj->Code, macroListCount, macroListOffset);
 
             obj->SubCode = (MACRO_SUB_CODE)(macroListOffset + index);
         }
@@ -4081,7 +4056,6 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
 
 void CGumpOptions::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto ch = EvChar(ev);
     if (g_EntryPointer == &m_GameWindowWidth->m_Entry ||
@@ -4106,7 +4080,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
     }
     else if (g_EntryPointer != &m_MacroKey->m_Entry)
     {
-        CMacroObject *obj = m_MacroObjectPointer;
+        MacroObject *obj = m_MacroObjectPointer;
         if (obj != nullptr)
         {
             CGUITextEntry *entry = nullptr;
@@ -4134,7 +4108,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
                     }
 
                     macroCount++;
-                    obj = (CMacroObject *)obj->m_Next;
+                    obj = (MacroObject *)obj->m_Next;
                 }
             }
         }
@@ -4169,7 +4143,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
             if (canAdd)
             {
                 g_EntryPointer->Insert(ch);
-                ((CMacroObjectString *)obj)->m_String = g_EntryPointer->c_str();
+                ((MacroObjectString *)obj)->m_String = g_EntryPointer->c_str();
                 WantRedraw = true;
             }
         }
@@ -4178,7 +4152,6 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
 
 void CGumpOptions::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto key = EvKey(ev);
     if (g_EntryPointer == &m_MacroKey->m_Entry)
@@ -4210,7 +4183,7 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
                 g_EntryPointer != &m_ContainerOffsetX->m_Entry &&
                 g_EntryPointer != &m_ContainerOffsetY->m_Entry)
             {
-                CMacroObject *obj = m_MacroObjectPointer;
+                MacroObject *obj = m_MacroObjectPointer;
 
                 if (obj != nullptr)
                 {
@@ -4241,14 +4214,14 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
                             }
 
                             macroCount++;
-                            obj = (CMacroObject *)obj->m_Next;
+                            obj = (MacroObject *)obj->m_Next;
                         }
                     }
                 }
 
                 if (obj != nullptr)
                 {
-                    ((CMacroObjectString *)obj)->m_String = g_EntryPointer->c_str();
+                    ((MacroObjectString *)obj)->m_String = g_EntryPointer->c_str();
                 }
             }
         }
@@ -4257,7 +4230,6 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
 
 void CGumpOptions::ApplyPageChanges()
 {
-    DEBUG_TRACE_FUNCTION;
     switch (Page)
     {
         case 1: //Sound and Music

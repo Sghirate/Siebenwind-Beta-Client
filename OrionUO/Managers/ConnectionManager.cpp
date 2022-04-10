@@ -19,7 +19,6 @@ CConnectionManager::CConnectionManager()
 
 CConnectionManager::~CConnectionManager()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_LoginSocket.Connected)
     {
         m_LoginSocket.Disconnect();
@@ -33,15 +32,13 @@ CConnectionManager::~CConnectionManager()
 
 void CConnectionManager::SetUseProxy(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_UseProxy = val;
     m_LoginSocket.UseProxy = val;
     m_GameSocket.UseProxy = val;
 }
 
-void CConnectionManager::SetProxyAddress(const string &val)
+void CConnectionManager::SetProxyAddress(const std::string &val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_ProxyAddress = val;
     m_LoginSocket.ProxyAddress = val;
     m_GameSocket.ProxyAddress = val;
@@ -49,7 +46,6 @@ void CConnectionManager::SetProxyAddress(const string &val)
 
 void CConnectionManager::SetProxyPort(int val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_ProxyPort = val;
     m_LoginSocket.ProxyPort = val;
     m_GameSocket.ProxyPort = val;
@@ -57,23 +53,20 @@ void CConnectionManager::SetProxyPort(int val)
 
 void CConnectionManager::SetProxySocks5(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_ProxySocks5 = val;
     m_LoginSocket.ProxySocks5 = val;
     m_GameSocket.ProxySocks5 = val;
 }
 
-void CConnectionManager::SetProxyAccount(const string &val)
+void CConnectionManager::SetProxyAccount(const std::string &val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_ProxyAccount = val;
     m_LoginSocket.ProxyAccount = val;
     m_GameSocket.ProxyAccount = val;
 }
 
-void CConnectionManager::SetProxyPassword(const string &val)
+void CConnectionManager::SetProxyPassword(const std::string &val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_ProxyPassword = val;
     m_LoginSocket.ProxyPassword = val;
     m_GameSocket.ProxyPassword = val;
@@ -81,7 +74,6 @@ void CConnectionManager::SetProxyPassword(const string &val)
 
 void CConnectionManager::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_LoginSocket.Connected)
     {
         return;
@@ -100,9 +92,8 @@ void CConnectionManager::Init()
     Crypt::Init(true, m_Seed);
 }
 
-void CConnectionManager::Init(uint8_t *gameSeed)
+void CConnectionManager::Init(u8 *gameSeed)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_GameSocket.Connected)
     {
         return;
@@ -112,9 +103,8 @@ void CConnectionManager::Init(uint8_t *gameSeed)
     Crypt::Init(false, gameSeed);
 }
 
-void CConnectionManager::SendIP(CSocket &socket, uint8_t *ip)
+void CConnectionManager::SendIP(CSocket &socket, u8 *ip)
 {
-    DEBUG_TRACE_FUNCTION;
     PluginEvent ev;
     ev.data1 = ip;
     ev.data2 = (void *)4;
@@ -122,9 +112,8 @@ void CConnectionManager::SendIP(CSocket &socket, uint8_t *ip)
     socket.Send(ip, 4);
 }
 
-bool CConnectionManager::Connect(const string &address, int port, uint8_t *gameSeed)
+bool CConnectionManager::Connect(const std::string &address, int port, u8 *gameSeed)
 {
-    DEBUG_TRACE_FUNCTION;
     LOG("Connecting %s:%d\n", address.c_str(), port);
     if (m_IsLoginSocket)
     {
@@ -146,21 +135,20 @@ bool CConnectionManager::Connect(const string &address, int port, uint8_t *gameS
             }
             else
             {
-                uint8_t buf = 0xEF;
+                u8 buf = 0xEF;
                 m_LoginSocket.Send(&buf, 1); //0xEF
                 SendIP(m_LoginSocket, m_Seed);
-                Wisp::CDataWriter stream;
-
-                uint32_t major = 0, minor = 0, rev = 0, prot = 0;
+                Core::StreamWriter writer;
+                u32 major = 0, minor = 0, rev = 0, prot = 0;
                 GetClientVersion(&major, &minor, &rev, &prot);
-                stream.WriteUInt32BE(major);
-                stream.WriteUInt32BE(minor);
-                stream.WriteUInt32BE(rev);
+                stream.WriteBE<u32>(major);
+                stream.WriteBE<u32>(minor);
+                stream.WriteBE<u32>(rev);
                 if (prot >= 'a')
                 {
                     prot = 0;
                 }
-                stream.WriteUInt32BE(prot);
+                stream.WriteBE<u32>(prot);
 
                 g_TotalSendSize = 21;
                 m_LoginSocket.Send(stream.Data()); // Client version, 16 bytes
@@ -196,7 +184,6 @@ bool CConnectionManager::Connect(const string &address, int port, uint8_t *gameS
 
 void CConnectionManager::Disconnect()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_LoginSocket.Connected)
     {
         m_LoginSocket.Disconnect();
@@ -211,7 +198,6 @@ void CConnectionManager::Disconnect()
 void CConnectionManager::Recv()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (m_IsLoginSocket)
     {
         if (!m_LoginSocket.Connected)
@@ -263,9 +249,8 @@ void CConnectionManager::Recv()
     }
 }
 
-int CConnectionManager::Send(uint8_t *buf, int size)
+int CConnectionManager::Send(u8 *buf, int size)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Config.TheAbyss)
     {
         switch (buf[0])
@@ -311,7 +296,7 @@ int CConnectionManager::Send(uint8_t *buf, int size)
             return 0;
         }
 
-        vector<uint8_t> cbuf(size);
+        std::vector<u8> cbuf(size);
         Crypt::Encrypt(true, &buf[0], &cbuf[0], size);
         return m_LoginSocket.Send(cbuf);
     }
@@ -321,15 +306,14 @@ int CConnectionManager::Send(uint8_t *buf, int size)
         return 0;
     }
 
-    vector<uint8_t> cbuf(size);
+    std::vector<u8> cbuf(size);
     Crypt::Encrypt(false, &buf[0], &cbuf[0], size);
     return m_GameSocket.Send(cbuf);
 
     return 0;
 }
 
-int CConnectionManager::Send(const vector<uint8_t> &data)
+int CConnectionManager::Send(const std::vector<u8> &data)
 {
-    DEBUG_TRACE_FUNCTION;
-    return Send((uint8_t *)&data[0], (int)data.size());
+    return Send((u8 *)&data[0], (int)data.size());
 }

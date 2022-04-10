@@ -1,17 +1,16 @@
-// GPLv3 License
-// Copyright (C) 2019 Danny Angelo Carminati Grein
-
 #include "Config.h"
 
+#include "Core/File.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
 #include "Globals.h"
 #include "Definitions.h"
-#include "FileSystem.h"
 #include "OrionApplication.h"
 #include "Logging.h"
 #include "plugin/enumlist.h"
 #include "Crypt/CryptEntry.h"
-#include "Wisp/WispTextFileParser.h"
 #include "Managers/PacketManager.h"
+#include <string>
 
 #define ORIONUO_CONFIG "OrionUO.cfg"
 
@@ -45,7 +44,7 @@ struct Modified
 
 struct ConfigEntry
 {
-    uint32_t key;
+    u32 key;
     const char *key_name;
 };
 
@@ -65,9 +64,9 @@ static const ConfigEntry s_Keys[] = {
     { MSCC_COUNT, nullptr },
 };
 
-static uint32_t GetConfigKey(const string &key)
+static u32 GetConfigKey(const std::string &key)
 {
-    auto str = ToLowerA(key);
+    auto str = Core::ToLowerA(key);
     for (int i = 0; s_Keys[i].key_name; i++)
     {
         if (str == s_Keys[i].key_name)
@@ -84,7 +83,6 @@ static config::Modified s_Mark;
 
 static void SetClientVersion(const char *versionStr)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (!versionStr || !versionStr[0])
     {
@@ -113,9 +111,9 @@ static void SetClientVersion(const char *versionStr)
     g_Config.ClientVersion = VERSION(a, b, c, d);
 }
 
-static CLIENT_FLAG GetClientTypeFromString(const string &str)
+static CLIENT_FLAG GetClientTypeFromString(const std::string &str)
 {
-    auto client = ToLowerA(str);
+    auto client = Core::ToLowerA(str);
     if (client == "t2a")
     {
         return CF_T2A;
@@ -148,7 +146,7 @@ static CLIENT_FLAG GetClientTypeFromString(const string &str)
     return CF_UNDEFINED;
 }
 
-static const char *GetClientTypeString(uint16_t clientFlag)
+static const char *GetClientTypeString(u16 clientFlag)
 {
     switch (clientFlag)
     {
@@ -196,7 +194,7 @@ static const char *GetClientTypeName(CLIENT_FLAG clientFlag)
     return "";
 }
 
-static CLIENT_FLAG GetClientType(uint32_t version)
+static CLIENT_FLAG GetClientType(u32 version)
 {
     if (version < CV_200)
     {
@@ -227,7 +225,7 @@ static CLIENT_FLAG GetClientType(uint32_t version)
 }
 
 // Reference: https://github.com/polserver/polserver/blob/5c747bb88123945bb892d3d793b89afcb1dc645a/pol-core/pol/crypt/cryptkey.cpp
-static void SetClientCrypt(uint32_t version)
+static void SetClientCrypt(u32 version)
 {
     if (version == CV_200X)
     {
@@ -275,7 +273,6 @@ static void SetClientCrypt(uint32_t version)
 
 static void ClientVersionFixup(const char *versionStr)
 {
-    DEBUG_TRACE_FUNCTION;
 
     SetClientVersion(versionStr);
     SetClientCrypt(g_Config.ClientVersion);
@@ -285,8 +282,8 @@ static void ClientVersionFixup(const char *versionStr)
 
     if (g_Config.ClientVersion < CV_500A)
     {
-        g_MapSize[0].Width = 6144;
-        g_MapSize[1].Width = 6144;
+        g_MapSize[0].x = 6144;
+        g_MapSize[1].x = 6144;
     }
 
     if (!g_Config.UseCrypt)
@@ -315,7 +312,7 @@ static void ClientVersionFixup(const char *versionStr)
     }
 }
 
-void GetClientVersion(uint32_t *major, uint32_t *minor, uint32_t *rev, uint32_t *proto)
+void GetClientVersion(u32 *major, u32 *minor, u32 *rev, u32 *proto)
 {
     if (major)
     {
@@ -340,11 +337,10 @@ void GetClientVersion(uint32_t *major, uint32_t *minor, uint32_t *rev, uint32_t 
 
 void LoadGlobalConfig()
 {
-    DEBUG_TRACE_FUNCTION;
 
-    LOG("Loading global config from " ORIONUO_CONFIG "\n");
-    Wisp::CTextFileParser file(g_App.ExeFilePath(ORIONUO_CONFIG), "=,", "#;", "");
+//    LOG("Loading global config from " ORIONUO_CONFIG "\n");
 
+    Core::TextFileParser file(g_App.GetExeDir() / ORIONUO_CONFIG, "=,", "#;", "");
     while (!file.IsEOF())
     {
         auto strings = file.ReadTokens(false); // Trim remove spaces from paths
@@ -361,8 +357,7 @@ void LoadGlobalConfig()
                 break;
                 case MSCC_CUSTOM_PATH:
                 {
-                    g_App.m_UOPath = ToPath(strings[1]);
-                    fs_case_insensitive_init(g_App.m_UOPath);
+                    g_App.SetGameDir(strings[1]);
                 }
                 break;
                 case MSCC_ACTID:
@@ -372,46 +367,46 @@ void LoadGlobalConfig()
                 }
                 case MSCC_ACTPWD:
                 {
-                    string password = file.RawLine;
+                    const std::string& password = file.GetRawLine();
                     size_t pos = password.find_first_of('=');
                     g_Config.Password = password.substr(pos + 1, password.length() - (pos + 1));
                     break;
                 }
                 case MSCC_REMEMBERPWD:
                 {
-                    g_Config.SavePassword = ToBool(strings[1]);
+                    g_Config.SavePassword = Core::ToBool(strings[1]);
                     break;
                 }
                 case MSCC_AUTOLOGIN:
                 {
-                    g_Config.AutoLogin = ToBool(strings[1]);
+                    g_Config.AutoLogin = Core::ToBool(strings[1]);
                     break;
                 }
                 case MSCC_THE_ABYSS:
                 {
-                    g_Config.TheAbyss = ToBool(strings[1]);
+                    g_Config.TheAbyss = Core::ToBool(strings[1]);
                     break;
                 }
                 case MSCC_ASMUT:
                 {
-                    g_Config.Asmut = ToBool(strings[1]);
+                    g_Config.Asmut = Core::ToBool(strings[1]);
                     break;
                 }
                 case MSCC_LOGIN_SERVER:
                 {
                     g_Config.ServerAddress = strings[1];
-                    g_Config.ServerPort = ToInt(strings[2]);
+                    g_Config.ServerPort = Core::ToInt(strings[2]);
                     break;
                 }
                 case MSCC_USE_CRYPT:
                 {
-                    g_Config.UseCrypt = ToBool(strings[1]);
+                    g_Config.UseCrypt = Core::ToBool(strings[1]);
                     break;
                 }
                 case MSCC_USE_VERDATA:
                 {
                     s_Mark.UseVerdata = true;
-                    g_Config.UseVerdata = ToBool(strings[1]);
+                    g_Config.UseVerdata = Core::ToBool(strings[1]);
                     break;
                 }
                 case MSCC_CLIENT_TYPE:
@@ -445,68 +440,66 @@ void LoadGlobalConfig()
         snprintf(p2, sizeof(p2), ".%d", d);
     }
 
-    LOG("Client Emulation:\n");
-    LOG("\tClient Version: %s\n", g_Config.ClientVersionString.c_str());
-    LOG("\tEmulation Compatibility Version: %s%s (0x%08x)\n", p1, p2, g_Config.ClientVersion);
-    LOG("\tCryptography: %08x %08x %08x %04x (%d)\n",
-        g_Config.Key1,
-        g_Config.Key2,
-        g_Config.Key3,
-        g_Config.Seed,
-        g_Config.EncryptionType);
-    LOG("\tClient Type: %s (%d)\n",
-        GetClientTypeName((CLIENT_FLAG)g_Config.ClientFlag),
-        g_Config.ClientFlag);
-    LOG("\tUse Verdata: %d\n", g_Config.UseVerdata);
+//    LOG("Client Emulation:\n");
+//    LOG("\tClient Version: %s\n", g_Config.ClientVersionString.c_str());
+//    LOG("\tEmulation Compatibility Version: %s%s (0x%08x)\n", p1, p2, g_Config.ClientVersion);
+//    LOG("\tCryptography: %08x %08x %08x %04x (%d)\n",
+        // g_Config.Key1,
+        // g_Config.Key2,
+        // g_Config.Key3,
+        // g_Config.Seed,
+        // g_Config.EncryptionType);
+//    LOG("\tClient Type: %s (%d)\n",
+        // GetClientTypeName((CLIENT_FLAG)g_Config.ClientFlag),
+        // g_Config.ClientFlag);
+//    LOG("\tUse Verdata: %d\n", g_Config.UseVerdata);
 }
 
 void SaveGlobalConfig()
 {
-    DEBUG_TRACE_FUNCTION;
-    LOG("Saving global config to " ORIONUO_CONFIG "\n");
-    FILE *cfg = fs_open(g_App.ExeFilePath(ORIONUO_CONFIG), FS_WRITE);
-    if (cfg == nullptr)
+//    LOG("Saving global config to " ORIONUO_CONFIG "\n");
+    Core::File cfg(g_App.GetExeDir() / ORIONUO_CONFIG, "w");
+    if (!cfg)
     {
         return;
     }
 
-    fprintf(cfg, "AcctID=%s\n", g_Config.Login.c_str());
+    cfg.Print("AcctID=%s\n", g_Config.Login.c_str());
     if (g_Config.SavePassword)
     {
-        fprintf(cfg, "AcctPassword=%s\n", g_Config.Password.c_str());
-        fprintf(cfg, "RememberAcctPW=yes\n");
+        cfg.Print("AcctPassword=%s\n", g_Config.Password.c_str());
+        cfg.Print("RememberAcctPW=yes\n");
     }
     else
     {
-        fprintf(cfg, "AcctPassword=\n");
-        fprintf(cfg, "RememberAcctPW=no\n");
+        cfg.Print("AcctPassword=\n");
+        cfg.Print("RememberAcctPW=no\n");
     }
 
-    fprintf(cfg, "AutoLogin=%s\n", (g_Config.AutoLogin ? "yes" : "no"));
-    fprintf(cfg, "TheAbyss=%s\n", (g_Config.TheAbyss ? "yes" : "no"));
-    fprintf(cfg, "Asmut=%s\n", (g_Config.Asmut ? "yes" : "no"));
+    cfg.Print("AutoLogin=%s\n", (g_Config.AutoLogin ? "yes" : "no"));
+    cfg.Print("TheAbyss=%s\n", (g_Config.TheAbyss ? "yes" : "no"));
+    cfg.Print("Asmut=%s\n", (g_Config.Asmut ? "yes" : "no"));
 
     if (s_Mark.ClientFlag)
     {
-        fprintf(cfg, "ClientType=%s\n", GetClientTypeString(g_Config.ClientFlag));
+        cfg.Print("ClientType=%s\n", GetClientTypeString(g_Config.ClientFlag));
     }
     if (s_Mark.UseVerdata)
     {
-        fprintf(cfg, "UseVerdata=%s\n", (g_Config.UseVerdata ? "yes" : "no"));
+        cfg.Print("UseVerdata=%s\n", (g_Config.UseVerdata ? "yes" : "no"));
     }
 
-    fprintf(cfg, "Crypt=%s\n", (g_Config.UseCrypt ? "yes" : "no"));
-    if (g_App.m_UOPath != g_App.m_ExePath)
+    cfg.Print("Crypt=%s\n", (g_Config.UseCrypt ? "yes" : "no"));
+    if (g_App.GetGameDir() != g_App.GetExeDir())
     {
-        fprintf(cfg, "CustomPath=%s\n", CStringFromPath(g_App.m_UOPath));
+        cfg.Print("CustomPath=%s\n", g_App.GetGameDir().c_str());
     }
 
     if (!g_Config.ServerAddress.empty())
     {
-        fprintf(cfg, "LoginServer=%s,%d\n", g_Config.ServerAddress.c_str(), g_Config.ServerPort);
+        cfg.Print("LoginServer=%s,%d\n", g_Config.ServerAddress.c_str(), g_Config.ServerPort);
     }
 
-    fprintf(cfg, "ClientVersion=%s\n", g_Config.ClientVersionString.c_str());
-    fflush(cfg);
-    fs_close(cfg);
+    cfg.Print("ClientVersion=%s\n", g_Config.ClientVersionString.c_str());
+    cfg.Flush();
 }

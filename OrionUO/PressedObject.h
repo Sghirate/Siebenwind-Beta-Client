@@ -8,13 +8,13 @@ class CSelectedObject;
 class CPressedObject
 {
 public:
-    uint32_t LeftSerial = 0;
+    u32 LeftSerial = 0;
     CRenderObject *LeftObject = nullptr;
     CGump *LeftGump = nullptr;
-    uint32_t RightSerial = 0;
+    u32 RightSerial = 0;
     CRenderObject *RightObject = nullptr;
     CGump *RightGump = nullptr;
-    uint32_t MidSerial = 0;
+    u32 MidSerial = 0;
     CRenderObject *MidObject = nullptr;
     CGump *MidGump = nullptr;
 

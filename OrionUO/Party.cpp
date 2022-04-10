@@ -1,7 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "Party.h"
+﻿#include "Party.h"
+#include "Core/StringUtils.h"
+#include "Globals.h"
 #include "OrionUO.h"
 #include "Network/Packets.h"
 #include "Managers/ConfigManager.h"
@@ -21,41 +20,35 @@ CParty::~CParty()
 {
 }
 
-bool CParty::Contains(int serial)
+bool CParty::Contains(int a_serial)
 {
-    DEBUG_TRACE_FUNCTION;
-
     bool result = false;
     if (Leader != 0)
     {
         for (int i = 0; i < 10; i++)
         {
-            if (Member[i].Serial == serial)
+            if (Member[i].Serial == a_serial)
             {
                 result = true;
                 break;
             }
         }
     }
-
     return result;
 }
 
 void CParty::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < 10; i++)
     {
-        Member[i].Serial = 0;
+        Member[i].Serial    = 0;
         Member[i].Character = nullptr;
     }
 }
 
-void CParty::ParsePacketData(Wisp::CDataReader &reader)
+void CParty::ParsePacketData(Core::StreamReader& a_reader)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint8_t code = reader.ReadUInt8();
-
+    u8 code = a_reader.ReadLE<u8>();
     switch (code)
     {
         case 1: //Add member
@@ -63,20 +56,19 @@ void CParty::ParsePacketData(Wisp::CDataReader &reader)
         }
         case 2: //Remove member
         {
-            uint8_t count = reader.ReadUInt8();
-
+            u8 count = a_reader.ReadLE<u8>();
             if (count <= 1)
             {
-                Leader = 0;
+                Leader  = 0;
                 Inviter = 0;
                 for (int i = 0; i < 10; i++)
                 {
-                    CPartyObject &member = Member[i];
+                    CPartyObject& member = Member[i];
                     if (member.Character == nullptr)
                     {
                         break;
                     }
-                    CGumpStatusbar *gump = (CGumpStatusbar *)g_GumpManager.UpdateContent(
+                    CGumpStatusbar* gump = (CGumpStatusbar*)g_GumpManager.UpdateContent(
                         member.Character->Serial, 0, GT_STATUSBAR);
                     if (gump != nullptr)
                     {
@@ -88,28 +80,28 @@ void CParty::ParsePacketData(Wisp::CDataReader &reader)
                 break;
             }
             Clear();
-            CPoint2Di oldPos = g_MouseManager.Position;
-            CPoint2Di mousePos(76, 30);
-            g_MouseManager.Position = mousePos;
-            CGumpStatusbar *prevGump = nullptr;
+            Core::Vec2<i32> oldPos = g_MouseManager.GetPosition();
+            Core::Vec2<i32> mousePos(76, 30);
+            g_MouseManager.SetPosition(mousePos);
+            CGumpStatusbar* prevGump = nullptr;
 
             for (int i = 0; i < count; i++)
             {
-                uint32_t serial = reader.ReadUInt32BE();
-                Member[i].Serial = serial;
+                u32 serial          = a_reader.ReadBE<u32>();
+                Member[i].Serial    = serial;
                 Member[i].Character = g_World->FindWorldCharacter(serial);
                 if (i == 0)
                 {
                     g_Party.Leader = serial;
                 }
 
-                CGumpStatusbar *gump =
-                    (CGumpStatusbar *)g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
+                CGumpStatusbar* gump =
+                    (CGumpStatusbar*)g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
 
                 if (gump == nullptr)
                 {
                     g_Orion.OpenStatus(serial);
-                    gump = (CGumpStatusbar *)g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
+                    gump = (CGumpStatusbar*)g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
 
                     if (serial == g_PlayerSerial)
                     {
@@ -122,8 +114,8 @@ void CParty::ParsePacketData(Wisp::CDataReader &reader)
                     }
 
                     prevGump = gump;
-                    mousePos.Y += 59;
-                    g_MouseManager.Position = mousePos;
+                    mousePos.y += 59;
+                    g_MouseManager.SetPosition(mousePos);
                 }
                 else
                 {
@@ -132,21 +124,22 @@ void CParty::ParsePacketData(Wisp::CDataReader &reader)
                 }
             }
 
-            g_MouseManager.Position = oldPos;
+            g_MouseManager.SetPosition(oldPos);
             g_GumpManager.UpdateContent(0, 0, GT_PARTY_MANIFEST);
             break;
         }
         case 3: //Private party message
         case 4: //Party message
         {
-            uint32_t serial = reader.ReadUInt32BE();
-            wstring name = reader.ReadWStringBE();
+            u32 serial        = a_reader.ReadBE<u32>();
+            std::wstring name = a_reader.ReadWStringBE();
 
             for (int i = 0; i < 10; i++)
             {
                 if (Member[i].Serial == serial)
                 {
-                    string str = "[" + Member[i].GetName((int)i) + "]: " + ToString(name);
+                    std::string str =
+                        "[" + Member[i].GetName((int)i) + "]: " + Core::ToString(name);
                     g_Orion.CreateTextMessage(
                         TT_SYSTEM, serial, 3, g_ConfigManager.PartyMessageColor, str);
 
@@ -158,10 +151,9 @@ void CParty::ParsePacketData(Wisp::CDataReader &reader)
         }
         case 7: //Party invition
         {
-            g_Party.Inviter = reader.ReadUInt32BE();
+            g_Party.Inviter = a_reader.ReadBE<u32>();
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }

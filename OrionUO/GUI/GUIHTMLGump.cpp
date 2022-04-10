@@ -1,19 +1,15 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIHTMLGump.h"
+﻿#include "GUIHTMLGump.h"
 #include "GUIHTMLResizepic.h"
 #include "GUIHTMLHitBox.h"
 #include "GUIHTMLSlider.h"
 #include "GUIHTMLButton.h"
 #include "GUIScissor.h"
 #include "../OrionUO.h"
-#include "../Point.h"
 #include "../Managers/MouseManager.h"
 
 CGUIHTMLGump::CGUIHTMLGump(
     int serial,
-    uint16_t graphic,
+    u16 graphic,
     int x,
     int y,
     int width,
@@ -25,7 +21,6 @@ CGUIHTMLGump::CGUIHTMLGump(
     , HaveScrollbar(haveScrollbar)
 
 {
-    DEBUG_TRACE_FUNCTION;
     Serial = serial;
     Graphic = graphic;
 
@@ -38,14 +33,12 @@ CGUIHTMLGump::~CGUIHTMLGump()
 
 void CGUIHTMLGump::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_Items, CBaseGUI *)
     item->PrepareTextures();
 }
 
 void CGUIHTMLGump::Initalize(bool menu)
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     if (menu)
@@ -158,7 +151,6 @@ void CGUIHTMLGump::Initalize(bool menu)
 
 void CGUIHTMLGump::UpdateHeight(int height)
 {
-    DEBUG_TRACE_FUNCTION;
     Height = height;
 
     m_Background->Height = height;
@@ -193,14 +185,12 @@ void CGUIHTMLGump::UpdateHeight(int height)
 
 void CGUIHTMLGump::ResetDataOffset()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Slider->Value = 0;
-    CurrentOffset.Reset();
+    CurrentOffset.set(0, 0);
 }
 
 void CGUIHTMLGump::CalculateDataSize(CBaseGUI *item, int &startX, int &startY, int &endX, int &endY)
 {
-    DEBUG_TRACE_FUNCTION;
     for (; item != nullptr; item = (CBaseGUI *)item->m_Next)
     {
         if (item->Type == GOT_HITBOX || !item->Visible)
@@ -214,35 +204,24 @@ void CGUIHTMLGump::CalculateDataSize(CBaseGUI *item, int &startX, int &startY, i
         }
 
         if (item->GetX() < startX)
-        {
             startX = item->GetX();
-        }
-
         if (item->GetY() < startY)
-        {
             startY = item->GetY();
-        }
 
-        CSize size = item->GetSize();
+        Core::Vec2<i32> size = item->GetSize();
 
-        int curX = item->GetX() + size.Width;
-        int curY = item->GetY() + size.Height;
+        int curX = item->GetX() + size.x;
+        int curY = item->GetY() + size.y;
 
         if (curX > endX)
-        {
             endX = curX;
-        }
-
         if (curY > endY)
-        {
             endY = curY;
-        }
     }
 }
 
 void CGUIHTMLGump::CalculateDataSize()
 {
-    DEBUG_TRACE_FUNCTION;
     CBaseGUI *item = (CBaseGUI *)m_Items;
 
     for (int i = 0; i < 5; i++)
@@ -257,35 +236,35 @@ void CGUIHTMLGump::CalculateDataSize()
 
     CalculateDataSize(item, startX, startY, endX, endY);
 
-    DataSize.Width = abs(startX) + abs(endX);
-    DataSize.Height = abs(startY) + abs(endY);
+    DataSize.x = abs(startX) + abs(endX);
+    DataSize.y = abs(startY) + abs(endY);
 
-    DataOffset.X = startX;
-    DataOffset.Y = startY;
+    DataOffset.x = startX;
+    DataOffset.y = startY;
 
-    AvailableOffset.X = DataSize.Width - m_Scissor->Width;
+    AvailableOffset.x = DataSize.x - m_Scissor->Width;
 
-    if (AvailableOffset.X < 0)
+    if (AvailableOffset.x < 0)
     {
-        AvailableOffset.X = 0;
+        AvailableOffset.x = 0;
     }
 
-    AvailableOffset.Y = DataSize.Height - m_Scissor->Height;
+    AvailableOffset.y = DataSize.y - m_Scissor->Height;
 
-    if (AvailableOffset.Y < 0)
+    if (AvailableOffset.y < 0)
     {
-        AvailableOffset.Y = 0;
+        AvailableOffset.y = 0;
     }
 
     m_Slider->MinValue = 0;
 
     if (m_Slider->Vertical)
     {
-        m_Slider->MaxValue = AvailableOffset.Y;
+        m_Slider->MaxValue = AvailableOffset.y;
     }
     else
     {
-        m_Slider->MaxValue = AvailableOffset.X;
+        m_Slider->MaxValue = AvailableOffset.x;
     }
 
     m_Slider->CalculateOffset();
@@ -293,45 +272,31 @@ void CGUIHTMLGump::CalculateDataSize()
 
 bool CGUIHTMLGump::EntryPointerHere()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_Items, CBaseGUI *)
     {
         if (item->Visible && item->EntryPointerHere())
-        {
             return true;
-        }
     }
-
     return false;
 }
 
 bool CGUIHTMLGump::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    CPoint2Di oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = CPoint2Di(oldPos.X - m_X, oldPos.Y - m_Y);
-
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(oldPos - Core::TMousePos(m_X, m_Y));
     bool selected = false;
-
-    CBaseGUI *item = (CBaseGUI *)m_Items;
-
+    CBaseGUI* item = (CBaseGUI*)m_Items;
     for (int i = 0; i < 5 && !selected; i++)
     {
         selected = item->Select();
-
-        item = (CBaseGUI *)item->m_Next;
+        item = (CBaseGUI*)item->m_Next;
     }
-
-    g_MouseManager.Position = oldPos;
-
+    g_MouseManager.SetPosition(oldPos);
     return selected;
 }
 
 void CGUIHTMLGump::Scroll(bool up, int delay)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Slider != nullptr)
-    {
         m_Slider->OnScroll(up, delay);
-    }
 }

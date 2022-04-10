@@ -1,9 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "QuestArrow.h"
 #include "OrionUO.h"
-#include "Point.h"
 #include "Managers/MouseManager.h"
 #include "ScreenStages/MainScreen.h"
 #include "ScreenStages/GameScreen.h"
@@ -21,37 +17,36 @@ CQuestArrow::~CQuestArrow()
 
 void CQuestArrow::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled)
     {
         int dir = g_MouseManager.GetFacing(g_Player->GetX(), g_Player->GetY(), X, Y, 0);
 
-        uint16_t gumpID = m_Gump + ((dir + 1) % 8);
+        u16 gumpID = m_Gump + ((dir + 1) % 8);
 
-        CSize size = g_Orion.GetGumpDimension(gumpID);
+        Core::Vec2<i32> size = g_Orion.GetGumpDimension(gumpID);
 
         int gox = X - g_Player->GetX();
         int goy = Y - g_Player->GetY();
 
-        int x = g_RenderBounds.GameWindowCenterX + ((gox - goy) * 22) - (size.Width / 2);
-        int y = g_RenderBounds.GameWindowCenterY + ((gox + goy) * 22) - (size.Height / 2);
+        int x = g_RenderBounds.GameWindowCenterX + ((gox - goy) * 22) - (size.x / 2);
+        int y = g_RenderBounds.GameWindowCenterY + ((gox + goy) * 22) - (size.y / 2);
 
         if (x < g_RenderBounds.GameWindowPosX)
         {
             x = g_RenderBounds.GameWindowPosX;
         }
-        else if (x > g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth - size.Width)
+        else if (x > g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth - size.x)
         {
-            x = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth - size.Width;
+            x = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth - size.x;
         }
 
         if (y < g_RenderBounds.GameWindowPosY)
         {
             y = g_RenderBounds.GameWindowPosY;
         }
-        else if (y > g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - size.Height)
+        else if (y > g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - size.y)
         {
-            y = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - size.Height;
+            y = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - size.y;
         }
 
         if (Timer < g_Ticks)

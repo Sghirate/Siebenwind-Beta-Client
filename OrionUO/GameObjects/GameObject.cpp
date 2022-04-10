@@ -1,12 +1,11 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GameObject.h"
+#include "Core/StringUtils.h"
 #include "GameEffect.h"
 #include "GameCharacter.h"
+#include "Globals.h"
+#include "SiebenwindClient.h"
 #include <SDL_timer.h>
 #include "../Config.h"
-#include "../Point.h"
 #include "../OrionUO.h"
 #include "../ServerList.h"
 #include "../SelectedObject.h"
@@ -19,12 +18,12 @@
 #include "../Managers/ConfigManager.h"
 #include "../Managers/ColorManager.h"
 #include "../TextEngine/TextData.h"
+#include "plugin/enumlist.h"
 
 CGameObject::CGameObject(int serial)
     : CRenderStaticObject(ROT_GAME_OBJECT, serial, 0, 0, 0, 0, 0)
     , LastAnimationChangeTime(SDL_GetTicks())
 {
-    DEBUG_TRACE_FUNCTION;
     memset(&m_FrameInfo, 0, sizeof(DRAW_FRAME_INFORMATION));
 
 #if UO_DEBUG_INFO != 0
@@ -34,7 +33,6 @@ CGameObject::CGameObject(int serial)
 
 CGameObject::~CGameObject()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Effects != nullptr)
     {
         delete m_Effects;
@@ -57,9 +55,8 @@ CGameObject::~CGameObject()
 #endif //UO_DEBUG_INFO!=0
 }
 
-void CGameObject::SetFlags(uint8_t val)
+void CGameObject::SetFlags(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
     bool poisoned = Poisoned();
     bool yellowHits = YellowHits();
 
@@ -72,14 +69,13 @@ void CGameObject::SetFlags(uint8_t val)
     }
 }
 
-void CGameObject::SetName(const string &newName)
+void CGameObject::SetName(const std::string &newName)
 {
-    DEBUG_TRACE_FUNCTION;
     if (IsPlayer() && m_Name != newName)
     {
         if (g_GameState >= GS_GAME)
         {
-            string title = SiebenwindClient::WindowTitle + " - " + newName;
+            std::string title = SiebenwindClient::GetWindowTitle() + " - " + newName;
 
             CServer *server = g_ServerList.GetSelectedServer();
 
@@ -99,19 +95,18 @@ void CGameObject::SetName(const string &newName)
 
 void CGameObject::DrawObjectHandlesTexture()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextureObjectHalndes.Texture == 0)
     {
         if (NPC || IsCorpse())
         {
-            GenerateObjectHandlesTexture(ToWString(m_Name));
+            GenerateObjectHandlesTexture(Core::ToWString(m_Name));
         }
         else
         {
-            wstring name = ToWString(m_Name);
+            std::wstring name = Core::ToWString(m_Name);
             if (name.length() == 0u)
             {
-                name = g_ClilocManager.Cliloc(g_Language)
+                name = g_ClilocManager.GetCliloc(g_Language)
                            ->GetW(1020000 + Graphic, true, g_Orion.m_StaticData[Graphic].Name);
             }
             GenerateObjectHandlesTexture(name);
@@ -132,7 +127,7 @@ void CGameObject::DrawObjectHandlesTexture()
     }
     else
     {
-        y -= g_Orion.GetStaticArtDimension(Graphic).Height;
+        y -= g_Orion.GetStaticArtDimension(Graphic).y;
     }
 
     m_TextureObjectHalndes.Draw(x, y);
@@ -140,7 +135,6 @@ void CGameObject::DrawObjectHandlesTexture()
 
 void CGameObject::SelectObjectHandlesTexture()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextureObjectHalndes.Texture != 0)
     {
         int x = DrawX - g_ObjectHandlesWidthOffset;
@@ -157,11 +151,12 @@ void CGameObject::SelectObjectHandlesTexture()
         }
         else
         {
-            y -= g_Orion.GetStaticArtDimension(Graphic).Height;
+            y -= g_Orion.GetStaticArtDimension(Graphic).y;
         }
 
-        x = g_MouseManager.Position.X - x;
-        y = g_MouseManager.Position.Y - y;
+        Core::TMousePos pos = g_MouseManager.GetPosition();
+        x = pos.x - x;
+        y = pos.y - y;
 
         if (x < 0 || x >= g_ObjectHandlesWidth || y < 0 || y >= g_ObjectHandlesHeight)
         {
@@ -176,9 +171,8 @@ void CGameObject::SelectObjectHandlesTexture()
     }
 }
 
-void CGameObject::GenerateObjectHandlesTexture(wstring text)
+void CGameObject::GenerateObjectHandlesTexture(std::wstring text)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextureObjectHalndes.Texture != 0)
     {
         glDeleteTextures(1, &m_TextureObjectHalndes.Texture);
@@ -187,19 +181,19 @@ void CGameObject::GenerateObjectHandlesTexture(wstring text)
 
     int width = g_ObjectHandlesWidth - 20;
 
-    uint8_t font = 1;
+    u8 font = 1;
     CGLTextTexture textTexture;
-    uint16_t color = 0xFFFF;
-    uint8_t cell = 30;
+    u16 color = 0xFFFF;
+    u8 cell = 30;
     TEXT_ALIGN_TYPE tat = TS_CENTER;
-    uint16_t flags = 0;
+    u16 flags = 0;
 
     if (g_FontManager.GetWidthW(font, text) > width)
     {
         text = g_FontManager.GetTextByWidthW(font, text, width - 6, true);
     }
 
-    vector<uint32_t> textData = g_FontManager.GeneratePixelsW(
+    std::vector<u32> textData = g_FontManager.GeneratePixelsW(
         font, textTexture, text.c_str(), color, cell, width, tat, flags);
 
     if (textData.empty())
@@ -208,7 +202,7 @@ void CGameObject::GenerateObjectHandlesTexture(wstring text)
     }
 
     static const int size = g_ObjectHandlesWidth * g_ObjectHandlesHeight;
-    uint16_t pixels[size] = { 0 };
+    u16 pixels[size] = { 0 };
 
     memcpy(&pixels[0], &g_ObjectHandlesBackgroundPixels[0], size * 2);
 
@@ -231,13 +225,13 @@ void CGameObject::GenerateObjectHandlesTexture(wstring text)
             {
                 for (int y = 0; y < g_ObjectHandlesHeight; y++)
                 {
-                    uint16_t &pixel = pixels[(y * g_ObjectHandlesWidth) + x];
+                    u16 &pixel = pixels[(y * g_ObjectHandlesWidth) + x];
 
                     if (pixel != 0u)
                     {
-                        uint8_t r = (pixel & 0x1F);
-                        uint8_t g = ((pixel >> 5) & 0x1F);
-                        uint8_t b = ((pixel >> 10) & 0x1F);
+                        u8 r = (pixel & 0x1F);
+                        u8 g = ((pixel >> 5) & 0x1F);
+                        u8 b = ((pixel >> 10) & 0x1F);
 
                         if (r == g && r == b)
                         {
@@ -264,12 +258,12 @@ void CGameObject::GenerateObjectHandlesTexture(wstring text)
                 break;
             }
 
-            uint32_t &pixel = textData[(y * textTexture.Width) + x];
+            u32 &pixel = textData[(y * textTexture.Width) + x];
 
             if (pixel != 0u)
             {
-                uint8_t *bytes = (uint8_t *)&pixel;
-                uint8_t buf = bytes[0];
+                u8 *bytes = (u8 *)&pixel;
+                u8 buf = bytes[0];
                 bytes[0] = bytes[3];
                 bytes[3] = buf;
                 buf = bytes[1];
@@ -286,7 +280,6 @@ void CGameObject::GenerateObjectHandlesTexture(wstring text)
 
 void CGameObject::AddText(CTextData *msg)
 {
-    DEBUG_TRACE_FUNCTION;
 
     msg->Owner = this;
     m_TextControl->Add(msg);
@@ -312,15 +305,13 @@ void CGameObject::AddText(CTextData *msg)
     g_Orion.AddJournalMessage(msg, JournalPrefix);
 }
 
-uint16_t CGameObject::GetMountAnimation()
+u16 CGameObject::GetMountAnimation()
 {
-    DEBUG_TRACE_FUNCTION;
     return Graphic; // + UO->GetStaticPointer(Graphic)->Increment;
 }
 
 void CGameObject::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Empty())
     {
         CGameObject *obj = (CGameObject *)m_Items;
@@ -340,7 +331,6 @@ void CGameObject::Clear()
 
 void CGameObject::ClearUnequipped()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Empty())
     {
         CGameObject *newFirstItem = nullptr;
@@ -371,7 +361,6 @@ void CGameObject::ClearUnequipped()
 
 void CGameObject::ClearNotOpenedItems()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Empty())
     {
         CGameObject *obj = (CGameObject *)m_Items;
@@ -393,7 +382,6 @@ void CGameObject::ClearNotOpenedItems()
 
 bool CGameObject::Poisoned()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Config.ClientVersion >= CV_7000)
     {
         return SA_Poisoned;
@@ -403,7 +391,6 @@ bool CGameObject::Poisoned()
 
 bool CGameObject::Flying()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Config.ClientVersion >= CV_7000)
     {
         return (m_Flags & 0x04) != 0;
@@ -411,9 +398,8 @@ bool CGameObject::Flying()
     return false;
 }
 
-int CGameObject::IsGold(uint16_t graphic)
+int CGameObject::IsGold(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (graphic)
     {
         case 0x0EED:
@@ -429,13 +415,12 @@ int CGameObject::IsGold(uint16_t graphic)
     return 0;
 }
 
-uint16_t CGameObject::GetDrawGraphic(bool &doubleDraw)
+u16 CGameObject::GetDrawGraphic(bool &doubleDraw)
 {
-    DEBUG_TRACE_FUNCTION;
     int index = IsGold(Graphic);
-    uint16_t result = Graphic;
+    u16 result = Graphic;
 
-    const uint16_t graphicAssociateTable[3][3] = { { 0x0EED, 0x0EEE, 0x0EEF },
+    const u16 graphicAssociateTable[3][3] = { { 0x0EED, 0x0EEE, 0x0EEF },
                                                    { 0x0EEA, 0x0EEB, 0x0EEC },
                                                    { 0x0EF0, 0x0EF1, 0x0EF2 } };
 
@@ -454,7 +439,6 @@ uint16_t CGameObject::GetDrawGraphic(bool &doubleDraw)
 
 void CGameObject::DrawEffects(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (NPC)
     {
         CGameCharacter *gc = GameCharacterPtr();
@@ -469,11 +453,11 @@ void CGameObject::DrawEffects(int x, int y)
 
         if (effect->EffectType == EF_LIGHTING)
         {
-            uint16_t graphic = 0x4E20 + effect->AnimIndex;
+            u16 graphic = 0x4E20 + effect->AnimIndex;
 
-            CSize size = g_Orion.GetGumpDimension(graphic);
+            Core::Vec2<i32> size = g_Orion.GetGumpDimension(graphic);
 
-            g_Orion.DrawGump(graphic, effect->Color, x - (size.Width / 2), y - size.Height);
+            g_Orion.DrawGump(graphic, effect->Color, x - (size.x / 2), y - size.y);
         }
         else
         {
@@ -486,7 +470,6 @@ void CGameObject::DrawEffects(int x, int y)
 
 void CGameObject::UpdateEffects()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameEffect *effect = m_Effects;
 
     while (effect != nullptr)
@@ -501,7 +484,6 @@ void CGameObject::UpdateEffects()
 
 void CGameObject::AddEffect(CGameEffect *effect)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Effects == nullptr)
     {
         m_Effects = effect;
@@ -519,7 +501,6 @@ void CGameObject::AddEffect(CGameEffect *effect)
 
 void CGameObject::RemoveEffect(CGameEffect *effect)
 {
-    DEBUG_TRACE_FUNCTION;
     if (effect->m_Prev == nullptr)
     {
         m_Effects = (CGameEffect *)effect->m_Next;
@@ -546,7 +527,6 @@ void CGameObject::RemoveEffect(CGameEffect *effect)
 
 void CGameObject::AddObject(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     g_World->RemoveFromContainer(obj);
 
     if (m_Next == nullptr)
@@ -576,7 +556,6 @@ void CGameObject::AddObject(CGameObject *obj)
 
 void CGameObject::AddItem(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj->Container != 0xFFFFFFFF)
     {
         return;
@@ -604,7 +583,6 @@ void CGameObject::AddItem(CGameObject *obj)
 
 void CGameObject::Reject(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj->Container != Serial)
     {
         return;
@@ -652,7 +630,6 @@ void CGameObject::Reject(CGameObject *obj)
 
 CGameObject *CGameObject::GetTopObject()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameObject *obj = this;
 
     while (obj->Container != 0xFFFFFFFF)
@@ -664,7 +641,6 @@ CGameObject *CGameObject::GetTopObject()
 
 CGameItem *CGameObject::FindLayer(int layer)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(obj, m_Items, CGameItem *)
     {
         if (obj->Layer == layer)
@@ -678,7 +654,6 @@ CGameItem *CGameObject::FindLayer(int layer)
 
 bool CGameObject::Caller()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Config.ClientVersion >= CV_7000)
     {
         return pvpCaller;

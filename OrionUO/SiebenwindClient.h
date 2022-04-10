@@ -1,24 +1,13 @@
-// MIT License
-// Copyright (C) December 2018 heppcatt
-
 #pragma once
 
 #include <string>
 #include <sstream>
-#include <windows.h>
 
-using namespace std;
-
-class SiebenwindClient
+struct SiebenwindClient
 {
-public:
-    static const string WindowTitle;
-    static string GetBuildInfo();
-    
-    static std::string Iso8859ToUtf8(const std::string &iso8859);
-    static std::wstring Utf8ToUtf16(const std::string &utf8);
-    static std::wstring Iso8859ToUtf16(const std::string &iso8859);
+    static std::string GetBuildInfo();
 
-    static string LocalizeA(const string &untranslated);
-    static wstring LocalizeW(const wstring &untranslated);
+    static const std::string& LocalizeA(const std::string& a_untranslated);
+    static const std::wstring& LocalizeW(const std::wstring& a_untranslated);
+    static const std::string& GetWindowTitle();
 };

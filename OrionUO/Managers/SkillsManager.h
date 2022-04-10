@@ -11,25 +11,25 @@ public:
     float BaseValue = 0.0f;
     float Value = 0.0f;
     float Cap = 0.0f;
-    uint8_t Status = 0;
+    u8 Status = 0;
 
     CSkill() {}
-    CSkill(bool haveButton, const string &name);
+    CSkill(bool haveButton, const std::string &name);
     ~CSkill() {}
 };
 
 class CSkillsManager
 {
 public:
-    uint32_t Count = 0;
+    u32 Count = 0;
     bool SkillsRequested = false;
     float SkillsTotal = 0.0f;
 
 private:
-    vector<CSkill> m_Skills;
-    vector<uint8_t> m_SortedTable;
+    std::vector<CSkill> m_Skills;
+    std::vector<u8> m_SortedTable;
 
-    bool CompareName(const string &str1, const string &str2);
+    bool CompareName(const std::string &str1, const std::string &str2);
 
 public:
     CSkillsManager() {}
@@ -38,9 +38,9 @@ public:
     bool Load();
     void Add(const CSkill &skill);
     void Clear();
-    CSkill *Get(uint32_t index);
+    CSkill *Get(u32 index);
     void Sort();
-    int GetSortedIndex(uint32_t index);
+    int GetSortedIndex(u32 index);
     void UpdateSkillsSum();
 };
 

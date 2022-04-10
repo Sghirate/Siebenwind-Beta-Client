@@ -1,20 +1,19 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "UOHuffman.h"
+#include <string>
+#include <vector>
 
 class CSocket : public Wisp::CConnection
 {
 public:
     bool GameSocket = false;
     bool UseProxy = false;
-    string ProxyAddress = "";
-    uint16_t ProxyPort = 0;
+    std::string ProxyAddress = "";
+    u16 ProxyPort = 0;
     bool ProxySocks5 = false;
-    string ProxyAccount = "";
-    string ProxyPassword = "";
+    std::string ProxyAccount = "";
+    std::string ProxyPassword = "";
 
 private:
     CDecompressingCopier m_Decompressor;
@@ -23,6 +22,6 @@ public:
     CSocket(bool gameSocket);
     ~CSocket();
 
-    virtual bool Connect(const string &address, uint16_t port);
-    virtual vector<uint8_t> Decompression(vector<uint8_t> data);
+    virtual bool Connect(const std::string &address, u16 port);
+    virtual std::vector<u8> Decompression(std::vector<u8> data);
 };

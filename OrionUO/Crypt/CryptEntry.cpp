@@ -1,87 +1,73 @@
 
 #include "CryptEntry.h"
 #include "../Misc.h"
-#include "../Wisp/WispDataStream.h"
 #include "../plugin/enumlist.h"
 #include "../plugin/plugininterface.h"
 #include "../Config.h"
 #include "LoginCrypt.h"
 #include "GameCrypt.h"
+#include <memory>
 
 static size_t s_CryptPluginsCount = 0;
 
 namespace Crypt
 {
-void Init(bool is_login, uint8_t seed[4])
+void Init(bool a_isLogin, u8 a_seed[4])
 {
-    if (is_login)
+    if (a_isLogin)
     {
-        g_LoginCrypt.Init(seed);
+        g_LoginCrypt.Init(a_seed);
     }
     else
     {
         if (g_Config.EncryptionType != ET_NOCRYPT)
-        {
-            g_BlowfishCrypt.Init();
-        }
+            Blowfish::Init();
 
         if (g_Config.EncryptionType == ET_203 || g_Config.EncryptionType == ET_TFISH)
         {
-            g_TwofishCrypt.Init(seed);
+            Twofish::Init(a_seed);
             if (g_Config.EncryptionType == ET_TFISH)
-            {
-                g_TwofishCrypt.Init_MD5();
-            }
+                Twofish::InitMD5();
         }
     }
 }
 
-void Encrypt(bool is_login, uint8_t *src, uint8_t *dest, int size)
+void Encrypt(bool a_isLogin, u8* a_src, u8* a_dest, int a_size)
 {
     if (g_Config.EncryptionType == ET_NOCRYPT)
     {
-        memcpy(dest, src, size);
+        memcpy(a_dest, a_src, a_size);
     }
-    else if (is_login)
+    else if (a_isLogin)
     {
         if (g_Config.EncryptionType == ET_OLD_BFISH)
-        {
-            g_LoginCrypt.Encrypt_Old(src, dest, size);
-        }
+            g_LoginCrypt.Encrypt_Old(a_src, a_dest, a_size);
         else if (g_Config.EncryptionType == ET_1_25_36)
-        {
-            g_LoginCrypt.Encrypt_1_25_36(src, dest, size);
-        }
+            g_LoginCrypt.Encrypt_1_25_36(a_src, a_dest, a_size);
         else if (g_Config.EncryptionType != ET_NOCRYPT)
-        {
-            g_LoginCrypt.Encrypt(src, dest, size);
-        }
+            g_LoginCrypt.Encrypt(a_src, a_dest, a_size);
     }
     else if (g_Config.EncryptionType == ET_203)
     {
-        g_BlowfishCrypt.Encrypt(src, dest, size);
-        g_TwofishCrypt.Encrypt(dest, dest, size);
+        Blowfish::Encrypt(a_src, a_dest, a_size);
+        Twofish::Encrypt(a_dest, a_dest, a_size);
     }
     else if (g_Config.EncryptionType == ET_TFISH)
     {
-        g_TwofishCrypt.Encrypt(src, dest, size);
+        Twofish::Encrypt(a_src, a_dest, a_size);
     }
     else
     {
-        g_BlowfishCrypt.Encrypt(src, dest, size);
+        Blowfish::Encrypt(a_src, a_dest, a_size);
     }
 }
 
-void Decrypt(uint8_t *src, uint8_t *dest, int size)
+void Decrypt(u8* a_src, u8* a_dest, int a_size)
 {
     if (g_Config.EncryptionType == ET_TFISH)
-    {
-        g_TwofishCrypt.Decrypt(src, dest, size);
-    }
+        Twofish::Decrypt(a_src, a_dest, a_size);
     else
-    {
-        memcpy(dest, src, size);
-    }
+        memcpy(a_dest, a_src, a_size);
 }
 
 size_t GetPluginsCount()

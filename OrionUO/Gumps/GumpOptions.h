@@ -9,7 +9,7 @@
 class CGumpOptions : public CGump
 {
 private:
-    uint32_t m_LastChangeMacroTime = 0;
+    u32 m_LastChangeMacroTime = 0;
 
     void DrawPage1();  //Sound and Music
     void DrawPage2();  //Pop-up Help
@@ -24,8 +24,8 @@ private:
 
     void ApplyPageChanges();
 
-    class CMacro *m_MacroPointer{ nullptr };
-    class CMacroObject *m_MacroObjectPointer{ nullptr };
+    class Macro *m_MacroPointer{ nullptr };
+    class MacroObject *m_MacroObjectPointer{ nullptr };
 
     CGUISlider *m_SliderSound{ nullptr };
     CGUISlider *m_SliderMusic{ nullptr };
@@ -93,7 +93,7 @@ public:
     CGUITextEntry *m_GameWindowHeight{ nullptr };
     CGUITextEntry *m_MacroKey{ nullptr };
 
-    void UpdateColor(const SELECT_COLOR_GUMP_STATE &state, uint16_t color);
+    void UpdateColor(const SELECT_COLOR_GUMP_STATE &state, u16 color);
     virtual void InitToolTip();
     virtual void PrepareContent();
     virtual void UpdateContent();

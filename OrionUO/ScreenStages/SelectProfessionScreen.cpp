@@ -3,6 +3,7 @@
 
 #include "SelectProfessionScreen.h"
 #include "ConnectionScreen.h"
+#include "GameWindow.h"
 #include "../ToolTip.h"
 #include "../OrionUO.h"
 #include "../OrionWindow.h"
@@ -28,7 +29,6 @@ void CSelectProfessionScreen::SetSkillSelection(int val)
 
 void CSelectProfessionScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     g_ProfessionManager.Selected = (CBaseProfession *)g_ProfessionManager.m_Items;
     m_SkillSelection = 0;
 
@@ -39,9 +39,8 @@ void CSelectProfessionScreen::Init()
     m_Gump.WantUpdateContent = true;
 }
 
-void CSelectProfessionScreen::ProcessSmoothAction(uint8_t action)
+void CSelectProfessionScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -49,7 +48,7 @@ void CSelectProfessionScreen::ProcessSmoothAction(uint8_t action)
 
     if (action == ID_SMOOTH_SPS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Destroy();
     }
     else if (action == ID_SMOOTH_SPS_GO_SCREEN_CHARACTER)
     {

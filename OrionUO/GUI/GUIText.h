@@ -8,27 +8,27 @@
 class CGUIText : public CBaseGUI
 {
 public:
-    CGUIText(uint16_t color, int x, int y);
+    CGUIText(u16 color, int x, int y);
     virtual ~CGUIText();
 
     CGLTextTexture m_Texture{ CGLTextTexture() };
 
-    virtual CSize GetSize() { return CSize(m_Texture.Width, m_Texture.Height); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(m_Texture.Width, m_Texture.Height); }
 
     void CreateTextureA(
-        uint8_t font,
-        const string &str,
+        u8 font,
+        const std::string &str,
         int width = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags = 0);
 
     void CreateTextureW(
-        uint8_t font,
-        const wstring &str,
-        uint8_t cell = 30,
+        u8 font,
+        const std::wstring &str,
+        u8 cell = 30,
         int width = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags = 0);
 
     virtual void Draw(bool checktrans = false);
     virtual bool Select();

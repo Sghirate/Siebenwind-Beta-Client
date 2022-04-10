@@ -19,8 +19,8 @@ public:
     short PriorityZ = 0;
     RENDER_OBJECT_TYPE RenderType = ROT_GAME_OBJECT;
 
-    uint8_t CurrentRenderIndex = 0;
-    uint8_t UseInRender = 0;
+    u8 CurrentRenderIndex = 0;
+    u8 UseInRender = 0;
 
     bool NoDrawTile = false;
 
@@ -28,14 +28,14 @@ public:
     CRenderWorldObject(
         RENDER_OBJECT_TYPE renderType,
         int serial,
-        uint16_t graphic,
-        uint16_t color,
+        u16 graphic,
+        u16 color,
         int x,
         int y,
         char z);
     virtual ~CRenderWorldObject();
 
-    uint8_t m_DrawTextureColor[4];
+    u8 m_DrawTextureColor[4];
 
     bool ProcessAlpha(int maxAlpha);
     bool RemovedFromRender();
@@ -47,7 +47,7 @@ public:
     CRenderWorldObject *m_PrevXY{ nullptr };
 
     class CLandObject *GetLand();
-    virtual uint16_t GetLightID() { return 0; }
+    virtual u16 GetLightID() { return 0; }
     virtual void Draw(int x, int y) {}
     virtual void Select(int x, int y) {}
     virtual void UpdateGraphicBySeason() {}

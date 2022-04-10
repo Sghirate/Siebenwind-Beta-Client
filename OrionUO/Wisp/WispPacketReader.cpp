@@ -13,7 +13,6 @@ CPacketReader::~CPacketReader()
 
 void CPacketReader::Read(class CConnection *connection)
 {
-    DEBUG_TRACE_FUNCTION;
     if (connection->ReadyRead())
     {
         if (!connection->Read())
@@ -27,7 +26,7 @@ void CPacketReader::Read(class CConnection *connection)
         while (true)
         {
             int offset = 0;
-            vector<uint8_t> packet = parser->Read(this, offset);
+            std::vector<u8> packet = parser->Read(this, offset);
 
             if (packet.empty())
             {
@@ -44,7 +43,7 @@ void CPacketReader::Read(class CConnection *connection)
                 }
             }
 
-            SetData((uint8_t *)&packet[0], packet.size(), offset);
+            SetData((u8 *)&packet[0], packet.size(), offset);
             OnPacket();
         }
     }

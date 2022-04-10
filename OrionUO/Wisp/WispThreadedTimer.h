@@ -12,15 +12,15 @@ namespace Wisp
 class CThreadedTimer : public Wisp::CThread
 {
 public:
-    static const uint32_t MessageID = USER_MESSAGE_ID + 400;
+    static const u32 MessageID = USER_MESSAGE_ID + 400;
     WindowHandle m_Handle = 0;
-    uint32_t TimerID = 0;
+    u32 TimerID = 0;
     bool WaitForProcessMessage = false;
 
-    CThreadedTimer(uint32_t id, WindowHandle handle, bool waitForProcessMessage = false);
+    CThreadedTimer(u32 id, WindowHandle handle, bool waitForProcessMessage = false);
     virtual ~CThreadedTimer();
 
-    virtual void OnExecute(uint32_t nowTime);
+    virtual void OnExecute(u32 nowTime);
     virtual void OnDestroy();
 };
 

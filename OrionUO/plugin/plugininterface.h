@@ -1,19 +1,10 @@
-// MIT License
-// Copyright (C) September 2016 Hotride
-
 #pragma once
 
 #include <stdlib.h>
 #include <stdint.h>
 
-#if _WIN32
-#include <Windows.h>
-#define USER_MESSAGE_ID WM_USER
-#define WindowHandle HWND
-#else
-#define USER_MESSAGE_ID 0x0400
 #define WindowHandle void *
-#endif
+#define USER_MESSAGE_ID 0x0400
 
 #ifndef MAX_PATH
 #define MAX_PATH 256
@@ -46,8 +37,8 @@
 #define UOMSG_INPUT_XBUTTONDOWN USER_MESSAGE_ID + 1758
 #define UOMSG_INPUT_CHAR USER_MESSAGE_ID + 1759
 
-typedef uint32_t EVENT_PROC(uint32_t, const void *);
-typedef bool PACKET_PROC(uint8_t *, size_t);
+typedef u32 EVENT_PROC(u32, const void *);
+typedef bool PACKET_PROC(u8 *, size_t);
 typedef void VOID_PROC();
 typedef bool WORLD_MAP_DRAW_PROC();
 
@@ -65,8 +56,8 @@ struct PluginEvent
 #ifndef USING_SDL_STRUCTS
 // Because we share events with Orion Assistant
 
-typedef uint32_t Keycode;
-typedef uint16_t Keymod;
+typedef u32 Keycode;
+typedef u16 Keymod;
 
 struct TextEvent
 {
@@ -78,14 +69,14 @@ struct TextEvent
 struct KeyEvent
 {
     // Subset from SDL_KeyboardEvent
-    int8_t repeat = 0; // non-zero if this is a key repeat
+    i8 repeat = 0; // non-zero if this is a key repeat
     Keymod mod = 0;    // key modifiers
     // SDL virtual key representation (https://wiki.libsdl.org/SDL_Keycode)
     Keycode keycode = 0;
     // SDL physical key code (https://wiki.libsdl.org/SDL_Scancode)
     // values from: http://www.usb.org/developers/hidpage/Hut1_12v2.pdf
     // should be avoided
-    int32_t scancode = 0;
+    i32 scancode = 0;
     // For compatibility purposes with old win32 api:
     // keycode = wparam
     // scancode = lparam
@@ -96,7 +87,7 @@ struct PLUGIN_INFO
 {
     char FileName[MAX_PATH];
     char FunctionName[100];
-    uint64_t Flags;
+    u64 Flags;
 };
 
 struct UOI_PLAYER_XYZ_DATA
@@ -133,7 +124,7 @@ struct PLUGIN_INTERFACE
     int Size;
     struct PLUGIN_CLIENT_INTERFACE *Client;
 
-    WindowHandle Handle;
+    void* Handle;
     int ClientVersion;
     int ClientFlags;
 

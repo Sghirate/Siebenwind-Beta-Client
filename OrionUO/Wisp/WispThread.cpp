@@ -17,7 +17,6 @@ namespace Wisp
 {
 thread_int THREADCALL CThreadLoop(void *arg)
 {
-    DEBUG_TRACE_FUNCTION;
     CThread *parent = (CThread *)arg;
 
     while (parent->IsActive())
@@ -58,7 +57,6 @@ thread_int THREADCALL CThreadLoop(void *arg)
 
 thread_int THREADCALL CThreadLoopSynchronizedDelay(void *arg)
 {
-    DEBUG_TRACE_FUNCTION;
     CThread *parent = (CThread *)arg;
 
     while (parent->IsActive())
@@ -69,9 +67,9 @@ thread_int THREADCALL CThreadLoopSynchronizedDelay(void *arg)
         }
 
 #if THREAD_USE_CLOCK == 1
-        uint32_t nowTime = clock();
+        u32 nowTime = clock();
 #else
-        uint32_t nowTime = SDL_GetTicks();
+        u32 nowTime = SDL_GetTicks();
 #endif
 
         parent->OnExecute(nowTime);
@@ -101,7 +99,6 @@ thread_int THREADCALL CThreadLoopSynchronizedDelay(void *arg)
 
 CThread::CThread()
 {
-    DEBUG_TRACE_FUNCTION;
     CREATE_MUTEX(m_Mutex);
 }
 
@@ -111,7 +108,6 @@ CThread::~CThread()
 
 void CThread::OnDestroy()
 {
-    DEBUG_TRACE_FUNCTION;
     RELEASE_MUTEX(m_Mutex);
 #if USE_WISP
     if (m_Handle != 0)
@@ -129,7 +125,6 @@ void CThread::OnDestroy()
 
 void CThread::Run(bool cycled, int delay, bool synchronizedDelay)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!m_Active && m_Handle == 0)
     {
         m_Cycled = cycled;
@@ -158,7 +153,6 @@ void CThread::Run(bool cycled, int delay, bool synchronizedDelay)
 
 bool CThread::IsActive()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     bool result = m_Active;
     UNLOCK(m_Mutex);
@@ -167,7 +161,6 @@ bool CThread::IsActive()
 
 void CThread::Stop()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     m_Active = false;
     UNLOCK(m_Mutex);
@@ -175,7 +168,6 @@ void CThread::Stop()
 
 bool CThread::Cycled()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     bool result = m_Cycled;
     UNLOCK(m_Mutex);
@@ -184,7 +176,6 @@ bool CThread::Cycled()
 
 void CThread::Pause()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     m_Paused = true;
     UNLOCK(m_Mutex);
@@ -192,7 +183,6 @@ void CThread::Pause()
 
 void CThread::Resume()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     m_Paused = false;
     UNLOCK(m_Mutex);
@@ -200,7 +190,6 @@ void CThread::Resume()
 
 bool CThread::Paused()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     bool result = m_Paused;
     UNLOCK(m_Mutex);
@@ -209,7 +198,6 @@ bool CThread::Paused()
 
 int CThread::Delay()
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     int result = m_Delay;
     UNLOCK(m_Mutex);
@@ -218,7 +206,6 @@ int CThread::Delay()
 
 void CThread::ChangeDelay(int newDelay)
 {
-    DEBUG_TRACE_FUNCTION;
     LOCK(m_Mutex);
     m_Delay = newDelay;
     UNLOCK(m_Mutex);

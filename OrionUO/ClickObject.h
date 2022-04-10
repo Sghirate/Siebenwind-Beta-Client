@@ -6,11 +6,11 @@
 class CClickObject
 {
 public:
-    uint32_t Timer = 0;
-    uint16_t X = 0;
-    uint16_t Y = 0;
+    u32 Timer = 0;
+    u16 X = 0;
+    u16 Y = 0;
     bool Enabled = false;
-    uint32_t Page = 0;
+    u32 Page = 0;
     CRenderObject *Object = nullptr;
     CGump *Gump = nullptr;
     CClickObject() {}

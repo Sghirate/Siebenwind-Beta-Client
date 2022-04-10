@@ -14,7 +14,7 @@ public:
     CGUIHTMLResizepic(
         class CGUIHTMLGump *htmlGump,
         int serial,
-        uint16_t graphic,
+        u16 graphic,
         int x,
         int y,
         int width,

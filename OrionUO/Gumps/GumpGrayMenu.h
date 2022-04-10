@@ -14,7 +14,7 @@ public:
         ID_GGM_CONTINUE = 1001
     };
 
-    CGumpGrayMenu(uint32_t serial, uint32_t id, short x, short y);
+    CGumpGrayMenu(u32 serial, u32 id, short x, short y);
     virtual ~CGumpGrayMenu();
 
     void SendMenuResponse(int index);

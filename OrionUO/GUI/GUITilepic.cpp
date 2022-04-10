@@ -1,11 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUITilepic.h"
+﻿#include "GUITilepic.h"
 #include "../OrionUO.h"
-#include "../Point.h"
 
-CGUITilepic::CGUITilepic(uint16_t graphic, uint16_t color, int x, int y)
+CGUITilepic::CGUITilepic(u16 graphic, u16 color, int x, int y)
     : CGUIDrawObject(GOT_TILEPIC, 0, graphic, color, x, y)
 {
 }
@@ -14,17 +10,16 @@ CGUITilepic::~CGUITilepic()
 {
 }
 
-CSize CGUITilepic::GetSize()
+Core::Vec2<i32> CGUITilepic::GetSize()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSize size;
+    Core::Vec2<i32> size;
 
     CGLTexture *th = g_Orion.ExecuteStaticArt(Graphic);
 
     if (th != nullptr)
     {
-        size.Width = th->Width;
-        size.Height = th->Height;
+        size.x = th->Width;
+        size.y = th->Height;
     }
 
     return size;
@@ -32,13 +27,11 @@ CSize CGUITilepic::GetSize()
 
 void CGUITilepic::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     g_Orion.ExecuteStaticArt(Graphic);
 }
 
 void CGUITilepic::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture *th = g_Orion.ExecuteStaticArt(Graphic);
 
     if (th != nullptr)
@@ -51,7 +44,6 @@ void CGUITilepic::Draw(bool checktrans)
 
 bool CGUITilepic::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     //if (CGUIDrawObject::Select())
     //	return true;
     CGLTexture *th = g_Orion.m_StaticDataIndex[Graphic].Texture;

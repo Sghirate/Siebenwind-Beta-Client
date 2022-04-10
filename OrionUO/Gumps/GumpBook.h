@@ -22,11 +22,11 @@ private:
 
 public:
     bool Writable = false;
-    uint16_t PageCount = 0;
+    u16 PageCount = 0;
     bool Unicode = false;
 
     CGumpBook(
-        uint32_t serial, int16_t x, int16_t y, uint16_t pageCount, bool writable, bool unicode);
+        u32 serial, i16 x, i16 y, u16 pageCount, bool writable, bool unicode);
     virtual ~CGumpBook();
 
     virtual void PasteClipboardData(wstring &data) override;
@@ -38,7 +38,7 @@ public:
     virtual void DelayedClick(CRenderObject *obj);
     virtual void PrepareContent();
 
-    void SetPageData(int page, const wstring &data);
+    void SetPageData(int page, const std::wstring &data);
     void ChangePage(int newPage, bool playSound = true);
 
     GUMP_BUTTON_EVENT_H;

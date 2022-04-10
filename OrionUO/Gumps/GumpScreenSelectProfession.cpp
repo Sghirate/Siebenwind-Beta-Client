@@ -38,7 +38,6 @@ enum
 CGumpScreenSelectProfession::CGumpScreenSelectProfession()
     : CGump(GT_NONE, 0, 0, 0)
 {
-    DEBUG_TRACE_FUNCTION;
     NoMove = true;
     NoClose = true;
 
@@ -57,7 +56,6 @@ CGumpScreenSelectProfession::~CGumpScreenSelectProfession()
 
 void CGumpScreenSelectProfession::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     if (g_ProfessionManager.Selected == nullptr)
@@ -78,7 +76,6 @@ void CGumpScreenSelectProfession::UpdateContent()
 
 void CGumpScreenSelectProfession::UpdateContentOld()
 {
-    DEBUG_TRACE_FUNCTION;
     CBaseProfession *obj = g_ProfessionManager.Selected;
 
     if (obj == nullptr)
@@ -125,7 +122,7 @@ void CGumpScreenSelectProfession::UpdateContentOld()
     {
         int yPtr = 4; // 20;
 
-        for (uint32_t i = 0; i < g_SkillsManager.Count; i++)
+        for (u32 i = 0; i < g_SkillsManager.Count; i++)
         {
             CSkill *skill = g_SkillsManager.Get(g_SkillsManager.GetSortedIndex(i));
 
@@ -186,7 +183,7 @@ void CGumpScreenSelectProfession::UpdateContentOld()
         CProfession *profession = (CProfession *)obj;
         int statVal[3] = { profession->Str, profession->Dex, profession->Int };
 
-        const string statName[3] = { "Strength", "Dexterity", "Intelligence" };
+        const std::string statName[3] = { "Strength", "Dexterity", "Intelligence" };
 
         int yPtr = 136;
 
@@ -222,7 +219,7 @@ void CGumpScreenSelectProfession::UpdateContentOld()
 
             for (int i = 0; i < 3; i++)
             {
-                auto skillID = (uint32_t)profession->GetSkillIndex((int)i);
+                auto skillID = (u32)profession->GetSkillIndex((int)i);
                 if (skillID >= g_SkillsManager.Count)
                 {
                     skillID = 0;
@@ -250,7 +247,7 @@ void CGumpScreenSelectProfession::UpdateContentOld()
             {
                 Add(new CGUIResizepic(ID_SPS_SKILLS_FILED + (int)i, 0x0BB8, 350, yPtr, 105, 25));
 
-                int skillID = profession->GetSkillIndex((uint32_t)i);
+                int skillID = profession->GetSkillIndex((u32)i);
 
                 CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
                     ID_SPS_SKILLS_FILED + (int)i,
@@ -309,7 +306,6 @@ void CGumpScreenSelectProfession::UpdateContentOld()
 
 void CGumpScreenSelectProfession::UpdateContentNew()
 {
-    DEBUG_TRACE_FUNCTION;
     CBaseProfession *obj = g_ProfessionManager.Selected;
 
     Add(new CGUIGumppicTiled(0x0E14, 0, 0, 640, 480));
@@ -321,7 +317,7 @@ void CGumpScreenSelectProfession::UpdateContentNew()
     Add(new CGUIGumppic(0x058B, 213, 57));
     Add(new CGUIGumppic(0x0589, 290, 44));
 
-    auto str = g_ClilocManager.Cliloc(g_Language)
+    auto str = g_ClilocManager.GetCliloc(g_Language)
                    ->GetA(3000326, false, "Choose a Trade for Your Character");
     CGUIText *text = new CGUIText(0x0386, 120, 126);
     text->CreateTextureA(2, str, 432, TS_CENTER);
@@ -381,7 +377,7 @@ void CGumpScreenSelectProfession::UpdateContentNew()
     {
         CProfession *profession = (CProfession *)obj;
         int statVal[3] = { profession->Str, profession->Dex, profession->Int };
-        const string statName[3] = { "Strength", "Dexterity", "Intelligence" };
+        const std::string statName[3] = { "Strength", "Dexterity", "Intelligence" };
 
         int yPtr = 171;
 
@@ -421,7 +417,7 @@ void CGumpScreenSelectProfession::UpdateContentNew()
 
             yPtr = 4;
 
-            for (uint32_t i = 0; i < g_SkillsManager.Count; i++)
+            for (u32 i = 0; i < g_SkillsManager.Count; i++)
             {
                 CSkill *skill = g_SkillsManager.Get(g_SkillsManager.GetSortedIndex(i));
                 if (skill == nullptr)
@@ -517,13 +513,12 @@ void CGumpScreenSelectProfession::UpdateContentNew()
 
 void CGumpScreenSelectProfession::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.UseToolTips)
     {
         return;
     }
 
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     switch (id)
     {
@@ -577,7 +572,6 @@ void CGumpScreenSelectProfession::InitToolTip()
 
 void CGumpScreenSelectProfession::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     CBaseProfession *obj = g_ProfessionManager.Selected;
     CProfession *profession = (CProfession *)obj;
 
@@ -716,13 +710,11 @@ void CGumpScreenSelectProfession::GUMP_BUTTON_EVENT_C
 
 void CGumpScreenSelectProfession::GUMP_SLIDER_CLICK_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     OnSliderMove(serial);
 }
 
 void CGumpScreenSelectProfession::GUMP_SLIDER_MOVE_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     int skillsCount = 3;
 
     if (g_Config.ClientVersion >= CV_70160)
@@ -759,7 +751,6 @@ void CGumpScreenSelectProfession::GUMP_SLIDER_MOVE_EVENT_C
 
 void CGumpScreenSelectProfession::ShuffleStats(int id, int maxSum, int maxVal)
 {
-    DEBUG_TRACE_FUNCTION;
     CProfession *profession = (CProfession *)g_ProfessionManager.Selected;
     int stats[3] = { m_StatsSliders[0]->Value, m_StatsSliders[1]->Value, m_StatsSliders[2]->Value };
 
@@ -842,7 +833,6 @@ void CGumpScreenSelectProfession::ShuffleStats(int id, int maxSum, int maxVal)
 
 void CGumpScreenSelectProfession::ShuffleSkills(int id)
 {
-    DEBUG_TRACE_FUNCTION;
     CProfession *profession = (CProfession *)g_ProfessionManager.Selected;
     int skills[4] = {
         m_SkillsSliders[0]->Value, m_SkillsSliders[1]->Value, m_SkillsSliders[2]->Value, 0

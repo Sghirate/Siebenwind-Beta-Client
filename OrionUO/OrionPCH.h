@@ -71,15 +71,6 @@ typedef SoundInfo *SoundHandle;
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #endif
 
-#include <time.h>
-#include <process.h>
-#include <Shlwapi.h>
-#include <Shellapi.h>
-#include <windows.h>
-#include <windowsx.h>
-#include <Mmsystem.h>
-#include <tchar.h>
-
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -160,8 +151,6 @@ typedef SoundInfo *SoundHandle;
 
 #if defined(ORION_WINDOWS)
 #include "ExceptionFilter.h"
-#include "StackWalker.h"
-#include "OrionStackWalker.h"
 #include "VMQuery.h"
 #endif
 

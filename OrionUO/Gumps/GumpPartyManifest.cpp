@@ -23,7 +23,7 @@ enum
     ID_GPM_COUNT,
 };
 
-CGumpPartyManifest::CGumpPartyManifest(uint32_t serial, short x, short y, bool canLoot)
+CGumpPartyManifest::CGumpPartyManifest(u32 serial, short x, short y, bool canLoot)
     : CGump(GT_PARTY_MANIFEST, serial, x, y)
     , m_CanLoot(canLoot)
 {
@@ -35,7 +35,6 @@ CGumpPartyManifest::~CGumpPartyManifest()
 
 void CGumpPartyManifest::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Add(new CGUIResizepic(0, 0x0A28, 0, 0, 450, 480));
@@ -53,7 +52,7 @@ void CGumpPartyManifest::UpdateContent()
     bool isMember = (g_Party.Leader != 0 && g_Party.Leader != g_PlayerSerial);
 
     int yPtr = 48;
-    uint16_t gumpID = 0;
+    u16 gumpID = 0;
 
     for (int i = 0; i < 10; i++)
     {
@@ -121,14 +120,13 @@ void CGumpPartyManifest::UpdateContent()
 
 void CGumpPartyManifest::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GPM_BUTTON_OKAY)
     {
         if (g_Party.Leader != 0 && g_Party.CanLoot != m_CanLoot)
         {
             g_Party.CanLoot = m_CanLoot;
 
-            CPacketPartyChangeLootTypeRequest((uint8_t)m_CanLoot).Send();
+            CPacketPartyChangeLootTypeRequest((u8)m_CanLoot).Send();
         }
 
         RemoveMark = true;

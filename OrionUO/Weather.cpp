@@ -6,7 +6,7 @@
 
 CWeather g_Weather;
 
-float SinOscillate(float freq, int range, uint32_t current_tick)
+float SinOscillate(float freq, int range, u32 current_tick)
 {
     //float anglef = int((current_tick / (1000.0f / 360.0f)) * freq) % 360;
     float anglef = (float)(int((current_tick / 2.7777f) * freq) % 360);
@@ -19,7 +19,6 @@ CWeather::CWeather()
 
 void CWeather::Reset()
 {
-    DEBUG_TRACE_FUNCTION;
     Type = 0;
     Count = 0;
     CurrentCount = 0;
@@ -35,7 +34,6 @@ void CWeather::Reset()
 
 void CWeather::Generate()
 {
-    DEBUG_TRACE_FUNCTION;
     LastTick = g_Ticks;
 
     if (Type == 0xFF || Type == 0xFE)
@@ -68,7 +66,6 @@ void CWeather::Generate()
 
 void CWeather::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     bool removeEffects = false;
 
     if (Timer < g_Ticks)
@@ -86,7 +83,7 @@ void CWeather::Draw(int x, int y)
         return;
     }
 
-    uint32_t passed = g_Ticks - LastTick;
+    u32 passed = g_Ticks - LastTick;
 
     if (passed > 7000) // если времени слишком много прошло со старой симуляции
     {

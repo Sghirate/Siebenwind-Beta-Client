@@ -19,12 +19,10 @@ CEntryText::CEntryText(int maxLength, int width, int maxWidth, bool numberOnly)
     , MaxWidth(maxWidth)
     , NumberOnly(numberOnly)
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 CEntryText::~CEntryText()
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_EntryPointer == this)
     {
@@ -50,16 +48,14 @@ CEntryText::~CEntryText()
 
 const char *CEntryText::c_str()
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_CText = ToString(Text);
     return m_CText.c_str();
 }
 
 void CEntryText::OnClick(
-    CGump *gump, uint8_t font, bool unicode, int x, int y, TEXT_ALIGN_TYPE align, uint16_t flags)
+    CGump *gump, u8 font, bool unicode, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_EntryPointer != this)
     {
@@ -98,7 +94,6 @@ void CEntryText::OnClick(
 
 void CEntryText::OnKey(CGump *gump, Keycode key)
 {
-    DEBUG_TRACE_FUNCTION;
 
     switch (key)
     {
@@ -137,9 +132,8 @@ void CEntryText::OnKey(CGump *gump, Keycode key)
     }
 }
 
-int CEntryText::GetLinesCountA(uint8_t font, TEXT_ALIGN_TYPE align, uint16_t flags, int width)
+int CEntryText::GetLinesCountA(u8 font, TEXT_ALIGN_TYPE align, u16 flags, int width)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (width == 0)
     {
@@ -161,9 +155,8 @@ int CEntryText::GetLinesCountA(uint8_t font, TEXT_ALIGN_TYPE align, uint16_t fla
     return count;
 }
 
-int CEntryText::GetLinesCountW(uint8_t font, TEXT_ALIGN_TYPE align, uint16_t flags, int width)
+int CEntryText::GetLinesCountW(u8 font, TEXT_ALIGN_TYPE align, u16 flags, int width)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (width == 0)
     {
@@ -187,7 +180,6 @@ int CEntryText::GetLinesCountW(uint8_t font, TEXT_ALIGN_TYPE align, uint16_t fla
 
 bool CEntryText::Insert(wchar_t ch, CGump *gump)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (m_Position < 0)
     {
@@ -203,7 +195,7 @@ bool CEntryText::Insert(wchar_t ch, CGump *gump)
     {
         if (NumberOnly)
         {
-            wstring wstr = Text;
+            std::wstring wstr = Text;
             wstr.insert(wstr.begin() + m_Position, ch);
             if (std::stoi(wstr) >= MaxLength)
             {
@@ -229,7 +221,6 @@ bool CEntryText::Insert(wchar_t ch, CGump *gump)
 
 void CEntryText::Remove(bool left, CGump *gump)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (left)
     {
@@ -265,7 +256,6 @@ void CEntryText::Remove(bool left, CGump *gump)
 
 void CEntryText::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
 
     Text = {};
     m_CText = "";
@@ -278,7 +268,6 @@ void CEntryText::Clear()
 
 void CEntryText::Paste()
 {
-    DEBUG_TRACE_FUNCTION;
 #if USE_WISP
     // FIXME: Move clipboard access to Wisp Window
     if (OpenClipboard(g_OrionWindow.Handle))
@@ -287,7 +276,7 @@ void CEntryText::Paste()
 
         if (hData != nullptr)
         {
-            wstring text((wchar_t *)GlobalLock(hData));
+            std::wstring text((wchar_t *)GlobalLock(hData));
             CGump *gump = g_GumpManager.GetTextEntryOwner();
             if (gump != nullptr && gump->GumpType == GT_BOOK)
             {
@@ -310,7 +299,7 @@ void CEntryText::Paste()
     auto chBuffer = SDL_GetClipboardText();
     if (chBuffer != nullptr && (strlen(chBuffer) != 0u))
     {
-        wstring str = g_EntryPointer->Data() + ToWString(chBuffer);
+        std::wstring str = g_EntryPointer->Data() + ToWString(chBuffer);
         g_EntryPointer->SetTextW(str);
     }
 #endif
@@ -318,7 +307,6 @@ void CEntryText::Paste()
 
 void CEntryText::AddPos(int val, CGump *gump)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Position += val;
     if (m_Position < 0)
@@ -340,7 +328,6 @@ void CEntryText::AddPos(int val, CGump *gump)
 
 void CEntryText::SetPos(int val, CGump *gump)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Position = val;
     if (m_Position < 0)
@@ -360,17 +347,15 @@ void CEntryText::SetPos(int val, CGump *gump)
     }
 }
 
-void CEntryText::SetTextA(const string &text)
+void CEntryText::SetTextA(const std::string &text)
 {
-    DEBUG_TRACE_FUNCTION;
-    wstring wtext = ToWString(text);
+    std::wstring wtext = ToWString(text);
     SetTextW(wtext);
     m_CText = text;
 }
 
-void CEntryText::SetTextW(const wstring &text)
+void CEntryText::SetTextW(const std::wstring &text)
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Text = text;
@@ -412,9 +397,8 @@ void CEntryText::SetTextW(const wstring &text)
     }
 }
 
-string CEntryText::CheckMaxWidthA(uint8_t font, string str)
+std::string CEntryText::CheckMaxWidthA(u8 font, string str)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (MaxWidth > 0)
     {
@@ -431,9 +415,8 @@ string CEntryText::CheckMaxWidthA(uint8_t font, string str)
     return str;
 }
 
-wstring CEntryText::CheckMaxWidthW(uint8_t font, wstring str)
+std::wstring CEntryText::CheckMaxWidthW(u8 font, std::wstring str)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (MaxWidth > 0)
     {
@@ -450,9 +433,8 @@ wstring CEntryText::CheckMaxWidthW(uint8_t font, wstring str)
     return str;
 }
 
-void CEntryText::FixMaxWidthA(uint8_t font)
+void CEntryText::FixMaxWidthA(u8 font)
 {
-    DEBUG_TRACE_FUNCTION;
 
     c_str();
     if (MaxWidth <= 0)
@@ -470,9 +452,8 @@ void CEntryText::FixMaxWidthA(uint8_t font)
     }
 }
 
-void CEntryText::FixMaxWidthW(uint8_t font)
+void CEntryText::FixMaxWidthW(u8 font)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (MaxWidth <= 0)
     {
@@ -490,14 +471,13 @@ void CEntryText::FixMaxWidthW(uint8_t font)
 }
 
 void CEntryText::CreateTextureA(
-    uint8_t font,
-    const string &str,
-    uint16_t color,
+    u8 font,
+    const std::string &str,
+    u16 color,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (str.length() == 0u)
     {
@@ -513,18 +493,18 @@ void CEntryText::CreateTextureA(
         {
             if (DrawOffset != 0)
             {
-                if (CaretPos.X + DrawOffset < 0)
+                if (CaretPos.x + DrawOffset < 0)
                 {
-                    DrawOffset = -CaretPos.X;
+                    DrawOffset = -CaretPos.x;
                 }
-                else if (Width + -DrawOffset < CaretPos.X)
+                else if (Width + -DrawOffset < CaretPos.x)
                 {
-                    DrawOffset = Width - CaretPos.X;
+                    DrawOffset = Width - CaretPos.x;
                 }
             }
-            else if (Width + DrawOffset < CaretPos.X)
+            else if (Width + DrawOffset < CaretPos.x)
             {
-                DrawOffset = Width - CaretPos.X;
+                DrawOffset = Width - CaretPos.x;
             }
             else
             {
@@ -546,14 +526,13 @@ void CEntryText::CreateTextureA(
 }
 
 void CEntryText::CreateTextureW(
-    uint8_t font,
-    const wstring &str,
-    uint16_t color,
+    u8 font,
+    const std::wstring &str,
+    u16 color,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (str.length() == 0u)
     {
@@ -569,18 +548,18 @@ void CEntryText::CreateTextureW(
         {
             if (DrawOffset != 0)
             {
-                if (CaretPos.X + DrawOffset < 0)
+                if (CaretPos.x + DrawOffset < 0)
                 {
-                    DrawOffset = -CaretPos.X;
+                    DrawOffset = -CaretPos.x;
                 }
-                else if (Width + -DrawOffset < CaretPos.X)
+                else if (Width + -DrawOffset < CaretPos.x)
                 {
-                    DrawOffset = Width - CaretPos.X;
+                    DrawOffset = Width - CaretPos.x;
                 }
             }
-            else if (Width + DrawOffset < CaretPos.X)
+            else if (Width + DrawOffset < CaretPos.x)
             {
-                DrawOffset = Width - CaretPos.X;
+                DrawOffset = Width - CaretPos.x;
             }
             else
             {
@@ -596,9 +575,8 @@ void CEntryText::CreateTextureW(
     g_FontManager.GenerateW(font, m_Texture, str, color, 30, Width, align, flags);
 }
 
-void CEntryText::PrepareToDrawA(uint8_t font, uint16_t color, TEXT_ALIGN_TYPE align, uint16_t flags)
+void CEntryText::PrepareToDrawA(u8 font, u16 color, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (Changed || Color != color)
     {
@@ -613,9 +591,8 @@ void CEntryText::PrepareToDrawA(uint8_t font, uint16_t color, TEXT_ALIGN_TYPE al
     }
 }
 
-void CEntryText::PrepareToDrawW(uint8_t font, uint16_t color, TEXT_ALIGN_TYPE align, uint16_t flags)
+void CEntryText::PrepareToDrawW(u8 font, u16 color, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (Changed || Color != color)
     {
@@ -631,9 +608,8 @@ void CEntryText::PrepareToDrawW(uint8_t font, uint16_t color, TEXT_ALIGN_TYPE al
 }
 
 void CEntryText::DrawA(
-    uint8_t font, uint16_t color, int x, int y, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     PrepareToDrawA(font, color, align, flags);
     m_Texture.Draw(x + DrawOffset, y);
@@ -641,27 +617,25 @@ void CEntryText::DrawA(
     {
         const int offsetTable[] = { 1, 2, 1, 1, 1, 2, 1, 1, 2, 2 };
         const int offsY = offsetTable[font % 10];
-        m_CaretTexture.Draw(x + DrawOffset + CaretPos.X, y + offsY + CaretPos.Y);
+        m_CaretTexture.Draw(x + DrawOffset + CaretPos.x, y + offsY + CaretPos.y);
     }
 }
 
 void CEntryText::DrawW(
-    uint8_t font, uint16_t color, int x, int y, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     PrepareToDrawW(font, color, align, flags);
     m_Texture.Draw(x + DrawOffset, y);
     if (this == g_EntryPointer)
     {
-        m_CaretTexture.Draw(x + DrawOffset + CaretPos.X, y + CaretPos.Y);
+        m_CaretTexture.Draw(x + DrawOffset + CaretPos.x, y + CaretPos.y);
     }
 }
 
 void CEntryText::DrawMaskA(
-    uint8_t font, uint16_t color, int x, int y, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto len = (int)Length();
     string str{};
@@ -689,12 +663,11 @@ void CEntryText::DrawMaskA(
 }
 
 void CEntryText::DrawMaskW(
-    uint8_t font, uint16_t color, int x, int y, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto len = (int)Length();
-    wstring str = {};
+    std::wstring str = {};
     for (int i = 0; i < len; i++)
     {
         str += L"*";
@@ -721,12 +694,12 @@ void CEntryText::RemoveSequence(int startPos, int length)
     Text.erase(startPos, length);
 }
 
-string CEntryText::GetTextA() const
+std::string CEntryText::GetTextA() const
 {
     return m_CText;
 }
 
-wstring CEntryText::GetTextW() const
+std::wstring CEntryText::GetTextW() const
 {
     return Text;
 }

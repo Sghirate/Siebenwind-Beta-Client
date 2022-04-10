@@ -14,7 +14,7 @@ class CGumpShop : public CGump
 public:
     bool IsBuyGump = false;
 
-    CGumpShop(uint32_t serial, bool isBuyGump, short x, short y);
+    CGumpShop(u32 serial, bool isBuyGump, short x, short y);
     virtual ~CGumpShop();
 
     CGUIHTMLGump *m_ItemList[2];

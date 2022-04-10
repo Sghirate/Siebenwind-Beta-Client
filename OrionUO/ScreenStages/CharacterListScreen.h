@@ -16,14 +16,14 @@ public:
     CCharacterListScreen();
     virtual ~CCharacterListScreen();
 
-    static const uint8_t ID_SMOOTH_CLS_QUIT = 1;
-    static const uint8_t ID_SMOOTH_CLS_CONNECT = 2;
-    static const uint8_t ID_SMOOTH_CLS_SELECT_CHARACTER = 3;
-    static const uint8_t ID_SMOOTH_CLS_GO_SCREEN_PROFESSION_SELECT = 4;
-    static const uint8_t ID_SMOOTH_CLS_GO_SCREEN_DELETE = 5;
+    static const u8 ID_SMOOTH_CLS_QUIT = 1;
+    static const u8 ID_SMOOTH_CLS_CONNECT = 2;
+    static const u8 ID_SMOOTH_CLS_SELECT_CHARACTER = 3;
+    static const u8 ID_SMOOTH_CLS_GO_SCREEN_PROFESSION_SELECT = 4;
+    static const u8 ID_SMOOTH_CLS_GO_SCREEN_DELETE = 5;
 
     void Init();
-    void ProcessSmoothAction(uint8_t action = 0xFF);
+    void ProcessSmoothAction(u8 action = 0xFF);
 
     virtual void OnKeyDown(const KeyEvent &ev) override;
 };

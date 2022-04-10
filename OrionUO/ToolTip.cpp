@@ -17,26 +17,24 @@ CToolTip::CToolTip()
 
 CToolTip::~CToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     Reset();
 }
 
 void CToolTip::Reset()
 {
-    DEBUG_TRACE_FUNCTION;
     Texture.Clear();
     m_Object = nullptr;
 }
 
 void CToolTip::CreateTextTexture(
-    CGLTextTexture &texture, const wstring &str, int &width, int minWidth)
+    CGLTextTexture &texture, const std::wstring &str, int &width, int minWidth)
 {
     g_FontManager.SetUseHTML(true);
     g_FontManager.RecalculateWidthByInfo = true;
 
     texture.Clear();
 
-    uint8_t font = (uint8_t)g_ConfigManager.ToolTipsTextFont;
+    u8 font = (u8)g_ConfigManager.ToolTipsTextFont;
 
     if (width == 0)
     {
@@ -74,9 +72,8 @@ void CToolTip::CreateTextTexture(
     g_FontManager.SetUseHTML(false);
 }
 
-void CToolTip::Set(const wstring &str, int maxWidth)
+void CToolTip::Set(const std::wstring &str, int maxWidth)
 {
-    DEBUG_TRACE_FUNCTION;
     if (str.length() == 0u)
     {
         return;
@@ -98,23 +95,21 @@ void CToolTip::Set(const wstring &str, int maxWidth)
     ClilocID = 0;
     MaxWidth = maxWidth;
 
-    Position.X = 0;
-    Position.Y = 0;
+    Position.x = 0;
+    Position.y = 0;
 
     CreateTextTexture(Texture, Data, MaxWidth, 0);
 }
 
-void CToolTip::Set(int clilocID, const string &str, int maxWidth, bool toCamelCase)
+void CToolTip::Set(int clilocID, const std::string &str, int maxWidth, bool toCamelCase)
 {
-    DEBUG_TRACE_FUNCTION;
-    Set(g_ClilocManager.Cliloc(g_Language)->GetW(clilocID, toCamelCase, str), maxWidth);
+    Set(g_ClilocManager.GetCliloc(g_Language)->GetW(clilocID, toCamelCase, str), maxWidth);
 
     ClilocID = clilocID;
 }
 
 void CToolTip::Draw(int cursorWidth, int cursorHeight)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Use /*|| !g_ConfigManager.UseToolTips*/)
     {
         return;
@@ -127,8 +122,8 @@ void CToolTip::Draw(int cursorWidth, int cursorHeight)
 
     if (!Texture.Empty())
     {
-        int x = Position.X;
-        int y = Position.Y;
+        int x = Position.x;
+        int y = Position.y;
 
         if (x == 0)
         {
@@ -142,13 +137,13 @@ void CToolTip::Draw(int cursorWidth, int cursorHeight)
 
         if (y < 0)
         {
-            y = Position.Y;
+            y = Position.y;
             //y = g_MouseManager.Position.Y + cursorHeight;
         }
 
         if (x < 0)
         {
-            x = Position.X;
+            x = Position.x;
             //x = g_MouseManager.Position.X + cursorWidth;
         }
 

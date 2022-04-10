@@ -11,8 +11,8 @@ class CRenderWorldObject;
 class CMapBlock : public CBaseQueueItem
 {
 public:
-    uint32_t Index = 0;
-    uint32_t LastAccessTime = 0;
+    u32 Index = 0;
+    u32 LastAccessTime = 0;
     short X = 0;
     short Y = 0;
 
@@ -43,7 +43,7 @@ public:
     CRenderWorldObject *GetRender(int x, int y);
 
     //Получить цвет точки для радара
-    uint16_t GetRadarColor(int x, int y);
+    u16 GetRadarColor(int x, int y);
 
     //Сконструировать вершины текстур ландшафта
     void CreateLandTextureRect();

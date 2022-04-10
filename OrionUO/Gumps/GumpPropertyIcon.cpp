@@ -20,7 +20,7 @@ CGumpPropertyIcon::~CGumpPropertyIcon()
 {
 }
 
-void CGumpPropertyIcon::SetTextW(const wstring &val)
+void CGumpPropertyIcon::SetTextW(const std::wstring &val)
 {
     m_Text = val;
     int width = 0;
@@ -48,7 +48,7 @@ void CGumpPropertyIcon::UpdateContent()
 {
     Clear();
 
-    uint8_t mode = g_ConfigManager.GetItemPropertiesMode();
+    u8 mode = g_ConfigManager.GetItemPropertiesMode();
 
     if (mode == OPM_AT_ICON)
     {
@@ -94,7 +94,6 @@ void CGumpPropertyIcon::UpdateContent()
 
 void CGumpPropertyIcon::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GPI_LOCK_MOVING)
     {
         LockMoving = !LockMoving;
@@ -107,9 +106,8 @@ void CGumpPropertyIcon::GUMP_BUTTON_EVENT_C
 
 bool CGumpPropertyIcon::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint8_t mode = g_ConfigManager.GetItemPropertiesMode() + 1;
+    u8 mode = g_ConfigManager.GetItemPropertiesMode() + 1;
 
     if (mode > OPM_SINGLE_CLICK)
     {

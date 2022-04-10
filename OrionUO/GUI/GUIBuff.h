@@ -8,13 +8,13 @@
 class CGUIBuff : public CGUIDrawObject
 {
 public:
-    uint32_t Timer = 0;
-    wstring Text = {};
-    uint32_t TooltipTimer = 0;
+    u32 Timer = 0;
+    std::wstring Text = {};
+    u32 TooltipTimer = 0;
     bool DecAlpha = true;
-    uint8_t Alpha = 0xFF;
+    u8 Alpha = 0xFF;
 
-    CGUIBuff(uint16_t graphic, int timer, const wstring &text);
+    CGUIBuff(u16 graphic, int timer, const std::wstring &text);
     virtual ~CGUIBuff();
     virtual void Draw(bool checktrans = false);
 };

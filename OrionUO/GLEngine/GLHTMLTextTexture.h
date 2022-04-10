@@ -7,7 +7,7 @@ class CGLHTMLTextTexture : public CGLTextTexture
 {
 private:
     //Список ссылок
-    deque<WEB_LINK_RECT> m_WebLinkRect;
+    std::deque<WEB_LINK_RECT> m_WebLinkRect;
 
 public:
     CGLHTMLTextTexture();
@@ -20,5 +20,5 @@ public:
     void AddWebLink(WEB_LINK_RECT &wl) { m_WebLinkRect.push_back(wl); }
 
     //Проверка веб-ссылки под мышкой
-    uint16_t WebLinkUnderMouse(int x, int y);
+    u16 WebLinkUnderMouse(int x, int y);
 };

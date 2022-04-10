@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GumpBaseScroll.h"
@@ -20,12 +17,12 @@ private:
 
 public:
     CGumpProfile(
-        uint32_t serial,
+        u32 serial,
         short x,
         short y,
-        const wstring &topText,
-        const wstring &bottomText,
-        const wstring &dataText);
+        const std::wstring &topText,
+        const std::wstring &bottomText,
+        const std::wstring &dataText);
     virtual ~CGumpProfile();
 
     GUMP_BUTTON_EVENT_H;

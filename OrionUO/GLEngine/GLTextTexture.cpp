@@ -12,14 +12,12 @@ CGLTextTexture::~CGLTextTexture()
 
 void CGLTextTexture::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture::Clear();
     LinesCount = 0;
 }
 
 void CGLTextTexture::Draw(int x, int y, bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         if (checktrans)

@@ -23,8 +23,8 @@ public:
     IOrionString();
     ~IOrionString();
 
-    IOrionString &operator()(const string &str);
-    IOrionString &operator()(const wstring &str);
+    IOrionString &operator()(const std::string &str);
+    IOrionString &operator()(const std::wstring &str);
 
     bool m_Unicode = false;
     char *m_DataA{ nullptr };
@@ -36,27 +36,27 @@ public:
 struct ORION_RAW_FILE_INFO
 {
     size_t Address;
-    uint64_t Size;
+    u64 Size;
     unsigned int Extra;
 };
 
 struct ORION_RAW_ART_INFO
 {
     size_t Address;
-    uint64_t Size;
-    uint64_t CompressedSize;
+    u64 Size;
+    u64 CompressedSize;
 };
 
 struct ORION_RAW_GUMP_INFO
 {
     size_t Address;
-    uint64_t Size;
-    uint64_t CompressedSize;
+    u64 Size;
+    u64 CompressedSize;
     int Width;
     int Height;
 };
 
-void UOMsg_Send(uint8_t *data, size_t size);
+void UOMsg_Send(u8 *data, size_t size);
 
 //IGLEngine
 typedef void CDECL FUNCDEF_PUSH_SCISSOR(int, int, int, int);
@@ -75,8 +75,8 @@ typedef void CDECL FUNCDEF_DRAW_GUMP(int, int, unsigned short, unsigned short);
 typedef void CDECL FUNCDEF_DRAW_GUMPPIC(int, int, unsigned short, unsigned short, int, int);
 
 //IUltimaOnline
-typedef uint64_t CDECL FUNCDEF_GET_LAND_FLAGS(unsigned short);
-typedef uint64_t CDECL FUNCDEF_GET_STATIC_FLAGS(unsigned short);
+typedef u64 CDECL FUNCDEF_GET_LAND_FLAGS(unsigned short);
+typedef u64 CDECL FUNCDEF_GET_STATIC_FLAGS(unsigned short);
 typedef int CDECL FUNCDEF_GET_VALUE_INT(VALUE_KEY_INT, int);
 typedef void CDECL FUNCDEF_SET_VALUE_INT(VALUE_KEY_INT, int);
 typedef IOrionString *CDECL FUNCDEF_GET_VALUE_STRING(VALUE_KEY_STRING, const char *);

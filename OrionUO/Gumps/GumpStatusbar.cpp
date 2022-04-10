@@ -73,7 +73,7 @@ enum
     ID_GSB_COUNT,
 };
 
-static const wstring tooltip[] = {
+static const std::wstring tooltip[] = {
     L"(none)",                      //ID_GSB_NONE
     L"Minimize the statusbar gump", //ID_GSB_MINIMIZE
     L"",                            //ID_GSB_TEXT_FIELD
@@ -118,10 +118,9 @@ static const wstring tooltip[] = {
 
 static_assert(countof(tooltip) - 1 == ID_GSB_COUNT, "Wrong amount of entries in tooltip table");
 
-CGumpStatusbar::CGumpStatusbar(uint32_t serial, short x, short y, bool minimized)
+CGumpStatusbar::CGumpStatusbar(u32 serial, short x, short y, bool minimized)
     : CGump(GT_STATUSBAR, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (minimized)
     {
         Minimized = true;
@@ -139,7 +138,6 @@ CGumpStatusbar::CGumpStatusbar(uint32_t serial, short x, short y, bool minimized
 
 CGumpStatusbar::~CGumpStatusbar()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ConnectionManager.Connected() && g_Config.ClientVersion >= CV_200 && g_World != nullptr &&
         g_World->FindWorldObject(Serial) != nullptr)
     {
@@ -151,8 +149,7 @@ CGumpStatusbar::~CGumpStatusbar()
 
 void CGumpStatusbar::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-    const uint32_t id = g_SelectedObject.Serial;
+    const u32 id = g_SelectedObject.Serial;
     if (id == ID_GSB_NONE || id >= ID_GSB_COUNT)
     {
         return;
@@ -160,7 +157,7 @@ void CGumpStatusbar::InitToolTip()
 
     //if (Minimized && Serial == g_PlayerSerial)
     //    g_ToolTip.Set(L"Double click to maximize the statusbar gump");
-    const wstring &text = tooltip[id];
+    const std::wstring &text = tooltip[id];
     if (!text.empty())
     {
         g_ToolTip.Set(text, 80);
@@ -169,7 +166,6 @@ void CGumpStatusbar::InitToolTip()
 
 CGumpStatusbar *CGumpStatusbar::GetTopStatusbar()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!InGroup())
     {
         return nullptr;
@@ -192,7 +188,6 @@ CGumpStatusbar *CGumpStatusbar::GetTopStatusbar()
 
 CGumpStatusbar *CGumpStatusbar::GetNearStatusbar(int &x, int &y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (InGroup() || !Minimized)
     {
         return nullptr;
@@ -346,7 +341,6 @@ CGumpStatusbar *CGumpStatusbar::GetNearStatusbar(int &x, int &y)
 
 bool CGumpStatusbar::GetStatusbarGroupOffset(int &x, int &y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (InGroup() && Minimized && g_MouseManager.LeftButtonPressed &&
         g_PressedObject.LeftGump != nullptr &&
         (g_PressedObject.LeftObject == nullptr ||
@@ -359,10 +353,10 @@ bool CGumpStatusbar::GetStatusbarGroupOffset(int &x, int &y)
         {
             if (gump != this && g_PressedObject.LeftGump == gump && gump->CanBeMoved())
             {
-                CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
-                x += offset.X;
-                y += offset.Y;
+                x += offset.x;
+                y += offset.y;
 
                 return true;
             }
@@ -376,7 +370,6 @@ bool CGumpStatusbar::GetStatusbarGroupOffset(int &x, int &y)
 
 void CGumpStatusbar::UpdateGroup(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!InGroup())
     {
         return;
@@ -403,7 +396,6 @@ void CGumpStatusbar::UpdateGroup(int x, int y)
 
 void CGumpStatusbar::AddStatusbar(CGumpStatusbar *bar)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_GroupNext == nullptr)
     {
         m_GroupNext = bar;
@@ -440,7 +432,6 @@ void CGumpStatusbar::AddStatusbar(CGumpStatusbar *bar)
 
 void CGumpStatusbar::RemoveFromGroup()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_GroupNext != nullptr)
     {
         m_GroupNext->WantRedraw = true;
@@ -475,10 +466,9 @@ void CGumpStatusbar::RemoveFromGroup()
 
 void CGumpStatusbar::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
 
     CGump::CalculateGumpState();
-    if ((g_GumpMovingOffset.X != 0) || (g_GumpMovingOffset.Y != 0))
+    if ((g_GumpMovingOffset.x != 0) || (g_GumpMovingOffset.y != 0))
     {
         if (g_Target.IsTargeting())
         {
@@ -492,26 +482,25 @@ void CGumpStatusbar::CalculateGumpState()
 
             if (GetNearStatusbar(testX, testY) != nullptr)
             {
-                g_GumpTranslate.X = (float)testX;
-                g_GumpTranslate.Y = (float)testY;
+                g_GumpTranslate.x = (float)testX;
+                g_GumpTranslate.y = (float)testY;
             }
         }
     }
     else if (InGroup())
     {
-        int x = (int)g_GumpTranslate.X;
-        int y = (int)g_GumpTranslate.Y;
+        int x = (int)g_GumpTranslate.x;
+        int y = (int)g_GumpTranslate.y;
 
         GetStatusbarGroupOffset(x, y);
 
-        g_GumpTranslate.X = (float)x;
-        g_GumpTranslate.Y = (float)y;
+        g_GumpTranslate.x = (float)x;
+        g_GumpTranslate.y = (float)y;
     }
 }
 
 void CGumpStatusbar::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_HitsBody != nullptr)
     {
         CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
@@ -544,7 +533,6 @@ void CGumpStatusbar::PrepareContent()
 
 void CGumpStatusbar::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
     m_StatusbarUnlocker = nullptr;
     m_Body = nullptr;
@@ -909,9 +897,9 @@ void CGumpStatusbar::UpdateContent()
                 if (g_DrawStatLockers)
                 {
                     //Str
-                    uint8_t status = g_Player->LockStr; // Status (down / up / lock)
+                    u8 status = g_Player->LockStr; // Status (down / up / lock)
                     xOffset = useUOPGumps ? 28 : 40;
-                    uint16_t gumpID = 0x0984; //Up
+                    u16 gumpID = 0x0984; //Up
                     if (status == 1)
                     {
                         gumpID = 0x0986; //Down
@@ -1352,7 +1340,7 @@ void CGumpStatusbar::UpdateContent()
 
                 if (per > 0)
                 {
-                    uint16_t gumpid = 0x0806; //Character status line (blue)
+                    u16 gumpid = 0x0806; //Character status line (blue)
                     if (g_Player->Poisoned())
                     {
                         gumpid = 0x0808; //Character status line (green)
@@ -1420,7 +1408,7 @@ void CGumpStatusbar::UpdateContent()
                     {
                         outofRange = true;
                     }
-                    uint16_t textColor =
+                    u16 textColor =
                         outofRange ?
                             912 :
                             g_ConfigManager.GetColorByNotoriety(member.Character->Notoriety);
@@ -1523,9 +1511,9 @@ void CGumpStatusbar::UpdateContent()
         {
             Add(new CGUIShader(&g_ColorizerShader, true));
 
-            uint16_t color = 0;
-            uint16_t hitsColor = 0x0386;
-            uint16_t textColor = 0x0386;
+            u16 color = 0;
+            u16 hitsColor = 0x0386;
+            u16 textColor = 0x0386;
             CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
             string objName = m_Name;
             bool canChangeName = false;
@@ -1564,7 +1552,7 @@ void CGumpStatusbar::UpdateContent()
 
                 if (per > 0)
                 {
-                    uint16_t gumpid = 0x0806; //Character status line (blue)
+                    u16 gumpid = 0x0806; //Character status line (blue)
                     if (obj->Poisoned())
                     {
                         gumpid = 0x0808; //Character status line (green)
@@ -1621,7 +1609,6 @@ void CGumpStatusbar::UpdateContent()
 
 void CGumpStatusbar::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return;
@@ -1640,7 +1627,6 @@ void CGumpStatusbar::OnLeftMouseButtonDown()
 
 void CGumpStatusbar::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return;
@@ -1713,7 +1699,6 @@ void CGumpStatusbar::GUMP_BUTTON_EVENT_C
 
 bool CGumpStatusbar::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return false;
@@ -1768,7 +1753,6 @@ bool CGumpStatusbar::OnLeftMouseButtonDoubleClick()
 
 void CGumpStatusbar::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (Serial != g_PlayerSerial)
     {
@@ -1794,7 +1778,6 @@ void CGumpStatusbar::OnTextInput(const TextEvent &ev)
 
 void CGumpStatusbar::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto key = EvKey(ev);
     switch (key)
@@ -1865,7 +1848,6 @@ void CGumpStatusbar::OnKeyDown(const KeyEvent &ev)
 
 void CGumpStatusbar::SendRenameRequest()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_Items, CBaseGUI *)
     {
         if (item->Type != GOT_TEXTENTRY)

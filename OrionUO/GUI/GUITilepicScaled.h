@@ -11,7 +11,7 @@ class CGUITilepicScaled : public CGUITilepic
     int Height = 0;
 
 public:
-    CGUITilepicScaled(uint16_t graphic, uint16_t color, int x, int y, int width, int height);
+    CGUITilepicScaled(u16 graphic, u16 color, int x, int y, int width, int height);
     virtual ~CGUITilepicScaled();
 
     virtual void Draw(bool checktrans = false);

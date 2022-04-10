@@ -1,35 +1,32 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#include "GLFrameBuffer.h"
+#include "GLEngine/GLEngine.h"
 
 CGLFrameBuffer::CGLFrameBuffer()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 CGLFrameBuffer::~CGLFrameBuffer()
 {
-    DEBUG_TRACE_FUNCTION;
     Free();
 }
 
-bool CGLFrameBuffer::Init(int width, int height)
+bool CGLFrameBuffer::Init(int a_width, int a_height)
 {
-    DEBUG_TRACE_FUNCTION;
     Free();
 
     bool result = false;
 
-    if (g_GL.CanUseFrameBuffer && (width != 0) && (height != 0))
+    if (g_GL.CanUseFrameBuffer && (a_width != 0) && (a_height != 0))
     {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glGenTextures(1, &Texture.Texture);
-        glBindTexture(GL_TEXTURE_2D, Texture.Texture);
+        glGenTextures(1, &m_texture.Texture);
+        glBindTexture(GL_TEXTURE_2D, m_texture.Texture);
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
             GL_RGBA8,
-            width,
-            height,
+            a_width,
+            a_height,
             0,
             GL_BGRA,
             GL_UNSIGNED_INT_8_8_8_8,
@@ -38,19 +35,19 @@ bool CGLFrameBuffer::Init(int width, int height)
         GLint currentFrameBuffer = 0;
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFrameBuffer);
 
-        glGenFramebuffers(1, &m_FrameBuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer);
+        glGenFramebuffers(1, &m_frameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_frameBuffer);
 
         glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Texture.Texture, 0);
+            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.Texture, 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
         {
-            Texture.Width = width;
-            Texture.Height = height;
+            m_texture.Width  = a_width;
+            m_texture.Height = a_height;
 
-            result = true;
-            m_Ready = true;
+            result    = true;
+            m_isReady = true;
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, currentFrameBuffer);
@@ -61,65 +58,62 @@ bool CGLFrameBuffer::Init(int width, int height)
 
 void CGLFrameBuffer::Free()
 {
-    DEBUG_TRACE_FUNCTION;
-    Texture.Clear();
+    m_texture.Clear();
 
-    if (g_GL.CanUseFrameBuffer && m_FrameBuffer != 0)
+    if (g_GL.CanUseFrameBuffer && m_frameBuffer != 0)
     {
-        glDeleteFramebuffers(1, &m_FrameBuffer);
-        m_FrameBuffer = 0;
+        glDeleteFramebuffers(1, &m_frameBuffer);
+        m_frameBuffer = 0;
     }
 
-    m_OldFrameBuffer = 0;
+    m_oldFrameBuffer = 0;
 }
 
 void CGLFrameBuffer::Release()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GL.CanUseFrameBuffer)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_OldFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_oldFrameBuffer);
 
-        glBindTexture(GL_TEXTURE_2D, Texture.Texture);
+        glBindTexture(GL_TEXTURE_2D, m_texture.Texture);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         g_GL.RestorePort();
     }
 }
 
-bool CGLFrameBuffer::Ready(int width, int height)
+bool CGLFrameBuffer::Ready(int a_width, int a_height)
 {
-    DEBUG_TRACE_FUNCTION;
     return (
-        g_GL.CanUseFrameBuffer && m_Ready && Texture.Width == width && Texture.Height == height);
+        g_GL.CanUseFrameBuffer && m_isReady && m_texture.Width == a_width &&
+        m_texture.Height == a_height);
 }
 
-bool CGLFrameBuffer::ReadyMinSize(int width, int height)
+bool CGLFrameBuffer::ReadyMinSize(int a_width, int a_height)
 {
-    DEBUG_TRACE_FUNCTION;
     return (
-        g_GL.CanUseFrameBuffer && m_Ready && Texture.Width >= width && Texture.Height >= height);
+        g_GL.CanUseFrameBuffer && m_isReady && m_texture.Width >= a_width &&
+        m_texture.Height >= a_height);
 }
 
 bool CGLFrameBuffer::Use()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
-    if (g_GL.CanUseFrameBuffer && m_Ready)
+    if (g_GL.CanUseFrameBuffer && m_isReady)
     {
         glEnable(GL_TEXTURE_2D);
 
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_OldFrameBuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_FrameBuffer);
-        glBindTexture(GL_TEXTURE_2D, Texture.Texture);
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_oldFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_frameBuffer);
+        glBindTexture(GL_TEXTURE_2D, m_texture.Texture);
 
-        glViewport(0, 0, Texture.Width, Texture.Height);
+        glViewport(0, 0, m_texture.Width, m_texture.Height);
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        glOrtho(0.0, Texture.Width, 0.0, Texture.Height, -150.0, 150.0);
+        glOrtho(0.0, m_texture.Width, 0.0, m_texture.Height, -150.0, 150.0);
 
         glMatrixMode(GL_MODELVIEW);
 
@@ -129,12 +123,11 @@ bool CGLFrameBuffer::Use()
     return result;
 }
 
-void CGLFrameBuffer::Draw(int x, int y)
+void CGLFrameBuffer::Draw(int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    if (g_GL.CanUseFrameBuffer && m_Ready)
+    if (g_GL.CanUseFrameBuffer && m_isReady)
     {
         g_GL.OldTexture = 0;
-        g_GL.GL1_Draw(Texture, x, y);
+        g_GL.GL1_Draw(m_texture, a_x, a_y);
     }
 }

@@ -7,13 +7,13 @@
 
 class CGumpProperty : public CGump
 {
-    uint32_t Timer = 0;
+    u32 Timer = 0;
 
 private:
     CGLTextTexture m_Texture;
 
 public:
-    CGumpProperty(const wstring &text);
+    CGumpProperty(const std::wstring &text);
     virtual ~CGumpProperty();
 
     virtual void PrepareContent();

@@ -15,7 +15,7 @@ protected:
     virtual void CalculateGumpState();
 
 public:
-    CGumpMenu(uint32_t serial, uint32_t id, short x, short y);
+    CGumpMenu(u32 serial, u32 id, short x, short y);
     virtual ~CGumpMenu();
 
     static const int ID_GM_HTMLGUMP = 1000;

@@ -17,7 +17,7 @@ private:
     SDL_Thread *m_Handle = nullptr;
 #endif
     ProtectedSection m_Mutex;
-    uint32_t m_ID = 0;
+    u32 m_ID = 0;
     bool m_Paused = false;
     bool m_Cycled = false;
     int m_Delay = 1;
@@ -40,7 +40,7 @@ public:
     int Delay();
     void ChangeDelay(int newDelay);
 
-    virtual void OnExecute(uint32_t nowTime) {}
+    virtual void OnExecute(u32 nowTime) {}
     virtual void OnDestroy();
 
     static SDL_threadID GetCurrentThreadId();

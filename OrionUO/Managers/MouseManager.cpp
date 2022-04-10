@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "MouseManager.h"
+﻿#include "MouseManager.h"
 #include "ColorManager.h"
 #include "MapManager.h"
 #include "ConfigManager.h"
@@ -17,54 +14,47 @@
 #include "../Gumps/GumpCustomHouse.h"
 #include "../Walker/PathFinder.h"
 
-CMouseManager g_MouseManager;
+namespace
+{
+static struct CursorData
+{
+    u16 graphicDefault;
+    u16 graphicCombat;
+    Core::Vec2<i16> offset;
+} g_cursors[16] = {
+    // clang-format off
+    { 0x206A, 0x2053, {} },
+    { 0x206B, 0x2054, {} },
+    { 0x206C, 0x2055, {} },
+    { 0x206D, 0x2056, {} },
+    { 0x206E, 0x2057, {} },
+    { 0x206F, 0x2058, {} },
+    { 0x2070, 0x2059, {} },
+    { 0x2071, 0x205A, {} },
+    { 0x2072, 0x205B, {} },
+    { 0x2073, 0x205C, {} },
+    { 0x2074, 0x205D, {} },
+    { 0x2075, 0x205E, {} },
+    { 0x2076, 0x205F, {} },
+    { 0x2077, 0x2060, {} },
+    { 0x2078, 0x2061, {} },
+    { 0x2079, 0x2062, {} },
+    // clang-format on
+};
+} // namespace
 
-uint16_t g_CursorData[2][16] = { { 0x206A,
-                                   0x206B,
-                                   0x206C,
-                                   0x206D,
-                                   0x206E,
-                                   0x206F,
-                                   0x2070,
-                                   0x2071,
-                                   0x2072,
-                                   0x2073,
-                                   0x2074,
-                                   0x2075,
-                                   0x2076,
-                                   0x2077,
-                                   0x2078,
-                                   0x2079 },
-                                 { 0x2053,
-                                   0x2054,
-                                   0x2055,
-                                   0x2056,
-                                   0x2057,
-                                   0x2058,
-                                   0x2059,
-                                   0x205A,
-                                   0x205B,
-                                   0x205C,
-                                   0x205D,
-                                   0x205E,
-                                   0x205F,
-                                   0x2060,
-                                   0x2061,
-                                   0x2062 } };
+MouseManager g_MouseManager;
 
-int CMouseManager::Sgn(int val)
+int MouseManager::Sgn(int val)
 {
     return static_cast<int>(0 < val) - static_cast<int>(val < 0);
 }
 
-int CMouseManager::GetFacing(int x1, int y1, int to_x, int to_y, int current_facing)
+int MouseManager::GetFacing(int x1, int y1, int to_x, int to_y, int current_facing)
 {
-    DEBUG_TRACE_FUNCTION;
     int shiftX = to_x - x1;
     int shiftY = to_y - y1;
-
-    int hashf = 100 * (Sgn(shiftX) + 2) + 10 * (Sgn(shiftY) + 2);
-
+    int hashf  = 100 * (Sgn(shiftX) + 2) + 10 * (Sgn(shiftY) + 2);
     if ((shiftX != 0) && (shiftY != 0))
     {
         shiftX = std::abs(shiftX);
@@ -90,90 +80,63 @@ int CMouseManager::GetFacing(int x1, int y1, int to_x, int to_y, int current_fac
             return current_facing;
         }
     }
-
     switch (hashf)
     {
-        case 111:
-            return DT_W; // W
-        case 112:
-            return DT_NW; // NW
-        case 113:
-            return DT_N; // N
-        case 120:
-            return DT_W; // W
-        case 131:
-            return DT_W; // W
-        case 132:
-            return DT_SW; // SW
-        case 133:
-            return DT_S; // S
-        case 210:
-            return DT_N; // N
-        case 230:
-            return DT_S; // S
-        case 311:
-            return DT_E; // E
-        case 312:
-            return DT_NE; // NE
-        case 313:
-            return DT_N; // N
-        case 320:
-            return DT_E; // E
-        case 331:
-            return DT_E; // E
-        case 332:
-            return DT_SE; // SE
-        case 333:
-            return DT_S; // S
-        default:
-            break;
+        case 111: return DT_W;  // W
+        case 112: return DT_NW; // NW
+        case 113: return DT_N;  // N
+        case 120: return DT_W;  // W
+        case 131: return DT_W;  // W
+        case 132: return DT_SW; // SW
+        case 133: return DT_S;  // S
+        case 210: return DT_N;  // N
+        case 230: return DT_S;  // S
+        case 311: return DT_E;  // E
+        case 312: return DT_NE; // NE
+        case 313: return DT_N;  // N
+        case 320: return DT_E;  // E
+        case 331: return DT_E;  // E
+        case 332: return DT_SE; // SE
+        case 333: return DT_S;  // S
+        default: break;
     }
 
     return current_facing;
 }
 
-uint16_t CMouseManager::GetGameCursor()
+u16 MouseManager::GetGameCursor()
 {
-    DEBUG_TRACE_FUNCTION;
-    int war = (int)(g_Player != nullptr && g_Player->Warmode);
-    uint16_t result = g_CursorData[war][9]; //Main Gump mouse cursor
+    Core::TMousePos pos = GetPosition();
+    int war             = (int)(g_Player != nullptr && g_Player->Warmode);
+    u16 result          = war ? g_cursors[9].graphicCombat : g_cursors[9].graphicDefault;
 
     if (g_Target.IsTargeting() && !g_ObjectInHand.Enabled)
-    {
-        return g_CursorData[war][12]; //Targetting cursor
-    }
+        return war ? g_cursors[12].graphicCombat : g_cursors[12].graphicDefault;
 
     bool mouseInWindow =
-        !(Position.X < g_ConfigManager.GameWindowX || Position.Y < g_ConfigManager.GameWindowY ||
-          Position.X > (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
-          Position.Y > (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight));
+        !(pos.x < g_ConfigManager.GameWindowX || pos.y < g_ConfigManager.GameWindowY ||
+          pos.x > (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
+          pos.y > (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight));
 
     //bool gumpChecked = (g_LastSelectedGump || (g_LastSelectedObject && g_LastObjectType != SOT_GAME_OBJECT && g_LastObjectType != SOT_STATIC_OBJECT && g_LastObjectType != SOT_LAND_OBJECT && g_LastObjectType != SOT_TEXT_OBJECT));
 
     if (!mouseInWindow || g_SelectedObject.Gump != nullptr || g_PressedObject.LeftGump != nullptr)
-    {
         return result;
-    }
 
     int gameWindowCenterX = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2);
     int gameWindowCenterY = g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2);
-
-    return g_CursorData[war]
-                       [GetFacing(gameWindowCenterX, gameWindowCenterY, Position.X, Position.Y, 1)];
+    int cursorId          = GetFacing(gameWindowCenterX, gameWindowCenterY, pos.x, pos.y, 1);
+    return war ? g_cursors[cursorId].graphicCombat : g_cursors[cursorId].graphicDefault;
 }
 
-void CMouseManager::ProcessWalking()
+void MouseManager::ProcessWalking()
 {
-    PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
-    bool mouseInWindow = true;
-
-    if (Position.X < g_ConfigManager.GameWindowX || Position.Y < g_ConfigManager.GameWindowY ||
-        Position.X > (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
-        Position.Y > (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight))
-    {
+    Core::TMousePos pos = GetPosition();
+    bool mouseInWindow  = true;
+    if (pos.x < g_ConfigManager.GameWindowX || pos.y < g_ConfigManager.GameWindowY ||
+        pos.x > (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
+        pos.y > (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight))
         mouseInWindow = false;
-    }
 
     if ((g_MovingFromMouse || (mouseInWindow && g_AutoMoving)) &&
         g_PressedObject.RightGump == nullptr &&
@@ -207,155 +170,32 @@ void CMouseManager::ProcessWalking()
     }
 }
 
-bool CMouseManager::LoadCursorTextures()
+bool MouseManager::LoadCursorTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = true;
-
-    for (int i = 0; i < 2; i++)
+    for (CursorData& cursorData : g_cursors)
     {
-        for (int j = 0; j < 16; j++)
-        {
-            uint16_t id = g_CursorData[i][j];
-
-            CGLTexture *pth = g_Orion.ExecuteStaticArt(id);
-
-            if (i == 0)
-            {
-                if (pth != nullptr)
-                {
-                    float OffsX = 0.0f;
-                    float OffsY = 0.0f;
-
-                    float DW = (float)pth->Width;
-                    float DH = (float)pth->Height;
-
-                    if (id == 0x206A)
-                    {
-                        OffsX = -4.0f;
-                    }
-                    else if (id == 0x206B)
-                    {
-                        OffsX = -DW + 3.0f;
-                    }
-                    else if (id == 0x206C)
-                    {
-                        OffsX = -DW + 3.0f;
-                        OffsY = -(DH / 2.0f);
-                    }
-                    else if (id == 0x206D)
-                    {
-                        OffsX = -DW;
-                        OffsY = -DH;
-                    }
-                    else if (id == 0x206E)
-                    {
-                        OffsX = -(DW * 0.66f);
-                        OffsY = -DH;
-                    }
-                    else if (id == 0x206F)
-                    {
-                        OffsY = ((-DH) + 4.0f);
-                    }
-                    else if (id == 0x2070)
-                    {
-                        OffsY = ((-DH) + 4.0f);
-                    }
-                    else if (id == 0x2075)
-                    {
-                        OffsY = -4.0f;
-                    }
-                    else if (id == 0x2076)
-                    {
-                        OffsX = -12.0f;
-                        OffsY = -14.0f;
-                    }
-                    else if (id == 0x2077)
-                    {
-                        OffsX = -(DW / 2.0f);
-                        OffsY = -(DH / 2.0f);
-                    }
-                    else if (id == 0x2078)
-                    {
-                        OffsY = -(DH * 0.66f);
-                    }
-                    else if (id == 0x2079)
-                    {
-                        OffsY = -(DH / 2.0f);
-                    }
-
-                    switch (id)
-                    {
-                        case 0x206B:
-                            OffsX = -29;
-                            OffsY = -1;
-                            break;
-                        case 0x206C:
-                            OffsX = -41;
-                            OffsY = -9;
-                            break;
-                        case 0x206D:
-                            OffsX = -36;
-                            OffsY = -25;
-                            break;
-                        case 0x206E:
-                            OffsX = -14;
-                            OffsY = -33;
-                            break;
-                        case 0x206F:
-                            OffsX = -2;
-                            OffsY = -26;
-                            break;
-                        case 0x2070:
-                            OffsX = -3;
-                            OffsY = -8;
-                            break;
-                        case 0x2071:
-                            OffsX = -1;
-                            OffsY = -1;
-                            break;
-                        case 0x206A:
-                            OffsX = -4;
-                            OffsY = -2;
-                            break;
-                        case 0x2075:
-                            OffsX = -2;
-                            OffsY = -10;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    m_CursorOffset[0][j] = (int)OffsX; //X
-                    m_CursorOffset[1][j] = (int)OffsY; //Y
-                }
-                else
-                {
-                    m_CursorOffset[0][j] = 0; //X
-                    m_CursorOffset[1][j] = 0; //Y
-                }
-            }
-        }
+        auto defaultCursor = g_Orion.ExecuteCursor(cursorData.graphicDefault);
+        auto combatCursor  = g_Orion.ExecuteCursor(cursorData.graphicCombat);
+        cursorData.offset  = defaultCursor.second;
     }
-
     return result;
 }
 
-void CMouseManager::Draw(uint16_t id)
+void MouseManager::Draw(u16 id)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (g_GameState >= GS_GAME)
     {
         if (g_CustomHouseGump != nullptr && (g_CustomHouseGump->SelectedGraphic != 0u))
         {
-            uint16_t color = 0;
+            u16 color = 0;
 
-            vector<CBuildObject> list;
+            std::vector<CBuildObject> list;
             CUSTOM_HOUSE_BUILD_TYPE type;
 
             if (!g_CustomHouseGump->CanBuildHere(
-                    list, (CRenderWorldObject *)g_SelectedObject.Object, type))
+                    list, (CRenderWorldObject*)g_SelectedObject.Object, type))
             {
                 color = 0x0021;
             }
@@ -367,7 +207,7 @@ void CMouseManager::Draw(uint16_t id)
 
             if (static_cast<unsigned int>(!list.empty()) != 0u)
             {
-                for (const CBuildObject &item : list)
+                for (const CBuildObject& item : list)
                 {
                     int x = g_MouseManager.Position.X + (item.X - item.Y) * 22;
                     int y = g_MouseManager.Position.Y + (item.X + item.Y) * 22 - (item.Z * 4);
@@ -393,10 +233,10 @@ void CMouseManager::Draw(uint16_t id)
         }
         else if (g_ObjectInHand.Enabled)
         {
-            bool doubleDraw = false;
-            uint16_t ohGraphic = g_ObjectInHand.GetDrawGraphic(doubleDraw);
+            bool doubleDraw    = false;
+            u16 ohGraphic = g_ObjectInHand.GetDrawGraphic(doubleDraw);
 
-            uint16_t ohColor = g_ObjectInHand.Color;
+            u16 ohColor = g_ObjectInHand.Color;
             doubleDraw =
                 ((CGameObject::IsGold(g_ObjectInHand.Graphic) == 0) &&
                  IsStackable(g_ObjectInHand.TiledataPtr->Flags) && g_ObjectInHand.Count > 1);
@@ -410,7 +250,7 @@ void CMouseManager::Draw(uint16_t id)
             {
                 ohGraphic -= GAME_FIGURE_GUMP_OFFSET;
 
-                CGLTexture *to = g_Orion.ExecuteGump(ohGraphic);
+                CGLTexture* to = g_Orion.ExecuteGump(ohGraphic);
 
                 if (to != nullptr)
                 {
@@ -450,11 +290,11 @@ void CMouseManager::Draw(uint16_t id)
         }
     }
 
-    CGLTexture *th = g_Orion.ExecuteStaticArt(id);
+    CGLTexture* th = g_Orion.ExecuteStaticArt(id);
 
     if (th != nullptr)
     {
-        uint16_t color = 0;
+        u16 color = 0;
 
         if (id < 0x206A)
         {
@@ -495,7 +335,7 @@ void CMouseManager::Draw(uint16_t id)
 
             if (g_Target.Targeting && g_ConfigManager.HighlightTargetByType)
             {
-                uint32_t auraColor = 0;
+                u32 auraColor = 0;
 
                 if (g_Target.CursorType == 0)
                 {
@@ -521,8 +361,8 @@ void CMouseManager::Draw(uint16_t id)
 
                     CGLTexture tex;
                     tex.Texture = g_AuraTexture.Texture;
-                    tex.Width = 35;
-                    tex.Height = 35;
+                    tex.Width   = 35;
+                    tex.Height  = 35;
 
                     g_GL.GL1_Draw(tex, x - 6, y - 2);
 

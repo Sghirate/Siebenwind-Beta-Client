@@ -1,19 +1,18 @@
-// MIT License
-// Copyright (C) September 2017 Hotride
+#include "DateTimeStamp.h"
 
 #if defined(ORION_WINDOWS)
 
-string GetBuildDateTimeStamp()
+std::string GetBuildDateTimeStamp()
 {
-    return string(__DATE__);
+    return std::string(__DATE__);
 }
 
 #else
 
 #include "GitRevision.h"
-string GetBuildDateTimeStamp()
+std::string GetBuildDateTimeStamp()
 {
-    return string(__DATE__ " " __TIME__ " (" GIT_REV_STR ")");
+    return std::string(__DATE__ " " __TIME__ " (" GIT_REV_STR ")");
 }
 
 #endif

@@ -1,29 +1,24 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#pragma once
 
-#pragma once
+#include "Core/Input.h"
 
-extern uint16_t g_CursorData[2][16];
-
-class CMouseManager : public Wisp::CMouse
+class MouseManager
 {
 private:
     int m_CursorOffset[2][16];
 
 public:
-    CMouseManager()
-        : Wisp::CMouse()
-    {
-        memset(&m_CursorOffset[0][0], 0, sizeof(m_CursorOffset));
-    }
-    ~CMouseManager() {}
+    MouseManager() {}
+    ~MouseManager() {}
 
     bool LoadCursorTextures();
     int Sgn(int val);
     int GetFacing(int x1, int y1, int to_x, int to_y, int current_facing);
-    uint16_t GetGameCursor();
+    u16 GetGameCursor();
     void ProcessWalking();
-    void Draw(uint16_t id);
+    void Draw(u16 id);
+    Core::TMousePos GetPosition() const { return Core::Input::GetMouse()->GetPosition(); }
+    void SetPosition(const Core::TMousePos& a_pos) { Core::Input::GetMouse()->SetPosition(a_pos); }
 };
 
-extern CMouseManager g_MouseManager;
+extern MouseManager g_MouseManager;

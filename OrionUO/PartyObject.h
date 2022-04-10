@@ -6,7 +6,7 @@
 class CPartyObject
 {
 public:
-    uint32_t Serial = 0;
+    u32 Serial = 0;
 
     CPartyObject();
     ~CPartyObject() {}

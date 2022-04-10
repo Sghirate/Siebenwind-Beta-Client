@@ -6,7 +6,7 @@
 #include "../DefinitionMacro.h"
 
 CGUIGenericTextEntry::CGUIGenericTextEntry(
-    int serial, int index, uint16_t color, int x, int y, int maxWidth, int maxLength)
+    int serial, int index, u16 color, int x, int y, int maxWidth, int maxLength)
     : CGUITextEntry(
           serial,
           color,
@@ -16,7 +16,7 @@ CGUIGenericTextEntry::CGUIGenericTextEntry(
           y,
           maxWidth,
           true,
-          (uint8_t)(g_Config.ClientVersion >= CV_305D),
+          (u8)(g_Config.ClientVersion >= CV_305D),
           TS_LEFT,
           UOFONT_BLACK_BORDER,
           maxLength)

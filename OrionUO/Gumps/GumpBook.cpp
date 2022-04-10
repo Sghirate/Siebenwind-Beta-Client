@@ -26,13 +26,12 @@ enum
 };
 
 CGumpBook::CGumpBook(
-    uint32_t serial, int16_t x, int16_t y, uint16_t pageCount, bool writable, bool unicode)
+    u32 serial, i16 x, i16 y, u16 pageCount, bool writable, bool unicode)
     : CGump(GT_BOOK, serial, x, y)
     , PageCount(pageCount)
     , Writable(writable)
     , Unicode(true) // The Siebenwind Server will send and receive all book data in Unicode.
 {
-    DEBUG_TRACE_FUNCTION;
     m_ChangedPage = new bool[pageCount + 1];
     m_PageDataReceived = new bool[pageCount + 1];
     Page = 0;
@@ -49,7 +48,7 @@ CGumpBook::CGumpBook(
     Add(new CGUIPage(0));
     CGUIText *text = (CGUIText *)Add(new CGUIText(0x0386, 78, 32));
 
-    uint8_t entryFont = 1;
+    u8 entryFont = 1;
 
     Add(new CGUIHitBox(ID_GB_TEXT_AREA_TITLE, 41, 65, 150, 22));
 
@@ -70,7 +69,7 @@ CGumpBook::CGumpBook(
     m_EntryAuthor->ReadOnly = !Writable;
     m_EntryAuthor->CheckOnSerial = true;
 
-    uint16_t textColor = 0x2681;
+    u16 textColor = 0x2681;
 
     for (int i = 0; i <= PageCount; i++)
     {
@@ -138,7 +137,6 @@ CGumpBook::CGumpBook(
 
 CGumpBook::~CGumpBook()
 {
-    DEBUG_TRACE_FUNCTION;
 
     RELEASE_POINTER(m_ChangedPage);
     RELEASE_POINTER(m_PageDataReceived);
@@ -146,7 +144,6 @@ CGumpBook::~CGumpBook()
 
 void CGumpBook::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     /*if (!m_PageDataReceived[Page])
 	{
 		CPacketBookPageDataRequest(Serial, Page).Send();
@@ -162,7 +159,6 @@ void CGumpBook::PrepareContent()
 
 CGUITextEntry *CGumpBook::GetEntry(int page)
 {
-    DEBUG_TRACE_FUNCTION;
     int currentPage = -1;
 
     QFOR(item, m_Items, CBaseGUI *)
@@ -180,9 +176,8 @@ CGUITextEntry *CGumpBook::GetEntry(int page)
     return nullptr;
 }
 
-void CGumpBook::SetPageData(int page, const wstring &data)
+void CGumpBook::SetPageData(int page, const std::wstring &data)
 {
-    DEBUG_TRACE_FUNCTION;
     CGUITextEntry *entry = GetEntry(page);
     m_PageDataReceived[page] = true;
 
@@ -194,7 +189,6 @@ void CGumpBook::SetPageData(int page, const wstring &data)
 
 void CGumpBook::ChangePage(int newPage, bool playSound)
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < 2; i++)
     {
         if (Page + i > PageCount)
@@ -241,7 +235,6 @@ void CGumpBook::ChangePage(int newPage, bool playSound)
 
 void CGumpBook::DelayedClick(CRenderObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj != nullptr)
     {
         ChangePage(g_ClickObject.Page);
@@ -251,7 +244,6 @@ void CGumpBook::DelayedClick(CRenderObject *obj)
 
 void CGumpBook::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ClickObject.Enabled)
     {
         int newPage = -1;
@@ -292,7 +284,6 @@ void CGumpBook::GUMP_BUTTON_EVENT_C
 
 bool CGumpBook::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.LeftSerial == ID_GB_BUTTON_PREV) //Prev
     {
         ChangePage(0);
@@ -322,7 +313,6 @@ bool CGumpBook::OnLeftMouseButtonDoubleClick()
 
 void CGumpBook::InsertInContent(const Keycode key, bool isCharPress)
 {
-    DEBUG_TRACE_FUNCTION;
     int page = Page;
 
     if (page >= 0 && page <= PageCount)
@@ -543,7 +533,6 @@ void CGumpBook::InsertInContent(const Keycode key, bool isCharPress)
 
 void CGumpBook::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Writable)
     {
         return;
@@ -594,7 +583,6 @@ void CGumpBook::OnTextInput(const TextEvent &ev)
 
 void CGumpBook::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Writable)
     {
         return;

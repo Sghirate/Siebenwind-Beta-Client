@@ -17,7 +17,7 @@ private:
     CGUIDataBox *m_DataBox{ nullptr };
 
 public:
-    CGumpTargetSystem(uint32_t serial, short x, short y);
+    CGumpTargetSystem(u32 serial, short x, short y);
     virtual ~CGumpTargetSystem();
 
     virtual bool CanBeDisplayed();

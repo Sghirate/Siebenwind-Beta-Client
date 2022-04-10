@@ -2,6 +2,7 @@
 // Copyright (C) September 2016 Hotride
 
 #include "plugin/commoninterfaces.h"
+#include "Core/MappedFile.h"
 #include "OrionUO.h"
 #include "IndexObject.h"
 #include "Target.h"
@@ -32,7 +33,7 @@ IOrionString::~IOrionString()
     RELEASE_POINTER(m_DataW);
 }
 
-IOrionString &IOrionString::operator()(const string &str)
+IOrionString &IOrionString::operator()(const std::string &str)
 {
     RELEASE_POINTER(m_DataA);
 
@@ -47,7 +48,7 @@ IOrionString &IOrionString::operator()(const string &str)
     return *this;
 }
 
-IOrionString &IOrionString::operator()(const wstring &str)
+IOrionString &IOrionString::operator()(const std::wstring &str)
 {
     RELEASE_POINTER(m_DataW);
 
@@ -145,12 +146,12 @@ void CDECL FUNCBODY_DrawGumppic(
     g_Orion.DrawGump(graphic, color, x, y, width, height);
 }
 
-uint64_t CDECL FUNCBODY_GetLandFlags(unsigned short graphic)
+u64 CDECL FUNCBODY_GetLandFlags(unsigned short graphic)
 {
     return g_Orion.GetLandFlags(graphic);
 }
 
-uint64_t CDECL FUNCBODY_GetStaticFlags(unsigned short graphic)
+u64 CDECL FUNCBODY_GetStaticFlags(unsigned short graphic)
 {
     return g_Orion.GetStaticFlags(graphic);
 }
@@ -177,17 +178,12 @@ void CDECL FUNCBODY_SetValueString(VALUE_KEY_STRING key, const char *value)
 
 void CDECL FUNCBODY_SetTargetData(unsigned char *buf, int size)
 {
-    Wisp::CDataReader reader(buf, size);
+    Core::StreamReader reader(buf, size);
     reader.Move(1);
-
     if (*buf == 0x6C)
-    {
         g_Target.SetData(reader);
-    }
     else
-    {
         g_Target.SetMultiData(reader);
-    }
 }
 
 void CDECL FUNCBODY_SendTargetObject(unsigned int serial)
@@ -205,9 +201,9 @@ void CDECL FUNCBODY_SendTargetCancel()
     g_Target.Plugin_SendCancelTarget();
 }
 
-void UOMsg_Send(uint8_t *data, size_t size)
+void UOMsg_Send(u8 *data, size_t size)
 {
-    auto owned = new uint8_t[size];
+    auto owned = new u8[size];
     memcpy(owned, data, size);
     PUSH_EVENT(UOMSG_SEND, data, size);
 }
@@ -218,7 +214,7 @@ void CDECL FUNCBODY_SendCastSpell(int index)
     {
         g_LastSpellIndex = index;
         CPacketCastSpell packet(index);
-        UOMsg_Send(packet.Data().data(), packet.Data().size());
+        UOMsg_Send(packet.GetData().data(), packet.GetData().size());
     }
 }
 
@@ -228,7 +224,7 @@ void CDECL FUNCBODY_SendUseSkill(int index)
     {
         g_LastSkillIndex = index;
         CPacketUseSkill packet(index);
-        UOMsg_Send(packet.Data().data(), packet.Data().size());
+        UOMsg_Send(packet.GetData().data(), packet.GetData().size());
     }
 }
 
@@ -240,7 +236,7 @@ void CDECL FUNCBODY_SendAsciiSpeech(const char *text, unsigned short color)
     }
 
     CPacketASCIISpeechRequest packet(text, ST_NORMAL, 3, color);
-    UOMsg_Send(packet.Data().data(), packet.Data().size());
+    UOMsg_Send(packet.GetData().data(), packet.GetData().size());
 }
 
 void CDECL FUNCBODY_SendUnicodeSpeech(const wchar_t *text, unsigned short color)
@@ -250,14 +246,14 @@ void CDECL FUNCBODY_SendUnicodeSpeech(const wchar_t *text, unsigned short color)
         color = g_ConfigManager.SpeechColor;
     }
 
-    CPacketUnicodeSpeechRequest packet(text, ST_NORMAL, 3, color, (uint8_t *)g_Language.c_str());
-    UOMsg_Send(packet.Data().data(), packet.Data().size());
+    CPacketUnicodeSpeechRequest packet(text, ST_NORMAL, 3, color, (u8 *)g_Language.c_str());
+    UOMsg_Send(packet.GetData().data(), packet.GetData().size());
 }
 
-void CDECL FUNCBODY_SendRenameMount(uint32_t serial, const char *text)
+void CDECL FUNCBODY_SendRenameMount(u32 serial, const char *text)
 {
     CPacketRenameRequest packet(serial, text);
-    UOMsg_Send(packet.Data().data(), packet.Data().size());
+    UOMsg_Send(packet.GetData().data(), packet.GetData().size());
 }
 
 void CDECL FUNCBODY_SendMenuResponse(unsigned int serial, unsigned int id, int code)
@@ -293,7 +289,7 @@ void CDECL FUNCBODY_SecureTradingCheckState(unsigned int id1, bool state)
     {
         gump->StateMy = state;
         CPacketTradeResponse packet(gump, 2);
-        UOMsg_Send(packet.Data().data(), packet.Data().size());
+        UOMsg_Send(packet.GetData().data(), packet.GetData().size());
     }
 }
 
@@ -305,18 +301,18 @@ void CDECL FUNCBODY_SecureTradingClose(unsigned int id1)
     {
         gump->RemoveMark = true;
         CPacketTradeResponse packet(gump, 1);
-        UOMsg_Send(packet.Data().data(), packet.Data().size());
+        UOMsg_Send(packet.GetData().data(), packet.GetData().size());
     }
 }
 
 IOrionString *CDECL FUNCBODY_GetClilocA(unsigned int clilocID, const char *defaultText)
 {
-    return &g_OrionString(g_ClilocManager.Cliloc(g_Language)->GetA(clilocID, false, defaultText));
+    return &g_OrionString(g_ClilocManager.GetCliloc(g_Language)->GetA(clilocID, false, defaultText));
 }
 
 IOrionString *CDECL FUNCBODY_GetClilocW(unsigned int clilocID, const char *defaultText)
 {
-    return &g_OrionString(g_ClilocManager.Cliloc(g_Language)->GetW(clilocID, false, defaultText));
+    return &g_OrionString(g_ClilocManager.GetCliloc(g_Language)->GetW(clilocID, false, defaultText));
 }
 
 IOrionString *CDECL FUNCBODY_GetClilocArguments(unsigned int clilocID, const wchar_t *args)
@@ -376,16 +372,16 @@ bool CDECL FUNCBODY_GetWalkTo(int x, int y, int z, int distance)
         return false;
     }
 
-    CPoint2Di startPoint(g_Player->GetX(), g_Player->GetY());
+    Core::Vec2<i32> startPoint(g_Player->GetX(), g_Player->GetY());
     if (!g_Player->m_Steps.empty())
     {
         CWalkData &wd = g_Player->m_Steps.back();
 
-        startPoint.X = wd.X;
-        startPoint.Y = wd.Y;
+        startPoint.x = wd.X;
+        startPoint.y = wd.Y;
     }
 
-    if (GetDistance(startPoint, CPoint2Di(x, y)) <= distance)
+    if ((startPoint - Core::Vec2<i32>(x, y)).length() <= distance)
     {
         return true;
     }
@@ -407,14 +403,14 @@ bool CDECL FUNCBODY_GetWalkTo(int x, int y, int z, int distance)
             return false;
         }
 
-        CPoint2Di p(g_Player->GetX(), g_Player->GetY());
+        Core::Vec2<i32> p(g_Player->GetX(), g_Player->GetY());
         if (!g_Player->m_Steps.empty())
         {
             CWalkData &wd = g_Player->m_Steps.back();
-            p.X = wd.X;
-            p.Y = wd.Y;
+            p.x = wd.X;
+            p.y = wd.Y;
         }
-        result = (GetDistance(p, CPoint2Di(x, y)) <= distance);
+        result = (p = Core::Vec2<i32>(x, y)).length() <= distance;
     }
 
     return result;
@@ -435,7 +431,7 @@ bool CDECL FUNCBODY_GetAutowalking()
 
 void CDECL FUNCBODY_GetFileInfo(unsigned int index, ORION_RAW_FILE_INFO &info)
 {
-    Wisp::CMappedFile *file = nullptr;
+    Core::MappedFile *file = nullptr;
     unsigned int extra = 0;
 
     switch (index)
@@ -577,11 +573,11 @@ void CDECL FUNCBODY_GetFileInfo(unsigned int index, ORION_RAW_FILE_INFO &info)
         }
         case OFI_CLILOC_MUL:
         {
-            QFOR(item, g_ClilocManager.m_Items, CCliloc *)
+            QFOR(item, g_ClilocManager.m_Items, Cliloc*)
             {
-                if (item->Loaded && item->m_File.Start != nullptr && item->Language == "enu")
+                if (item->IsLoaded() && item->GetFile().GetBuffer() != nullptr && item->GetLanguage() == "enu")
                 {
-                    file = &item->m_File;
+                    file = &item->GetFile();
                     extra = 'ENU';
                     break;
                 }
@@ -595,8 +591,8 @@ void CDECL FUNCBODY_GetFileInfo(unsigned int index, ORION_RAW_FILE_INFO &info)
 
     if (file != nullptr)
     {
-        info.Address = intptr_t(file->Start);
-        info.Size = file->Size;
+        info.Address = intptr_t(file->GetBuffer());
+        info.Size = file->GetSize();
         info.Extra = extra;
     }
     else
@@ -615,12 +611,12 @@ void CDECL FUNCBODY_GetLandArtInfo(unsigned short index, ORION_RAW_ART_INFO &inf
 
         if (landData.Address != 0)
         {
-            info.Address = (uint64_t)landData.Address;
-            info.Size = (uint64_t)landData.DataSize;
+            info.Address = (u64)landData.Address;
+            info.Size = (u64)landData.DataSize;
 
             if (landData.UopBlock != nullptr)
             {
-                info.CompressedSize = (uint64_t)landData.UopBlock->CompressedSize;
+                info.CompressedSize = (u64)landData.UopBlock->CompressedSize;
             }
             else
             {
@@ -644,12 +640,12 @@ void CDECL FUNCBODY_GetStaticArtInfo(unsigned short index, ORION_RAW_ART_INFO &i
 
         if (staticData.Address != 0)
         {
-            info.Address = (uint64_t)staticData.Address;
-            info.Size = (uint64_t)staticData.DataSize;
+            info.Address = (u64)staticData.Address;
+            info.Size = (u64)staticData.DataSize;
 
             if (staticData.UopBlock != nullptr)
             {
-                info.CompressedSize = (uint64_t)staticData.UopBlock->CompressedSize;
+                info.CompressedSize = (u64)staticData.UopBlock->CompressedSize;
             }
             else
             {
@@ -673,14 +669,14 @@ void CDECL FUNCBODY_GetGumpArtInfo(unsigned short index, ORION_RAW_GUMP_INFO &in
 
         if (gumpData.Address != 0)
         {
-            info.Address = (uint64_t)gumpData.Address;
-            info.Size = (uint64_t)gumpData.DataSize;
+            info.Address = (u64)gumpData.Address;
+            info.Size = (u64)gumpData.DataSize;
             info.Width = gumpData.Width;
             info.Height = gumpData.Height;
 
             if (gumpData.UopBlock != nullptr)
             {
-                info.CompressedSize = (uint64_t)gumpData.UopBlock->CompressedSize;
+                info.CompressedSize = (u64)gumpData.UopBlock->CompressedSize;
             }
             else
             {

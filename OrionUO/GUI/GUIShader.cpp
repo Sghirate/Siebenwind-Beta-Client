@@ -16,7 +16,6 @@ CGUIShader::~CGUIShader()
 
 void CGUIShader::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled && m_Shader != nullptr)
     {
         m_Shader->Use();

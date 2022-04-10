@@ -73,7 +73,7 @@ public:
     CUSTOM_HOUSE_GUMP_STATE State = CHGS_WALL;
     int Category = -1;
     int MaxPage = 1;
-    uint16_t SelectedGraphic = 0;
+    u16 SelectedGraphic = 0;
     int CurrentFloor = 1;
     int FloorCount = 4;
     int RoofZ = 1;
@@ -86,18 +86,18 @@ public:
     bool SeekTile = false;
     bool ShowWindow = false;
     bool CombinedStair = false;
-    CPoint2Di StartPos = CPoint2Di();
-    CPoint2Di EndPos = CPoint2Di();
+    Core::Vec2<i32> StartPos = Core::Vec2<i32>();
+    Core::Vec2<i32> EndPos = Core::Vec2<i32>();
 
 private:
-    vector<CCustomHouseObjectWallCategory> m_Walls;
-    vector<CCustomHouseObjectFloor> m_Floors;
-    vector<CCustomHouseObjectDoor> m_Doors;
-    vector<CCustomHouseObjectMiscCategory> m_Miscs;
-    vector<CCustomHouseObjectStair> m_Stairs;
-    vector<CCustomHouseObjectTeleport> m_Teleports;
-    vector<CCustomHouseObjectRoofCategory> m_Roofs;
-    vector<CCustomHouseObjectPlaceInfo> m_ObjectsInfo;
+    std::vector<CCustomHouseObjectWallCategory> m_Walls;
+    std::vector<CCustomHouseObjectFloor> m_Floors;
+    std::vector<CCustomHouseObjectDoor> m_Doors;
+    std::vector<CCustomHouseObjectMiscCategory> m_Miscs;
+    std::vector<CCustomHouseObjectStair> m_Stairs;
+    std::vector<CCustomHouseObjectTeleport> m_Teleports;
+    std::vector<CCustomHouseObjectRoofCategory> m_Roofs;
+    std::vector<CCustomHouseObjectPlaceInfo> m_ObjectsInfo;
 
     int m_FloorVisionState[4];
 
@@ -164,7 +164,7 @@ private:
 
     void UpdateMaxPage();
 
-    pair<int, int> ExistsInList(CUSTOM_HOUSE_GUMP_STATE &state, uint16_t graphic);
+    std::pair<int, int> ExistsInList(CUSTOM_HOUSE_GUMP_STATE &state, u16 graphic);
 
     bool
     ValidatePlaceStructure(CGameItem *foundationItem, CMulti *multi, int minZ, int maxZ, int flags);
@@ -182,19 +182,19 @@ public:
 
     void GenerateFloorPlace();
 
-    void SeekGraphic(uint16_t graphic);
+    void SeekGraphic(u16 graphic);
 
     bool CanBuildHere(
-        vector<CBuildObject> &list, CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type);
+        std::vector<CBuildObject> &list, CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type);
 
-    bool ValidateItemPlace(const SDL_Rect &rect, uint16_t graphic, int x, int y);
+    bool ValidateItemPlace(const SDL_Rect &rect, u16 graphic, int x, int y);
 
     bool ValidateItemPlace(
         CGameItem *foundationItem,
         CMultiObject *item,
         int minZ,
         int maxZ,
-        vector<CPoint2Di> &validatedFloors);
+        std::vector<Core::Vec2<i32>> &validatedFloors);
 
     bool CanEraseHere(CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type);
 

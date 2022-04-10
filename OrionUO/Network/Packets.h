@@ -1,13 +1,11 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#pragma once
 
-#pragma once
+#include "Core/DataStream.h"
 
-class CPacket : public Wisp::CDataWriter
+class CPacket : public Core::StreamWriter
 {
 public:
     CPacket(size_t size, bool autoResize = false);
-
     void Send();
 };
 
@@ -20,7 +18,7 @@ public:
 class CPacketSelectServer : public CPacket
 {
 public:
-    CPacketSelectServer(uint8_t index);
+    CPacketSelectServer(u8 index);
 };
 
 class CPacketSecondLogin : public CPacket
@@ -32,7 +30,7 @@ public:
 class CPacketCreateCharacter : public CPacket
 {
 public:
-    CPacketCreateCharacter(const string &name);
+    CPacketCreateCharacter(const std::string &name);
 };
 
 class CPacketDeleteCharacter : public CPacket
@@ -44,38 +42,38 @@ public:
 class CPacketSelectCharacter : public CPacket
 {
 public:
-    CPacketSelectCharacter(int index, const string &name);
+    CPacketSelectCharacter(int index, const std::string &name);
 };
 
 class CPacketPickupRequest : public CPacket
 {
 public:
-    CPacketPickupRequest(uint32_t serial, uint16_t count);
+    CPacketPickupRequest(u32 serial, u16 count);
 };
 
 class CPacketDropRequestOld : public CPacket
 {
 public:
-    CPacketDropRequestOld(uint32_t serial, uint16_t x, uint16_t y, char z, uint32_t container);
+    CPacketDropRequestOld(u32 serial, u16 x, u16 y, char z, u32 container);
 };
 
 class CPacketDropRequestNew : public CPacket
 {
 public:
     CPacketDropRequestNew(
-        uint32_t serial, uint16_t x, uint16_t y, char z, uint8_t slot, uint32_t container);
+        u32 serial, u16 x, u16 y, char z, u8 slot, u32 container);
 };
 
 class CPacketEquipRequest : public CPacket
 {
 public:
-    CPacketEquipRequest(uint32_t serial, uint8_t layer, uint32_t container);
+    CPacketEquipRequest(u32 serial, u8 layer, u32 container);
 };
 
 class CPacketChangeWarmode : public CPacket
 {
 public:
-    CPacketChangeWarmode(uint8_t state);
+    CPacketChangeWarmode(u8 state);
 };
 
 class CPacketHelpRequest : public CPacket
@@ -87,56 +85,56 @@ public:
 class CPacketStatusRequest : public CPacket
 {
 public:
-    CPacketStatusRequest(uint32_t serial);
+    CPacketStatusRequest(u32 serial);
 };
 
 class CPacketSkillsRequest : public CPacket
 {
 public:
-    CPacketSkillsRequest(uint32_t serial);
+    CPacketSkillsRequest(u32 serial);
 };
 
 class CPacketSkillsStatusChangeRequest : public CPacket
 {
 public:
-    CPacketSkillsStatusChangeRequest(uint8_t skill, uint8_t state);
+    CPacketSkillsStatusChangeRequest(u8 skill, u8 state);
 };
 
 class CPacketClickRequest : public CPacket
 {
 public:
-    CPacketClickRequest(uint32_t serial);
+    CPacketClickRequest(u32 serial);
 };
 
 class CPacketDoubleClickRequest : public CPacket
 {
 public:
-    CPacketDoubleClickRequest(uint32_t serial);
+    CPacketDoubleClickRequest(u32 serial);
 };
 
 class CPacketAttackRequest : public CPacket
 {
 public:
-    CPacketAttackRequest(uint32_t serial);
+    CPacketAttackRequest(u32 serial);
 };
 
 class CPacketClientVersion : public CPacket
 {
 public:
-    CPacketClientVersion(const string &version);
+    CPacketClientVersion(const std::string &version);
 };
 
 class CPacketASCIISpeechRequest : public CPacket
 {
 public:
-    CPacketASCIISpeechRequest(const char *text, SPEECH_TYPE type, uint16_t font, uint16_t color);
+    CPacketASCIISpeechRequest(const char *text, SPEECH_TYPE type, u16 font, u16 color);
 };
 
 class CPacketUnicodeSpeechRequest : public CPacket
 {
 public:
     CPacketUnicodeSpeechRequest(
-        const wchar_t *text, SPEECH_TYPE type, uint16_t font, uint16_t color, uint8_t *language);
+        const wchar_t *text, SPEECH_TYPE type, u16 font, u16 color, u8 *language);
 };
 
 class CPacketCastSpell : public CPacket
@@ -148,7 +146,7 @@ public:
 class CPacketCastSpellFromBook : public CPacket
 {
 public:
-    CPacketCastSpellFromBook(int index, uint32_t serial);
+    CPacketCastSpellFromBook(int index, u32 serial);
 };
 
 class CPacketUseSkill : public CPacket
@@ -221,13 +219,13 @@ public:
 class CPacketRenameRequest : public CPacket
 {
 public:
-    CPacketRenameRequest(uint32_t serial, const string &newName);
+    CPacketRenameRequest(u32 serial, const std::string &newName);
 };
 
 class CPacketTipRequest : public CPacket
 {
 public:
-    CPacketTipRequest(uint16_t id, uint8_t flag);
+    CPacketTipRequest(u16 id, u8 flag);
 };
 
 class CPacketASCIIPromptResponse : public CPacket
@@ -239,31 +237,31 @@ public:
 class CPacketUnicodePromptResponse : public CPacket
 {
 public:
-    CPacketUnicodePromptResponse(const wchar_t *text, size_t len, const string &lang, bool cancel);
+    CPacketUnicodePromptResponse(const wchar_t *text, size_t len, const std::string &lang, bool cancel);
 };
 
 class CPacketDyeDataResponse : public CPacket
 {
 public:
-    CPacketDyeDataResponse(uint32_t serial, uint16_t graphic, uint16_t color);
+    CPacketDyeDataResponse(u32 serial, u16 graphic, u16 color);
 };
 
 class CPacketProfileRequest : public CPacket
 {
 public:
-    CPacketProfileRequest(uint32_t serial);
+    CPacketProfileRequest(u32 serial);
 };
 
 class CPacketProfileUpdate : public CPacket
 {
 public:
-    CPacketProfileUpdate(uint32_t serial, const wchar_t *text, size_t len);
+    CPacketProfileUpdate(u32 serial, const wchar_t *text, size_t len);
 };
 
 class CPacketCloseStatusbarGump : public CPacket
 {
 public:
-    CPacketCloseStatusbarGump(uint32_t serial);
+    CPacketCloseStatusbarGump(u32 serial);
 };
 
 class CPacketPartyInviteRequest : public CPacket
@@ -275,31 +273,31 @@ public:
 class CPacketPartyRemoveRequest : public CPacket
 {
 public:
-    CPacketPartyRemoveRequest(uint32_t serial);
+    CPacketPartyRemoveRequest(u32 serial);
 };
 
 class CPacketPartyChangeLootTypeRequest : public CPacket
 {
 public:
-    CPacketPartyChangeLootTypeRequest(uint8_t type);
+    CPacketPartyChangeLootTypeRequest(u8 type);
 };
 
 class CPacketPartyAccept : public CPacket
 {
 public:
-    CPacketPartyAccept(uint32_t serial);
+    CPacketPartyAccept(u32 serial);
 };
 
 class CPacketPartyDecline : public CPacket
 {
 public:
-    CPacketPartyDecline(uint32_t serial);
+    CPacketPartyDecline(u32 serial);
 };
 
 class CPacketPartyMessage : public CPacket
 {
 public:
-    CPacketPartyMessage(const wchar_t *text, size_t len, uint32_t serial = 0x00000000);
+    CPacketPartyMessage(const wchar_t *text, size_t len, u32 serial = 0x00000000);
 };
 
 class CPacketGameWindowSize : public CPacket
@@ -311,38 +309,38 @@ public:
 class CPacketClientViewRange : public CPacket
 {
 public:
-    CPacketClientViewRange(uint8_t range);
+    CPacketClientViewRange(u8 range);
 };
 
 class CPacketBulletinBoardRequestMessage : public CPacket
 {
 public:
-    CPacketBulletinBoardRequestMessage(uint32_t serial, uint32_t msgSerial);
+    CPacketBulletinBoardRequestMessage(u32 serial, u32 msgSerial);
 };
 
 class CPacketBulletinBoardRequestMessageSummary : public CPacket
 {
 public:
-    CPacketBulletinBoardRequestMessageSummary(uint32_t serial, uint32_t msgSerial);
+    CPacketBulletinBoardRequestMessageSummary(u32 serial, u32 msgSerial);
 };
 
 class CPacketBulletinBoardPostMessage : public CPacket
 {
 public:
     CPacketBulletinBoardPostMessage(
-        uint32_t serial, uint32_t replySerial, const char *subject, const char *message);
+        u32 serial, u32 replySerial, const char *subject, const char *message);
 };
 
 class CPacketBulletinBoardRemoveMessage : public CPacket
 {
 public:
-    CPacketBulletinBoardRemoveMessage(uint32_t serial, uint32_t msgSerial);
+    CPacketBulletinBoardRemoveMessage(u32 serial, u32 msgSerial);
 };
 
 class CPacketAssistVersion : public CPacket
 {
 public:
-    CPacketAssistVersion(uint32_t version, const string &clientVersion);
+    CPacketAssistVersion(u32 version, const std::string &clientVersion);
 };
 
 class CPacketRazorAnswer : public CPacket
@@ -354,7 +352,7 @@ public:
 class CPacketLanguage : public CPacket
 {
 public:
-    CPacketLanguage(const string &lang);
+    CPacketLanguage(const std::string &lang);
 };
 
 class CPacketClientType : public CPacket
@@ -366,26 +364,26 @@ public:
 class CPacketRequestPopupMenu : public CPacket
 {
 public:
-    CPacketRequestPopupMenu(uint32_t serial);
+    CPacketRequestPopupMenu(u32 serial);
 };
 
 class CPacketPopupMenuSelection : public CPacket
 {
 public:
-    CPacketPopupMenuSelection(uint32_t serial, uint16_t menuID);
+    CPacketPopupMenuSelection(u32 serial, u16 menuID);
 };
 
 class CPacketOpenChat : public CPacket
 {
 public:
-    CPacketOpenChat(const wstring &name);
+    CPacketOpenChat(const std::wstring &name);
 };
 
 class CPacketMapMessage : public CPacket
 {
 public:
     CPacketMapMessage(
-        uint32_t serial, MAP_MESSAGE action, uint8_t pin = 0, short x = -24, short y = -31);
+        u32 serial, MAP_MESSAGE action, u8 pin = 0, short x = -24, short y = -31);
 };
 
 class CPacketGuildMenuRequest : public CPacket
@@ -415,7 +413,7 @@ public:
 class CPacketInvokeVirtueRequest : public CPacket
 {
 public:
-    CPacketInvokeVirtueRequest(uint8_t id);
+    CPacketInvokeVirtueRequest(u8 id);
 };
 
 class CPacketMegaClilocRequestOld : public CPacket
@@ -427,13 +425,13 @@ public:
 class CPacketMegaClilocRequest : public CPacket
 {
 public:
-    CPacketMegaClilocRequest(vector<uint32_t> &list);
+    CPacketMegaClilocRequest(std::vector<u32> &list);
 };
 
 class CPacketChangeStatLockStateRequest : public CPacket
 {
 public:
-    CPacketChangeStatLockStateRequest(uint8_t stat, uint8_t state);
+    CPacketChangeStatLockStateRequest(u8 stat, u8 state);
 };
 
 class CPacketBookHeaderChangeOld : public CPacket
@@ -475,7 +473,7 @@ public:
 class CPacketUseCombatAbility : public CPacket
 {
 public:
-    CPacketUseCombatAbility(uint8_t index);
+    CPacketUseCombatAbility(u8 index);
 };
 
 class CPacketTargetSelectedObject : public CPacket
@@ -517,7 +515,7 @@ public:
 class CPacketWalkRequest : public CPacket
 {
 public:
-    CPacketWalkRequest(uint8_t direction, uint8_t sequence, int fastWalkKey);
+    CPacketWalkRequest(u8 direction, u8 sequence, int fastWalkKey);
 };
 
 class CPacketCustomHouseBackup : public CPacket
@@ -547,7 +545,7 @@ public:
 class CPacketCustomHouseGoToFloor : public CPacket
 {
 public:
-    CPacketCustomHouseGoToFloor(uint8_t floor);
+    CPacketCustomHouseGoToFloor(u8 floor);
 };
 
 class CPacketCustomHouseSync : public CPacket
@@ -577,31 +575,31 @@ public:
 class CPacketCustomHouseAddItem : public CPacket
 {
 public:
-    CPacketCustomHouseAddItem(uint16_t graphic, int x, int y);
+    CPacketCustomHouseAddItem(u16 graphic, int x, int y);
 };
 
 class CPacketCustomHouseDeleteItem : public CPacket
 {
 public:
-    CPacketCustomHouseDeleteItem(uint16_t graphic, int x, int y, int z);
+    CPacketCustomHouseDeleteItem(u16 graphic, int x, int y, int z);
 };
 
 class CPacketCustomHouseAddRoof : public CPacket
 {
 public:
-    CPacketCustomHouseAddRoof(uint16_t graphic, int x, int y, int z);
+    CPacketCustomHouseAddRoof(u16 graphic, int x, int y, int z);
 };
 
 class CPacketCustomHouseDeleteRoof : public CPacket
 {
 public:
-    CPacketCustomHouseDeleteRoof(uint16_t graphic, int x, int y, int z);
+    CPacketCustomHouseDeleteRoof(u16 graphic, int x, int y, int z);
 };
 
 class CPacketCustomHouseAddStair : public CPacket
 {
 public:
-    CPacketCustomHouseAddStair(uint16_t graphic, int x, int y);
+    CPacketCustomHouseAddStair(u16 graphic, int x, int y);
 };
 
 class CPacketOrionVersion : public CPacket

@@ -1,74 +1,74 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#pragma once
 
-#pragma once
-
+#include "Core/Minimal.h"
 #include "BaseQueue.h"
+#include "plugin/enumlist.h"
+#include <string>
 
 class CBaseProfession : public CBaseQueueItem
 {
 public:
-    string Name = "";
-    string TrueName = "";
-    wstring Description = {};
-    uint32_t NameClilocID = 0;
-    uint32_t DescriptionClilocID = 0;
-    PROFESSION_TYPE Type = PT_NO_PROF;
-    uint16_t Gump = 0;
-    bool TopLevel = false;
-    int DescriptionIndex = 0;
+    std::string Name             = "";
+    std::string TrueName         = "";
+    std::wstring Description     = {};
+    u32 NameClilocID        = 0;
+    u32 DescriptionClilocID = 0;
+    PROFESSION_TYPE Type         = PT_NO_PROF;
+    u16 Gump                = 0;
+    bool TopLevel                = false;
+    int DescriptionIndex         = 0;
 
     CBaseProfession();
     virtual ~CBaseProfession();
 
-    bool AddDescription(int desc, const string &name, const char *val);
+    bool AddDescription(int a_desc, const std::string& a_name, const char* a_val);
 };
 
 class CProfessionCategory : public CBaseProfession
 {
 public:
-    string Childrens = "|";
+    std::string Childrens = "|";
 
     CProfessionCategory();
     virtual ~CProfessionCategory();
 
-    void AddChildren(const string &child);
+    void AddChildren(const std::string& a_child);
 };
 
 class CProfession : public CBaseProfession
 {
 public:
-    uint8_t Str = 0;
-    uint8_t Int = 0;
-    uint8_t Dex = 0;
+    u8 Str = 0;
+    u8 Int = 0;
+    u8 Dex = 0;
 
 private:
-    uint8_t m_SkillIndex[4];
-    uint8_t m_SkillValue[4];
+    u8 m_SkillIndex[4];
+    u8 m_SkillValue[4];
 
 public:
     CProfession();
     virtual ~CProfession();
 
-    void SetSkillIndex(int index, uint8_t val)
+    void SetSkillIndex(int index, u8 val)
     {
         if (index >= 0 && index < 4)
             m_SkillIndex[index] = val;
     }
-    void SetSkillValue(int index, uint8_t val)
+    void SetSkillValue(int index, u8 val)
     {
         if (index >= 0 && index < 4)
             m_SkillValue[index] = val;
     }
 
-    uint8_t GetSkillIndex(int index) const
+    u8 GetSkillIndex(int index) const
     {
         if (index >= 0 && index < 4)
             return m_SkillIndex[index];
         else
             return 0xFF;
     }
-    uint8_t GetSkillValue(int index) const
+    u8 GetSkillValue(int index) const
     {
         if (index >= 0 && index < 4)
             return m_SkillValue[index];

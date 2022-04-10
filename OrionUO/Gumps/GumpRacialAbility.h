@@ -14,7 +14,7 @@ public:
     CGumpRacialAbility(int serial, int x, int y);
     virtual ~CGumpRacialAbility();
 
-    static void OnAbilityUse(uint16_t index);
+    static void OnAbilityUse(u16 index);
 
     virtual void InitToolTip();
 

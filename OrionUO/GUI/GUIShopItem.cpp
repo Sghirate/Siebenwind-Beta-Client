@@ -2,6 +2,7 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GUIShopItem.h"
+#include "Core/StringUtils.h"
 #include <SDL_timer.h>
 #include "../OrionUO.h"
 #include "../Managers/AnimationManager.h"
@@ -11,11 +12,11 @@
 
 CGUIShopItem::CGUIShopItem(
     int serial,
-    uint16_t graphic,
-    uint16_t color,
+    u16 graphic,
+    u16 color,
     int count,
     int price,
-    const string &name,
+    const std::string &name,
     int x,
     int y)
     : CBaseGUI(GOT_SHOPITEM, serial, graphic, color, x, y)
@@ -23,7 +24,6 @@ CGUIShopItem::CGUIShopItem(
     , Price(price)
     , Name(name)
 {
-    DEBUG_TRACE_FUNCTION;
     MoveOnDrag = true;
 
     CreateCountText(0);
@@ -33,7 +33,6 @@ CGUIShopItem::CGUIShopItem(
 
 CGUIShopItem::~CGUIShopItem()
 {
-    DEBUG_TRACE_FUNCTION;
     m_NameText.Clear();
     m_CountText.Clear();
 }
@@ -51,7 +50,7 @@ void CGUIShopItem::UpdateOffsets()
     }
     else
     {
-        uint8_t group = 0;
+        u8 group = 0;
 
         switch (g_AnimationManager.GetGroupIndex(Graphic))
         {
@@ -80,11 +79,8 @@ void CGUIShopItem::UpdateOffsets()
         if (dims.Height != 0)
         {
             m_MaxOffset = dims.Height;
-
             if (m_MaxOffset > 35)
-            {
                 m_MaxOffset = 35;
-            }
         }
     }
 
@@ -101,7 +97,6 @@ void CGUIShopItem::UpdateOffsets()
 
 void CGUIShopItem::OnClick()
 {
-    DEBUG_TRACE_FUNCTION;
     Selected = false;
 
     for (CBaseGUI *item = this; item != nullptr; item = (CBaseGUI *)item->m_Next)
@@ -128,8 +123,7 @@ void CGUIShopItem::OnClick()
 
 void CGUIShopItem::CreateNameText()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t textColor = 0x021F;
+    u16 textColor = 0x021F;
 
     if (Selected)
     {
@@ -140,14 +134,13 @@ void CGUIShopItem::CreateNameText()
 
     // Convert the name of the item from ISO-8859-1 to UTF16. This is not ideal,
     // in the long run we should make the Siebenwind Server send UTF16.
-    wstring unicode = SiebenwindClient::Iso8859ToUtf16(str);
+    std::wstring unicode = Core::Iso8859ToUtf16(str);
     g_FontManager.GenerateW(1, m_NameText, unicode, textColor, 30, 120);
 }
 
 void CGUIShopItem::CreateCountText(int lostCount)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t textColor = 0x021F;
+    u16 textColor = 0x021F;
 
     if (Selected)
     {
@@ -159,7 +152,6 @@ void CGUIShopItem::CreateCountText(int lostCount)
 
 void CGUIShopItem::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (Serial >= 0x40000000)
     {
@@ -167,7 +159,7 @@ void CGUIShopItem::PrepareTextures()
     }
     else
     {
-        uint8_t group = 0;
+        u8 group = 0;
 
         switch (g_AnimationManager.GetGroupIndex(Graphic))
         {
@@ -210,7 +202,6 @@ void CGUIShopItem::PrepareTextures()
 
 void CGUIShopItem::SetShaderMode()
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (Color != 0)
     {
@@ -233,7 +224,6 @@ void CGUIShopItem::SetShaderMode()
 
 void CGUIShopItem::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture *th = nullptr;
 
     glTranslatef((GLfloat)m_X, (GLfloat)m_Y, 0.0f);
@@ -256,7 +246,7 @@ void CGUIShopItem::Draw(bool checktrans)
     }
     else
     {
-        uint8_t group = 0;
+        u8 group = 0;
 
         switch (g_AnimationManager.GetGroupIndex(Graphic))
         {
@@ -346,9 +336,8 @@ void CGUIShopItem::Draw(bool checktrans)
 
 bool CGUIShopItem::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
-
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
     return (x >= 0 && y >= -10 && x < 200 && y < m_MaxOffset);
 }

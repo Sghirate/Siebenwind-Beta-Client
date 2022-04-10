@@ -9,9 +9,9 @@
 class CGumpTextEntryDialog : public CGump
 {
 public:
-    uint8_t Variant = 0;
-    uint8_t ParentID = 0;
-    uint8_t ButtonID = 0;
+    u8 Variant = 0;
+    u8 ParentID = 0;
+    u8 ButtonID = 0;
 
 private:
     static constexpr int ID_GTED_BUTTON_OKAY = 1;
@@ -27,10 +27,10 @@ private:
 
 public:
     CGumpTextEntryDialog(
-        uint32_t serial,
+        u32 serial,
         short x,
         short y,
-        uint8_t variant,
+        u8 variant,
         int maxLength,
         string text,
         string description);

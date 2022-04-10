@@ -9,14 +9,14 @@
 class CGumpGeneric : public CGump
 {
 public:
-    uint32_t MasterGump = 0;
+    u32 MasterGump = 0;
 
-    CGumpGeneric(uint32_t serial, short x, short y, uint32_t id);
+    CGumpGeneric(u32 serial, short x, short y, u32 id);
     virtual ~CGumpGeneric();
 
     void AddText(
         int index,
-        const wstring &text,
+        const std::wstring &text,
         CBaseGUI *start = nullptr,
         bool backbroundCanBeColored = false);
 

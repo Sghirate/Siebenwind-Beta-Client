@@ -17,7 +17,6 @@ CGUIBlending::~CGUIBlending()
 
 void CGUIBlending::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled)
     {
         glEnable(GL_BLEND);

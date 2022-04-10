@@ -15,7 +15,6 @@ CGUIAlphaBlending::~CGUIAlphaBlending()
 
 void CGUIAlphaBlending::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGUIBlending::Draw(checktrans);
 
     if (Enabled)

@@ -8,7 +8,7 @@
 
 class CGumpNotify : public CGump
 {
-    uint8_t Variant = 0;
+    u8 Variant = 0;
     short Width = 0;
     short Height = 0;
     string Text = "";
@@ -19,7 +19,7 @@ private:
     void Process();
 
 public:
-    CGumpNotify(short x, short y, uint8_t variant, short width, short height, string text);
+    CGumpNotify(short x, short y, u8 variant, short width, short height, string text);
     virtual ~CGumpNotify();
 
     static const int ID_GN_STATE_LOGOUT = 1;

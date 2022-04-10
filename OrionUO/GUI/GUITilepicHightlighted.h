@@ -7,15 +7,15 @@
 
 class CGUITilepicHightlighted : public CGUITilepic
 {
-    uint16_t SelectedColor = 0;
+    u16 SelectedColor = 0;
     bool DoubleDraw = false;
 
 public:
     CGUITilepicHightlighted(
         int serial,
-        uint16_t graphic,
-        uint16_t color,
-        uint16_t selectedColor,
+        u16 graphic,
+        u16 color,
+        u16 selectedColor,
         int x,
         int y,
         bool doubleDraw);

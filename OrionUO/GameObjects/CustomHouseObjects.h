@@ -75,11 +75,11 @@ public:
 
     virtual ~CCustomHouseObjectWall() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 8;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
-    uint16_t m_WindowGraphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
+    u16 m_WindowGraphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectWallCategory
@@ -90,7 +90,7 @@ public:
     CCustomHouseObjectWallCategory() {}
     virtual ~CCustomHouseObjectWallCategory() {}
 
-    vector<CCustomHouseObjectWall> m_Items;
+    std::vector<CCustomHouseObjectWall> m_Items;
 };
 
 class CCustomHouseObjectFloor : public CCustomHouseObject
@@ -152,10 +152,10 @@ public:
 
     virtual ~CCustomHouseObjectFloor() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 16;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectDoor : public CCustomHouseObject
@@ -193,10 +193,10 @@ public:
 
     virtual ~CCustomHouseObjectDoor() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 8;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectMisc : public CCustomHouseObject
@@ -240,10 +240,10 @@ public:
 
     virtual ~CCustomHouseObjectMisc() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 8;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectMiscCategory
@@ -254,7 +254,7 @@ public:
     CCustomHouseObjectMiscCategory() {}
     virtual ~CCustomHouseObjectMiscCategory() {}
 
-    vector<CCustomHouseObjectMisc> m_Items;
+    std::vector<CCustomHouseObjectMisc> m_Items;
 };
 
 class CCustomHouseObjectStair : public CCustomHouseObject
@@ -307,10 +307,10 @@ public:
 
     virtual ~CCustomHouseObjectStair() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 9;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectTeleport : public CCustomHouseObject
@@ -372,10 +372,10 @@ public:
 
     virtual ~CCustomHouseObjectTeleport() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 16;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectRoof : public CCustomHouseObject
@@ -420,10 +420,10 @@ public:
 
     virtual ~CCustomHouseObjectRoof() {}
     virtual bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 16;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };
 
 class CCustomHouseObjectRoofCategory
@@ -435,7 +435,7 @@ public:
     virtual ~CCustomHouseObjectRoofCategory() {}
 
     //!Roof objects list
-    vector<CCustomHouseObjectRoof> m_Items;
+    std::vector<CCustomHouseObjectRoof> m_Items;
 };
 
 class CCustomHouseObjectPlaceInfo
@@ -492,8 +492,8 @@ public:
     CCustomHouseObjectPlaceInfo() { memset(&m_Graphics[0], 0, sizeof(m_Graphics)); }
     virtual ~CCustomHouseObjectPlaceInfo() {}
     bool Parse(const char *text);
-    int Contains(uint16_t graphic) const;
+    int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 1;
-    uint16_t m_Graphics[GRAPHICS_COUNT];
+    u16 m_Graphics[GRAPHICS_COUNT];
 };

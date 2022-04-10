@@ -2,6 +2,7 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpScreenServer.h"
+#include "Globals.h"
 #include "../Config.h"
 #include "../ToolTip.h"
 #include "../ServerList.h"
@@ -40,7 +41,6 @@ CGumpScreenServer::~CGumpScreenServer()
 
 void CGumpScreenServer::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Add(new CGUIGumppicTiled(0x0E14, 0, 0, 640, 480));
@@ -50,9 +50,9 @@ void CGumpScreenServer::UpdateContent()
     Add(new CGUIButton(ID_SS_ARROW_PREV, 0x15A1, 0x15A2, 0x15A3, 586, 445));
     Add(new CGUIButton(ID_SS_ARROW_NEXT, 0x15A4, 0x15A5, 0x15A6, 610, 445));
 
-    CCliloc *cliloc = g_ClilocManager.Cliloc(g_Language);
+    Cliloc *cliloc = g_ClilocManager.GetCliloc(g_Language);
 
-    uint16_t textColor = 0x0481;
+    u16 textColor = 0x0481;
     if (g_Config.ClientVersion >= CV_500A)
     {
         textColor = 0xFFFF;
@@ -128,7 +128,7 @@ void CGumpScreenServer::UpdateContent()
 
     for (int i = 0; i < g_ServerList.ServersCount(); i++)
     {
-        CServer *server = g_ServerList.GetServer((uint32_t)i);
+        CServer *server = g_ServerList.GetServer((u32)i);
 
         htmlGump->Add(new CGUIHitBox(ID_SS_SERVER_LIST + (int)i, 74, 10 + ((int)i * 25), 280, 25));
 
@@ -176,7 +176,7 @@ void CGumpScreenServer::UpdateContent()
     {
         CGUIText *text = (CGUIText *)Add(new CGUIText(0x0481, 243, 420));
 
-        if (g_ServerList.LastServerIndex < (uint32_t)g_ServerList.ServersCount())
+        if (g_ServerList.LastServerIndex < (u32)g_ServerList.ServersCount())
         {
             text->CreateTextureA(9, g_ServerList.GetServer(g_ServerList.LastServerIndex)->Name);
         }
@@ -189,13 +189,12 @@ void CGumpScreenServer::UpdateContent()
 
 void CGumpScreenServer::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.UseToolTips || g_SelectedObject.Object == nullptr)
     {
         return;
     }
 
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     switch (id)
     {
@@ -234,7 +233,6 @@ void CGumpScreenServer::InitToolTip()
 
 void CGumpScreenServer::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_SS_QUIT)
     { //x button
         g_ServerScreen.CreateSmoothAction(CServerScreen::ID_SMOOTH_SS_QUIT);
@@ -252,7 +250,6 @@ void CGumpScreenServer::GUMP_BUTTON_EVENT_C
 
 void CGumpScreenServer::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial >= ID_SS_SERVER_LIST) //Server selection
     {
         g_ServerScreen.SelectionServerTempValue = serial - ID_SS_SERVER_LIST;

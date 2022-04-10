@@ -19,7 +19,6 @@
 CGumpScreenGame::CGumpScreenGame()
     : CGump(GT_NONE, 0, 0, 0)
 {
-    DEBUG_TRACE_FUNCTION;
     NoMove = true;
     NoClose = true;
 
@@ -33,7 +32,6 @@ CGumpScreenGame::~CGumpScreenGame()
 
 void CGumpScreenGame::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
@@ -42,12 +40,12 @@ void CGumpScreenGame::UpdateContent()
 
     if (g_PressedObject.LeftGump == this)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
         if (g_PressedObject.LeftObject == m_Items) //resizer
         {
-            g_RenderBounds.GameWindowWidth += offset.X;
-            g_RenderBounds.GameWindowHeight += offset.Y;
+            g_RenderBounds.GameWindowWidth += offset.x;
+            g_RenderBounds.GameWindowHeight += offset.y;
 
             if (g_RenderBounds.GameWindowWidth < 640)
             {
@@ -81,8 +79,8 @@ void CGumpScreenGame::UpdateContent()
         }
         else //scope
         {
-            g_RenderBounds.GameWindowPosX += offset.X;
-            g_RenderBounds.GameWindowPosY += offset.Y;
+            g_RenderBounds.GameWindowPosX += offset.x;
+            g_RenderBounds.GameWindowPosY += offset.y;
 
             if (g_RenderBounds.GameWindowPosX < 0)
             {
@@ -113,7 +111,6 @@ void CGumpScreenGame::UpdateContent()
 
 void CGumpScreenGame::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.UseToolTips || g_SelectedObject.Object == nullptr)
     {
         return;
@@ -127,7 +124,6 @@ void CGumpScreenGame::InitToolTip()
 
 void CGumpScreenGame::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     //Рамка игрового окна
     g_Orion.DrawGump(
         0x0A8D,
@@ -159,7 +155,7 @@ void CGumpScreenGame::Draw()
         g_RenderBounds.GameWindowWidth + 8,
         0);
 
-    uint16_t resizeGumpID = 0x0837; //button
+    u16 resizeGumpID = 0x0837; //button
     if (g_ConfigManager.LockResizingGameWindow)
     {
         resizeGumpID = 0x082C; //lock
@@ -178,7 +174,6 @@ void CGumpScreenGame::Draw()
 
 CRenderObject *CGumpScreenGame::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     CRenderObject *selected = nullptr;
 
     if (!g_ConfigManager.LockResizingGameWindow)
@@ -238,7 +233,6 @@ CRenderObject *CGumpScreenGame::Select()
 
 void CGumpScreenGame::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     //CGump::OnLeftMouseButtonDown();
 
     if (g_GumpConsoleType != nullptr)
@@ -249,19 +243,18 @@ void CGumpScreenGame::OnLeftMouseButtonDown()
 
 void CGumpScreenGame::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
     screenX -= 20;
     screenY -= 60;
 
-    CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+    Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
     if (g_PressedObject.LeftObject == m_Items) //resizer
     {
-        g_ConfigManager.GameWindowWidth = g_ConfigManager.GameWindowWidth + offset.X;
-        g_ConfigManager.GameWindowHeight = g_ConfigManager.GameWindowHeight + offset.Y;
+        g_ConfigManager.GameWindowWidth = g_ConfigManager.GameWindowWidth + offset.x;
+        g_ConfigManager.GameWindowHeight = g_ConfigManager.GameWindowHeight + offset.y;
 
         if (g_ConfigManager.GameWindowWidth < 640)
         {
@@ -290,8 +283,8 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
     }
     else //scope
     {
-        g_ConfigManager.GameWindowX = g_ConfigManager.GameWindowX + offset.X;
-        g_ConfigManager.GameWindowY = g_ConfigManager.GameWindowY + offset.Y;
+        g_ConfigManager.GameWindowX = g_ConfigManager.GameWindowX + offset.x;
+        g_ConfigManager.GameWindowY = g_ConfigManager.GameWindowY + offset.y;
 
         if (g_ConfigManager.GameWindowX < 1)
         {

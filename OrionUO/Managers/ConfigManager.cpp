@@ -1,12 +1,8 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ConfigManager.h"
+#include "Core/TextFileParser.h"
 #include "GumpManager.h"
 #include "SoundManager.h"
 #include "ObjectPropertiesManager.h"
-#include "../Point.h"
-#include "../FileSystem.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../Party.h"
@@ -161,7 +157,7 @@ namespace cmkc
 {
 struct ConfigEntry
 {
-    uint32_t key;
+    u32 key;
     const char *key_name;
 };
 
@@ -295,9 +291,9 @@ static const ConfigEntry s_Keys[] = {
 
 static_assert(countof(s_Keys) == CMKC_COUNT + 1, "Missing key string for configuration option");
 
-static uint32_t GetConfigKey(const string &key)
+static u32 GetConfigKey(const std::string &key)
 {
-    auto str = ToLowerA(key);
+    auto str = Core::ToLowerA(key);
     for (int i = 0; s_Keys[i].key_name; i++)
     {
         if (str == s_Keys[i].key_name)
@@ -316,7 +312,6 @@ CConfigManager::CConfigManager()
 
 void CConfigManager::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     DefaultPage1();
     DefaultPage2();
     DefaultPage3();
@@ -351,7 +346,6 @@ void CConfigManager::Init()
 
 void CConfigManager::DefaultPage1()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Sound = true;
     m_Music = true;
     FootstepsSound = true;
@@ -363,7 +357,6 @@ void CConfigManager::DefaultPage1()
 
 void CConfigManager::DefaultPage2()
 {
-    DEBUG_TRACE_FUNCTION;
     m_ClientFPS = 32;
     m_ReduceFPSUnactiveWindow = true;
     StandartCharactersAnimationDelay = false;
@@ -410,7 +403,6 @@ void CConfigManager::DefaultPage2()
 
 void CConfigManager::DefaultPage3()
 {
-    DEBUG_TRACE_FUNCTION;
     UseToolTips = true;
     ToolTipsTextColor = 0xFFFF;
     ToolTipsTextFont = 0;
@@ -419,7 +411,6 @@ void CConfigManager::DefaultPage3()
 
 void CConfigManager::DefaultPage4()
 {
-    DEBUG_TRACE_FUNCTION;
     ChatColorInputText = 0xFFFF;
     ChatColorMenuOption = 0xFFFF;
     ChatColorPlayerInMemberList = 0xFFFF;
@@ -442,7 +433,6 @@ void CConfigManager::DefaultPage4()
 
 void CConfigManager::DefaultPage6()
 {
-    DEBUG_TRACE_FUNCTION;
     EnablePathfind = true;
     HoldTabForCombat = true;
     OffsetInterfaceWindows = true;
@@ -461,7 +451,6 @@ void CConfigManager::DefaultPage6()
 
 void CConfigManager::DefaultPage7()
 {
-    DEBUG_TRACE_FUNCTION;
     GameWindowWidth = 800;
     GameWindowHeight = 600;
     SpeechDelay = 500;
@@ -480,7 +469,6 @@ void CConfigManager::DefaultPage7()
 
 void CConfigManager::DefaultPage8()
 {
-    DEBUG_TRACE_FUNCTION;
     InnocentColor = 0x005A;
     FriendlyColor = 0x0044;
     SomeoneColor = 0x03B2;
@@ -492,7 +480,6 @@ void CConfigManager::DefaultPage8()
 
 void CConfigManager::DefaultPage9()
 {
-    DEBUG_TRACE_FUNCTION;
     ShowIncomingNames = true;
     UseCircleTrans = false;
     StatReport = true;
@@ -516,7 +503,6 @@ void CConfigManager::UpdateFeatures()
 
 void CConfigManager::SetSound(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Sound = val;
     if (this == &g_ConfigManager && !val)
@@ -527,7 +513,6 @@ void CConfigManager::SetSound(bool val)
 
 void CConfigManager::SetMusic(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Music = val;
     if (this == &g_ConfigManager && !val)
@@ -536,9 +521,8 @@ void CConfigManager::SetMusic(bool val)
     }
 }
 
-void CConfigManager::SetSoundVolume(uint8_t val)
+void CConfigManager::SetSoundVolume(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
     if (this == &g_ConfigManager && m_SoundVolume != val)
     {
         g_Orion.AdjustSoundEffects(g_Ticks + 100000, val);
@@ -547,9 +531,8 @@ void CConfigManager::SetSoundVolume(uint8_t val)
     m_SoundVolume = val;
 }
 
-void CConfigManager::SetMusicVolume(uint8_t val)
+void CConfigManager::SetMusicVolume(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (this == &g_ConfigManager && m_MusicVolume != val)
     {
@@ -562,9 +545,8 @@ void CConfigManager::SetMusicVolume(uint8_t val)
     }
 }
 
-void CConfigManager::SetClientFPS(uint8_t val)
+void CConfigManager::SetClientFPS(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_ClientFPS = val;
     if (this == &g_ConfigManager)
@@ -589,7 +571,6 @@ void CConfigManager::SetClientFPS(uint8_t val)
 
 void CConfigManager::SetUseScaling(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_UseScaling = val;
     if (!val && this == &g_ConfigManager)
@@ -598,11 +579,10 @@ void CConfigManager::SetUseScaling(bool val)
     }
 }
 
-void CConfigManager::SetDrawStatusState(uint8_t val)
+void CConfigManager::SetDrawStatusState(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint8_t state = val;
+    u8 state = val;
     if ((g_OrionFeaturesFlags & OFF_DRAW_CHARACTERS_STATUS_IN_WORLD) == 0u)
     {
         state = DCSS_NO_DRAW;
@@ -627,7 +607,6 @@ void CConfigManager::SetDrawStatusState(uint8_t val)
 
 void CConfigManager::SetDrawStumps(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_CHANGE_TREES_TO_STUMPS) == 0u)
@@ -645,7 +624,6 @@ void CConfigManager::SetDrawStumps(bool val)
 
 void CConfigManager::SetMarkingCaves(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_MARKING_CAVES) == 0u)
@@ -663,7 +641,6 @@ void CConfigManager::SetMarkingCaves(bool val)
 
 void CConfigManager::SetNoVegetation(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_NO_VEGETATION) == 0u)
@@ -676,7 +653,6 @@ void CConfigManager::SetNoVegetation(bool val)
 
 void CConfigManager::SetNoAnimateFields(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_NO_FIELDS_ANIMATION) == 0u)
@@ -689,7 +665,6 @@ void CConfigManager::SetNoAnimateFields(bool val)
 
 void CConfigManager::SetApplyStateColorOnCharacters(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_COLORED_CHARACTERS_STATE) == 0u)
@@ -700,11 +675,10 @@ void CConfigManager::SetApplyStateColorOnCharacters(bool val)
     m_ApplyStateColorOnCharacters = state;
 }
 
-void CConfigManager::SetDrawAuraState(uint8_t val)
+void CConfigManager::SetDrawAuraState(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint8_t state = val;
+    u8 state = val;
     if ((g_OrionFeaturesFlags & OFF_DRAW_AURA) == 0u)
     {
         state = DAS_NEVER;
@@ -715,7 +689,6 @@ void CConfigManager::SetDrawAuraState(uint8_t val)
 
 void CConfigManager::SetReduceFPSUnactiveWindow(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (this == &g_ConfigManager)
     {
@@ -735,7 +708,6 @@ void CConfigManager::SetReduceFPSUnactiveWindow(bool val)
 
 void CConfigManager::SetConsoleNeedEnter(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (this == &g_ConfigManager && val && g_EntryPointer == &g_GameConsole)
     {
@@ -745,9 +717,8 @@ void CConfigManager::SetConsoleNeedEnter(bool val)
     m_ConsoleNeedEnter = val;
 }
 
-void CConfigManager::SetSpellIconAlpha(uint8_t val)
+void CConfigManager::SetSpellIconAlpha(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
     if (this == &g_ConfigManager && val != m_SpellIconAlpha)
     {
         float alpha = val / 255.0f;
@@ -772,7 +743,6 @@ void CConfigManager::SetSpellIconAlpha(uint8_t val)
 
 void CConfigManager::SetOldStyleStatusbar(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_OldStyleStatusbar = val;
     if (this == &g_ConfigManager)
@@ -788,7 +758,6 @@ void CConfigManager::SetOldStyleStatusbar(bool val)
 
 void CConfigManager::SetOriginalPartyStatusbar(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_OriginalPartyStatusbar = val;
     if (this == &g_ConfigManager)
@@ -810,7 +779,6 @@ void CConfigManager::SetOriginalPartyStatusbar(bool val)
 
 void CConfigManager::SetChangeFieldsGraphic(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_ChangeFieldsGraphic = val;
     if ((g_OrionFeaturesFlags & OFF_TILED_FIELDS) == 0u)
@@ -832,7 +800,6 @@ void CConfigManager::SetChangeFieldsGraphic(bool val)
 
 void CConfigManager::SetPaperdollSlots(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_PaperdollSlots = val;
     if (this == &g_ConfigManager && g_World != nullptr)
@@ -850,7 +817,6 @@ void CConfigManager::SetPaperdollSlots(bool val)
 
 void CConfigManager::SetScaleImagesInPaperdollSlots(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_ScaleImagesInPaperdollSlots = val;
     if (this == &g_ConfigManager && g_World != nullptr)
@@ -868,7 +834,6 @@ void CConfigManager::SetScaleImagesInPaperdollSlots(bool val)
 
 void CConfigManager::SetUseGlobalMapLayer(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_UseGlobalMapLayer = val;
     if (this == &g_ConfigManager && val)
@@ -885,7 +850,6 @@ void CConfigManager::SetUseGlobalMapLayer(bool val)
 
 void CConfigManager::SetNoDrawRoofs(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_NoDrawRoofs = val;
     if ((g_OrionFeaturesFlags & OFF_TILED_FIELDS) == 0u)
@@ -900,17 +864,15 @@ void CConfigManager::SetNoDrawRoofs(bool val)
     }
 }
 
-void CConfigManager::SetPingTimer(uint8_t val)
+void CConfigManager::SetPingTimer(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    m_PingTimer = std::max(std::min(val, uint8_t(120)), uint8_t(10));
+    m_PingTimer = std::max(std::min(val, u8(120)), u8(10));
     g_PingTimer = 0;
 }
 
-void CConfigManager::SetItemPropertiesMode(uint8_t val)
+void CConfigManager::SetItemPropertiesMode(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_ItemPropertiesMode = val;
     if (this == &g_ConfigManager && g_World != nullptr)
@@ -929,7 +891,6 @@ void CConfigManager::SetItemPropertiesMode(uint8_t val)
 
 void CConfigManager::SetItemPropertiesIcon(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_ItemPropertiesIcon = val;
     if (this == &g_ConfigManager && g_World != nullptr)
@@ -940,7 +901,7 @@ void CConfigManager::SetItemPropertiesIcon(bool val)
 
             if (gump == nullptr)
             {
-                CSize windowSize = g_OrionWindow.GetSize();
+                Core::Vec2<i32> windowSize = g_OrionWindow.GetSize();
 
                 int x = GameWindowX + (int)(GameWindowWidth * 0.9f);
                 int y = GameWindowY + GameWindowHeight;
@@ -966,9 +927,8 @@ void CConfigManager::SetItemPropertiesIcon(bool val)
     }
 }
 
-void CConfigManager::SetCharacterBackpackStyle(uint8_t val)
+void CConfigManager::SetCharacterBackpackStyle(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_CharacterBackpackStyle = val;
     if (this == &g_ConfigManager && g_World != nullptr)
@@ -984,11 +944,10 @@ void CConfigManager::SetCharacterBackpackStyle(uint8_t val)
     }
 }
 
-uint16_t CConfigManager::GetColorByNotoriety(uint8_t notoriety)
+u16 CConfigManager::GetColorByNotoriety(u8 notoriety)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint16_t color = 0;
+    u16 color = 0;
     switch ((NOTORIETY_TYPE)notoriety)
     {
         case NT_INNOCENT: //Blue
@@ -1035,7 +994,6 @@ uint16_t CConfigManager::GetColorByNotoriety(uint8_t notoriety)
 
 bool CConfigManager::LoadBin(const os_path &path)
 {
-    DEBUG_TRACE_FUNCTION;
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
@@ -1049,10 +1007,10 @@ bool CConfigManager::LoadBin(const os_path &path)
     if (file.Load(path) && (file.Size != 0u))
     {
         UpdateRange = g_MaxViewRange;
-        uint8_t version = file.ReadUInt8();
+        u8 version = file.ReadUInt8();
 
         //Page 1
-        uint8_t *next = file.Ptr;
+        u8 *next = file.Ptr;
         char blockSize = file.ReadInt8();
         next += blockSize;
 
@@ -1092,7 +1050,7 @@ bool CConfigManager::LoadBin(const os_path &path)
         bool paperdollSlots = true;
         RemoveStatusbarsWithoutObjects = false;
         ShowDefaultConsoleEntryMode = true;
-        uint8_t drawAuraState = DAS_NEVER;
+        u8 drawAuraState = DAS_NEVER;
         DrawAuraWithCtrlPressed = true;
         ScreenshotFormat = SF_PNG;
         bool scaleImagesInPaperdollSlots = true;
@@ -1137,7 +1095,7 @@ bool CConfigManager::LoadBin(const os_path &path)
 
                 if (blockSize > 24)
                 {
-                    uint8_t auraState = file.ReadUInt8();
+                    u8 auraState = file.ReadUInt8();
 
                     drawAuraState = auraState & 0x7F;
                     DrawAuraWithCtrlPressed = ((auraState & 0x80) != 0);
@@ -1571,21 +1529,17 @@ bool CConfigManager::LoadBin(const os_path &path)
     return result;
 }
 
-bool CConfigManager::Load(const os_path &path)
+bool CConfigManager::Load(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    if (!fs_path_exists(path))
-    {
+    if (!std::filesystem::exists(a_path))
         return false;
-    }
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
     screenX -= 20;
     screenY -= 60;
 
-    Wisp::CTextFileParser file(path, "=", "#;", "");
-
+    Core::TextFileParser file(a_path, "=", "#;", "");
     bool zoomed = false;
     int windowX = -1;
     int windowY = -1;
@@ -2060,8 +2014,7 @@ bool CConfigManager::Load(const os_path &path)
 
         if (zoomed)
         {
-            //g_OrionWindow.MaximizeWindow();
-            g_GameScreen.SetZoom(true);
+            g_OrionWindow.MaximizeWindow();
         }
         else
         {
@@ -2078,162 +2031,155 @@ bool CConfigManager::Load(const os_path &path)
     return true;
 }
 
-void CConfigManager::Save(const os_path &path)
+void CConfigManager::Save(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    Wisp::CTextFileWriter writer(path);
-    if (writer.Opened())
+    Core::File file(a_path, "w");
+    if (file)
     {
         //Page 1
-        writer.WriteBool("Sound", m_Sound);
-        writer.WriteInt("SoundVolume", m_SoundVolume);
-        writer.WriteBool("Music", m_Music);
-        writer.WriteInt("MusicVolume", m_MusicVolume);
-        writer.WriteBool("FootstepsSound", FootstepsSound);
-        writer.WriteBool("CombatMusic", CombatMusic);
-        writer.WriteBool("BackgroundSound", BackgroundSound);
+        file.Print("Sound=%s\n", (m_Sound ? "yes" : "no"));
+        file.Print("SoundVolume=%i\n", m_SoundVolume);
+        file.Print("Music=%s\n", (m_Music ? "yes" : "no"));
+        file.Print("MusicVolume=%i\n", m_MusicVolume);
+        file.Print("FootstepsSound=%s\n", (FootstepsSound ? "yes" : "no"));
+        file.Print("CombatMusic=%s\n", (CombatMusic ? "yes" : "no"));
+        file.Print("BackgroundSound=%s\n", (BackgroundSound ? "yes" : "no"));
 
         //Page 2
-        writer.WriteInt("ClientFPS", m_ClientFPS);
-        writer.WriteBool("UseScaling", m_UseScaling);
-        writer.WriteBool("RemoveTextWithBlending", RemoveTextWithBlending);
-        writer.WriteInt("DrawStatusState", m_DrawStatusState);
-        writer.WriteBool("DrawStumps", m_DrawStumps);
-        writer.WriteBool("MarkingCaves", m_MarkingCaves);
-        writer.WriteBool("NoAnimateFields", m_NoAnimateFields);
-        writer.WriteBool("NoVegetation", m_NoVegetation);
-        writer.WriteInt("HiddenCharactersRenderMode", HiddenCharactersRenderMode);
-        writer.WriteInt("HiddenAlpha", HiddenAlpha);
-        writer.WriteBool("UseHiddenModeOnlyForSelf", UseHiddenModeOnlyForSelf);
-        writer.WriteInt("TransparentSpellIcons", TransparentSpellIcons);
-        writer.WriteInt("SpellIconAlpha", m_SpellIconAlpha);
-        writer.WriteBool("OldStyleStatusbar", m_OldStyleStatusbar);
-        writer.WriteBool("OriginalPartyStatusbar", m_OriginalPartyStatusbar);
-        writer.WriteBool("ApplyStateColorOnCharacters", m_ApplyStateColorOnCharacters);
-        writer.WriteBool("ChangeFieldsGraphic", m_ChangeFieldsGraphic);
-        writer.WriteBool("PaperdollSlots", m_PaperdollSlots);
-        writer.WriteInt("DrawStatusConditionState", DrawStatusConditionState);
-        writer.WriteInt("DrawStatusConditionValue", DrawStatusConditionValue);
-        writer.WriteBool("RemoveStatusbarsWithoutObjects", RemoveStatusbarsWithoutObjects);
-        writer.WriteBool("ShowDefaultConsoleEntryMode", ShowDefaultConsoleEntryMode);
-        writer.WriteInt("DrawAuraState", m_DrawAuraState);
-        writer.WriteBool("DrawAuraWithCtrlPressed", DrawAuraWithCtrlPressed);
-        writer.WriteInt("ScreenshotFormat", ScreenshotFormat);
-        writer.WriteBool("ScaleImagesInPaperdollSlots", m_ScaleImagesInPaperdollSlots);
-        writer.WriteBool("RemoveOrCreateObjectsWithBlending", RemoveOrCreateObjectsWithBlending);
-        writer.WriteBool("DrawHelmetsOnShroud", DrawHelmetsOnShroud);
-        writer.WriteBool("UseGlobalMapLayer", m_UseGlobalMapLayer);
-        writer.WriteBool("NoDrawRoofs", m_NoDrawRoofs);
-        writer.WriteBool("HighlightTargetByType", HighlightTargetByType);
-        writer.WriteBool("AutoDisplayWorldMap", AutoDisplayWorldMap);
-        writer.WriteBool("DisableMacroInChat", DisableMacroInChat);
-        writer.WriteBool("CheckPing", CheckPing);
-        writer.WriteInt("PingTimer", m_PingTimer);
-        writer.WriteBool("CancelNewTargetSystemOnShiftEsc", CancelNewTargetSystemOnShiftEsc);
-        writer.WriteBool("DrawStatusForHumanoids", DrawStatusForHumanoids);
+        file.Print("ClientFPS=%i\n", m_ClientFPS);
+        file.Print("UseScaling=%s\n", (m_UseScaling ? "yes" : "no"));
+        file.Print("RemoveTextWithBlending=%s\n", (RemoveTextWithBlending ? "yes" : "no"));
+        file.Print("DrawStatusState=%i\n", m_DrawStatusState);
+        file.Print("DrawStumps=%s\n", (m_DrawStumps ? "yes" : "no"));
+        file.Print("MarkingCaves=%s\n", (m_MarkingCaves ? "yes" : "no"));
+        file.Print("NoAnimateFields=%s\n", (m_NoAnimateFields ? "yes" : "no"));
+        file.Print("NoVegetation=%s\n", (m_NoVegetation ? "yes" : "no"));
+        file.Print("HiddenCharactersRenderMode=%i\n", HiddenCharactersRenderMode);
+        file.Print("HiddenAlpha=%i\n", HiddenAlpha);
+        file.Print("UseHiddenModeOnlyForSelf=%s\n", (UseHiddenModeOnlyForSelf ? "yes" : "no"));
+        file.Print("TransparentSpellIcons=%i\n", TransparentSpellIcons);
+        file.Print("SpellIconAlpha=%i\n", m_SpellIconAlpha);
+        file.Print("OldStyleStatusbar=%s\n", (m_OldStyleStatusbar ? "yes" : "no"));
+        file.Print("OriginalPartyStatusbar=%s\n", (m_OriginalPartyStatusbar ? "yes" : "no"));
+        file.Print("ApplyStateColorOnCharacters=%s\n", (m_ApplyStateColorOnCharacters ? "yes" : "no"));
+        file.Print("ChangeFieldsGraphic=%s\n", (m_ChangeFieldsGraphic ? "yes" : "no"));
+        file.Print("PaperdollSlots=%s\n", (m_PaperdollSlots ? "yes" : "no"));
+        file.Print("DrawStatusConditionState=%i\n", DrawStatusConditionState);
+        file.Print("DrawStatusConditionValue=%i\n", DrawStatusConditionValue);
+        file.Print("RemoveStatusbarsWithoutObjects=%s\n", (RemoveStatusbarsWithoutObjects ? "yes" : "no"));
+        file.Print("ShowDefaultConsoleEntryMode=%s\n", (ShowDefaultConsoleEntryMode ? "yes" : "no"));
+        file.Print("DrawAuraState=%i\n", m_DrawAuraState);
+        file.Print("DrawAuraWithCtrlPressed=%s\n", (DrawAuraWithCtrlPressed ? "yes" : "no"));
+        file.Print("ScreenshotFormat=%i\n", ScreenshotFormat);
+        file.Print("ScaleImagesInPaperdollSlots=%s\n", (m_ScaleImagesInPaperdollSlots ? "yes" : "no"));
+        file.Print("RemoveOrCreateObjectsWithBlending=%s\n", (RemoveOrCreateObjectsWithBlending ? "yes" : "no"));
+        file.Print("DrawHelmetsOnShroud=%s\n", (DrawHelmetsOnShroud ? "yes" : "no"));
+        file.Print("UseGlobalMapLayer=%s\n", (m_UseGlobalMapLayer ? "yes" : "no"));
+        file.Print("NoDrawRoofs=%s\n", (m_NoDrawRoofs ? "yes" : "no"));
+        file.Print("HighlightTargetByType=%s\n", (HighlightTargetByType ? "yes" : "no"));
+        file.Print("AutoDisplayWorldMap=%s\n", (AutoDisplayWorldMap ? "yes" : "no"));
+        file.Print("DisableMacroInChat=%s\n", (DisableMacroInChat ? "yes" : "no"));
+        file.Print("CheckPing=%s\n", (CheckPing ? "yes" : "no"));
+        file.Print("PingTimer=%i\n", m_PingTimer);
+        file.Print("CancelNewTargetSystemOnShiftEsc=%s\n", (CancelNewTargetSystemOnShiftEsc ? "yes" : "no"));
+        file.Print("DrawStatusForHumanoids=%s\n", (DrawStatusForHumanoids ? "yes" : "no"));
 
         //Page 3
-        writer.WriteBool("UseToolTips", UseToolTips);
-        writer.WriteInt("ToolTipsTextColor", ToolTipsTextColor);
-        writer.WriteInt("ToolTipsTextFont", ToolTipsTextFont);
-        writer.WriteInt("ToolTipsDelay", ToolTipsDelay);
+        file.Print("UseToolTips=%s\n", (UseToolTips ? "yes" : "no"));
+        file.Print("ToolTipsTextColor=%i\n", ToolTipsTextColor);
+        file.Print("ToolTipsTextFont=%i\n", ToolTipsTextFont);
+        file.Print("ToolTipsDelay=%i\n", ToolTipsDelay);
 
         //Page 4
-        writer.WriteInt("ChatColorInputText", ChatColorInputText);
-        writer.WriteInt("ChatColorMenuOption", ChatColorMenuOption);
-        writer.WriteInt("ChatColorPlayerInMemberList", ChatColorPlayerInMemberList);
-        writer.WriteInt("ChatColorText", ChatColorText);
-        writer.WriteInt("ChatColorPlayerNameWithout", ChatColorPlayerNameWithout);
-        writer.WriteInt("ChatColorMuted", ChatColorMuted);
-        writer.WriteInt("ChatColorChannelModeratorName", ChatColorChannelModeratorName);
-        writer.WriteInt("ChatColorChannelModeratorText", ChatColorChannelModeratorText);
-        writer.WriteInt("ChatColorMyName", ChatColorMyName);
-        writer.WriteInt("ChatColorMyText", ChatColorMyText);
-        writer.WriteInt("ChatColorSystemMessage", ChatColorSystemMessage);
-        writer.WriteInt("ChatFont", ChatFont);
-        writer.WriteInt("ChatColorBGOutputText", ChatColorBGOutputText);
-        writer.WriteInt("ChatColorBGInputText", ChatColorBGInputText);
-        writer.WriteInt("ChatColorBGUserList", ChatColorBGUserList);
-        writer.WriteInt("ChatColorBGConfList", ChatColorBGConfList);
-        writer.WriteInt("ChatColorBGCommandList", ChatColorBGCommandList);
+        file.Print("ChatColorInputText=%i\n", ChatColorInputText);
+        file.Print("ChatColorMenuOption=%i\n", ChatColorMenuOption);
+        file.Print("ChatColorPlayerInMemberList=%i\n", ChatColorPlayerInMemberList);
+        file.Print("ChatColorText=%i\n", ChatColorText);
+        file.Print("ChatColorPlayerNameWithout=%i\n", ChatColorPlayerNameWithout);
+        file.Print("ChatColorMuted=%i\n", ChatColorMuted);
+        file.Print("ChatColorChannelModeratorName=%i\n", ChatColorChannelModeratorName);
+        file.Print("ChatColorChannelModeratorText=%i\n", ChatColorChannelModeratorText);
+        file.Print("ChatColorMyName=%i\n", ChatColorMyName);
+        file.Print("ChatColorMyText=%i\n", ChatColorMyText);
+        file.Print("ChatColorSystemMessage=%i\n", ChatColorSystemMessage);
+        file.Print("ChatFont=%i\n", ChatFont);
+        file.Print("ChatColorBGOutputText=%i\n", ChatColorBGOutputText);
+        file.Print("ChatColorBGInputText=%i\n", ChatColorBGInputText);
+        file.Print("ChatColorBGUserList=%i\n", ChatColorBGUserList);
+        file.Print("ChatColorBGConfList=%i\n", ChatColorBGConfList);
+        file.Print("ChatColorBGCommandList=%i\n", ChatColorBGCommandList);
 
         //Page 6
-        writer.WriteBool("EnablePathfind", EnablePathfind);
-        writer.WriteBool("HoldTabForCombat", HoldTabForCombat);
-        writer.WriteBool("OffsetInterfaceWindows", OffsetInterfaceWindows);
-        writer.WriteBool("AutoArrange", AutoArrange);
-        writer.WriteBool("AlwaysRun", AlwaysRun);
-        writer.WriteBool("DisableMenubar", DisableMenubar);
-        writer.WriteBool("GrayOutOfRangeObjects", GrayOutOfRangeObjects);
-        writer.WriteBool("DisableNewTargetSystem", DisableNewTargetSystem);
-        writer.WriteInt("ItemPropertiesMode", m_ItemPropertiesMode);
-        writer.WriteBool("ItemPropertiesIcon", m_ItemPropertiesIcon);
-        writer.WriteBool("ObjectHandles", ObjectHandles);
-        writer.WriteBool("ReduceFPSUnactiveWindow", m_ReduceFPSUnactiveWindow);
-        writer.WriteBool("HoldShiftForContextMenus", HoldShiftForContextMenus);
-        writer.WriteBool("HoldShiftForEnablePathfind", HoldShiftForEnablePathfind);
-        writer.WriteInt("ContainerDefaultX", g_ContainerRect.DefaultX);
-        writer.WriteInt("ContainerDefaultY", g_ContainerRect.DefaultY);
-        writer.WriteInt("CharacterBackpackStyle", GetCharacterBackpackStyle());
+        file.Print("EnablePathfind=%s\n", (EnablePathfind ? "yes" : "no"));
+        file.Print("HoldTabForCombat=%s\n", (HoldTabForCombat ? "yes" : "no"));
+        file.Print("OffsetInterfaceWindows=%s\n", (OffsetInterfaceWindows ? "yes" : "no"));
+        file.Print("AutoArrange=%s\n", (AutoArrange ? "yes" : "no"));
+        file.Print("AlwaysRun=%s\n", (AlwaysRun ? "yes" : "no"));
+        file.Print("DisableMenubar=%s\n", (DisableMenubar ? "yes" : "no"));
+        file.Print("GrayOutOfRangeObjects=%s\n", (GrayOutOfRangeObjects ? "yes" : "no"));
+        file.Print("DisableNewTargetSystem=%s\n", (DisableNewTargetSystem ? "yes" : "no"));
+        file.Print("ItemPropertiesMode=%i\n", m_ItemPropertiesMode);
+        file.Print("ItemPropertiesIcon=%s\n", (m_ItemPropertiesIcon ? "yes" : "no"));
+        file.Print("ObjectHandles=%s\n", (ObjectHandles ? "yes" : "no"));
+        file.Print("ReduceFPSUnactiveWindow=%s\n", (m_ReduceFPSUnactiveWindow ? "yes" : "no"));
+        file.Print("HoldShiftForContextMenus=%s\n", (HoldShiftForContextMenus ? "yes" : "no"));
+        file.Print("HoldShiftForEnablePathfind=%s\n", (HoldShiftForEnablePathfind ? "yes" : "no"));
+        file.Print("ContainerDefaultX=%i\n", g_ContainerRect.DefaultX);
+        file.Print("ContainerDefaultY=%i\n", g_ContainerRect.DefaultY);
+        file.Print("CharacterBackpackStyle=%i\n", GetCharacterBackpackStyle());
 
         //Page 7
-        writer.WriteInt("GameWindowWidth", GameWindowWidth);
-        writer.WriteInt("GameWindowHeight", GameWindowHeight);
-        writer.WriteInt("SpeechDelay", SpeechDelay);
-        writer.WriteBool("ScaleSpeechDelay", ScaleSpeechDelay);
-        writer.WriteInt("SpeechColor", SpeechColor);
-        writer.WriteInt("EmoteColor", EmoteColor);
-        writer.WriteInt("PartyMessageColor", PartyMessageColor);
-        writer.WriteInt("GuildMessageColor", GuildMessageColor);
-        writer.WriteInt("AllianceMessageColor", AllianceMessageColor);
-        writer.WriteBool("IgnoreGuildMessage", IgnoreGuildMessage);
-        writer.WriteBool("IgnoreAllianceMessage", IgnoreAllianceMessage);
-        writer.WriteBool("DarkNights", DarkNights);
-        writer.WriteBool("ColoredLighting", ColoredLighting);
-        writer.WriteBool("StandartCharactersAnimationDelay", StandartCharactersAnimationDelay);
-        writer.WriteBool("StandartItemsAnimationDelay", StandartItemsAnimationDelay);
-        writer.WriteBool("LockResizingGameWindow", LockResizingGameWindow);
-        writer.WriteBool("LockGumpsMoving", LockGumpsMoving);
+        file.Print("GameWindowWidth=%i\n", GameWindowWidth);
+        file.Print("GameWindowHeight=%i\n", GameWindowHeight);
+        file.Print("SpeechDelay=%i\n", SpeechDelay);
+        file.Print("ScaleSpeechDelay=%s\n", (ScaleSpeechDelay ? "yes" : "no"));
+        file.Print("SpeechColor=%i\n", SpeechColor);
+        file.Print("EmoteColor=%i\n", EmoteColor);
+        file.Print("PartyMessageColor=%i\n", PartyMessageColor);
+        file.Print("GuildMessageColor=%i\n", GuildMessageColor);
+        file.Print("AllianceMessageColor=%i\n", AllianceMessageColor);
+        file.Print("IgnoreGuildMessage=%s\n", (IgnoreGuildMessage ? "yes" : "no"));
+        file.Print("IgnoreAllianceMessage=%s\n", (IgnoreAllianceMessage ? "yes" : "no"));
+        file.Print("DarkNights=%s\n", (DarkNights ? "yes" : "no"));
+        file.Print("ColoredLighting=%s\n", (ColoredLighting ? "yes" : "no"));
+        file.Print("StandartCharactersAnimationDelay=%s\n", (StandartCharactersAnimationDelay ? "yes" : "no"));
+        file.Print("StandartItemsAnimationDelay=%s\n", (StandartItemsAnimationDelay ? "yes" : "no"));
+        file.Print("LockResizingGameWindow=%s\n", (LockResizingGameWindow ? "yes" : "no"));
+        file.Print("LockGumpsMoving=%s\n", (LockGumpsMoving ? "yes" : "no"));
 
         //Page 8
-        writer.WriteInt("InnocentColor", InnocentColor);
-        writer.WriteInt("FriendlyColor", FriendlyColor);
-        writer.WriteInt("SomeoneColor", SomeoneColor);
-        writer.WriteInt("CriminalColor", CriminalColor);
-        writer.WriteInt("EnemyColor", EnemyColor);
-        writer.WriteInt("MurdererColor", MurdererColor);
-        writer.WriteBool("CriminalActionsQuery", CriminalActionsQuery);
+        file.Print("InnocentColor=%i\n", InnocentColor);
+        file.Print("FriendlyColor=%i\n", FriendlyColor);
+        file.Print("SomeoneColor=%i\n", SomeoneColor);
+        file.Print("CriminalColor=%i\n", CriminalColor);
+        file.Print("EnemyColor=%i\n", EnemyColor);
+        file.Print("MurdererColor=%i\n", MurdererColor);
+        file.Print("CriminalActionsQuery=%s\n", (CriminalActionsQuery ? "yes" : "no"));
 
         //Page 9
-        writer.WriteBool("ShowIncomingNames", ShowIncomingNames);
-        writer.WriteBool("UseCircleTrans", UseCircleTrans);
-        writer.WriteBool("StatReport", StatReport);
-        writer.WriteBool("ConsoleNeedEnter", m_ConsoleNeedEnter);
-        writer.WriteInt("CircleTransRadius", CircleTransRadius);
-        writer.WriteInt("SkillReport", SkillReport);
-        writer.WriteInt("SpeechFont", SpeechFont);
+        file.Print("ShowIncomingNames=%s\n", (ShowIncomingNames ? "yes" : "no"));
+        file.Print("UseCircleTrans=%s\n", (UseCircleTrans ? "yes" : "no"));
+        file.Print("StatReport=%s\n", (StatReport ? "yes" : "no"));
+        file.Print("ConsoleNeedEnter=%s\n", (m_ConsoleNeedEnter ? "yes" : "no"));
+        file.Print("CircleTransRadius=%i\n", CircleTransRadius);
+        file.Print("SkillReport=%i\n", SkillReport);
+        file.Print("SpeechFont=%i\n", SpeechFont);
 
         //No page
-        writer.WriteInt("GameWindowX", GameWindowX);
-        writer.WriteInt("GameWindowY", GameWindowY);
+        file.Print("GameWindowX=%i\n", GameWindowX);
+        file.Print("GameWindowY=%i\n", GameWindowY);
 
-        writer.WriteBool("Zoomed", g_OrionWindow.IsMaximizedWindow());
+        file.Print("Zoomed=%s\n", (g_OrionWindow.IsMaximizedWindow() ? "yes" : "no"));
 
         int x, y, w, h;
         g_OrionWindow.GetPositionSize(&x, &y, &w, &h);
 
-        writer.WriteInt("RealX", x);
-        writer.WriteInt("RealY", y);
-        writer.WriteInt("RealWidth", w);
-        writer.WriteInt("RealHeight", h);
+        file.Print("RealX=%i\n", x);
+        file.Print("RealY=%i\n", y);
+        file.Print("RealWidth=%i\n", w);
+        file.Print("RealHeight=%i\n", h);
 
-        writer.WriteBool("ToggleBufficonWindow", ToggleBufficonWindow);
-        writer.WriteInt("DeveloperMode", g_DeveloperMode);
-
-        writer.WriteString("LastServer", g_ServerList.LastServerName);
-        writer.WriteString("LastCharacter", g_CharacterList.LastCharacterName);
-
-        writer.Close();
+        file.Print("ToggleBufficonWindow=%s\n", (ToggleBufficonWindow ? "yes" : "no"));
+        file.Print("DeveloperMode=%i\n", g_DeveloperMode);
     }
 }

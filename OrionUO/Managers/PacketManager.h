@@ -55,20 +55,20 @@ struct HTMLGumpDataInfo
 class CPacketManager : public Wisp::CPacketReader
 {
 public:
-    void ConfigureClientVersion(uint32_t newClientVersion);
+    void ConfigureClientVersion(u32 newClientVersion);
     string AutoLoginNames = "";
-    uint32_t ConfigSerial = 0;
+    u32 ConfigSerial = 0;
 
 private:
     ProtectedSection m_Mutex;
 
     static CPacketInfo m_Packets[0x100];
-    unordered_map<uint32_t, GumpCoords> m_GumpsCoordsCache;
-    vector<uint32_t> m_MegaClilocRequests;
-    deque<vector<uint8_t>> m_PluginData;
+    std::unordered_map<u32, GumpCoords> m_GumpsCoordsCache;
+    std::vector<u32> m_MegaClilocRequests;
+    std::deque<vector<u8>> m_PluginData;
 
-    bool AutoLoginNameExists(const string &name);
-    void AddHTMLGumps(class CGump *gump, vector<HTMLGumpDataInfo> &list);
+    bool AutoLoginNameExists(const std::string &name);
+    void AddHTMLGumps(class CGump *gump, std::vector<HTMLGumpDataInfo> &list);
 
 protected:
     virtual void OnPacket();
@@ -189,14 +189,14 @@ public:
     CPacketManager();
     virtual ~CPacketManager();
 
-    virtual int GetPacketSize(const vector<uint8_t> &packet, int &offsetToSize);
-    CPacketInfo &GetInfo(uint8_t buf) const { return m_Packets[buf]; }
+    virtual int GetPacketSize(const std::vector<u8> &packet, int &offsetToSize);
+    CPacketInfo &GetInfo(u8 buf) const { return m_Packets[buf]; }
     void SendMegaClilocRequests();
     void AddMegaClilocRequest(int serial);
-    void SavePluginReceivePacket(uint8_t *buf, int size);
+    void SavePluginReceivePacket(u8 *buf, int size);
     void ProcessPluginPackets();
-    void PluginReceiveHandler(uint8_t *buf, int size);
-    void SetCachedGumpCoords(uint32_t id, int x, int y);
+    void PluginReceiveHandler(u8 *buf, int size);
+    void SetCachedGumpCoords(u32 id, int x, int y);
 };
 
 extern CPacketManager g_PacketManager;

@@ -5,8 +5,8 @@
 
 struct CC_HAIR_STYLE
 {
-    uint16_t GumpID;
-    uint16_t GraphicID;
+    u16 GumpID;
+    u16 GraphicID;
     string Name;
 };
 
@@ -25,13 +25,13 @@ protected:
 public:
     RACE_TYPE GetRace() { return m_Race; };
     void SetRace(RACE_TYPE newRace);
-    uint8_t HairStyle = 1;
-    uint8_t BeardStyle = 0;
-    uint16_t SkinTone = 0x03EA;
-    uint16_t ShirtColor = 0x0084;
-    uint16_t PantsColor = 0x035F;
-    uint16_t HairColor = 0x044E;
-    uint16_t BeardColor = 0x044E;
+    u8 HairStyle = 1;
+    u8 BeardStyle = 0;
+    u16 SkinTone = 0x03EA;
+    u16 ShirtColor = 0x0084;
+    u16 PantsColor = 0x035F;
+    u16 HairColor = 0x044E;
+    u16 BeardColor = 0x044E;
 
 public:
     static const int HUMAN_MALE_HAIR_COUNT = 10;
@@ -65,13 +65,13 @@ private:
     static const CC_HAIR_STYLE m_GargoyleFemaleHairStyleTable[GARGOYLE_FEMALE_HAIR_COUNT];
     static const CC_HAIR_STYLE m_GargoyleBeardStyleTable[GARGOYLE_MALE_FACIAL_HAIR_COUNT];
 
-    static const uint16_t m_HumanSkinTone[HUMAN_SKIN_TONE_COUNT];
-    static const uint16_t m_ElfSkinTone[ELF_SKIN_TONE_COUNT];
-    static const uint16_t m_GargoyleSkinTone[GARGOYLE_SKIN_TONE_COUNT];
+    static const u16 m_HumanSkinTone[HUMAN_SKIN_TONE_COUNT];
+    static const u16 m_ElfSkinTone[ELF_SKIN_TONE_COUNT];
+    static const u16 m_GargoyleSkinTone[GARGOYLE_SKIN_TONE_COUNT];
 
-    static const uint16_t m_HumanHairColor[HUMAN_HAIR_COLOR_COUNT];
-    static const uint16_t m_ElfHairColor[ELF_HAIR_COLOR_COUNT];
-    static const uint16_t m_GargoyleHairColor[GARGOYLE_HAIR_COLOR_COUNT];
+    static const u16 m_HumanHairColor[HUMAN_HAIR_COLOR_COUNT];
+    static const u16 m_ElfHairColor[ELF_HAIR_COLOR_COUNT];
+    static const u16 m_GargoyleHairColor[GARGOYLE_HAIR_COLOR_COUNT];
 
 public:
     CCreateCharacterManager();
@@ -81,14 +81,14 @@ public:
     void Clear();
     int GetCurrentHairCount();
     int GetCurrentFacialHairCount();
-    uint16_t GetBodyGump();
-    uint16_t GetShirtGump();
-    uint16_t GetPantsGump();
-    uint16_t GetBootsGump();
-    const uint16_t *GetSkinTonePtr();
-    const uint16_t *GetHairColorPtr();
-    CC_HAIR_STYLE GetHair(uint8_t pos) const;
-    CC_HAIR_STYLE GetBeard(uint8_t pos) const;
+    u16 GetBodyGump();
+    u16 GetShirtGump();
+    u16 GetPantsGump();
+    u16 GetBootsGump();
+    const u16 *GetSkinTonePtr();
+    const u16 *GetHairColorPtr();
+    CC_HAIR_STYLE GetHair(u8 pos) const;
+    CC_HAIR_STYLE GetBeard(u8 pos) const;
 };
 
 extern CCreateCharacterManager g_CreateCharacterManager;

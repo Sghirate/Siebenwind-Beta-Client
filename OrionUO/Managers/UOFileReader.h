@@ -1,9 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "../IndexObject.h"
+#include <vector>
 
 class UOFileReader
 {
@@ -11,13 +9,14 @@ public:
     UOFileReader() {}
     ~UOFileReader() {}
 
-    vector<uint16_t> GetGumpPixels(CIndexObject &io);
-    CGLTexture *ReadGump(CIndexObject &io);
-    vector<uint16_t>
-    GetArtPixels(uint16_t id, CIndexObject &io, bool run, short &width, short &height);
-    CGLTexture *ReadArt(uint16_t id, CIndexObject &io, bool run);
-    CGLTexture *ReadTexture(CIndexObject &io);
-    CGLTexture *ReadLight(CIndexObject &io);
+    std::vector<u16> GetGumpPixels(CIndexObject& io);
+    CGLTexture* ReadGump(CIndexObject& io);
+    std::vector<u16>
+    GetArtPixels(u16 id, CIndexObject& io, bool run, short& width, short& height);
+    CGLTexture* ReadArt(u16 id, CIndexObject& io, bool run);
+    CGLTexture* ReadTexture(CIndexObject& io);
+    CGLTexture* ReadLight(CIndexObject& io);
+    std::pair<CGLTexture*, Core::Vec2<i16>> ReadCursor(u16 a_id, CIndexObject& a_io, bool a_run);
 };
 
 extern UOFileReader g_UOFileReader;

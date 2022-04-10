@@ -1,16 +1,12 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIMenuObject.h"
+﻿#include "GUIMenuObject.h"
 #include "../OrionUO.h"
-#include "../Point.h"
 #include "../SelectedObject.h"
 #include "../Managers/MouseManager.h"
 #include "../Gumps/Gump.h"
 #include "../Gumps/GumpMenu.h"
 
 CGUIMenuObject::CGUIMenuObject(
-    int serial, uint16_t graphic, uint16_t color, int x, int y, const string &text)
+    int serial, u16 graphic, u16 color, int x, int y, const std::string &text)
     : CGUITilepic(graphic, color, x, y)
     , Text(text)
 {
@@ -24,22 +20,18 @@ CGUIMenuObject::~CGUIMenuObject()
 
 bool CGUIMenuObject::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
-
-    CSize size = g_Orion.GetStaticArtDimension(Graphic);
-
-    return (x >= 0 && y >= 0 && x < size.Width && y < size.Height);
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
+    Core::Vec2<i32> size = g_Orion.GetStaticArtDimension(Graphic);
+    return (x >= 0 && y >= 0 && x < size.x && y < size.y);
 }
 
 void CGUIMenuObject::OnMouseEnter()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump != nullptr && g_SelectedObject.Gump->GumpType == GT_MENU)
     {
         CGumpMenu *menu = (CGumpMenu *)g_SelectedObject.Gump;
-
         if (menu->Text != Text)
         {
             menu->Text = Text;
@@ -50,11 +42,9 @@ void CGUIMenuObject::OnMouseEnter()
 
 void CGUIMenuObject::OnMouseExit()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_LastSelectedObject.Gump != nullptr && g_LastSelectedObject.Gump->GumpType == GT_MENU)
     {
         CGumpMenu *menu = (CGumpMenu *)g_LastSelectedObject.Gump;
-
         if (menu->Text == Text)
         {
             menu->Text = "";

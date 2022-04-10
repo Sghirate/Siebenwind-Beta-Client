@@ -5,12 +5,11 @@
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 
-CLandObject::CLandObject(int serial, uint16_t graphic, uint16_t color, short x, short y, char z)
+CLandObject::CLandObject(int serial, u16 graphic, u16 color, short x, short y, char z)
     : CMapObject(ROT_LAND_OBJECT, serial, 0, color, x, y, z)
     , MinZ(z)
     , AverageZ(z)
 {
-    DEBUG_TRACE_FUNCTION;
     OriginalGraphic = graphic;
     UpdateGraphicBySeason();
 
@@ -30,7 +29,6 @@ CLandObject::CLandObject(int serial, uint16_t graphic, uint16_t color, short x, 
 
 CLandObject::~CLandObject()
 {
-    DEBUG_TRACE_FUNCTION;
     if (PositionBuffer != 0)
     {
         glDeleteBuffers(1, &PositionBuffer);
@@ -52,14 +50,12 @@ CLandObject::~CLandObject()
 
 void CLandObject::UpdateGraphicBySeason()
 {
-    DEBUG_TRACE_FUNCTION;
     Graphic = g_Orion.GetLandSeasonGraphic(OriginalGraphic);
     NoDrawTile = (Graphic == 2);
 }
 
 int CLandObject::GetDirectionZ(int direction)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (direction)
     {
         case 1:
@@ -77,8 +73,7 @@ int CLandObject::GetDirectionZ(int direction)
 
 int CLandObject::CalculateCurrentAverageZ(int direction)
 {
-    DEBUG_TRACE_FUNCTION;
-    int result = GetDirectionZ(((uint8_t)(direction >> 1) + 1) & 3);
+    int result = GetDirectionZ(((u8)(direction >> 1) + 1) & 3);
 
     if ((direction & 1) != 0)
     {
@@ -90,7 +85,6 @@ int CLandObject::CalculateCurrentAverageZ(int direction)
 
 void CLandObject::UpdateZ(int zTop, int zRight, int zBottom)
 {
-    DEBUG_TRACE_FUNCTION;
     if (IsStretched)
     {
         Serial = ((m_Z + zTop + zRight + zBottom) / 4);
@@ -130,10 +124,9 @@ void CLandObject::UpdateZ(int zTop, int zRight, int zBottom)
 
 void CLandObject::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Z <= g_MaxGroundZ)
     {
-        uint16_t objColor = 0;
+        u16 objColor = 0;
 
         if (g_DeveloperMode == DM_DEBUGGING && g_SelectedObject.Object == this)
         {
@@ -157,7 +150,6 @@ void CLandObject::Draw(int x, int y)
 
 void CLandObject::Select(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Z <= g_MaxGroundZ)
     {
         if (!IsStretched)

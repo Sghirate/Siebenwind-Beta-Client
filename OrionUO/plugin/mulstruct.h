@@ -101,7 +101,7 @@ struct STATIC_GROUP_OLD
 
 struct LAND_TILES_NEW
 {
-    uint64_t Flags;
+    u64 Flags;
     unsigned short TexID;
     char Name[20];
 };
@@ -114,7 +114,7 @@ struct LAND_GROUP_NEW
 
 struct STATIC_TILES_NEW
 {
-    uint64_t Flags;
+    u64 Flags;
     unsigned char Weight;
     unsigned char Layer;
     unsigned int Count;
@@ -133,7 +133,7 @@ struct STATIC_GROUP_NEW
 
 struct LAND_TILES
 {
-    uint64_t Flags;
+    u64 Flags;
     unsigned short TexID;
     string Name;
 };
@@ -146,7 +146,7 @@ struct LAND_GROUP
 
 struct STATIC_TILES
 {
-    uint64_t Flags;
+    u64 Flags;
     unsigned char Weight;
     unsigned char Layer;
     unsigned int Count;
@@ -312,7 +312,7 @@ struct FONT_CHARACTER_DATA
 {
     unsigned char Width;
     unsigned char Height;
-    vector<uint16_t> Data;
+    std::vector<u16> Data;
 };
 
 struct FONT_DATA

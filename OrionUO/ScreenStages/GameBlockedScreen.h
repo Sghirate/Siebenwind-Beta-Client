@@ -9,7 +9,7 @@
 class CGameBlockedScreen : public CBaseScreen
 {
 public:
-    uint8_t Code = 0;
+    u8 Code = 0;
     CGump m_GameBlockedScreenGump;
 
     CGameBlockedScreen();

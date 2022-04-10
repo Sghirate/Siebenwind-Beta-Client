@@ -17,13 +17,12 @@ COptionsMacroManager::~COptionsMacroManager()
 
 void COptionsMacroManager::LoadFromMacro()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
-    QFOR(obj, g_MacroManager.m_Items, CMacro *) { Add(obj->GetCopy()); }
+    QFOR(obj, g_MacroManager.m_Items, Macro *) { Add(obj->GetCopy()); }
 
     if (m_Items == nullptr)
     {
-        Add(CMacro::CreateBlankMacro());
+        Add(Macro::CreateBlankMacro());
     }
 }

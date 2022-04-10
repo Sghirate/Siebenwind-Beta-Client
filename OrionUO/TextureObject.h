@@ -1,18 +1,16 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Constants.h"
 #include "Backend.h"
+#include <filesystem>
 
 struct UOPAnimationData
 {
-    os_path path;
+    std::filesystem::path path;
     unsigned int offset;
     unsigned int compressedLength;
     unsigned int decompressedLength;
-    std::fstream *fileStream;
+    std::fstream* fileStream;
 };
 
 class CTextureAnimationFrame : public CGLTexture
@@ -28,22 +26,22 @@ public:
 class CTextureAnimationDirection
 {
 public:
-    uint8_t FrameCount = 0;
-    size_t BaseAddress = 0;
-    uint32_t BaseSize = 0;
+    u8 FrameCount         = 0;
+    size_t BaseAddress    = 0;
+    u32 BaseSize          = 0;
     size_t PatchedAddress = 0;
-    uint32_t PatchedSize = 0;
-    int FileIndex = 0;
-    size_t Address = 0;
-    uint32_t Size = 0;
-    uint32_t LastAccessTime = 0;
-    bool IsUOP = false;
-    bool IsVerdata = false;
+    u32 PatchedSize       = 0;
+    int FileIndex         = 0;
+    size_t Address        = 0;
+    u32 Size              = 0;
+    u32 LastAccessTime    = 0;
+    bool IsUOP            = false;
+    bool IsVerdata        = false;
 
     CTextureAnimationDirection();
     virtual ~CTextureAnimationDirection();
 
-    CTextureAnimationFrame *m_Frames;
+    CTextureAnimationFrame* m_Frames;
 };
 
 class CTextureAnimationGroup

@@ -2,12 +2,12 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpManager.h"
+#include "Core/MappedFile.h"
 #include "ConfigManager.h"
 #include "SkillsManager.h"
 #include "MacroManager.h"
 #include "OptionsMacroManager.h"
 #include "MouseManager.h"
-#include "../Point.h"
 #include "../OrionUO.h"
 #include "../Party.h"
 #include "../PressedObject.h"
@@ -49,7 +49,6 @@ CGumpManager g_GumpManager;
 
 int CGumpManager::GetNonpartyStatusbarsCount()
 {
-    DEBUG_TRACE_FUNCTION;
     int count = 0;
 
     QFOR(gump, m_Items, CGump *)
@@ -67,7 +66,6 @@ int CGumpManager::GetNonpartyStatusbarsCount()
 // FIXME: This API taking ownership of obj and deleting "sometimes" is not safe
 void CGumpManager::AddGump(CGump *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Items == nullptr)
     {
         m_Items = obj;
@@ -206,7 +204,7 @@ void CGumpManager::AddGump(CGump *obj)
         {
             case GT_CONTAINER:
             {
-                uint16_t sound = g_ContainerOffset[obj->Graphic].OpenSound;
+                u16 sound = g_ContainerOffset[obj->Graphic].OpenSound;
                 if (sound != 0u)
                 {
                     g_Orion.PlaySoundEffect(sound);
@@ -245,7 +243,6 @@ void CGumpManager::AddGump(CGump *obj)
 
 CGump *CGumpManager::GetTextEntryOwner()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(gump, m_Items, CGump *)
     {
         if (gump->EntryPointerHere())
@@ -259,7 +256,6 @@ CGump *CGumpManager::GetTextEntryOwner()
 
 CGump *CGumpManager::GumpExists(uintptr_t gumpID)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(gump, m_Items, CGump *)
     {
         if (gumpID == (uintptr_t)gump)
@@ -273,7 +269,6 @@ CGump *CGumpManager::GumpExists(uintptr_t gumpID)
 
 CGump *CGumpManager::UpdateContent(int serial, int id, const GUMP_TYPE &type)
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = GetGump(serial, id, type);
 
     if (gump != nullptr)
@@ -286,7 +281,6 @@ CGump *CGumpManager::UpdateContent(int serial, int id, const GUMP_TYPE &type)
 
 CGump *CGumpManager::UpdateGump(int serial, int id, const GUMP_TYPE &type)
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = GetGump(serial, id, type);
 
     if (gump != nullptr)
@@ -299,7 +293,6 @@ CGump *CGumpManager::UpdateGump(int serial, int id, const GUMP_TYPE &type)
 
 CGump *CGumpManager::GetGump(int serial, int id, const GUMP_TYPE &type)
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = (CGump *)m_Items;
 
     while (gump != nullptr)
@@ -340,9 +333,8 @@ CGump *CGumpManager::GetGump(int serial, int id, const GUMP_TYPE &type)
     return gump;
 }
 
-void CGumpManager::CloseGump(uint32_t serial, uint32_t id, GUMP_TYPE type)
+void CGumpManager::CloseGump(u32 serial, u32 id, GUMP_TYPE type)
 {
-    DEBUG_TRACE_FUNCTION;
     for (CGump *gump = (CGump *)m_Items; gump != nullptr;)
     {
         CGump *next = (CGump *)gump->m_Next;
@@ -394,7 +386,6 @@ void CGumpManager::CloseGump(uint32_t serial, uint32_t id, GUMP_TYPE type)
 
 void CGumpManager::RemoveGump(CGump *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     Unlink(obj);
 
     if (g_World != nullptr)
@@ -411,7 +402,7 @@ void CGumpManager::RemoveGump(CGump *obj)
     if (obj->GumpType == GT_CONTAINER && obj->Graphic > 0 &&
         obj->Graphic < g_ContainerOffset.size())
     {
-        uint16_t sound = g_ContainerOffset[obj->Graphic].CloseSound;
+        u16 sound = g_ContainerOffset[obj->Graphic].CloseSound;
 
         if (sound != 0u)
         {
@@ -426,7 +417,6 @@ void CGumpManager::RemoveGump(CGump *obj)
 
 void CGumpManager::OnDelete()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = (CGump *)m_Items;
 
     while (gump != nullptr)
@@ -444,7 +434,6 @@ void CGumpManager::OnDelete()
 
 void CGumpManager::RemoveRangedGumps()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_World != nullptr)
     {
         CGump *gump = (CGump *)m_Items;
@@ -497,7 +486,6 @@ void CGumpManager::RemoveRangedGumps()
 
 void CGumpManager::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     for (CGump *gump = (CGump *)m_Items; gump != nullptr;)
     {
         CGump *next = (CGump *)gump->m_Next;
@@ -518,7 +506,6 @@ void CGumpManager::PrepareContent()
 
 void CGumpManager::RemoveMarked()
 {
-    DEBUG_TRACE_FUNCTION;
     for (CGump *gump = (CGump *)m_Items; gump != nullptr;)
     {
         CGump *next = (CGump *)gump->m_Next;
@@ -534,7 +521,6 @@ void CGumpManager::RemoveMarked()
 
 void CGumpManager::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(gump, m_Items, CGump *)
     {
         g_CurrentCheckGump = gump;
@@ -546,7 +532,6 @@ void CGumpManager::PrepareTextures()
 
 void CGumpManager::Draw(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = (CGump *)m_Items;
     CGump *menuBarGump = nullptr;
 
@@ -583,7 +568,6 @@ void CGumpManager::Draw(bool blocked)
 
 void CGumpManager::Select(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = (CGump *)m_Items;
     CGump *menuBarGump = nullptr;
 
@@ -620,7 +604,6 @@ void CGumpManager::Select(bool blocked)
 
 void CGumpManager::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump *gump = g_SelectedObject.Gump;
 
     if (gump != nullptr)
@@ -638,14 +621,12 @@ void CGumpManager::InitToolTip()
 
 void CGumpManager::RedrawAll()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(gump, m_Items, CGump *)
     gump->WantRedraw = true;
 }
 
 void CGumpManager::OnLeftMouseButtonDown(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsText())
     {
         return;
@@ -679,7 +660,6 @@ void CGumpManager::OnLeftMouseButtonDown(bool blocked)
 
 bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsText())
     {
         return false;
@@ -714,7 +694,7 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
 
             if (canMove && gump->CanBeMoved() && !gump->NoMove && !g_ObjectInHand.Enabled)
             {
-                CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
                 if (gump->GumpType == GT_STATUSBAR)
                 {
@@ -723,21 +703,21 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
                     if (!gump->Minimized)
                     {
                         sb->RemoveFromGroup();
-                        gump->SetX(gump->GetX() + offset.X);
-                        gump->SetY(gump->GetY() + offset.Y);
+                        gump->SetX(gump->GetX() + offset.x);
+                        gump->SetY(gump->GetY() + offset.y);
 
                         gump->FixCoordinates();
                     }
                     else
                     {
-                        gump->MinimizedX = gump->MinimizedX + offset.X;
-                        gump->MinimizedY = gump->MinimizedY + offset.Y;
+                        gump->MinimizedX = gump->MinimizedX + offset.x;
+                        gump->MinimizedY = gump->MinimizedY + offset.y;
 
                         gump->FixCoordinates();
 
                         if (sb->InGroup())
                         {
-                            sb->UpdateGroup(offset.X, offset.Y);
+                            sb->UpdateGroup(offset.x, offset.y);
                         }
                         else
                         {
@@ -760,14 +740,14 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
                 {
                     CGumpSpell *spell = (CGumpSpell *)gump;
 
-                    gump->SetX(gump->GetX() + offset.X);
-                    gump->SetY(gump->GetY() + offset.Y);
+                    gump->SetX(gump->GetX() + offset.x);
+                    gump->SetY(gump->GetY() + offset.y);
 
                     gump->FixCoordinates();
 
                     if (spell->InGroup())
                     {
-                        spell->UpdateGroup(offset.X, offset.Y);
+                        spell->UpdateGroup(offset.x, offset.y);
                     }
                     else
                     {
@@ -787,15 +767,15 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
                 }
                 else if (gump->Minimized && gump->GumpType != GT_MINIMAP)
                 {
-                    gump->MinimizedX = gump->MinimizedX + offset.X;
-                    gump->MinimizedY = gump->MinimizedY + offset.Y;
+                    gump->MinimizedX = gump->MinimizedX + offset.x;
+                    gump->MinimizedY = gump->MinimizedY + offset.y;
 
                     gump->FixCoordinates();
                 }
                 else
                 {
-                    gump->SetX(gump->GetX() + offset.X);
-                    gump->SetY(gump->GetY() + offset.Y);
+                    gump->SetX(gump->GetX() + offset.x);
+                    gump->SetY(gump->GetY() + offset.y);
 
                     gump->FixCoordinates();
                 }
@@ -842,7 +822,6 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
 
 bool CGumpManager::OnLeftMouseButtonDoubleClick(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsText())
@@ -871,7 +850,6 @@ bool CGumpManager::OnLeftMouseButtonDoubleClick(bool blocked)
 
 void CGumpManager::OnRightMouseButtonDown(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsText())
     {
         return;
@@ -905,7 +883,6 @@ void CGumpManager::OnRightMouseButtonDown(bool blocked)
 
 void CGumpManager::OnRightMouseButtonUp(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsText())
     {
         return;
@@ -1077,7 +1054,6 @@ void CGumpManager::OnRightMouseButtonUp(bool blocked)
 
 void CGumpManager::OnMidMouseButtonScroll(bool up, bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(gump, m_Items, CGump *)
     {
         if (g_SelectedObject.Gump == gump && !gump->NoProcess)
@@ -1091,7 +1067,6 @@ void CGumpManager::OnMidMouseButtonScroll(bool up, bool blocked)
 
 void CGumpManager::OnDragging(bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(gump, m_Items, CGump *)
     {
         if (g_PressedObject.LeftGump == gump && !gump->NoProcess)
@@ -1105,7 +1080,6 @@ void CGumpManager::OnDragging(bool blocked)
 
 bool CGumpManager::OnTextInput(const TextEvent &ev, bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
 
     CGump *gump = GetTextEntryOwner();
     bool result = false;
@@ -1132,7 +1106,6 @@ bool CGumpManager::OnTextInput(const TextEvent &ev, bool blocked)
 
 bool CGumpManager::OnKeyDown(const KeyEvent &ev, bool blocked)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool result = false;
     const auto key = EvKey(ev);
@@ -1182,55 +1155,52 @@ bool CGumpManager::OnKeyDown(const KeyEvent &ev, bool blocked)
     return result;
 }
 
-void CGumpManager::Load(const os_path &path)
+void CGumpManager::Load(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CMappedFile file;
-
     bool paperdollRequested = false;
     bool menubarFound = false;
     bool bufficonWindowFound = false;
     bool minimizedConsoleType = false;
     bool showFullTextConsoleType = false;
 
-    if (file.Load(path) && (file.Size != 0u))
+    Core::MappedFile file;
+    if (file.Load(a_path) && (file.GetSize() != 0u))
     {
-        uint8_t version = file.ReadUInt8();
-
-        uint8_t *oldPtr = file.Ptr;
+        u8 version = file.ReadLE<u8>();
+        u8 *oldPtr = file.GetPtr();
 
         short count = 0;
         short spellGroupsCount = 0;
 
         if (version != 0u)
         {
-            file.Ptr = (uint8_t *)file.Start + (file.Size - 8);
-            spellGroupsCount = file.ReadInt16LE();
-            count = file.ReadInt16LE();
+            file.SetPtr((u8 *)file.GetBuffer() + (file.GetSize() - 8));
+            spellGroupsCount = file.ReadLE<i16>();
+            count = file.ReadLE<i16>();
         }
         else
         {
-            file.Ptr = (uint8_t *)file.Start + (file.Size - 6);
-            count = file.ReadInt16LE();
+            file.SetPtr((u8 *)file.GetBuffer() + (file.GetSize() - 6));
+            count = file.ReadLE<i16>();
         }
 
-        file.Ptr = oldPtr;
+        file.SetPtr(oldPtr);
         bool menubarLoaded = false;
 
         for (int i = 0; i < count; i++)
         {
             CGump *gump = nullptr;
-            uint8_t *next = file.Ptr;
-            uint8_t size = file.ReadUInt8();
+            u8 *next = file.GetPtr();
+            u8 size = file.ReadLE<u8>();
             next += size;
 
-            GUMP_TYPE gumpType = (GUMP_TYPE)file.ReadUInt8();
-            uint16_t gumpX = file.ReadUInt16LE();
-            uint16_t gumpY = file.ReadUInt16LE();
-            uint8_t gumpMinimized = file.ReadUInt8();
-            uint16_t gumpMinimizedX = file.ReadUInt16LE();
-            uint16_t gumpMinimizedY = file.ReadUInt16LE();
-            uint8_t gumpLockMoving = file.ReadUInt8();
+            GUMP_TYPE gumpType = (GUMP_TYPE)file.ReadLE<u8>();
+            u16 gumpX = file.ReadLE<u16>();
+            u16 gumpY = file.ReadLE<u16>();
+            u8 gumpMinimized = file.ReadLE<u8>();
+            u16 gumpMinimizedX = file.ReadLE<u16>();
+            u16 gumpMinimizedY = file.ReadLE<u16>();
+            u8 gumpLockMoving = file.ReadLE<u8>();
 
             switch ((GUMP_TYPE)gumpType)
             {
@@ -1253,7 +1223,7 @@ void CGumpManager::Load(const os_path &path)
                 }
                 case GT_SKILLS:
                 {
-                    gump = new CGumpSkills(gumpX, gumpY, gumpMinimized != 0u, file.ReadInt16LE());
+                    gump = new CGumpSkills(gumpX, gumpY, gumpMinimized != 0u, file.ReadLE<i16>());
                     gump->Visible = false;
                     g_SkillsManager.SkillsRequested = true;
                     CPacketSkillsRequest(g_PlayerSerial).Send();
@@ -1261,7 +1231,7 @@ void CGumpManager::Load(const os_path &path)
                 }
                 case GT_JOURNAL:
                 {
-                    gump = new CGumpJournal(gumpX, gumpY, gumpMinimized != 0u, file.ReadInt16LE());
+                    gump = new CGumpJournal(gumpX, gumpY, gumpMinimized != 0u, file.ReadLE<i16>());
                     break;
                 }
                 case GT_WORLD_MAP:
@@ -1306,12 +1276,12 @@ void CGumpManager::Load(const os_path &path)
                 {
                     bufficonWindowFound = true;
                     gump = new CGumpBuff(gumpX, gumpY);
-                    gump->Graphic = file.ReadUInt16LE();
+                    gump->Graphic = file.ReadLE<u16>();
                     break;
                 }
                 case GT_ABILITY:
                 {
-                    gump = new CGumpAbility(file.ReadUInt32LE(), gumpX, gumpY);
+                    gump = new CGumpAbility(file.ReadLE<u32>(), gumpX, gumpY);
                     break;
                 }
                 case GT_PROPERTY_ICON:
@@ -1329,14 +1299,14 @@ void CGumpManager::Load(const os_path &path)
                 case GT_SPELLBOOK:
                 case GT_SPELL:
                 {
-                    uint32_t serial = file.ReadUInt32LE();
+                    u32 serial = file.ReadLE<u32>();
                     if (gumpType == GT_SPELL)
                     {
-                        uint16_t graphic = file.ReadUInt16LE();
+                        u16 graphic = file.ReadLE<u16>();
                         SPELLBOOK_TYPE spellType = ST_MAGE;
                         if (size > 18)
                         {
-                            spellType = (SPELLBOOK_TYPE)file.ReadUInt8();
+                            spellType = (SPELLBOOK_TYPE)file.ReadLE<u8>();
                         }
                         gump = new CGumpSpell(serial, gumpX, gumpY, graphic, spellType);
                     }
@@ -1360,12 +1330,12 @@ void CGumpManager::Load(const os_path &path)
                 case GT_CONSOLE_TYPE:
                 {
                     minimizedConsoleType = (gumpMinimized != 0u);
-                    showFullTextConsoleType = (file.ReadUInt8() != 0u);
+                    showFullTextConsoleType = (file.ReadLE<u8>() != 0u);
                     break;
                 }
                 case GT_SKILL:
                 {
-                    uint32_t serial = file.ReadUInt32LE();
+                    u32 serial = file.ReadLE<u32>();
                     gump = new CGumpSkill(serial, gumpX, gumpY);
                     break;
                 }
@@ -1377,7 +1347,7 @@ void CGumpManager::Load(const os_path &path)
                 }
                 case GT_RACIAL_ABILITY:
                 {
-                    uint32_t serial = file.ReadUInt32LE();
+                    u32 serial = file.ReadLE<u32>();
                     gump = new CGumpRacialAbility(serial, gumpX, gumpY);
                     break;
                 }
@@ -1406,34 +1376,33 @@ void CGumpManager::Load(const os_path &path)
                 assert(gump != nullptr && "AddGump should not delete obj here");
                 gump->WantUpdateContent = true;
             }
-
-            file.Ptr = next;
+            file.SetPtr(next);
         }
 
         for (int i = 0; i < spellGroupsCount; i++)
         {
             CGumpSpell *topSpell = nullptr;
-            uint16_t spellsCount = file.ReadUInt16LE();
+            u16 spellsCount = file.ReadLE<u16>();
             for (int j = 0; j < spellsCount; j++)
             {
-                uint8_t *next = file.Ptr;
-                uint8_t size = file.ReadUInt8();
+                u8 *next = file.GetPtr();
+                u8 size = file.ReadLE<u8>();
                 next += size;
 
-                GUMP_TYPE gumpType = (GUMP_TYPE)file.ReadUInt8();
-                uint16_t gumpX = file.ReadUInt16LE();
-                uint16_t gumpY = file.ReadUInt16LE();
+                GUMP_TYPE gumpType = (GUMP_TYPE)file.ReadLE<u8>();
+                u16 gumpX = file.ReadLE<u16>();
+                u16 gumpY = file.ReadLE<u16>();
                 file.Move(5); //Minimized state, x, y
-                uint8_t gumpLockMoving = file.ReadUInt8();
+                u8 gumpLockMoving = file.ReadLE<u8>();
 
-                uint32_t serial = file.ReadUInt32LE();
-                uint16_t graphic = file.ReadUInt16LE();
+                u32 serial = file.ReadLE<u32>();
+                u16 graphic = file.ReadLE<u16>();
 
                 SPELLBOOK_TYPE spellType = ST_MAGE;
 
                 if (size > 18)
                 {
-                    spellType = (SPELLBOOK_TYPE)file.ReadUInt8();
+                    spellType = (SPELLBOOK_TYPE)file.ReadLE<u8>();
                 }
 
                 CGumpSpell *spell = new CGumpSpell(serial, gumpX, gumpY, graphic, spellType);
@@ -1451,7 +1420,7 @@ void CGumpManager::Load(const os_path &path)
                 }
 
                 spell->WantUpdateContent = true;
-                file.Ptr = next;
+                file.SetPtr(next);
             }
         }
 
@@ -1465,7 +1434,7 @@ void CGumpManager::Load(const os_path &path)
             g_ConfigManager.GameWindowY = 40;
         }
 
-        CSize windowSize = g_OrionWindow.GetSize();
+        Core::Vec2<i32> windowSize = g_OrionWindow.GetSize();
 
         int x = g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth;
         int y = g_ConfigManager.GameWindowY;
@@ -1525,7 +1494,7 @@ void CGumpManager::Load(const os_path &path)
 
     if (!bufficonWindowFound)
     {
-        CSize windowSize = g_OrionWindow.GetSize();
+        Core::Vec2<i32> windowSize = g_OrionWindow.GetSize();
 
         int x = g_ConfigManager.GameWindowX + (int)(g_ConfigManager.GameWindowWidth * 0.7f);
         int y = g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight;
@@ -1550,42 +1519,33 @@ void CGumpManager::Load(const os_path &path)
     AddGump(new CGumpConsoleType(minimizedConsoleType, showFullTextConsoleType));
 }
 
-void CGumpManager::SaveDefaultGumpProperties(Wisp::CBinaryFileWriter &writer, CGump *gump, int size)
+void CGumpManager::SaveDefaultGumpProperties(Core::StreamWriter& a_writer, CGump* a_gump, int a_size)
 {
-    DEBUG_TRACE_FUNCTION;
-    writer.WriteInt8(size);
-    writer.WriteInt8(gump->GumpType);
-    writer.WriteUInt16LE(gump->GetX());
-    writer.WriteUInt16LE(gump->GetY());
+    a_writer.WriteLE<i8>(a_size);
+    a_writer.WriteLE<i8>(a_gump->GumpType);
+    a_writer.WriteLE<u16>(a_gump->GetX());
+    a_writer.WriteLE<u16>(a_gump->GetY());
 
-    if (gump->GumpType == GT_MENUBAR)
-    {
-        writer.WriteInt8(static_cast<char>(((CGumpMenubar *)gump)->GetOpened()));
-    }
+    if (a_gump->GumpType == GT_MENUBAR)
+        a_writer.WriteLE<i8>(static_cast<char>(((CGumpMenubar*)a_gump)->GetOpened()));
     else
-    { //buff
-        writer.WriteInt8(static_cast<char>(gump->Minimized));
-    }
+        a_writer.WriteLE<i8>(static_cast<char>(a_gump->Minimized));
 
-    writer.WriteUInt16LE(gump->MinimizedX);
-    writer.WriteUInt16LE(gump->MinimizedY);
-    writer.WriteInt8(static_cast<char>(gump->LockMoving));
+    a_writer.WriteLE<u16>(a_gump->MinimizedX);
+    a_writer.WriteLE<u16>(a_gump->MinimizedY);
+    a_writer.WriteLE<i8>(static_cast<char>(a_gump->LockMoving));
 };
 
-void CGumpManager::Save(const os_path &path)
+void CGumpManager::Save(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CBinaryFileWriter writer;
-
-    writer.Open(path);
-
-    writer.WriteInt8(1); //version
+    Core::StreamWriter writer;
+    writer.WriteLE<i8>(1); //version
     writer.WriteBuffer();
 
     short count = 0;
 
-    vector<CGump *> containerList;
-    vector<CGump *> spellInGroupList;
+    std::vector<CGump *> containerList;
+    std::vector<CGump *> spellInGroupList;
 
     QFOR(gump, m_Items, CGump *)
     {
@@ -1603,7 +1563,7 @@ void CGumpManager::Save(const os_path &path)
             case GT_WORLD_MAP:
             case GT_PROPERTY_ICON:
             {
-                uint8_t size = 12;
+                u8 size = 12;
 
                 if (gump->GumpType == GT_JOURNAL)
                 {
@@ -1622,25 +1582,25 @@ void CGumpManager::Save(const os_path &path)
 
                 if (gump->GumpType == GT_JOURNAL)
                 {
-                    writer.WriteUInt16LE(((CGumpJournal *)gump)->Height);
+                    writer.WriteLE<u16>(((CGumpJournal *)gump)->Height);
                 }
                 else if (gump->GumpType == GT_SKILLS)
                 {
-                    writer.WriteUInt16LE(((CGumpSkills *)gump)->Height);
+                    writer.WriteLE<u16>(((CGumpSkills *)gump)->Height);
                 }
                 else if (gump->GumpType == GT_WORLD_MAP)
                 {
                     CGumpWorldMap *wmg = (CGumpWorldMap *)gump;
 
-                    writer.WriteUInt8(wmg->GetMap());
-                    writer.WriteUInt8(wmg->GetScale());
-                    writer.WriteUInt8(static_cast<uint8_t>(wmg->GetLinkWithPlayer()));
+                    writer.WriteLE<u8>(wmg->GetMap());
+                    writer.WriteLE<u8>(wmg->GetScale());
+                    writer.WriteLE<u8>(static_cast<u8>(wmg->GetLinkWithPlayer()));
 
-                    writer.WriteInt16LE(wmg->Width);
-                    writer.WriteInt16LE(wmg->Height);
+                    writer.WriteLE<i16>(wmg->Width);
+                    writer.WriteLE<i16>(wmg->Height);
 
-                    writer.WriteInt16LE(wmg->OffsetX);
-                    writer.WriteInt16LE(wmg->OffsetY);
+                    writer.WriteLE<i16>(wmg->OffsetX);
+                    writer.WriteLE<i16>(wmg->OffsetY);
                 }
 
                 writer.WriteBuffer();
@@ -1663,7 +1623,7 @@ void CGumpManager::Save(const os_path &path)
             {
                 SaveDefaultGumpProperties(writer, gump, 14);
 
-                writer.WriteUInt16LE(gump->Graphic);
+                writer.WriteLE<u16>(gump->Graphic);
 
                 writer.WriteBuffer();
                 count++;
@@ -1701,9 +1661,9 @@ void CGumpManager::Save(const os_path &path)
 
                 SaveDefaultGumpProperties(writer, gump, 19);
 
-                writer.WriteUInt32LE(gump->Serial);
-                writer.WriteUInt16LE(gump->Graphic);
-                writer.WriteUInt8(((CGumpSpell *)gump)->SpellType);
+                writer.WriteLE<u32>(gump->Serial);
+                writer.WriteLE<u16>(gump->Graphic);
+                writer.WriteLE<u8>(((CGumpSpell *)gump)->SpellType);
                 writer.WriteBuffer();
 
                 count++;
@@ -1714,8 +1674,8 @@ void CGumpManager::Save(const os_path &path)
             {
                 SaveDefaultGumpProperties(writer, gump, 13);
 
-                writer.WriteUInt8(
-                    static_cast<uint8_t>(((CGumpConsoleType *)gump)->GetShowFullText()));
+                writer.WriteLE<u8>(
+                    static_cast<u8>(((CGumpConsoleType *)gump)->GetShowFullText()));
 
                 writer.WriteBuffer();
                 count++;
@@ -1726,7 +1686,7 @@ void CGumpManager::Save(const os_path &path)
             {
                 SaveDefaultGumpProperties(writer, gump, 16);
 
-                writer.WriteUInt32LE(gump->Serial);
+                writer.WriteLE<u32>(gump->Serial);
                 writer.WriteBuffer();
 
                 count++;
@@ -1738,12 +1698,12 @@ void CGumpManager::Save(const os_path &path)
         }
     }
 
-    vector<uint32_t> playerContainers;
+    std::vector<u32> playerContainers;
     playerContainers.push_back(g_PlayerSerial);
 
     while (!playerContainers.empty() && !containerList.empty())
     {
-        uint32_t containerSerial = playerContainers.front();
+        u32 containerSerial = playerContainers.front();
         playerContainers.erase(playerContainers.begin());
 
         for (vector<CGump *>::iterator it = containerList.begin(); it != containerList.end();)
@@ -1754,7 +1714,7 @@ void CGumpManager::Save(const os_path &path)
             {
                 SaveDefaultGumpProperties(writer, gump, 16);
 
-                writer.WriteUInt32LE(gump->Serial);
+                writer.WriteLE<u32>(gump->Serial);
                 writer.WriteBuffer();
 
                 count++;
@@ -1786,7 +1746,7 @@ void CGumpManager::Save(const os_path &path)
 
     if (static_cast<unsigned int>(!spellInGroupList.empty()) != 0u)
     {
-        vector<CGump *> spellGroups;
+        std::vector<CGump *> spellGroups;
 
         while (static_cast<unsigned int>(!spellInGroupList.empty()) != 0u)
         {
@@ -1821,25 +1781,26 @@ void CGumpManager::Save(const os_path &path)
                 spellsCount++;
             }
 
-            writer.WriteInt16LE(spellsCount);
+            writer.WriteLE<i16>(spellsCount);
 
             for (CGumpSpell *spell = (CGumpSpell *)spellGroups[i]; spell != nullptr;
                  spell = spell->m_GroupNext)
             {
                 SaveDefaultGumpProperties(writer, spell, 19);
 
-                writer.WriteUInt32LE(spell->Serial);
-                writer.WriteUInt16LE(spell->Graphic);
-                writer.WriteUInt8(spell->SpellType);
+                writer.WriteLE<u32>(spell->Serial);
+                writer.WriteLE<u16>(spell->Graphic);
+                writer.WriteLE<u8>(spell->SpellType);
                 writer.WriteBuffer();
             }
         }
     }
 
-    writer.WriteInt16LE(spellGroupsCount);
-    writer.WriteInt16LE(count);
-    writer.WriteUInt32LE(0); //EOF
+    writer.WriteLE<i16>(spellGroupsCount);
+    writer.WriteLE<i16>(count);
+    writer.WriteLE<u32>(0); //EOF
     writer.WriteBuffer();
 
-    writer.Close();
+    Core::File file(a_path, "wb");
+    file.Write(writer.GetBuffer(), writer.GetSize(), 1);
 }

@@ -7,14 +7,13 @@
 
 #include "PingThread.h"
 
-static std::atomic<int32_t> s_pingCnt;
+static std::atomic<i32> s_pingCnt;
 
-CPingThread::CPingThread(int serverID, const string &serverIP, int requestsCount)
+CPingThread::CPingThread(int serverID, const std::string &serverIP, int requestsCount)
     : ServerID(serverID)
     , ServerIP(serverIP)
     , RequestsCount(requestsCount)
 {
-    DEBUG_TRACE_FUNCTION;
     //assert(s_pingCnt == 0 && "Multiple ping threads running at the same time");
     s_pingCnt++;
     LOG("CPingThread => %s\n", serverIP.c_str());
@@ -22,7 +21,6 @@ CPingThread::CPingThread(int serverID, const string &serverIP, int requestsCount
 
 CPingThread::~CPingThread()
 {
-    DEBUG_TRACE_FUNCTION;
     //assert(s_pingCnt == 1 && "Multiple ping threads running at the same time");
     s_pingCnt--;
 }
@@ -35,7 +33,7 @@ int CPingThread::CalculatePing()
         return -4;
     }
 
-    uint32_t start = SDL_GetTicks();
+    u32 start = SDL_GetTicks();
     int result = icmp_query(handle, ServerIP.c_str(), &start);
     if (result == 0)
     {
@@ -46,9 +44,8 @@ int CPingThread::CalculatePing()
     return result;
 }
 
-void CPingThread::OnExecute(uint32_t nowTime)
+void CPingThread::OnExecute(u32 nowTime)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (ServerIP.empty() || RequestsCount < 1)
     {

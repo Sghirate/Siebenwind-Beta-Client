@@ -33,7 +33,7 @@ COrionWindow::COrionWindow()
     // Add some tests, this cliloc message seems to use broken UTF8
     // "Hey buddy... Looking for work?"
     //            ^^- c2 a0 - is an invalid code point
-    uint8_t d[] = {
+    u8 d[] = {
         0x48, 0x65, 0x79, 0x20, 0x62, 0x75, 0x64, 0x64, 0x79, 0x2E, 0xC2,
         0xA0, 0x20, 0x4C, 0x6F, 0x6F, 0x6B, 0x69, 0x6E, 0x67, 0x20, 0x66,
         0x6F, 0x72, 0x20, 0x77, 0x6F, 0x72, 0x6B, 0x3F
@@ -49,7 +49,6 @@ COrionWindow::~COrionWindow()
 
 void COrionWindow::SetRenderTimerDelay(int delay)
 {
-    DEBUG_TRACE_FUNCTION;
 #if USE_TIMERTHREAD
     auto timer = GetThreadedTimer(RENDER_TIMER_ID);
     if (timer != nullptr)
@@ -63,7 +62,6 @@ void COrionWindow::SetRenderTimerDelay(int delay)
 
 bool COrionWindow::OnCreate()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_GL.Install())
     {
         LOG("Error install OpenGL\n");
@@ -90,7 +88,6 @@ bool COrionWindow::OnCreate()
 
 void COrionWindow::OnDestroy()
 {
-    DEBUG_TRACE_FUNCTION;
 
 #if USE_TIMERTHREAD
     m_TimerThread->Stop();
@@ -109,13 +106,11 @@ void COrionWindow::OnDestroy()
 
 void COrionWindow::OnResize()
 {
-    DEBUG_TRACE_FUNCTION;
     g_GL.UpdateRect();
 }
 
 void COrionWindow::EmulateOnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_CurrentScreen->SelectObject();
@@ -135,7 +130,6 @@ int COrionWindow::GetRenderDelay()
 
 void COrionWindow::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_GeneratedMouseDown = false;
@@ -150,7 +144,6 @@ void COrionWindow::OnLeftMouseButtonDown()
 
 void COrionWindow::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_CurrentScreen->SelectObject();
@@ -179,7 +172,6 @@ void COrionWindow::OnLeftMouseButtonUp()
 
 bool COrionWindow::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
@@ -202,18 +194,17 @@ bool COrionWindow::OnLeftMouseButtonDoubleClick()
 
 void COrionWindow::OnRightMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_CurrentScreen->SelectObject();
         g_PressedObject.InitRight(g_SelectedObject);
         g_CurrentScreen->OnRightMouseButtonDown();
         if (g_SelectedObject.Gump == nullptr &&
-            !(g_MouseManager.Position.X < g_ConfigManager.GameWindowX ||
-              g_MouseManager.Position.Y < g_ConfigManager.GameWindowY ||
-              g_MouseManager.Position.X >
+            !(g_MouseManager.Position.x < g_ConfigManager.GameWindowX ||
+              g_MouseManager.Position.y < g_ConfigManager.GameWindowY ||
+              g_MouseManager.Position.x >
                   (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
-              g_MouseManager.Position.Y >
+              g_MouseManager.Position.y >
                   (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight)))
         {
             g_MovingFromMouse = true;
@@ -224,7 +215,6 @@ void COrionWindow::OnRightMouseButtonDown()
 
 void COrionWindow::OnRightMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_CurrentScreen->SelectObject();
@@ -242,7 +232,6 @@ void COrionWindow::OnRightMouseButtonUp()
 
 bool COrionWindow::OnRightMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
@@ -263,7 +252,6 @@ bool COrionWindow::OnRightMouseButtonDoubleClick()
 
 void COrionWindow::OnMidMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (PLUGIN_EVENT(UOMSG_INPUT_MBUTTONDOWN, 0x11110000))
     {
         return;
@@ -277,7 +265,6 @@ void COrionWindow::OnMidMouseButtonDown()
 
 void COrionWindow::OnMidMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     if (PLUGIN_EVENT(UOMSG_INPUT_MBUTTONDOWN, 0))
     {
         return;
@@ -291,7 +278,6 @@ void COrionWindow::OnMidMouseButtonUp()
 
 bool COrionWindow::OnMidMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         return g_CurrentScreen->OnMidMouseButtonDoubleClick();
@@ -302,7 +288,6 @@ bool COrionWindow::OnMidMouseButtonDoubleClick()
 
 void COrionWindow::OnMidMouseButtonScroll(bool up)
 {
-    DEBUG_TRACE_FUNCTION;
     if (PLUGIN_EVENT(UOMSG_INPUT_MOUSEWHEEL, (up ? 0 : 0x11110000)))
     {
         return;
@@ -317,7 +302,6 @@ void COrionWindow::OnMidMouseButtonScroll(bool up)
 
 void COrionWindow::OnXMouseButton(bool up)
 {
-    DEBUG_TRACE_FUNCTION;
     if (PLUGIN_EVENT(UOMSG_INPUT_XBUTTONDOWN, (up ? 0 : 0x11110000)))
     {
         return;
@@ -326,7 +310,6 @@ void COrionWindow::OnXMouseButton(bool up)
 
 void COrionWindow::OnDragging()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_CurrentScreen->OnDragging();
@@ -335,7 +318,6 @@ void COrionWindow::OnDragging()
 
 void COrionWindow::OnActivate()
 {
-    DEBUG_TRACE_FUNCTION;
     g_Orion.ResumeSound();
     SetRenderTimerDelay(g_FrameDelay[WINDOW_ACTIVE]);
     if (!g_PluginManager.Empty())
@@ -346,7 +328,6 @@ void COrionWindow::OnActivate()
 
 void COrionWindow::OnDeactivate()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.BackgroundSound)
     {
         g_Orion.PauseSound();
@@ -365,7 +346,6 @@ void COrionWindow::OnDeactivate()
 
 void COrionWindow::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto ch = EvChar(ev);
     if (PLUGIN_EVENT(UOMSG_INPUT_CHAR, &ev))
@@ -400,7 +380,6 @@ void COrionWindow::OnTextInput(const TextEvent &ev)
 
 void COrionWindow::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (PLUGIN_EVENT(UOMSG_INPUT_KEYDOWN, &ev))
     {
@@ -422,7 +401,6 @@ void COrionWindow::OnKeyDown(const KeyEvent &ev)
 
 void COrionWindow::OnKeyUp(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     // FIXME: Send struct events to plugins
     if (PLUGIN_EVENT(UOMSG_INPUT_KEYUP, &ev))
@@ -444,7 +422,6 @@ void COrionWindow::OnKeyUp(const KeyEvent &ev)
 
 bool COrionWindow::OnRepaint(const PaintEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (!g_PluginManager.Empty())
     {
@@ -459,7 +436,6 @@ bool COrionWindow::OnRepaint(const PaintEvent &ev)
 
 void COrionWindow::OnShow(bool show)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_PluginManager.Empty())
     {
         PLUGIN_EVENT(UOMSG_WIN_SHOW, show);
@@ -468,7 +444,6 @@ void COrionWindow::OnShow(bool show)
 
 void COrionWindow::OnSetText(const char *str)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_PluginManager.Empty())
     {
         // CHECK: str was second parameter, why?
@@ -477,9 +452,8 @@ void COrionWindow::OnSetText(const char *str)
     }
 }
 
-void COrionWindow::OnTimer(uint32_t id)
+void COrionWindow::OnTimer(u32 id)
 {
-    DEBUG_TRACE_FUNCTION;
 
 #if USE_TIMERTHREAD
     if (id == UPDATE_TIMER_ID)
@@ -496,9 +470,8 @@ void COrionWindow::OnTimer(uint32_t id)
 }
 
 #if USE_TIMERTHREAD
-void COrionWindow::OnThreadedTimer(uint32_t nowTime, Wisp::CThreadedTimer *timer)
+void COrionWindow::OnThreadedTimer(u32 nowTime, Wisp::CThreadedTimer *timer)
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_Ticks = nowTime;
     if (timer->TimerID == RENDER_TIMER_ID)
@@ -514,7 +487,6 @@ void COrionWindow::OnThreadedTimer(uint32_t nowTime, Wisp::CThreadedTimer *timer
 
 bool COrionWindow::OnUserMessages(const UserEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     switch (ev.code)
     {
@@ -523,7 +495,7 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
             AutoFree p(ev.data1);
 
             g_PacketManager.SavePluginReceivePacket(
-                (uint8_t *)ev.data1, checked_cast<int>(ev.data2));
+                (u8 *)ev.data1, checked_cast<int>(ev.data2));
             return true;
         }
         break;
@@ -532,8 +504,8 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
         {
             AutoFree p(ev.data1);
 
-            uint32_t ticks = g_Ticks;
-            uint8_t *buf = (uint8_t *)ev.data1;
+            u32 ticks = g_Ticks;
+            u8 *buf = (u8 *)ev.data1;
             int size = checked_cast<int>(ev.data2);
 
             g_TotalSendSize += size;
@@ -565,15 +537,15 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
             {
                 LOG_DUMP(buf, size);
             }
-            g_ConnectionManager.Send((uint8_t *)ev.data1, checked_cast<int>(ev.data2));
+            g_ConnectionManager.Send((u8 *)ev.data1, checked_cast<int>(ev.data2));
             return true;
         }
         break;
 
         case UOMSG_PATHFINDING:
         {
-            const auto xy = checked_cast<uint32_t>(ev.data1);
-            const auto zd = checked_cast<uint32_t>(ev.data2);
+            const auto xy = checked_cast<u32>(ev.data1);
+            const auto zd = checked_cast<u32>(ev.data2);
             return !g_PathFinder.WalkTo(
                 (xy >> 16) & 0xFFFF, xy & 0xFFFF, (zd >> 16) & 0xFFFF, zd & 0xFFFF);
         }
@@ -582,7 +554,7 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
         case UOMSG_WALK:
         {
             const auto run = (bool)ev.data1;
-            const auto dir = checked_cast<uint8_t>(ev.data2);
+            const auto dir = checked_cast<u8>(ev.data2);
             return !g_PathFinder.Walk(run, dir);
         }
         break;
@@ -669,7 +641,7 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
 #if USE_TIMERTHREAD
         case Wisp::CThreadedTimer::MessageID:
         {
-            auto nowTime = checked_cast<uint32_t>(ev.data1);
+            auto nowTime = checked_cast<u32>(ev.data1);
             auto timer = (Wisp::CThreadedTimer *)ev.data2;
             OnThreadedTimer(nowTime, timer);
             //DebugMsg("OnThreadedTimer %i, 0x%08X\n", nowTime, timer);
@@ -679,7 +651,7 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
 
         case COrionWindow::MessageID:
         {
-            OnTimer(checked_cast<uint32_t>(ev.data1));
+            OnTimer(checked_cast<u32>(ev.data1));
             break;
         }
 

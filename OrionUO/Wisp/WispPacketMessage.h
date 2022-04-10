@@ -10,20 +10,20 @@ class CPacketMessage
     bool BigEndian = false;
 
 protected:
-    vector<uint8_t> m_Data;
+    std::vector<u8> m_Data;
 
 public:
     CPacketMessage(bool bigEndian = true);
-    CPacketMessage(uint8_t *data, int dataSizeconst, bool bigEndian = true);
-    CPacketMessage(const vector<uint8_t> &dataconst, bool bigEndian = true);
+    CPacketMessage(u8 *data, int dataSizeconst, bool bigEndian = true);
+    CPacketMessage(const std::vector<u8> &dataconst, bool bigEndian = true);
     virtual ~CPacketMessage();
 
-    void Append(uint8_t *data, int dataSize);
-    void Append(const vector<uint8_t> &data);
+    void Append(u8 *data, int dataSize);
+    void Append(const std::vector<u8> &data);
 
     void Clear() { m_Data.clear(); }
 
-    vector<uint8_t> Read(class CPacketReader *reader, int &dataOffset);
+    std::vector<u8> Read(class CPacketReader *reader, int &dataOffset);
 };
 
 }; // namespace Wisp

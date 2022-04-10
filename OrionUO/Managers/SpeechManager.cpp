@@ -7,7 +7,7 @@
 
 CSpeechManager g_SpeechManager;
 
-CSpeechItem::CSpeechItem(uint16_t code, const wstring &data)
+CSpeechItem::CSpeechItem(u16 code, const std::wstring &data)
     : Code(code)
     , Data(data)
 {
@@ -32,14 +32,12 @@ CSpeechManager::CSpeechManager()
 
 CSpeechManager::~CSpeechManager()
 {
-    DEBUG_TRACE_FUNCTION;
     m_SpeechEntries.clear();
     m_LangCodes.clear();
 }
 
 bool CSpeechManager::LoadSpeech()
 {
-    DEBUG_TRACE_FUNCTION;
     LoadLangCodes();
 
     for (int i = 0; i < (int)m_LangCodes.size(); i++)
@@ -58,10 +56,10 @@ bool CSpeechManager::LoadSpeech()
     }
     LOG("Selected language: %s\n", g_Language.c_str());
 
-    Wisp::CDataReader reader;
-    vector<uint8_t> tempData;
+    Core::StreamReader reader;
+    std::vector<u8> tempData;
     bool isUOP = false;
-    if (g_FileManager.m_MainMisc.Start != nullptr)
+    if (g_FileManager.m_MainMisc.GetBuffer() != nullptr)
     {
         CUopBlockHeader *block = g_FileManager.m_MainMisc.GetBlock(0x0891F809004D8081);
         if (block != nullptr)
@@ -72,18 +70,18 @@ bool CSpeechManager::LoadSpeech()
         }
     }
 
-    if (reader.Start == nullptr)
+    if (reader.GetBuffer() == nullptr)
     {
-        reader.SetData(g_FileManager.m_SpeechMul.Start, g_FileManager.m_SpeechMul.Size);
+        reader.SetData(g_FileManager.m_SpeechMul.GetBuffer(), g_FileManager.m_SpeechMul.Size);
     }
 
     if (isUOP)
     {
         LOG("Loading speech from UOP\n");
         reader.Move(2);
-        wstring mainData = reader.ReadWStringLE(reader.Size - 2);
-        vector<wstring> list;
-        wstring temp;
+        std::wstring mainData = reader.ReadWStringLE(reader.GetSize() - 2);
+        std::vector<std::wstring> list;
+        std::wstring temp;
         for (const wchar_t &c : mainData)
         {
             if (c == 0x000D || c == 0x000A)
@@ -106,9 +104,9 @@ bool CSpeechManager::LoadSpeech()
             temp = {};
         }
 
-        for (const wstring &line : list)
+        for (const std::wstring &line : list)
         {
-            uint16_t code = 0xFFFF;
+            u16 code = 0xFFFF;
             temp = {};
             for (const wchar_t c : line)
             {
@@ -137,14 +135,14 @@ bool CSpeechManager::LoadSpeech()
         LOG("Loading speech from MUL\n");
         while (!reader.IsEOF())
         {
-            const uint16_t code = reader.ReadUInt16BE();
+            const u16 code = reader.ReadUInt16BE();
             const int len = reader.ReadUInt16BE();
             if (len == 0)
             {
                 continue;
             }
 
-            wstring str = DecodeUTF8(reader.ReadString(len));
+            std::wstring str = DecodeUTF8(reader.ReadString(len));
             m_SpeechEntries.push_back(CSpeechItem(code, str));
         }
     }
@@ -156,7 +154,6 @@ bool CSpeechManager::LoadSpeech()
 
 bool CSpeechManager::LoadLangCodes()
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_LangCodes.push_back(CLangCode("enu", 101, "English", "United States"));
     Wisp::CMappedFile &file = g_FileManager.m_LangcodeIff;
@@ -167,7 +164,7 @@ bool CSpeechManager::LoadLangCodes()
         CLangCode langCodeData;
         file.Move(4);
 
-        const uint32_t entryLen = file.ReadUInt32BE();
+        const u32 entryLen = file.ReadUInt32BE();
         langCodeData.Abbreviature = file.ReadString();
         langCodeData.Code = file.ReadUInt32LE();
         langCodeData.Language = file.ReadString();
@@ -190,20 +187,19 @@ bool CSpeechManager::LoadLangCodes()
     return true;
 }
 
-void CSpeechManager::GetKeywords(const wchar_t *text, vector<uint32_t> &codes)
+void CSpeechManager::GetKeywords(const wchar_t *text, std::vector<u32> &codes)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!m_Loaded || g_Config.ClientVersion < CV_305D)
     {
         return; // But in fact from the client version 2.0.7
     }
 
     const auto size = (int)m_SpeechEntries.size();
-    wstring input = ToLowerW(text);
+    std::wstring input = ToLowerW(text);
     for (int i = 0; i < size; i++)
     {
         CSpeechItem entry = m_SpeechEntries[i];
-        wstring data = entry.Data;
+        std::wstring data = entry.Data;
 
         if (data.length() > input.length() || data.length() == 0)
         {
@@ -212,9 +208,9 @@ void CSpeechManager::GetKeywords(const wchar_t *text, vector<uint32_t> &codes)
 
         if (!entry.CheckStart)
         {
-            wstring start = input.substr(0, data.length());
+            std::wstring start = input.substr(0, data.length());
             size_t hits = start.find(data);
-            if (hits == wstring::npos)
+            if (hits == std::wstring::npos)
             {
                 continue;
             }
@@ -222,16 +218,16 @@ void CSpeechManager::GetKeywords(const wchar_t *text, vector<uint32_t> &codes)
 
         if (!entry.CheckEnd)
         {
-            wstring end = input.substr(input.length() - data.length());
+            std::wstring end = input.substr(input.length() - data.length());
             size_t hits = end.find(data);
-            if (hits == wstring::npos)
+            if (hits == std::wstring::npos)
             {
                 continue;
             }
         }
 
         size_t hits = input.find(data);
-        if (hits != wstring::npos)
+        if (hits != std::wstring::npos)
         {
             codes.push_back(entry.Code);
         }

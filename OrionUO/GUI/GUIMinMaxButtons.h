@@ -24,10 +24,10 @@ public:
     SLIDER_TEXT_POSITION TextPosition = STP_RIGHT;
 
     //!Шрифт текста
-    uint8_t Font = 0;
+    u8 Font = 0;
 
     //!Цвет текста
-    uint16_t TextColor = 0;
+    u16 TextColor = 0;
 
     //!Юникод текст
     bool Unicode = true;
@@ -39,7 +39,7 @@ public:
     TEXT_ALIGN_TYPE Align = TS_LEFT;
 
     //!Флаги текста
-    uint16_t TextFlags = 0;
+    u16 TextFlags = 0;
 
     //!Координата текста по оси X
     int TextX = 0;
@@ -54,7 +54,7 @@ public:
     int ScrollStep = 1;
 
     //!Время последней итерации прокрутки
-    uint32_t LastScrollTime = 0;
+    u32 LastScrollTime = 0;
 
     //!Стандартное смещение текста
     int DefaultTextOffset = 2;
@@ -68,12 +68,12 @@ private:
 
 public:
     CGUIMinMaxButtons(
-        int serial, uint16_t graphic, int x, int y, int minValue, int maxValue, int value);
+        int serial, u16 graphic, int x, int y, int minValue, int maxValue, int value);
     virtual ~CGUIMinMaxButtons();
 
     virtual bool IsPressedOuthit() { return true; }
 
-    virtual CSize GetSize() { return CSize(36, 18); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(36, 18); }
 
     //Прокрутка
     virtual void Scroll(int delay);
@@ -88,12 +88,12 @@ public:
     void SetTextParameters(
         bool haveText,
         SLIDER_TEXT_POSITION textPosition,
-        uint8_t font,
-        uint16_t color,
+        u8 font,
+        u16 color,
         bool unicode,
         int textWidth = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t textFlags = 0);
+        u16 textFlags = 0);
 
     virtual void PrepareTextures();
 

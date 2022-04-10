@@ -11,7 +11,6 @@ COrionApplication g_App;
 
 void COrionApplication::OnMainLoop()
 {
-    //DEBUG_TRACE_FUNCTION;
     g_Ticks = SDL_GetTicks();
 
 #if USE_TIMERTHREAD

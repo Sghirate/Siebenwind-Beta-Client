@@ -12,7 +12,6 @@ CConnection::CConnection()
 
 void CConnection::Init()
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Socket = tcp_open();
     m_MessageParser = new CPacketMessage();
@@ -20,7 +19,6 @@ void CConnection::Init()
 
 CConnection::~CConnection()
 {
-    DEBUG_TRACE_FUNCTION;
     Disconnect();
 
     if (m_MessageParser != nullptr)
@@ -30,9 +28,8 @@ CConnection::~CConnection()
     }
 }
 
-bool CConnection::Connect(const string &address, uint16_t port)
+bool CConnection::Connect(const std::string &address, u16 port)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Connected)
     {
         return false;
@@ -62,7 +59,6 @@ bool CConnection::Connect(const string &address, uint16_t port)
 
 void CConnection::Disconnect()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Connected && m_Socket != nullptr)
     {
         tcp_close(m_Socket);
@@ -76,7 +72,6 @@ void CConnection::Disconnect()
 
 bool CConnection::ReadyRead()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Connected || m_Socket == nullptr)
     {
         return false;
@@ -94,7 +89,6 @@ bool CConnection::ReadyRead()
 
 bool CConnection::Read(int maxSize)
 {
-    DEBUG_TRACE_FUNCTION;
     if (DataReady == -1)
     {
         LOG("CConnection::Read, m_DataReady=%i\n", DataReady);
@@ -102,7 +96,7 @@ bool CConnection::Read(int maxSize)
     }
     else if (Connected && m_Socket != nullptr)
     {
-        vector<uint8_t> data(maxSize);
+        std::vector<u8> data(maxSize);
         const int size = tcp_recv(m_Socket, &data[0], maxSize);
 
         if (size > 0)
@@ -124,9 +118,8 @@ bool CConnection::Read(int maxSize)
     return false;
 }
 
-int CConnection::Send(uint8_t *data, int size)
+int CConnection::Send(u8 *data, int size)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!Connected || m_Socket == nullptr)
     {
         return 0;
@@ -137,15 +130,14 @@ int CConnection::Send(uint8_t *data, int size)
     return sent;
 }
 
-int CConnection::Send(const vector<uint8_t> &data)
+int CConnection::Send(const std::vector<u8> &data)
 {
-    DEBUG_TRACE_FUNCTION;
     if (data.empty())
     {
         return 0;
     }
 
-    const int sent = Send((uint8_t *)&data[0], (int)data.size());
+    const int sent = Send((u8 *)&data[0], (int)data.size());
     LOG("CConnection::Send=>%i\n", sent);
     return sent;
 }

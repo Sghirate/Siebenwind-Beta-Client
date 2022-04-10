@@ -1,11 +1,8 @@
-// MIT License
-
 #include "WispWindow.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <SDL_timer.h>
 #include <SDL_rect.h>
-#include "../Point.h"
 #include "../OrionWindow.h"
 #include "../Managers/PluginManager.h"
 
@@ -17,7 +14,6 @@ WindowHandle CWindow::Handle = 0;
 #if USE_WISP
 LRESULT CALLBACK WindowProc(WindowHandle hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_WispWindow != nullptr)
         return g_WispWindow->OnWindowProc(hWnd, message, wParam, lParam);
 
@@ -27,7 +23,6 @@ LRESULT CALLBACK WindowProc(WindowHandle hWnd, UINT message, WPARAM wParam, LPAR
 
 CWindow::CWindow()
 {
-    DEBUG_TRACE_FUNCTION;
     g_WispWindow = this;
 }
 
@@ -57,10 +52,9 @@ void CWindow::MaximizeWindow()
 #endif
 }
 
-void CWindow::SetSize(const CSize &size)
+void CWindow::SetSize(const Core::Vec2<i32> &size)
 {
 #if USE_WISP
-    DEBUG_TRACE_FUNCTION;
     RECT pos = { 0, 0, 0, 0 };
     GetWindowRect(Handle, &pos);
 
@@ -123,9 +117,8 @@ void CWindow::GetPositionSize(int *x, int *y, int *width, int *height)
 #endif
 }
 
-void CWindow::SetMinSize(const CSize &newMinSize)
+void CWindow::SetMinSize(const Core::Vec2<i32> &newMinSize)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Size.Width < newMinSize.Width || m_Size.Height < newMinSize.Height)
     {
         int width = m_Size.Width;
@@ -171,24 +164,16 @@ void CWindow::SetMinSize(const CSize &newMinSize)
     m_MinSize = newMinSize;
 }
 
-void CWindow::SetMaxSize(const CSize &newMaxSize)
+void CWindow::SetMaxSize(const Core::Vec2<i32> &newMaxSize)
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (m_Size.Width > newMaxSize.Width || m_Size.Height > newMaxSize.Height)
     {
-        int width = m_Size.Width;
-        int height = m_Size.Height;
-
-        if (width > newMaxSize.Width)
-        {
-            width = newMaxSize.Width;
-        }
-
-        if (height > newMaxSize.Height)
-        {
-            height = newMaxSize.Height;
-        }
+        int width = m_Size.x;
+        int height = m_Size.y;
+        if (width > newMaxSize.x)
+            width = newMaxSize.x;
+        if (height > newMaxSize.y)
+            height = newMaxSize.y;
 
 #if USE_WISP
         RECT pos = { 0, 0, 0, 0 };
@@ -224,14 +209,13 @@ void CWindow::SetMaxSize(const CSize &newMaxSize)
 bool CWindow::Create(
     const char *className, const char *title, bool showCursor, int width, int height)
 {
-    DEBUG_TRACE_FUNCTION;
 
 #if USE_WISP
     HICON icon = LoadIcon(g_OrionWindow.hInstance, MAKEINTRESOURCE(IDI_ORIONUO));
     HCURSOR cursor = LoadCursor(g_OrionWindow.hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
 
-    static wstring wclassName = ToWString(className);
-    static wstring wtitle = ToWString(title);
+    static std::wstring wclassName = ToWString(className);
+    static std::wstring wtitle = ToWString(title);
     WNDCLASSEX wcex = { 0 };
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -379,7 +363,6 @@ bool CWindow::Create(
 
 void CWindow::Destroy()
 {
-    DEBUG_TRACE_FUNCTION;
 #if USE_WISP
     PostMessage(Handle, WM_CLOSE, 0, 0);
 #else
@@ -390,9 +373,8 @@ void CWindow::Destroy()
 #endif
 }
 
-void CWindow::ShowMessage(const string &text, const string &title)
+void CWindow::ShowMessage(const std::string &text, const std::string &title)
 {
-    DEBUG_TRACE_FUNCTION;
 #if USE_WISP
     MessageBoxA(Handle, text.c_str(), title.c_str(), MB_OK);
 #else
@@ -400,9 +382,8 @@ void CWindow::ShowMessage(const string &text, const string &title)
 #endif
 }
 
-void CWindow::ShowMessage(const wstring &text, const wstring &title)
+void CWindow::ShowMessage(const std::wstring &text, const std::wstring &title)
 {
-    DEBUG_TRACE_FUNCTION;
 #if USE_WISP
     MessageBoxW(Handle, text.c_str(), title.c_str(), MB_OK);
 #else
@@ -413,7 +394,6 @@ void CWindow::ShowMessage(const wstring &text, const wstring &title)
 #if USE_WISP
 LRESULT CWindow::OnWindowProc(WindowHandle &hWnd, UINT &message, WPARAM &wParam, LPARAM &lParam)
 {
-    DEBUG_TRACE_FUNCTION;
     //DebugMsg("m=0x%08X, w0x%08X l0x%08X\n", message, wParam, lParam);
     static bool parse = true;
 
@@ -525,7 +505,7 @@ LRESULT CWindow::OnWindowProc(WindowHandle &hWnd, UINT &message, WPARAM &wParam,
             Wisp::g_WispMouse->LeftDropPosition = Wisp::g_WispMouse->Position;
             Wisp::g_WispMouse->CancelDoubleClick = false;
 
-            uint32_t ticks = SDL_GetTicks();
+            u32 ticks = SDL_GetTicks();
 
             if (Wisp::g_WispMouse->LastLeftButtonClickTimer + Wisp::g_WispMouse->DoubleClickDelay >=
                 ticks)
@@ -570,7 +550,7 @@ LRESULT CWindow::OnWindowProc(WindowHandle &hWnd, UINT &message, WPARAM &wParam,
             Wisp::g_WispMouse->RightDropPosition = Wisp::g_WispMouse->Position;
             Wisp::g_WispMouse->CancelDoubleClick = false;
 
-            uint32_t ticks = SDL_GetTicks();
+            u32 ticks = SDL_GetTicks();
 
             if (Wisp::g_WispMouse->LastRightButtonClickTimer +
                     Wisp::g_WispMouse->DoubleClickDelay >=
@@ -617,7 +597,7 @@ LRESULT CWindow::OnWindowProc(WindowHandle &hWnd, UINT &message, WPARAM &wParam,
             Wisp::g_WispMouse->MidDropPosition = Wisp::g_WispMouse->Position;
             Wisp::g_WispMouse->CancelDoubleClick = false;
 
-            uint32_t ticks = SDL_GetTicks();
+            u32 ticks = SDL_GetTicks();
 
             if (Wisp::g_WispMouse->LastMidButtonClickTimer + Wisp::g_WispMouse->DoubleClickDelay >=
                 ticks)
@@ -712,13 +692,13 @@ LRESULT CWindow::OnWindowProc(WindowHandle &hWnd, UINT &message, WPARAM &wParam,
         }
         case WM_TIMER:
         {
-            OnTimer((uint32_t)wParam);
+            OnTimer((u32)wParam);
             break;
         }
 #if USE_TIMERTHREAD
         case Wisp::CThreadedTimer::MessageID:
         {
-            OnThreadedTimer((uint32_t)wParam, (Wisp::CThreadedTimer *)lParam);
+            OnThreadedTimer((u32)wParam, (Wisp::CThreadedTimer *)lParam);
             //DebugMsg("OnThreadedTimer %i, 0x%08X\n", wParam, lParam);
             return 0;
         }
@@ -751,7 +731,7 @@ bool CWindow::IsActive() const
     return (::GetForegroundWindow() == Handle);
 }
 
-void CWindow::SetTitle(const string &text) const
+void CWindow::SetTitle(const std::string &text) const
 {
     ::SetWindowTextA(Handle, text.c_str());
 }
@@ -771,19 +751,19 @@ bool CWindow::IsMaximizedWindow() const
     return (::IsZoomed(Handle) != FALSE);
 }
 
-void CWindow::CreateTimer(uint32_t id, int delay)
+void CWindow::CreateTimer(u32 id, int delay)
 {
     ::SetTimer(Handle, id, delay, nullptr);
 }
 
-void CWindow::RemoveTimer(uint32_t id)
+void CWindow::RemoveTimer(u32 id)
 {
     ::KillTimer(Handle, id);
 }
 
-uint32_t CWindow::PushEvent(uint32_t id, void *data1, void *data2)
+u32 CWindow::PushEvent(u32 id, void *data1, void *data2)
 {
-    return (uint32_t)SendMessage(Handle, id, (WPARAM)data1, (LPARAM)data2);
+    return (u32)SendMessage(Handle, id, (WPARAM)data1, (LPARAM)data2);
 }
 
 void CWindow::Raise()
@@ -922,7 +902,7 @@ bool CWindow::OnWindowProc(SDL_Event &ev)
                         Wisp::g_WispMouse->LeftButtonPressed = true;
                         Wisp::g_WispMouse->LeftDropPosition = Wisp::g_WispMouse->Position;
                         Wisp::g_WispMouse->CancelDoubleClick = false;
-                        uint32_t ticks = SDL_GetTicks();
+                        u32 ticks = SDL_GetTicks();
                         if (Wisp::g_WispMouse->LastLeftButtonClickTimer +
                                 Wisp::g_WispMouse->DoubleClickDelay >=
                             ticks)
@@ -969,7 +949,7 @@ bool CWindow::OnWindowProc(SDL_Event &ev)
                         Wisp::g_WispMouse->MidButtonPressed = true;
                         Wisp::g_WispMouse->MidDropPosition = Wisp::g_WispMouse->Position;
                         Wisp::g_WispMouse->CancelDoubleClick = false;
-                        uint32_t ticks = SDL_GetTicks();
+                        u32 ticks = SDL_GetTicks();
                         if (Wisp::g_WispMouse->LastMidButtonClickTimer +
                                 Wisp::g_WispMouse->DoubleClickDelay >=
                             ticks)
@@ -1009,7 +989,7 @@ bool CWindow::OnWindowProc(SDL_Event &ev)
                         Wisp::g_WispMouse->RightButtonPressed = true;
                         Wisp::g_WispMouse->RightDropPosition = Wisp::g_WispMouse->Position;
                         Wisp::g_WispMouse->CancelDoubleClick = false;
-                        uint32_t ticks = SDL_GetTicks();
+                        u32 ticks = SDL_GetTicks();
                         if (Wisp::g_WispMouse->LastRightButtonClickTimer +
                                 Wisp::g_WispMouse->DoubleClickDelay >=
                             ticks)
@@ -1082,7 +1062,7 @@ bool CWindow::IsActive() const
     return (SDL_GetWindowFlags(m_window) & SDL_WINDOW_INPUT_FOCUS) != 0;
 }
 
-void CWindow::SetTitle(const string &text) const
+void CWindow::SetTitle(const std::string &text) const
 {
     SDL_SetWindowTitle(m_window, text.c_str());
 }
@@ -1104,13 +1084,13 @@ bool CWindow::IsMaximizedWindow() const
 
 static SDL_TimerID timer_table[FASTLOGIN_TIMER_ID] = {};
 
-static uint32_t TimerCallbackEventPusher(uint32_t interval, void *param)
+static u32 TimerCallbackEventPusher(u32 interval, void *param)
 {
     PUSH_EVENT(COrionWindow::MessageID, param, nullptr);
     return interval;
 }
 
-void CWindow::CreateTimer(uint32_t id, int delay)
+void CWindow::CreateTimer(u32 id, int delay)
 {
     assert(id > 0 && id < countof(timer_table));
     if (timer_table[id - 1] != 0)
@@ -1122,7 +1102,7 @@ void CWindow::CreateTimer(uint32_t id, int delay)
     timer_table[id - 1] = handle;
 }
 
-void CWindow::RemoveTimer(uint32_t id)
+void CWindow::RemoveTimer(u32 id)
 {
     assert(id >= 0 && id < countof(timer_table));
     if (timer_table[id - 1] != 0)
@@ -1137,7 +1117,7 @@ void CWindow::Raise()
     SDL_RaiseWindow(g_OrionWindow.m_window);
 }
 
-uint32_t CWindow::PushEvent(uint32_t id, void *data1, void *data2)
+u32 CWindow::PushEvent(u32 id, void *data1, void *data2)
 {
     SDL_UserEvent userevent;
     userevent.type = SDL_USEREVENT;
@@ -1156,16 +1136,15 @@ uint32_t CWindow::PushEvent(uint32_t id, void *data1, void *data2)
 
 #endif
 
-uint32_t CWindow::PluginEvent(uint32_t id, const void *data)
+u32 CWindow::PluginEvent(u32 id, const void *data)
 {
     return g_PluginManager.OnEvent(id, data);
 }
 
 #if USE_TIMERTHREAD
 CThreadedTimer *CWindow::CreateThreadedTimer(
-    uint32_t id, int delay, bool oneShot, bool waitForProcessMessage, bool synchronizedDelay)
+    u32 id, int delay, bool oneShot, bool waitForProcessMessage, bool synchronizedDelay)
 {
-    DEBUG_TRACE_FUNCTION;
     for (auto i = m_ThreadedTimersStack.begin(); i != m_ThreadedTimersStack.end(); ++i)
     {
         if ((*i)->TimerID == id)
@@ -1181,9 +1160,8 @@ CThreadedTimer *CWindow::CreateThreadedTimer(
     return timer;
 }
 
-void CWindow::RemoveThreadedTimer(uint32_t id)
+void CWindow::RemoveThreadedTimer(u32 id)
 {
-    DEBUG_TRACE_FUNCTION;
     for (auto i = m_ThreadedTimersStack.begin(); i != m_ThreadedTimersStack.end(); ++i)
     {
         if ((*i)->TimerID == id)
@@ -1195,9 +1173,8 @@ void CWindow::RemoveThreadedTimer(uint32_t id)
     }
 }
 
-Wisp::CThreadedTimer *CWindow::GetThreadedTimer(uint32_t id)
+Wisp::CThreadedTimer *CWindow::GetThreadedTimer(u32 id)
 {
-    DEBUG_TRACE_FUNCTION;
     for (auto i = m_ThreadedTimersStack.begin(); i != m_ThreadedTimersStack.end(); ++i)
     {
         if ((*i)->TimerID == id)

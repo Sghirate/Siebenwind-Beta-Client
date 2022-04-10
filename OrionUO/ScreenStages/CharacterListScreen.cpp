@@ -23,7 +23,6 @@ CCharacterListScreen::~CCharacterListScreen()
 
 void CCharacterListScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
 
     string title = SiebenwindClient::WindowTitle + " - " + g_MainScreen.m_Account->c_str();
 
@@ -45,9 +44,8 @@ void CCharacterListScreen::Init()
     m_Gump.WantUpdateContent = true;
 }
 
-void CCharacterListScreen::ProcessSmoothAction(uint8_t action)
+void CCharacterListScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -88,7 +86,6 @@ void CCharacterListScreen::ProcessSmoothAction(uint8_t action)
 
 void CCharacterListScreen::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Gump.OnKeyDown(ev);
 

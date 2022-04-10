@@ -8,7 +8,7 @@
 struct WEB_LINK_RECT
 {
     //Индекс ссылки
-    uint16_t LinkID;
+    u16 LinkID;
 
     //Начало ссылки относительно начальных координат текста
     int StartX;
@@ -41,5 +41,5 @@ public:
     virtual void AddWebLink(WEB_LINK_RECT &wl) {}
 
     //Проверка веб-ссылки под мышкой
-    virtual uint16_t WebLinkUnderMouse(int x, int y) { return 0; }
+    virtual u16 WebLinkUnderMouse(int x, int y) { return 0; }
 };

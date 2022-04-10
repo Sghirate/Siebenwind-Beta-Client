@@ -26,13 +26,12 @@ CPathFinder::~CPathFinder()
 {
 }
 
-bool CPathFinder::CreateItemsList(vector<CPathObject> &list, int x, int y, int stepState)
+bool CPathFinder::CreateItemsList(std::vector<CPathObject> &list, int x, int y, int stepState)
 {
-    DEBUG_TRACE_FUNCTION;
     int blockX = x / 8;
     int blockY = y / 8;
 
-    const uint32_t blockIndex = (blockX * g_MapBlockSize[g_CurrentMap].Height) + blockY;
+    const u32 blockIndex = (blockX * g_MapBlockSize[g_CurrentMap].Height) + blockY;
     if (blockIndex >= g_MapManager.MaxBlockIndex)
     {
         return false;
@@ -62,14 +61,14 @@ bool CPathFinder::CreateItemsList(vector<CPathObject> &list, int x, int y, int s
             continue;
         }
 
-        const uint16_t graphic = obj->Graphic;
+        const u16 graphic = obj->Graphic;
         if (obj->IsLandObject())
         {
             if ((graphic < 0x01AE && graphic != 2) || (graphic > 0x01B5 && graphic != 0x01DB))
             {
                 CLandObject *land = (CLandObject *)obj;
-                uint32_t flags = POF_IMPASSABLE_OR_SURFACE;
-                const uint64_t tiledataFlags = g_Orion.GetLandFlags(graphic);
+                u32 flags = POF_IMPASSABLE_OR_SURFACE;
+                const u64 tiledataFlags = g_Orion.GetLandFlags(graphic);
                 if (stepState == PSS_ON_SEA_HORSE)
                 {
                     if (IsWet(tiledataFlags))
@@ -144,7 +143,7 @@ bool CPathFinder::CreateItemsList(vector<CPathObject> &list, int x, int y, int s
 
             if (canBeAdd)
             {
-                uint32_t flags = 0;
+                u32 flags = 0;
                 if (stepState == PSS_ON_SEA_HORSE)
                 {
                     if (obj->IsWet())
@@ -221,7 +220,6 @@ bool CPathFinder::CreateItemsList(vector<CPathObject> &list, int x, int y, int s
 int CPathFinder::CalculateMinMaxZ(
     int &minZ, int &maxZ, int newX, int newY, int currentZ, int newDirection, int stepState)
 {
-    DEBUG_TRACE_FUNCTION;
     const int offsetX[10] = { 0, 1, 1, 1, 0, -1, -1, -1, 0, 1 };
     const int offsetY[10] = { -1, -1, 0, 1, 1, 1, 0, -1, -1, -1 };
 
@@ -234,7 +232,7 @@ int CPathFinder::CalculateMinMaxZ(
     newX += offsetX[direction];
     newY += offsetY[direction];
 
-    vector<CPathObject> list;
+    std::vector<CPathObject> list;
 
     if (!CreateItemsList(list, newX, newY, stepState) || list.empty())
     {
@@ -293,7 +291,6 @@ int CPathFinder::CalculateMinMaxZ(
 
 bool CPathFinder::CalculateNewZ(int x, int y, char &z, int direction)
 {
-    DEBUG_TRACE_FUNCTION;
     int stepState = PSS_NORMAL;
 
     if (g_Player->Dead() || g_Player->Graphic == 0x03DB)
@@ -322,14 +319,14 @@ bool CPathFinder::CalculateNewZ(int x, int y, char &z, int direction)
 
     CalculateMinMaxZ(minZ, maxZ, x, y, z, direction, stepState);
 
-    vector<CPathObject> list;
+    std::vector<CPathObject> list;
 
     if (g_CustomHouseGump != nullptr)
     {
-        SDL_Rect rect = { g_CustomHouseGump->StartPos.X,
-                          g_CustomHouseGump->StartPos.Y,
-                          g_CustomHouseGump->EndPos.X,
-                          g_CustomHouseGump->EndPos.Y };
+        SDL_Rect rect = { g_CustomHouseGump->StartPos.x,
+                          g_CustomHouseGump->StartPos.y,
+                          g_CustomHouseGump->EndPos.x,
+                          g_CustomHouseGump->EndPos.y };
         SDL_Point pos = { x, y };
 
         if (SDL_PointInRect(&pos, &rect) == 0u)
@@ -450,9 +447,8 @@ bool CPathFinder::CalculateNewZ(int x, int y, char &z, int direction)
     return (resultZ != -128);
 }
 
-void CPathFinder::GetNewXY(uint8_t direction, int &x, int &y)
+void CPathFinder::GetNewXY(u8 direction, int &x, int &y)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (direction & 7)
     {
         case 0:
@@ -502,13 +498,12 @@ void CPathFinder::GetNewXY(uint8_t direction, int &x, int &y)
     }
 }
 
-bool CPathFinder::CanWalk(uint8_t &direction, int &x, int &y, char &z)
+bool CPathFinder::CanWalk(u8 &direction, int &x, int &y, char &z)
 {
-    DEBUG_TRACE_FUNCTION;
     int newX = x;
     int newY = y;
     char newZ = z;
-    uint8_t newDirection = direction;
+    u8 newDirection = direction;
 
     GetNewXY(direction, newX, newY);
 
@@ -526,7 +521,7 @@ bool CPathFinder::CanWalk(uint8_t &direction, int &x, int &y, char &z)
                 int testY = y;
                 char testZ = z;
 
-                uint8_t testDir = (direction + dirOffset[i]) % 8;
+                u8 testDir = (direction + dirOffset[i]) % 8;
                 GetNewXY(testDir, testX, testY);
 
                 passed = CalculateNewZ(testX, testY, testZ, testDir);
@@ -562,7 +557,6 @@ bool CPathFinder::CanWalk(uint8_t &direction, int &x, int &y, char &z)
 
 int CPathFinder::GetWalkSpeed(bool run, bool onMount)
 {
-    DEBUG_TRACE_FUNCTION;
     bool mounted =
         (onMount ||
          (g_SpeedMode == CST_FAST_UNMOUNT || g_SpeedMode == CST_FAST_UNMOUNT_AND_CANT_RUN) ||
@@ -571,9 +565,8 @@ int CPathFinder::GetWalkSpeed(bool run, bool onMount)
     return CHARACTER_ANIMATION_DELAY_TABLE[mounted][run];
 }
 
-bool CPathFinder::Walk(bool run, uint8_t direction)
+bool CPathFinder::Walk(bool run, u8 direction)
 {
-    DEBUG_TRACE_FUNCTION;
     if (BlockMoving || g_Walker.WalkingFailed || g_Walker.LastStepRequestTime > g_Ticks ||
         g_Walker.StepsCount >= MAX_STEPS_COUNT || g_Player == nullptr ||
         /*!g_Player->Frozen() ||*/ (g_DeathScreenTimer != 0u) || g_GameState != GS_GAME)
@@ -593,7 +586,7 @@ bool CPathFinder::Walk(bool run, uint8_t direction)
     int x = g_Player->GetX();
     int y = g_Player->GetY();
     char z = g_Player->GetZ();
-    uint8_t oldDirection = g_Player->Direction;
+    u8 oldDirection = g_Player->Direction;
 
     bool onMount = (g_Player->FindLayer(OL_MOUNT) != nullptr);
 
@@ -610,7 +603,7 @@ bool CPathFinder::Walk(bool run, uint8_t direction)
     }
 
     char oldZ = z;
-    uint16_t walkTime = TURN_DELAY;
+    u16 walkTime = TURN_DELAY;
 
     if (FastRotation)
     {
@@ -619,7 +612,7 @@ bool CPathFinder::Walk(bool run, uint8_t direction)
 
     if ((oldDirection & 7) == (direction & 7)) //Повернуты куда надо
     {
-        uint8_t newDir = direction;
+        u8 newDir = direction;
         int newX = x;
         int newY = y;
         char newZ = z;
@@ -645,7 +638,7 @@ bool CPathFinder::Walk(bool run, uint8_t direction)
     }
     else
     {
-        uint8_t newDir = direction;
+        u8 newDir = direction;
         int newX = x;
         int newY = y;
         char newZ = z;
@@ -765,15 +758,13 @@ bool CPathFinder::Walk(bool run, uint8_t direction)
     return true;
 }
 
-int CPathFinder::GetGoalDistCost(const CPoint2Di &p, int cost)
+int CPathFinder::GetGoalDistCost(const Core::Vec2<i32> &p, int cost)
 {
-    DEBUG_TRACE_FUNCTION;
-    return (abs(m_EndPoint.X - p.X) + abs(m_EndPoint.Y - p.Y)) * cost;
+    return (abs(m_EndPoint.x - p.x) + abs(m_EndPoint.y - p.y)) * cost;
 }
 
 bool CPathFinder::DoesNotExistOnOpenList(int x, int y, int z)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     for (int i = 0; i < PATHFINDER_MAX_NODES; i++)
@@ -792,7 +783,6 @@ bool CPathFinder::DoesNotExistOnOpenList(int x, int y, int z)
 
 bool CPathFinder::DoesNotExistOnClosedList(int x, int y, int z)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     for (int i = 0; i < PATHFINDER_MAX_NODES; i++)
@@ -812,7 +802,6 @@ bool CPathFinder::DoesNotExistOnClosedList(int x, int y, int z)
 int CPathFinder::AddNodeToList(
     int list, int direction, int x, int y, int z, CPathNode *parentNode, int cost)
 {
-    DEBUG_TRACE_FUNCTION;
     if (list == 0)
     {
         if (!DoesNotExistOnClosedList(x, y, z))
@@ -831,7 +820,7 @@ int CPathFinder::AddNodeToList(
                         node.X = x;
                         node.Y = y;
                         node.Z = z;
-                        CPoint2Di p(x, y);
+                        Core::Vec2<i32> p(x, y);
 
                         node.DistFromGoalCost = GetGoalDistCost(p, cost);
                         node.DistFromStartCost = parentNode->DistFromStartCost + cost;
@@ -916,17 +905,16 @@ int CPathFinder::AddNodeToList(
 
 bool CPathFinder::OpenNodes(CPathNode *node)
 {
-    DEBUG_TRACE_FUNCTION;
     bool found = false;
 
     for (int i = 0; i < 8; i++)
     {
-        uint8_t direction = (uint8_t)i;
+        u8 direction = (u8)i;
         int x = node->X;
         int y = node->Y;
         char z = (char)node->Z;
 
-        uint8_t oldDirection = direction;
+        u8 oldDirection = direction;
 
         if (CanWalk(direction, x, y, z))
         {
@@ -939,7 +927,7 @@ bool CPathFinder::OpenNodes(CPathNode *node)
 
             if (diagonal != 0)
             {
-                uint8_t wantDirection = (uint8_t)i;
+                u8 wantDirection = (u8)i;
                 int wantX = node->X;
                 int wantY = node->Y;
 
@@ -967,7 +955,6 @@ bool CPathFinder::OpenNodes(CPathNode *node)
 
 int CPathFinder::FindCheapestNode()
 {
-    DEBUG_TRACE_FUNCTION;
     int cheapestCost = 9999999;
     int cheapestNode = -1;
 
@@ -995,13 +982,12 @@ int CPathFinder::FindCheapestNode()
 
 bool CPathFinder::FindPath(int maxNodes)
 {
-    DEBUG_TRACE_FUNCTION;
     int curNode = 0;
 
     m_ClosedList[0].Used = true;
 
-    m_ClosedList[0].X = m_StartPoint.X;
-    m_ClosedList[0].Y = m_StartPoint.Y;
+    m_ClosedList[0].X = m_StartPoint.x;
+    m_ClosedList[0].Y = m_StartPoint.y;
     m_ClosedList[0].Z = g_Player->GetZ();
     m_ClosedList[0].m_Parent = nullptr;
 
@@ -1058,7 +1044,6 @@ bool CPathFinder::FindPath(int maxNodes)
 
 bool CPathFinder::WalkTo(int x, int y, int z, int distance)
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < PATHFINDER_MAX_NODES; i++)
     {
         m_OpenList[i].Reset();
@@ -1069,10 +1054,10 @@ bool CPathFinder::WalkTo(int x, int y, int z, int distance)
         m_ClosedList[i].Reset();
     }
 
-    m_StartPoint.X = g_Player->GetX();
-    m_StartPoint.Y = g_Player->GetY();
-    m_EndPoint.X = x;
-    m_EndPoint.Y = y;
+    m_StartPoint.x = g_Player->GetX();
+    m_StartPoint.y = g_Player->GetY();
+    m_EndPoint.x = x;
+    m_EndPoint.y = y;
     m_GoalNode = 0;
     m_GoalFound = false;
     m_ActiveOpenNodes = 0;
@@ -1100,7 +1085,6 @@ bool CPathFinder::WalkTo(int x, int y, int z, int distance)
 void CPathFinder::ProcessAutowalk()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (AutoWalking && g_Player != nullptr && (g_DeathScreenTimer == 0u) &&
         g_Walker.StepsCount < MAX_STEPS_COUNT && g_Walker.LastStepRequestTime <= g_Ticks)
     {
@@ -1108,7 +1092,7 @@ void CPathFinder::ProcessAutowalk()
         {
             CPathNode *p = m_Path[m_PointIndex];
 
-            uint8_t olddir = g_Player->Direction;
+            u8 olddir = g_Player->Direction;
 
             if (!g_Player->m_Steps.empty())
             {
@@ -1134,7 +1118,6 @@ void CPathFinder::ProcessAutowalk()
 
 void CPathFinder::StopAutoWalk()
 {
-    DEBUG_TRACE_FUNCTION;
     AutoWalking = false;
     m_PathSize = 0;
 }

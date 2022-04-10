@@ -1,10 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "../RenderObject.h"
-#include "../Point.h"
 #include "../plugin/enumlist.h"
 
 class CTextData;
@@ -38,11 +34,11 @@ public:
     //!Флаг, отвечающий только за отрисовку компоненты, без ее выбора
     bool DrawOnly = false;
 
-    uint32_t ClilocID = 0;
+    u32 ClilocID = 0;
 
     CTextData *TextData = nullptr;
 
-    CBaseGUI(GUMP_OBJECT_TYPE type, int serial, uint16_t graphic, uint16_t color, int x, int y);
+    CBaseGUI(GUMP_OBJECT_TYPE type, int serial, u16 graphic, u16 color, int x, int y);
     virtual ~CBaseGUI();
 
     //!Выявление поля g_EntryPointer в данной компоненте
@@ -52,7 +48,7 @@ public:
     virtual void SetShaderMode() {}
 
     //!Получить ИД картинки для отображения
-    virtual uint16_t GetDrawGraphic() { return Graphic; }
+    virtual u16 GetDrawGraphic() { return Graphic; }
 
     //!Отрисовать компоненту
     //!		checktrans - использовать трафарет +прозрачность
@@ -62,7 +58,7 @@ public:
     virtual bool Select() { return false; }
 
     //!Получить конечные габариты компоненты
-    virtual CSize GetSize() { return CSize(); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(); }
 
     //!Это компонента пользовательского интерфейса
     virtual bool IsGUI() { return true; }

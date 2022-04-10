@@ -12,11 +12,10 @@
 #include "../Managers/ClilocManager.h"
 
 CGumpSpell::CGumpSpell(
-    uint32_t serial, short x, short y, uint16_t graphic, SPELLBOOK_TYPE spellType)
+    u32 serial, short x, short y, u16 graphic, SPELLBOOK_TYPE spellType)
     : CGump(GT_SPELL, serial, x, y)
     , SpellType(spellType)
 {
-    DEBUG_TRACE_FUNCTION;
     Graphic = graphic;
     m_Locker.Serial = ID_GS_LOCK_MOVING;
     BigIcon = false; // (graphic >= 0x5300 && graphic < 0x5500);
@@ -39,13 +38,11 @@ CGumpSpell::CGumpSpell(
 
 CGumpSpell::~CGumpSpell()
 {
-    DEBUG_TRACE_FUNCTION;
     RemoveFromGroup();
 }
 
 void CGumpSpell::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Serial == ID_GS_BUTTON_REMOVE_FROM_GROUP)
     {
         g_ToolTip.Set(L"Remove spell from group", 80);
@@ -58,7 +55,7 @@ void CGumpSpell::InitToolTip()
         GetTooltipSpellInfo(tooltipOffset, spellIndexOffset);
 
         g_ToolTip.Set(
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetW(tooltipOffset - spellIndexOffset + Serial, true),
             80);
     }
@@ -66,7 +63,6 @@ void CGumpSpell::InitToolTip()
 
 void CGumpSpell::GetTooltipSpellInfo(int &tooltipOffset, int &spellIndexOffset)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (SpellType)
     {
         case ST_MAGE:
@@ -125,7 +121,6 @@ void CGumpSpell::GetTooltipSpellInfo(int &tooltipOffset, int &spellIndexOffset)
 
 void CGumpSpell::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     bool wantBlender =
         ((g_ConfigManager.TransparentSpellIcons != 0u) && g_SelectedObject.Gump != this);
 
@@ -146,7 +141,6 @@ void CGumpSpell::PrepareContent()
 
 CGumpSpell *CGumpSpell::GetTopSpell()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!InGroup())
     {
         return nullptr;
@@ -169,7 +163,6 @@ CGumpSpell *CGumpSpell::GetTopSpell()
 
 CGumpSpell *CGumpSpell::GetNearSpell(int &x, int &y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (InGroup())
     {
         return nullptr;
@@ -323,7 +316,6 @@ CGumpSpell *CGumpSpell::GetNearSpell(int &x, int &y)
 
 bool CGumpSpell::GetSpellGroupOffset(int &x, int &y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (InGroup() && g_MouseManager.LeftButtonPressed && g_PressedObject.LeftGump != nullptr &&
         (g_PressedObject.LeftSerial == 0u))
     {
@@ -334,10 +326,10 @@ bool CGumpSpell::GetSpellGroupOffset(int &x, int &y)
             //Если гамп захватили и (может быть) двигают
             if (gump != this && g_PressedObject.LeftGump == gump && gump->CanBeMoved())
             {
-                CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
-                x += offset.X;
-                y += offset.Y;
+                x += offset.x;
+                y += offset.y;
 
                 return true;
             }
@@ -351,7 +343,6 @@ bool CGumpSpell::GetSpellGroupOffset(int &x, int &y)
 
 void CGumpSpell::UpdateGroup(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!InGroup())
     {
         return;
@@ -378,7 +369,6 @@ void CGumpSpell::UpdateGroup(int x, int y)
 
 void CGumpSpell::AddSpell(CGumpSpell *spell)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_GroupNext == nullptr)
     {
         m_GroupNext = spell;
@@ -415,7 +405,6 @@ void CGumpSpell::AddSpell(CGumpSpell *spell)
 
 void CGumpSpell::RemoveFromGroup()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_GroupNext != nullptr)
     {
         m_GroupNext->WantRedraw = true;
@@ -450,11 +439,10 @@ void CGumpSpell::RemoveFromGroup()
 
 void CGumpSpell::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
     //Если гамп захватили и (может быть) двигают
-    if ((g_GumpMovingOffset.X != 0) || (g_GumpMovingOffset.Y != 0))
+    if ((g_GumpMovingOffset.x != 0) || (g_GumpMovingOffset.y != 0))
     {
         if (!InGroup())
         {
@@ -463,26 +451,25 @@ void CGumpSpell::CalculateGumpState()
 
             if (GetNearSpell(testX, testY) != nullptr)
             {
-                g_GumpTranslate.X = (float)testX;
-                g_GumpTranslate.Y = (float)testY;
+                g_GumpTranslate.x = (float)testX;
+                g_GumpTranslate.y = (float)testY;
             }
         }
     }
     else if (InGroup())
     {
-        int x = (int)g_GumpTranslate.X;
-        int y = (int)g_GumpTranslate.Y;
+        int x = (int)g_GumpTranslate.x;
+        int y = (int)g_GumpTranslate.y;
 
         GetSpellGroupOffset(x, y);
 
-        g_GumpTranslate.X = (float)x;
-        g_GumpTranslate.Y = (float)y;
+        g_GumpTranslate.x = (float)x;
+        g_GumpTranslate.y = (float)y;
     }
 }
 
 void CGumpSpell::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GS_LOCK_MOVING)
     {
         LockMoving = !LockMoving;
@@ -508,7 +495,6 @@ void CGumpSpell::GUMP_BUTTON_EVENT_C
 
 bool CGumpSpell::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     int tooltipOffset = 0;
     int spellIndexOffset = 0;
 

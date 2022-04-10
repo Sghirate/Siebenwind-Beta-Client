@@ -11,7 +11,6 @@ namespace Platform
 // FIXME: Add support to all Langcode.iff codes.
 void SetLanguageFromSystemLocale()
 {
-    DEBUG_TRACE_FUNCTION;
     //char buf[4];
     //if (GetProfileStringA("intl", "sLanguage", "default", buf, sizeof(buf)) == 0)
     // https://docs.microsoft.com/en-us/windows/desktop/Intl/language-identifier-constants-and-strings
@@ -69,9 +68,10 @@ void SetLanguageFromSystemLocale()
     LOG("Locale: %s\n", g_Language.c_str());
 }
 
-void OpenBrowser(const string &url)
+void OpenBrowser(const std::string &url)
 {
-    ShellExecuteA(0, "Open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    // TODO: Support again
+    //ShellExecuteA(0, "Open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
 #elif __unix__ // Linux and MacOSX
@@ -80,7 +80,6 @@ void OpenBrowser(const string &url)
 
 void SetLanguageFromSystemLocale()
 {
-    DEBUG_TRACE_FUNCTION;
 
     char *lang;
     lang = getenv("LANG");
@@ -129,7 +128,7 @@ void SetLanguageFromSystemLocale()
     LOG("Locale: %s\n", g_Language.c_str());
 }
 
-void OpenBrowser(const string &url)
+void OpenBrowser(const std::string &url)
 {
 #if __APPLE__
 #define OPEN_CMD "open "
@@ -148,7 +147,7 @@ void SetLanguageFromSystemLocale()
 {
     ORION_NOT_IMPLEMENTED;
 }
-void OpenBrowser(const string &url)
+void OpenBrowser(const std::string &url)
 {
     ORION_NOT_IMPLEMENTED;
 }

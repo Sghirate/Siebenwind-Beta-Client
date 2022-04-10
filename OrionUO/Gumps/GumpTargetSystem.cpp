@@ -13,7 +13,7 @@
 #include "../GameObjects/GameWorld.h"
 #include "../GameObjects/GamePlayer.h"
 
-CGumpTargetSystem::CGumpTargetSystem(uint32_t serial, short x, short y)
+CGumpTargetSystem::CGumpTargetSystem(u32 serial, short x, short y)
     : CGump(GT_TARGET_SYSTEM, serial, x, y)
 {
     m_Locker.Serial = ID_GSB_LOCK_MOVING;
@@ -44,7 +44,6 @@ void CGumpTargetSystem::PrepareContent()
 
 void CGumpTargetSystem::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ConfigManager.DisableNewTargetSystem || (g_NewTargetSystem.Serial == 0u))
     {
         return;
@@ -62,7 +61,7 @@ void CGumpTargetSystem::UpdateContent()
     if (obj != nullptr)
     {
         //Вычисляем цвет статусбара
-        uint16_t color = 0;
+        u16 color = 0;
         CGameCharacter *character = nullptr;
 
         if (obj->NPC)
@@ -99,7 +98,7 @@ void CGumpTargetSystem::UpdateContent()
             STATIC_TILES *st = obj->StaticGroupObjectPtr()->GetStaticData();
 
             OldName =
-                g_ClilocManager.Cliloc(g_Language)->GetA(1020000 + obj->Graphic, true, st->Name);
+                g_ClilocManager.GetCliloc(g_Language)->GetA(1020000 + obj->Graphic, true, st->Name);
         }
 
         CGUIText *text = (CGUIText *)m_DataBox->Add(new CGUIText(0x0386, 16, 14));
@@ -114,7 +113,7 @@ void CGumpTargetSystem::UpdateContent()
 
             if (per > 0)
             {
-                uint16_t gumpid = 0x0806; //Character status line (blue)
+                u16 gumpid = 0x0806; //Character status line (blue)
                 if (obj->Poisoned())
                 {
                     gumpid = 0x0808; //Character status line (green)
@@ -149,7 +148,6 @@ void CGumpTargetSystem::UpdateContent()
 
 void CGumpTargetSystem::OnLeftMouseDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return;
@@ -168,7 +166,6 @@ void CGumpTargetSystem::OnLeftMouseDown()
 
 void CGumpTargetSystem::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return;
@@ -183,13 +180,12 @@ void CGumpTargetSystem::GUMP_BUTTON_EVENT_C
 
 bool CGumpTargetSystem::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return false;
     }
 
-    uint32_t serial = g_NewTargetSystem.Serial;
+    u32 serial = g_NewTargetSystem.Serial;
 
     if (serial != g_PlayerSerial)
     {

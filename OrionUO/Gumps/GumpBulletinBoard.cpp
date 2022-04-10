@@ -19,10 +19,9 @@ enum
     ID_GBS_COUNT,
 };
 
-CGumpBulletinBoard::CGumpBulletinBoard(uint32_t serial, short x, short y, const string &name)
+CGumpBulletinBoard::CGumpBulletinBoard(u32 serial, short x, short y, const std::string &name)
     : CGump(GT_BULLETIN_BOARD, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     Add(new CGUIGumppic(0x087A, 0, 0));
 
     CGUIText *text = (CGUIText *)Add(new CGUIText(0x0386, 159, 36));
@@ -81,13 +80,11 @@ CGumpBulletinBoard::CGumpBulletinBoard(uint32_t serial, short x, short y, const 
 
 CGumpBulletinBoard::~CGumpBulletinBoard()
 {
-    DEBUG_TRACE_FUNCTION;
     g_GumpManager.CloseGump(0xFFFFFFFF, Serial, GT_BULLETIN_BOARD_ITEM);
 }
 
 void CGumpBulletinBoard::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GBB_POST_MESSAGE)
     {
         CGumpBulletinBoardItem *gump = new CGumpBulletinBoardItem(
@@ -99,7 +96,6 @@ void CGumpBulletinBoard::GUMP_BUTTON_EVENT_C
 
 bool CGumpBulletinBoard::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (g_PressedObject.LeftObject != nullptr && g_PressedObject.LeftObject->IsGUI())

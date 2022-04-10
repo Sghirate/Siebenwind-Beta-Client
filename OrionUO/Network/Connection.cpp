@@ -14,9 +14,8 @@ CSocket::~CSocket()
 {
 }
 
-bool CSocket::Connect(const string &address, uint16_t port)
+bool CSocket::Connect(const std::string &address, u16 port)
 {
-    DEBUG_TRACE_FUNCTION;
     LOG("Connecting...%s:%i\n", address.c_str(), port);
 
     if (UseProxy)
@@ -35,8 +34,8 @@ bool CSocket::Connect(const string &address, uint16_t port)
             return Wisp::CConnection::Connect(address, port);
         }
 
-        uint16_t serverPort = htons(port);
-        uint32_t serverIP = inet_addr(address.c_str());
+        u16 serverPort = htons(port);
+        u32 serverIP = inet_addr(address.c_str());
 
         if (serverIP == 0xFFFFFFFF)
         {
@@ -90,7 +89,7 @@ bool CSocket::Connect(const string &address, uint16_t port)
                 {
                     LOG("Proxy wants Username/Password\n");
                     int totalSize = 3 + (int)ProxyAccount.length() + (int)ProxyPassword.length();
-                    vector<char> buffer(totalSize, 0);
+                    std::vector<char> buffer(totalSize, 0);
                     sprintf(&buffer[0], "  %s %s", ProxyAccount.c_str(), ProxyPassword.c_str());
                     buffer[0] = 1;
                     buffer[1] = (char)ProxyAccount.length();
@@ -226,15 +225,14 @@ bool CSocket::Connect(const string &address, uint16_t port)
     return true;
 }
 
-vector<uint8_t> CSocket::Decompression(vector<uint8_t> data)
+std::vector<u8> CSocket::Decompression(std::vector<u8> data)
 {
-    DEBUG_TRACE_FUNCTION;
     if (GameSocket)
     {
         auto inSize = (intptr_t)data.size();
         Crypt::Decrypt(&data[0], &data[0], (int)inSize);
 
-        vector<uint8_t> decBuf(inSize * 4 + 2);
+        std::vector<u8> decBuf(inSize * 4 + 2);
         int outSize = 65536;
         m_Decompressor((char *)&decBuf[0], (char *)&data[0], outSize, inSize);
         if (inSize != data.size())

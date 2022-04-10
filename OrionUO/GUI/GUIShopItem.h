@@ -9,10 +9,10 @@ class CGUIShopItem : public CBaseGUI
 {
 public:
     //!Количество
-    uint32_t Count = 0;
+    u32 Count = 0;
 
     //!Стоимость
-    uint32_t Price = 0;
+    u32 Price = 0;
 
     //!Название товара
     string Name = "";
@@ -40,11 +40,11 @@ private:
 public:
     CGUIShopItem(
         int serial,
-        uint16_t graphic,
-        uint16_t color,
+        u16 graphic,
+        u16 color,
         int count,
         int price,
-        const string &name,
+        const std::string &name,
         int x,
         int y);
     virtual ~CGUIShopItem();
@@ -60,7 +60,7 @@ public:
     //!Создать текстуру количества
     void CreateCountText(int lostCount);
 
-    virtual CSize GetSize() { return CSize(200, m_MaxOffset + 20); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(200, m_MaxOffset + 20); }
 
     virtual void PrepareTextures();
 

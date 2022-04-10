@@ -26,7 +26,7 @@ public:
     //!Ссылка на текстуру
     CGLTexture *m_Texture;
 
-    virtual CSize GetSize();
+    virtual Core::Vec2<i32> GetSize();
 
     virtual void SetShaderMode();
     virtual void Draw(bool checktrans = false);

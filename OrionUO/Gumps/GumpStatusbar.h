@@ -23,7 +23,7 @@ protected:
     string m_Name;
 
 public:
-    CGumpStatusbar(uint32_t serial, short x, short y, bool minimized);
+    CGumpStatusbar(u32 serial, short x, short y, bool minimized);
     virtual ~CGumpStatusbar();
 
     const int ID_GSB_LOCK_MOVING = 10;

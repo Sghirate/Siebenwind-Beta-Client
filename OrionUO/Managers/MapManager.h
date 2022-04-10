@@ -14,22 +14,22 @@ class CIndexMap
 public:
     size_t OriginalMapAddress = 0;
     size_t OriginalStaticAddress = 0;
-    uint32_t OriginalStaticCount = 0;
+    u32 OriginalStaticCount = 0;
 
     size_t MapAddress = 0;
     size_t StaticAddress = 0;
-    uint32_t StaticCount = 0;
+    u32 StaticCount = 0;
 
     CIndexMap();
     virtual ~CIndexMap();
 };
 
-typedef vector<CIndexMap> MAP_INDEX_LIST;
+typedef std::vector<CIndexMap> MAP_INDEX_LIST;
 
 class CMapManager : public CBaseQueue
 {
 public:
-    uint32_t MaxBlockIndex = 0;
+    u32 MaxBlockIndex = 0;
     int PatchesCount = 0;
 
 protected:
@@ -48,7 +48,7 @@ public:
     CIndexMap *GetIndex(int map, int blockX, int blockY);
     void CreateBlockTable(int map);
     void CreateBlocksTable();
-    void ApplyPatches(Wisp::CDataReader &stream);
+    void ApplyPatches(Core::StreamReader &stream);
     void UpdatePatched();
     void ClearBlockAccess();
     char CalculateNearZ(char defaultZ, int x, int y, int z);
@@ -58,9 +58,9 @@ public:
     void GetRadarMapBlock(int blockX, int blockY, RADAR_MAP_BLOCK &mb);
     void GetMapZ(int x, int y, int &groundZ, int &staticZ);
     void Init(bool delayed = false);
-    CMapBlock *GetBlock(uint32_t index);
-    CMapBlock *AddBlock(uint32_t index);
-    void DeleteBlock(uint32_t index);
+    CMapBlock *GetBlock(u32 index);
+    CMapBlock *AddBlock(u32 index);
+    void DeleteBlock(u32 index);
     void ClearUnusedBlocks();
     void ClearUsedBlocks();
     void AddRender(CRenderWorldObject *item);

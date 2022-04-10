@@ -2,12 +2,11 @@
 // Copyright (C) August 2016 Hotride
 
 #include "MultiMap.h"
+#include "Core/MappedFile.h"
 #include "Logging.h"
 #include "Gumps/GumpMap.h"
 #include "Managers/ColorManager.h"
 #include "Managers/FileManager.h"
-#include "Wisp/WispMappedFile.h"
-#include "Wisp/WispDataStream.h"
 
 CMultiMap g_MultiMap;
 
@@ -21,10 +20,9 @@ CMultiMap::~CMultiMap()
 
 void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CMappedFile &file = g_FileManager.m_MultiMap;
+    Core::MappedFile& file = g_FileManager.m_MultiMap;
 
-    if (file.Size == 0u)
+    if (file.GetSize() == 0u)
     {
         LOG("MultiMap.rle is not loaded!\n");
         return;
@@ -32,17 +30,17 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
 
     file.ResetPtr();
 
-    int Width = file.ReadInt32LE();
-    int Height = file.ReadInt32LE();
+    int w = file.ReadLE<i32>();
+    int h = file.ReadLE<i32>();
 
-    if (Width < 1 || Height < 1)
+    if (w < 1 || h < 1)
     {
         LOG("Failed to load bounds from MultiMap.rle\n");
         return;
     }
 
     int mapSize = gump->Width * gump->Height;
-    vector<uint8_t> byteMap(mapSize, 0);
+    std::vector<u8> byteMap(mapSize, 0);
 
     int startX = gump->StartX / 2;
     int endX = gump->EndX / 2;
@@ -74,8 +72,8 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
 
     while (!file.IsEOF())
     {
-        uint8_t pic = file.ReadUInt8();
-        uint8_t size = pic & 0x7F;
+        u8 pic = file.ReadLE<u8>();
+        u8 size = pic & 0x7F;
 
         bool colored = (bool)(pic & 0x80);
 
@@ -89,7 +87,7 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
             {
                 int position = posY + ((width * (x - startX)) >> 8);
 
-                uint8_t &pixel = byteMap[position];
+                u8 &pixel = byteMap[position];
 
                 if (pixel < 0xFF)
                 {
@@ -104,7 +102,7 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
 
             x++;
 
-            if (x >= Width)
+            if (x >= w)
             {
                 x = 0;
                 y++;
@@ -122,10 +120,10 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
 
     if (maxPixelValue >= 1)
     {
-        uint16_t *huesData =
-            (uint16_t *)((uint8_t *)g_ColorManager.GetHuesRangePointer() + 30800); // color = 0x015C
+        u16 *huesData =
+            (u16 *)((u8 *)g_ColorManager.GetHuesRangePointer() + 30800); // color = 0x015C
 
-        vector<uint16_t> colorTable(maxPixelValue);
+        std::vector<u16> colorTable(maxPixelValue);
         int colorOffset = 31 * maxPixelValue;
 
         for (int i = 0; i < maxPixelValue; i++)
@@ -134,11 +132,11 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
             colorTable[i] = 0x8000 | huesData[colorOffset / maxPixelValue];
         }
 
-        vector<uint16_t> wordMap(mapSize);
+        std::vector<u16> wordMap(mapSize);
 
         for (int i = 0; i < mapSize; i++)
         {
-            uint8_t &pic = byteMap[i];
+            u8 &pic = byteMap[i];
 
             wordMap[i] = (pic != 0u ? colorTable[pic - 1] : 0);
         }
@@ -149,7 +147,6 @@ void CMultiMap::LoadMap(CGumpMap *gump, CGUIExternalTexture *mapObject)
 
 bool CMultiMap::LoadFacet(CGumpMap *gump, CGUIExternalTexture *mapObject, int facet)
 {
-    DEBUG_TRACE_FUNCTION;
     if (facet < 0 || facet > 5)
     {
         LOG("Invalid facet index: %i\n", facet);
@@ -157,18 +154,18 @@ bool CMultiMap::LoadFacet(CGumpMap *gump, CGUIExternalTexture *mapObject, int fa
         return false;
     }
 
-    Wisp::CMappedFile &file = g_FileManager.m_FacetMul[facet];
+    Core::MappedFile& file = g_FileManager.m_FacetMul[facet];
     file.ResetPtr();
 
-    if (file.Size == 0u)
+    if (file.GetSize() == 0u)
     {
         LOG("Facet %i is not loaded!\n", facet);
 
         return false;
     }
 
-    int mapWidth = file.ReadInt16LE();
-    int mapHeight = file.ReadInt16LE();
+    int mapWidth = file.ReadLE<i16>();
+    int mapHeight = file.ReadLE<i16>();
 
     //DebugMsg("Facet w:%i h:%i\n", mapWidth, mapHeight);
 
@@ -181,17 +178,17 @@ bool CMultiMap::LoadFacet(CGumpMap *gump, CGUIExternalTexture *mapObject, int fa
     int width = endX - startX;
     int height = endY - startY;
 
-    vector<uint16_t> map(width * height);
+    std::vector<u16> map(width * height);
 
     for (int y = 0; y < mapHeight; y++)
     {
         int x = 0;
-        int colorCount = file.ReadInt32LE() / 3;
+        int colorCount = file.ReadLE<i32>() / 3;
 
         for (int i = 0; i < colorCount; i++)
         {
-            int size = file.ReadUInt8();
-            uint16_t color = 0x8000 | file.ReadInt16LE();
+            int size = file.ReadLE<u8>();
+            u16 color = 0x8000 | file.ReadLE<i16>();
 
             for (int j = 0; j < size; j++)
             {

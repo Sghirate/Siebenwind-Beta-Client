@@ -15,7 +15,6 @@ CGameEffectDrag::~CGameEffectDrag()
 
 void CGameEffectDrag::Update(CGameObject *parent)
 {
-    DEBUG_TRACE_FUNCTION;
     if (LastMoveTime > g_Ticks)
     {
         return;

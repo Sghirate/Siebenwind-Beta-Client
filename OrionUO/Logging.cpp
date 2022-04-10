@@ -1,145 +1,108 @@
-// MIT License
-// Copyright (c) Hotride
+#include "Logging.h"
 
-#include "FileSystem.h"
+// CLogger g_Logger;
+// CLogger g_CrashLogger;
 
-CLogger g_Logger;
-CLogger g_CrashLogger;
+// CLogger::CLogger()
+// {
+// }
 
-CLogger::CLogger()
-{
-}
+// CLogger::~CLogger()
+// {
+//     Close();
+// }
 
-CLogger::~CLogger()
-{
-    Close();
-}
+// void CLogger::Close()
+// {
+//     if (m_file.IsOpen())
+//     {
+//         LOG("Log closed.\n");
+//         m_file.Close();
+//     }
+// }
 
-void CLogger::Close()
-{
-    if (m_File != nullptr)
-    {
-        LOG("Log closed.\n");
-        fs_close(m_File);
-        m_File = nullptr;
-    }
-}
+// void CLogger::Init(const std::filesystem::path& a_path)
+// {
+//     Close();
 
-void CLogger::Init(const os_path &filePath)
-{
-    if (m_File != nullptr)
-    {
-        fs_close(m_File);
-    }
+//     m_file.Open(a_path, "w");
+//     if (this == &g_Logger)
+//     {
+//         LOG("Log opened.\n");
+//     }
+//     m_path = a_path;
+// }
 
-    m_File = fs_open(filePath, FS_WRITE);
+// void CLogger::Print(const char* a_format, ...)
+// {
+//     if (!m_file.IsOpen())
+//         return;
 
-    if (this == &g_Logger)
-    {
-        LOG("Log opened.\n");
-    }
+//     va_list args;
+//     va_start(args, a_format);
+//     m_file.PrintV(a_format, args);
+//     va_end(args);
+//     m_file.Flush();
+// }
 
-    FileName = filePath;
-}
+// void CLogger::PrintV(const char* a_format, va_list a_args)
+// {
+//     if (!m_file.IsOpen())
+//         return;
 
-void CLogger::Print(const char *format, ...)
-{
-    if (m_File == nullptr)
-    {
-        return;
-    }
+//     m_file.PrintV(a_format, a_args);
+//     m_file.Flush();
+// }
 
-    va_list arg;
-    va_start(arg, format);
-    vfprintf(m_File, format, arg);
-    va_end(arg);
-    fflush(m_File);
-}
+// void CLogger::Print(const wchar_t* a_format, ...)
+// {
+//     if (!m_file.IsOpen())
+//         return;
 
-void CLogger::VPrint(const char *format, va_list ap)
-{
-    if (m_File == nullptr)
-    {
-        return;
-    }
+//     va_list args;
+//     va_start(args, a_format);
+//     m_file.PrintV(a_format, args);
+//     va_end(args);
+//     m_file.Flush();
+// }
 
-    vfprintf(m_File, format, ap);
-    fflush(m_File);
-}
+// void CLogger::PrintV(const wchar_t* a_format, va_list a_args)
+// {
+//     if (!m_file.IsOpen())
+//         return;
 
-void CLogger::Print(const wchar_t *format, ...)
-{
-    if (m_File == nullptr)
-    {
-        return;
-    }
+//     m_file.PrintV(a_format, a_args);
+//     m_file.Flush();
+// }
 
-    va_list arg;
-    va_start(arg, format);
-    vfwprintf(m_File, format, arg);
-    va_end(arg);
-    fflush(m_File);
-}
+// void CLogger::Dump(u8* a_buf, int a_size)
+// {
+//     if(!m_file.IsOpen())
+//         return;
 
-void CLogger::VPrint(const wchar_t *format, va_list ap)
-{
-    if (m_File == nullptr)
-    {
-        return;
-    }
+//     int num_lines = a_size / 16;
+//     if (a_size % 16 != 0)
+//         num_lines++;
 
-    vfwprintf(m_File, format, ap);
-    fflush(m_File);
-}
+//     for (int line = 0; line < num_lines; line++)
+//     {
+//         int row = 0;
+//         m_file.Print("%04X: ", line * 16);
+//         for (row = 0; row < 16; row++)
+//         {
+//             if (line * 16 + row < a_size)
+//                 m_file.Print("%02X ", a_buf[line * 16 + row]);
+//             else
+//                 m_file.Print("-- ");
+//         }
 
-void CLogger::Dump(uint8_t *buf, int size)
-{
-    LogDump(m_File, buf, size);
-}
-
-void LogDump(FILE *fp, uint8_t *buf, int size)
-{
-    if (fp == nullptr)
-    {
-        return;
-    }
-
-    int num_lines = size / 16;
-
-    if (size % 16 != 0)
-    {
-        num_lines++;
-    }
-
-    for (int line = 0; line < num_lines; line++)
-    {
-        int row = 0;
-        fprintf(fp, "%04X: ", line * 16);
-
-        for (row = 0; row < 16; row++)
-        {
-            if (line * 16 + row < size)
-            {
-                fprintf(fp, "%02X ", buf[line * 16 + row]);
-            }
-            else
-            {
-                fprintf(fp, "-- ");
-            }
-        }
-
-        fprintf(fp, ": ");
-
-        for (row = 0; row < 16; row++)
-        {
-            if (line * 16 + row < size)
-            {
-                fputc(isprint(buf[line * 16 + row]) != 0 ? buf[line * 16 + row] : '.', fp);
-            }
-        }
-
-        fputc('\n', fp);
-    }
-
-    fflush(fp);
-}
+//         m_file.Print(": ");
+//         for (row = 0; row < 16; row++)
+//         {
+//             if (line * 16 + row < a_size)
+//                 m_file.PrintChar(isprint(a_buf[line * 16 + row]) != 0 ? a_buf[line * 16 + row] : '.');
+//         }
+//         m_file.PrintChar('\n');
+//     }
+//     m_file.Flush();
+// }

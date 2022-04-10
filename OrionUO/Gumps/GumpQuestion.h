@@ -8,14 +8,14 @@
 
 class CGumpQuestion : public CGump
 {
-    uint8_t Variant = 0;
+    u8 Variant = 0;
 
 private:
     static const int ID_GQ_BUTTON_CANCEL = 1;
     static const int ID_GQ_BUTTON_OKAY = 2;
 
 public:
-    CGumpQuestion(uint32_t serial, short x, short y, uint8_t variant);
+    CGumpQuestion(u32 serial, short x, short y, u8 variant);
     virtual ~CGumpQuestion();
 
     static const int ID_GQ_STATE_QUIT = 1;

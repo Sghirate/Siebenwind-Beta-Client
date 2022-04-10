@@ -27,7 +27,6 @@ void CGameBlockedScreen::Init()
 
 void CGameBlockedScreen::Render()
 {
-    DEBUG_TRACE_FUNCTION;
     g_GumpManager.Draw(true);
     InitToolTip();
     g_MouseManager.Draw(0x2073); //Main Gump mouse cursor
@@ -35,7 +34,6 @@ void CGameBlockedScreen::Render()
 
 void CGameBlockedScreen::SelectObject()
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_SelectedObject.Clear();
     g_GumpManager.Select(true);
@@ -57,7 +55,6 @@ void CGameBlockedScreen::SelectObject()
 
 void CGameBlockedScreen::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump != nullptr)
     {
         g_GumpManager.OnLeftMouseButtonDown(true);
@@ -66,7 +63,6 @@ void CGameBlockedScreen::OnLeftMouseButtonDown()
 
 void CGameBlockedScreen::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.LeftGump != nullptr)
     {
         g_GumpManager.OnLeftMouseButtonUp(true);
@@ -75,7 +71,6 @@ void CGameBlockedScreen::OnLeftMouseButtonUp()
 
 void CGameBlockedScreen::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_EntryPointer == nullptr || g_EntryPointer == &g_GameConsole)
     {
@@ -87,7 +82,6 @@ void CGameBlockedScreen::OnTextInput(const TextEvent &ev)
 
 void CGameBlockedScreen::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     CGumpNotify *notify = (CGumpNotify *)g_GumpManager.GetGump(0, 0, GT_NOTIFY);
     const auto key = EvKey(ev);

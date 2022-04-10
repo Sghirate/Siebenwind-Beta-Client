@@ -24,20 +24,19 @@ enum
 CGumpScreenSelectTown::CGumpScreenSelectTown()
     : CGump(GT_NONE, 0, 0, 0)
 {
-    DEBUG_TRACE_FUNCTION;
     NoMove = true;
     NoClose = true;
 
     //!Список точек для отображения кнопок городов
-    m_TownButtonText.push_back(CPoint2Di(105, 130));
-    m_TownButtonText.push_back(CPoint2Di(245, 90));
-    m_TownButtonText.push_back(CPoint2Di(165, 200));
-    m_TownButtonText.push_back(CPoint2Di(395, 160));
-    m_TownButtonText.push_back(CPoint2Di(200, 305));
-    m_TownButtonText.push_back(CPoint2Di(335, 250));
-    m_TownButtonText.push_back(CPoint2Di(160, 395));
-    m_TownButtonText.push_back(CPoint2Di(100, 250));
-    m_TownButtonText.push_back(CPoint2Di(270, 130));
+    m_TownButtonText.push_back(Core::Vec2<i32>(105, 130));
+    m_TownButtonText.push_back(Core::Vec2<i32>(245, 90));
+    m_TownButtonText.push_back(Core::Vec2<i32>(165, 200));
+    m_TownButtonText.push_back(Core::Vec2<i32>(395, 160));
+    m_TownButtonText.push_back(Core::Vec2<i32>(200, 305));
+    m_TownButtonText.push_back(Core::Vec2<i32>(335, 250));
+    m_TownButtonText.push_back(Core::Vec2<i32>(160, 395));
+    m_TownButtonText.push_back(Core::Vec2<i32>(100, 250));
+    m_TownButtonText.push_back(Core::Vec2<i32>(270, 130));
 }
 
 CGumpScreenSelectTown::~CGumpScreenSelectTown()
@@ -46,7 +45,6 @@ CGumpScreenSelectTown::~CGumpScreenSelectTown()
 
 void CGumpScreenSelectTown::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     CCityItem *city = g_SelectTownScreen.m_City;
@@ -56,13 +54,13 @@ void CGumpScreenSelectTown::UpdateContent()
         return;
     }
 
-    wstring description = city->m_City.Description;
+    std::wstring description = city->m_City.Description;
     int map = 0;
 
     if (city->IsNewCity())
     {
         //!Получаем строку клилока с описанием города
-        description = g_ClilocManager.Cliloc(g_Language)->GetW(((CCityItemNew *)city)->Cliloc);
+        description = g_ClilocManager.GetCliloc(g_Language)->GetW(((CCityItemNew *)city)->Cliloc);
         map = ((CCityItemNew *)city)->MapIndex;
     }
 
@@ -75,7 +73,7 @@ void CGumpScreenSelectTown::UpdateContent()
         Add(new CGUIGumppic(0x15D9 + map, 62, 54));
         Add(new CGUIGumppic(0x15DF, 57, 49));
 
-        static const wstring townNames[6] = { L"Felucca", L"Trammel", L"Ilshenar",
+        static const std::wstring townNames[6] = { L"Felucca", L"Trammel", L"Ilshenar",
                                               L"Malas",   L"Tokuno",  L"Ter Mur" };
 
         CGUIText *mapName = (CGUIText *)Add(new CGUIText(0x0481, 240, 440));
@@ -108,11 +106,11 @@ void CGumpScreenSelectTown::UpdateContent()
     {
         if (g_Config.ClientVersion >= CV_70130)
         {
-            city = g_CityList.GetCity((uint32_t)i);
+            city = g_CityList.GetCity((u32)i);
         }
         else
         {
-            city = g_CityList.GetCity((uint32_t)i + 1);
+            city = g_CityList.GetCity((u32)i + 1);
         }
 
         if (city == nullptr)
@@ -127,7 +125,7 @@ void CGumpScreenSelectTown::UpdateContent()
         {
             CCityItemNew *newCity = (CCityItemNew *)city;
 
-            uint32_t map = newCity->MapIndex;
+            u32 map = newCity->MapIndex;
 
             if (map > 5)
             {
@@ -139,8 +137,8 @@ void CGumpScreenSelectTown::UpdateContent()
         }
         else if (i < (int)m_TownButtonText.size())
         {
-            x = m_TownButtonText[i].X;
-            y = m_TownButtonText[i].Y;
+            x = m_TownButtonText[i].x;
+            y = m_TownButtonText[i].y;
         }
 
         Add(new CGUIButton(ID_STS_TOWN + (int)i, 0x04B9, 0x04BA, 0x04BA, x, y));
@@ -163,7 +161,6 @@ void CGumpScreenSelectTown::UpdateContent()
 
 void CGumpScreenSelectTown::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_STS_QUIT)
     { //x button
         g_SelectTownScreen.CreateSmoothAction(CSelectTownScreen::ID_SMOOTH_STS_QUIT);
@@ -181,7 +178,6 @@ void CGumpScreenSelectTown::GUMP_BUTTON_EVENT_C
 
 void CGumpScreenSelectTown::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_Items, CBaseGUI *)
     {
         if (item->Type == GOT_TEXTENTRY)
@@ -197,13 +193,13 @@ void CGumpScreenSelectTown::GUMP_TEXT_ENTRY_EVENT_C
 
                 g_SelectTownScreen.m_City = city;
 
-                wstring description = city->m_City.Description;
+                std::wstring description = city->m_City.Description;
 
                 if (city->IsNewCity())
                 {
                     //!Получаем строку клилока с описанием города
                     description =
-                        g_ClilocManager.Cliloc(g_Language)->GetW(((CCityItemNew *)city)->Cliloc);
+                        g_ClilocManager.GetCliloc(g_Language)->GetW(((CCityItemNew *)city)->Cliloc);
                 }
 
                 //!Используем обработку HTML-тэгов при создании текстуры текста

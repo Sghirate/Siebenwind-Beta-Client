@@ -11,9 +11,9 @@ class CGUIGumppicTiled : public CGUIDrawObject
     int Height = 0;
 
 public:
-    CGUIGumppicTiled(uint16_t graphic, int x, int y, int width, int height);
+    CGUIGumppicTiled(u16 graphic, int x, int y, int width, int height);
     virtual ~CGUIGumppicTiled();
-    virtual CSize GetSize() { return CSize(Width, Height); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(Width, Height); }
     virtual void Draw(bool checktrans = false);
     virtual bool Select();
 };

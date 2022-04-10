@@ -55,17 +55,36 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 set(wisp_src
   Wisp/WispApplication.cpp
   Wisp/WispConnection.cpp
-  Wisp/WispMouse.cpp
   Wisp/WispPacketReader.cpp
   Wisp/WispThread.cpp
   Wisp/WispWindow.cpp
-  Wisp/WispBinaryFileWriter.cpp
-  Wisp/WispDataStream.cpp
-  Wisp/WispMappedFile.cpp
   Wisp/WispPacketMessage.cpp
-  Wisp/WispTextFileParser.cpp
   Wisp/WispThreadedTimer.cpp
 )
+
+set(core_src
+  Core/App.cpp
+  Core/CommandLine.cpp
+  Core/Console.cpp
+  Core/Core.cpp
+  Core/DataStream.cpp
+  Core/File.cpp
+  Core/Log.cpp
+  Core/MappedFile.cpp
+  Core/Platform.cpp
+  Core/StringUtils.cpp
+  Core/Time.cpp
+  Core/TextFileParser.cpp
+)
+if(ORION_WITH_SDL2)
+  set(core_src ${core_src}
+    Core/SDL2/SDL2App.cpp
+    Core/SDL2/SDL2Input.cpp
+    Core/SDL2/SDL2Platform.cpp
+    Core/SDL2/SDL2Util.cpp
+    Core/SDL2/SDL2Window.cpp
+  )
+endif()
 
 set(gameobjects_src
   GameObjects/CustomHouseMultiObject.cpp
@@ -96,7 +115,6 @@ set(glengine_src
   GLEngine/GLTextTexture.cpp
   GLEngine/GLTextureCircleOfTransparency.cpp
   GLEngine/GLTexture.cpp
-  GLEngine/GLVector.cpp
 )
 
 set(gui_src
@@ -293,7 +311,6 @@ set(crypt_src
 
 set(orion_src
   Logging.cpp
-  Point.cpp
   Misc.cpp
   
   BaseQueue.cpp
@@ -307,6 +324,8 @@ set(orion_src
   Globals.cpp
   ImageBounds.cpp
   IndexObject.cpp
+  GameVars.cpp
+  GameWindow.cpp
   Macro.cpp
   Multi.cpp
   MultiMap.cpp
@@ -333,7 +352,6 @@ set(orion_src
   Weather.cpp
   WeatherEffect.cpp
 
-  FileSystem.cpp
   Sockets.cpp
   OrionMain.cpp
   Platform.cpp
@@ -344,7 +362,6 @@ set(orion_src
 if(ORION_WINDOWS)
   set(orion_src ${orion_src}
     VMQuery.cpp                 # FIXME: windows only, rap, coredump
-    StackWalker.cpp             # FIXME: windows only, wrap, use backtrace
     ExceptionFilter.cpp         # FIXME: exception handler, wrap, use signals
     OrionUO.rc
   )
@@ -368,16 +385,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_definitions(-DNULL=nullptr)
 endif()
 
+file(GLOB core_headers Core/*.h)
+
 macro(orion_library TARGET SRCS)
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
   string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
+  set(headers "${headers}" "${core_headers}")
   add_library(${TARGET} ${SRCS} ${headers})
   set_target_properties(${TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")
   cotire(${TARGET})
 endmacro()
 
 if(ORION_BUILD_MODULES)
+  orion_library(core "${core_src}")
   orion_library(wisp "${wisp_src}")
   orion_library(gameobjects "${gameobjects_src}")
   orion_library(glengine "${glengine_src}")
@@ -392,23 +413,25 @@ if(ORION_BUILD_MODULES)
   orion_library(crypt "${crypt_src}")
 
   string(REPLACE ".cpp" ".h" orion_hdr "${orion_src}")
-  string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
+  string(REPLACE "Crypt/twofish.h" "" orion_hdr "${headers}")
+  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" orion_hdr "${headers}")
+  set(orion_hdr "${orion_hdr}" "${core_headers}")
 
   add_executable(OrionUO ${orion_src} ${orion_hdr})
   target_link_libraries(screenstages PRIVATE gumps)
   target_link_libraries(gumps PRIVATE managers)
   target_link_libraries(OrionUO PUBLIC managers network gumps screenstages gameobjects glengine gui textengine utility walker crypt wisp)
 else()
-  set(SRCS ${orion_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src} ${wisp_src})
+  set(SRCS ${orion_src} ${core_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src} ${wisp_src})
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
   string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
+  set(headers "${headers}" "${core_headers}")
 
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0") 
     source_group("${PROJECT_SOURCE_DIR}/OrionUO/" FILES ${SRCS} ${headers})
   else()
-    source_group(TREE "${PROJECT_SOURCE_DIR}/OrionUO/" FILES ${SRCS} ${headers})
+    source_group(TREE "${PROJECT_SOURCE_DIR}/OrionUO" FILES ${SRCS} ${headers})
   endif()
 
   if(NOT ORION_WINDOWS)

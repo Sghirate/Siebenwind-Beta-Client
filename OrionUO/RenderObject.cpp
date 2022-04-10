@@ -6,7 +6,7 @@
 #include "SelectedObject.h"
 #include "ClickObject.h"
 
-CRenderObject::CRenderObject(int serial, uint16_t graphic, uint16_t color, short x, short y)
+CRenderObject::CRenderObject(int serial, u16 graphic, u16 color, short x, short y)
     : Serial(serial)
     , Graphic(graphic)
     , Color(color)
@@ -18,7 +18,6 @@ CRenderObject::CRenderObject(int serial, uint16_t graphic, uint16_t color, short
 
 CRenderObject::~CRenderObject()
 {
-    DEBUG_TRACE_FUNCTION;
     g_ClickObject.Clear(this);
     g_SelectedObject.Clear(this);
     g_LastSelectedObject.Clear(this);

@@ -9,10 +9,10 @@ class CGUIDrawObject : public CBaseGUI
 {
 public:
     CGUIDrawObject(
-        GUMP_OBJECT_TYPE type, int serial, uint16_t graphic, uint16_t color, int x, int y);
+        GUMP_OBJECT_TYPE type, int serial, u16 graphic, u16 color, int x, int y);
     virtual ~CGUIDrawObject();
 
-    virtual CSize GetSize();
+    virtual Core::Vec2<i32> GetSize();
 
     virtual void SetShaderMode();
     virtual void PrepareTextures();

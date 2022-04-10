@@ -19,7 +19,7 @@ protected:
 
 public:
     string GetProxyAddress() { return m_ProxyAddress; };
-    void SetProxyAddress(const string &val);
+    void SetProxyAddress(const std::string &val);
 
 protected:
     int m_ProxyPort = 0;
@@ -40,37 +40,37 @@ protected:
 
 public:
     string GetProxyAccount() { return m_ProxyAccount; };
-    void SetProxyAccount(const string &val);
+    void SetProxyAccount(const std::string &val);
 
 protected:
     string m_ProxyPassword = "";
 
 public:
     string GetProxyPassword() { return m_ProxyPassword; };
-    void SetProxyPassword(const string &val);
+    void SetProxyPassword(const std::string &val);
 
 private:
     CSocket m_LoginSocket{ CSocket(false) };
     CSocket m_GameSocket{ CSocket(true) };
     // true - m_LoginSocket, false - m_GameSocket
     bool m_IsLoginSocket = true;
-    uint8_t m_Seed[4];
+    u8 m_Seed[4];
 
-    void SendIP(CSocket &socket, uint8_t *ip);
+    void SendIP(CSocket &socket, u8 *ip);
 
 public:
     CConnectionManager();
     ~CConnectionManager();
 
     void Init();
-    void Init(uint8_t *gameSeed);
+    void Init(u8 *gameSeed);
     bool Connected() { return (m_LoginSocket.Connected || m_GameSocket.Connected); }
-    bool Connect(const string &address, int port, uint8_t *gameSeed);
+    bool Connect(const std::string &address, int port, u8 *gameSeed);
     void Disconnect();
     void Recv();
-    int Send(uint8_t *buf, int size);
-    int Send(const vector<uint8_t> &data);
-    const uint8_t *GetClientIP() const { return &m_Seed[0]; }
+    int Send(u8 *buf, int size);
+    int Send(const std::vector<u8> &data);
+    const u8 *GetClientIP() const { return &m_Seed[0]; }
 };
 
 extern CConnectionManager g_ConnectionManager;

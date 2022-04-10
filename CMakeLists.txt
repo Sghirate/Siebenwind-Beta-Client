@@ -84,7 +84,11 @@ if(ORION_WINDOWS)
 		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/lib/glew32.lib")
 	set(BINS_BASE
 		"${BINS_BASE}"
-		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")
+		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")	
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_GLEW")
+	set(ORION_WITH_GLEW ON)
 
 	# SDL2
 	set(INC_BASE
@@ -98,11 +102,19 @@ if(ORION_WINDOWS)
 	set(BINS_BASE
 		"${BINS_BASE}"
 		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/bin/SDL2.dll")
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_SDL2")
+	set(ORION_WITH_SDL2 ON)
 
 	# PSAPI
 	set(LIBS_BASE
 		"${LIBS_BASE}"
 		"${EXTERNAL_DIR}/psapi/${ORION_ARCH}/lib/psapi.lib")
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_PSASI")
+	set(ORION_WITH_PSASI ON)
 
 	# Optick
 	if (ORION_ARCH STREQUAL "x64")
@@ -125,7 +137,8 @@ if(ORION_WINDOWS)
 			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.pdb")
 		set(DEFINES_BASE
 			"${DEFINES_BASE}"
-			"WITH_OPTICK")
+			"ORION_WITH_OPTICK")
+		set(ORION_WITH_OPTICK ON)
 	endif()
 
 else()

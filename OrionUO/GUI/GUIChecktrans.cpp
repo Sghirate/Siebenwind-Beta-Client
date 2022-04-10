@@ -14,7 +14,6 @@ CGUIChecktrans::~CGUIChecktrans()
 
 void CGUIChecktrans::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     glColorMask(0u, 0u, 0u, 0u);
 
     glStencilFunc(GL_ALWAYS, 1, 1);

@@ -6,7 +6,7 @@
 class CSelectedObject
 {
 public:
-    uint32_t Serial = 0;
+    u32 Serial = 0;
     CRenderObject *Object = nullptr;
     CGump *Gump = nullptr;
     CSelectedObject();

@@ -7,13 +7,13 @@
 
 CGUIHTMLText::CGUIHTMLText(
     int index,
-    uint8_t font,
-    uint16_t color,
+    u8 font,
+    u16 color,
     int x,
     int y,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t textFlags,
+    u16 textFlags,
     int htmlStartColor)
     : CBaseGUI(GOT_HTMLTEXT, 0, 0, color, x, y)
     , TextID(index)
@@ -28,13 +28,11 @@ CGUIHTMLText::CGUIHTMLText(
 
 CGUIHTMLText::~CGUIHTMLText()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Texture.Clear();
 }
 
 void CGUIHTMLText::CreateTexture(bool backgroundCanBeColored)
 {
-    DEBUG_TRACE_FUNCTION;
     g_FontManager.SetUseHTML(true, HTMLStartColor, backgroundCanBeColored);
     g_FontManager.GenerateW(Font, m_Texture, Text, Color, 30, Width, Align, TextFlags);
     g_FontManager.SetUseHTML(false);
@@ -42,14 +40,13 @@ void CGUIHTMLText::CreateTexture(bool backgroundCanBeColored)
 
 void CGUIHTMLText::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Texture.Draw(m_X, m_Y, checktrans);
 }
 
 bool CGUIHTMLText::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < m_Texture.Width && y < m_Texture.Height);
 }

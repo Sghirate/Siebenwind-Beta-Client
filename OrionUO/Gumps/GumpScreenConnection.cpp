@@ -18,9 +18,8 @@ CGumpScreenConnection::~CGumpScreenConnection()
 {
 }
 
-void CGumpScreenConnection::CreateText(int x, int y, string str, uint8_t font)
+void CGumpScreenConnection::CreateText(int x, int y, string str, u8 font)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ConnectionScreen.GetTextA().length() != 0u)
     {
         str = g_ConnectionScreen.GetTextA();
@@ -33,7 +32,6 @@ void CGumpScreenConnection::CreateText(int x, int y, string str, uint8_t font)
 
 void CGumpScreenConnection::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Add(new CGUIGumppicTiled(0x0E14, 0, 0, 640, 480));
@@ -52,24 +50,24 @@ void CGumpScreenConnection::UpdateContent()
     {
         if (g_ConnectionScreen.GetConnectionFailed())
         {
-            const string text[6] = {
-                g_ClilocManager.Cliloc(g_Language)
+            const std::string text[6] = {
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000018, false, "That character password is invalid."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000019, false, "That character does not exist."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000020, false, "That character is being played right now."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(
                         3000021,
                         false,
                         "That character is not old enough to delete. The character must be 7 days old before it can be deleted."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(
                         3000022,
                         false,
                         "That character is currently queued for backup and cannot be deleted."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000023, false, "Couldn't carry out your request.")
             };
             int index = g_ConnectionScreen.GetErrorCode();
@@ -96,13 +94,13 @@ void CGumpScreenConnection::UpdateContent()
     {
         if (g_ConnectionScreen.GetConnectionFailed())
         {
-            const string text[3] = {
-                g_ClilocManager.Cliloc(g_Language)
+            const std::string text[3] = {
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(
                         3000033,
                         false,
                         "Either the Account Name or Password you provided were incorrect. If this is a new account your account may not be active yet. Please try again shortly."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000612, false, "Your character name is too short."),
                 "No character to login with."
             };
@@ -120,7 +118,7 @@ void CGumpScreenConnection::UpdateContent()
             CreateText(
                 189,
                 178,
-                g_ClilocManager.Cliloc(g_Language)->GetA(3000001, false, "Entering Britannia..."),
+                g_ClilocManager.GetCliloc(g_Language)->GetA(3000001, false, "Entering Britannia..."),
                 2);
 
             g_ConnectionScreen.CursorGraphic = 0x2077; //Waiting mouse cursor
@@ -128,36 +126,36 @@ void CGumpScreenConnection::UpdateContent()
     }
     else if (g_ConnectionScreen.GetType() == CST_GAME_LOGIN)
     {
-        const string text[10] = {
-            g_ClilocManager.Cliloc(g_Language)->GetA(3000007, false, "Incorrect password."),
-            g_ClilocManager.Cliloc(g_Language)
+        const std::string text[10] = {
+            g_ClilocManager.GetCliloc(g_Language)->GetA(3000007, false, "Incorrect password."),
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(
                     3000009,
                     false,
                     "This character does not exist anymore.  You will have to recreate it."),
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(3000006, false, "This character already exists.\nPlaying..."),
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(
                     3000016,
                     false,
                     "The client could not attach to the game server. It must have been taken down, please wait a few minutes and try again."),
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(
                     3000017,
                     false,
                     "The client could not attach to the game server. It must have been taken down, please wait a few minutes and try again."),
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(
                     3000012,
                     false,
                     "Another character from this account is currently online in this world.  You must either log in as that character or wait for it to time out."),
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(
                     3000013,
                     false,
                     "An error has occurred in the synchronization between the login servers and this world.  Please close your client and try again."),
-            g_ClilocManager.Cliloc(g_Language)
+            g_ClilocManager.GetCliloc(g_Language)
                 ->GetA(
                     3000005,
                     false,
@@ -194,20 +192,20 @@ void CGumpScreenConnection::UpdateContent()
     {
         if (g_ConnectionScreen.GetConnectionFailed())
         {
-            const string text[9] = {
-                g_ClilocManager.Cliloc(g_Language)
+            const std::string text[9] = {
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000007, false, "Incorrect name/password."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000034, false, "Someone is already using this account."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000035, false, "Your account has been blocked."),
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(3000036, false, "Your account credentials are invalid."),
                 "Communication problem.",
                 "The IGR concurrency limit has been met.",
                 "The IGR time limit has been met.",
                 "General IGR authentication failure.",
-                g_ClilocManager.Cliloc(g_Language)
+                g_ClilocManager.GetCliloc(g_Language)
                     ->GetA(
                         3000037,
                         false,
@@ -224,9 +222,9 @@ void CGumpScreenConnection::UpdateContent()
         }
         else
         {
-            const string text[2] = {
-                g_ClilocManager.Cliloc(g_Language)->GetA(3000002, false, "Connecting..."),
-                g_ClilocManager.Cliloc(g_Language)->GetA(3000003, false, "Verifying Account...")
+            const std::string text[2] = {
+                g_ClilocManager.GetCliloc(g_Language)->GetA(3000002, false, "Connecting..."),
+                g_ClilocManager.GetCliloc(g_Language)->GetA(3000003, false, "Verifying Account...")
             };
 
             CreateText(189, 178, text[g_ConnectionScreen.GetConnected()], 2);
@@ -238,7 +236,6 @@ void CGumpScreenConnection::UpdateContent()
 
 void CGumpScreenConnection::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_CS_OK) //v button
     {
         if (g_ConnectionScreen.GetType() == CST_CHARACTER_LIST)

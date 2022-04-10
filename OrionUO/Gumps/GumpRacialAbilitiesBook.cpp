@@ -26,38 +26,36 @@ CGumpRacialAbilitiesBook::~CGumpRacialAbilitiesBook()
 
 void CGumpRacialAbilitiesBook::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized)
     {
         g_ToolTip.Set(L"Double click to maximize book gump");
         return;
     }
 
-    uint32_t serial = g_SelectedObject.Serial;
+    u32 serial = g_SelectedObject.Serial;
 
-    if (Page >= DictionaryPagesCount && serial >= (uint32_t)ID_GRAB_ICON)
+    if (Page >= DictionaryPagesCount && serial >= (u32)ID_GRAB_ICON)
     {
         g_ToolTip.Set(
-            g_ClilocManager.Cliloc(g_Language)->GetW(TooltipOffset + (serial - ID_GRAB_ICON), true),
+            g_ClilocManager.GetCliloc(g_Language)->GetW(TooltipOffset + (serial - ID_GRAB_ICON), true),
             150);
     }
 }
 
 void CGumpRacialAbilitiesBook::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     int abilityOnPage = 0;
-    uint16_t iconStartGraphic = 0;
+    u16 iconStartGraphic = 0;
 
     GetSummaryBookInfo(abilityOnPage, iconStartGraphic);
 
     if (g_PressedObject.LeftGump == this && Page >= DictionaryPagesCount &&
-        g_PressedObject.LeftSerial >= (uint32_t)ID_GRAB_ICON &&
+        g_PressedObject.LeftSerial >= (u32)ID_GRAB_ICON &&
         !((CBaseGUI *)g_PressedObject.LeftObject)->MoveOnDrag)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
-        if ((abs(offset.X) >= DRAG_PIXEL_RANGE || abs(offset.Y) >= DRAG_PIXEL_RANGE) ||
+        if ((abs(offset.x) >= DRAG_PIXEL_RANGE || abs(offset.y) >= DRAG_PIXEL_RANGE) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
         {
             g_GumpManager.AddGump(new CGumpRacialAbility(
@@ -70,9 +68,8 @@ void CGumpRacialAbilitiesBook::PrepareContent()
     }
 }
 
-void CGumpRacialAbilitiesBook::GetSummaryBookInfo(int &abilityOnPage, uint16_t &iconStartGraphic)
+void CGumpRacialAbilitiesBook::GetSummaryBookInfo(int &abilityOnPage, u16 &iconStartGraphic)
 {
-    DEBUG_TRACE_FUNCTION;
     DictionaryPagesCount = 2;
     abilityOnPage = 3;
 
@@ -104,19 +101,18 @@ void CGumpRacialAbilitiesBook::GetSummaryBookInfo(int &abilityOnPage, uint16_t &
     }
 }
 
-string CGumpRacialAbilitiesBook::GetAbilityName(int offset, bool &passive)
+std::string CGumpRacialAbilitiesBook::GetAbilityName(int offset, bool &passive)
 {
-    DEBUG_TRACE_FUNCTION;
     string result{};
     passive = true;
 
-    static const string humanNames[] = {
+    static const std::string humanNames[] = {
         "Strong Back", "Tough", "Workhorse", "Jack of All Trades"
     };
-    static const string elfNames[] = { "Night Sight",         "Infused with Magic",
+    static const std::string elfNames[] = { "Night Sight",         "Infused with Magic",
                                        "Knowledge of Nature", "Difficult to Track",
                                        "Perception",          "Wisdom" };
-    static const string gargoyleNames[] = {
+    static const std::string gargoyleNames[] = {
         "Flying", "Berserk", "Master Artisan", "Deadly Aim", "Mystic Insight"
     };
 
@@ -154,7 +150,6 @@ string CGumpRacialAbilitiesBook::GetAbilityName(int offset, bool &passive)
 
 void CGumpRacialAbilitiesBook::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     m_PrevPage = nullptr;
     m_NextPage = nullptr;
 
@@ -174,7 +169,7 @@ void CGumpRacialAbilitiesBook::UpdateContent()
     Add(new CGUIHitBox(ID_GRAB_BUTTON_MINIMIZE, 6, 100, 16, 16, true));
 
     int abilityOnPage = 0;
-    uint16_t iconStartGraphic = 0;
+    u16 iconStartGraphic = 0;
 
     GetSummaryBookInfo(abilityOnPage, iconStartGraphic);
 
@@ -272,7 +267,6 @@ void CGumpRacialAbilitiesBook::UpdateContent()
 
 void CGumpRacialAbilitiesBook::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     int newPage = -1;
 
     if (serial == ID_GRAB_BUTTON_PREV)
@@ -331,7 +325,6 @@ void CGumpRacialAbilitiesBook::GUMP_BUTTON_EVENT_C
 
 bool CGumpRacialAbilitiesBook::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (Minimized)
@@ -366,7 +359,7 @@ bool CGumpRacialAbilitiesBook::OnLeftMouseButtonDoubleClick()
 
             result = true;
         }
-        else if (g_PressedObject.LeftSerial >= (uint32_t)ID_GRAB_ICON)
+        else if (g_PressedObject.LeftSerial >= (u32)ID_GRAB_ICON)
         {
             CGumpRacialAbility::OnAbilityUse(g_PressedObject.LeftObject->Graphic);
 
@@ -379,7 +372,6 @@ bool CGumpRacialAbilitiesBook::OnLeftMouseButtonDoubleClick()
 
 void CGumpRacialAbilitiesBook::DelayedClick(CRenderObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj != nullptr)
     {
         ChangePage(g_ClickObject.Page);
@@ -389,7 +381,6 @@ void CGumpRacialAbilitiesBook::DelayedClick(CRenderObject *obj)
 
 void CGumpRacialAbilitiesBook::ChangePage(int newPage)
 {
-    DEBUG_TRACE_FUNCTION;
     Page = newPage;
 
     m_PrevPage->Visible = (Page != 0);

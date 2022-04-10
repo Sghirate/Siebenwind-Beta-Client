@@ -18,18 +18,15 @@ CGUIScissor::~CGUIScissor()
 
 void CGUIScissor::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled)
     {
         int x = m_X;
         int y = m_Y;
-
         if (GumpParent != nullptr)
         {
-            x -= GumpParent->GumpRect.Position.X;
-            y -= GumpParent->GumpRect.Position.Y;
+            x -= GumpParent->GumpRect.pos.x;
+            y -= GumpParent->GumpRect.pos.y;
         }
-
         g_GL.PushScissor(BaseX + x, BaseY + y, Width, Height);
     }
     else

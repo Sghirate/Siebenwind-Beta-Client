@@ -7,7 +7,7 @@
 #include "../Managers/MouseManager.h"
 
 CGUIMinMaxButtons::CGUIMinMaxButtons(
-    int serial, uint16_t graphic, int x, int y, int minValue, int maxValue, int value)
+    int serial, u16 graphic, int x, int y, int minValue, int maxValue, int value)
     : CBaseGUI(GOT_MINMAXBUTTONS, serial, graphic, 0, x, y)
     , MinValue(minValue)
     , MaxValue(maxValue)
@@ -17,13 +17,11 @@ CGUIMinMaxButtons::CGUIMinMaxButtons(
 
 CGUIMinMaxButtons::~CGUIMinMaxButtons()
 {
-    DEBUG_TRACE_FUNCTION;
     Text.Clear();
 }
 
 void CGUIMinMaxButtons::UpdateText()
 {
-    DEBUG_TRACE_FUNCTION;
     if (HaveText)
     {
         if (Unicode)
@@ -132,7 +130,6 @@ void CGUIMinMaxButtons::UpdateText()
 
 void CGUIMinMaxButtons::Scroll(int delay)
 {
-    DEBUG_TRACE_FUNCTION;
     if (LastScrollTime < g_Ticks && (m_ScrollMode != 0))
     {
         if (m_ScrollMode == 1)
@@ -162,26 +159,20 @@ void CGUIMinMaxButtons::Scroll(int delay)
 
 void CGUIMinMaxButtons::OnClick()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
-
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
     if (x >= 0 && y >= 0 && y < 18)
     {
         if (x < 18)
-        {
             m_ScrollMode = 1;
-        }
         else
-        {
             m_ScrollMode = 2;
-        }
     }
     else
     {
         m_ScrollMode = 0;
     }
-
     LastScrollTime = g_Ticks + 100;
     ScrollStep = BaseScrollStep;
 }
@@ -189,14 +180,13 @@ void CGUIMinMaxButtons::OnClick()
 void CGUIMinMaxButtons::SetTextParameters(
     bool haveText,
     SLIDER_TEXT_POSITION textPosition,
-    uint8_t font,
-    uint16_t color,
+    u8 font,
+    u16 color,
     bool unicode,
     int textWidth,
     TEXT_ALIGN_TYPE align,
-    uint16_t textFlags)
+    u16 textFlags)
 {
-    DEBUG_TRACE_FUNCTION;
     HaveText = haveText;
     TextPosition = textPosition;
     Font = font;
@@ -211,14 +201,12 @@ void CGUIMinMaxButtons::SetTextParameters(
 
 void CGUIMinMaxButtons::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     g_Orion.ExecuteGump(Graphic);
     g_Orion.ExecuteGump(Graphic + 1);
 }
 
 void CGUIMinMaxButtons::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     glUniform1iARB(g_ShaderDrawMode, SDM_NO_COLOR);
 
     for (int i = 0; i < 2; i++)
@@ -239,9 +227,8 @@ void CGUIMinMaxButtons::Draw(bool checktrans)
 
 bool CGUIMinMaxButtons::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
-
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < 36 && y < 18);
 }

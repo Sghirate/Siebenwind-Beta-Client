@@ -2,6 +2,7 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpPaperdoll.h"
+#include "Core/Input.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
@@ -51,10 +52,9 @@ int CGumpPaperdoll::UsedLayers[m_LayerCount] = {
     OL_EARRINGS, OL_BEARD, OL_HELMET, OL_WAIST, OL_1_HAND, OL_2_HAND, OL_TALISMAN
 };
 
-CGumpPaperdoll::CGumpPaperdoll(uint32_t serial, short x, short y, bool minimized)
+CGumpPaperdoll::CGumpPaperdoll(u32 serial, short x, short y, bool minimized)
     : CGump(GT_PAPERDOLL, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Locker.Serial = ID_GP_LOCK_MOVING;
 
     if (minimized)
@@ -170,7 +170,6 @@ CGumpPaperdoll::~CGumpPaperdoll()
 
 void CGumpPaperdoll::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
     if (g_GumpPressed && g_PressedObject.LeftObject != nullptr &&
@@ -180,21 +179,20 @@ void CGumpPaperdoll::CalculateGumpState()
 
         if (Minimized)
         {
-            g_GumpTranslate.X = (float)MinimizedX;
-            g_GumpTranslate.Y = (float)MinimizedY;
+            g_GumpTranslate.x = (float)MinimizedX;
+            g_GumpTranslate.y = (float)MinimizedY;
         }
         else
         {
-            g_GumpTranslate.X = (float)m_X;
-            g_GumpTranslate.Y = (float)m_Y;
+            g_GumpTranslate.x = (float)m_X;
+            g_GumpTranslate.y = (float)m_Y;
         }
     }
 }
 
 void CGumpPaperdoll::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     if (!Minimized)
     {
@@ -303,7 +301,6 @@ void CGumpPaperdoll::InitToolTip()
 
 void CGumpPaperdoll::DelayedClick(CRenderObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj != nullptr)
     {
         CTextData *td = new CTextData();
@@ -345,7 +342,6 @@ void CGumpPaperdoll::DelayedClick(CRenderObject *obj)
 
 void CGumpPaperdoll::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
 
     if (obj == nullptr)
@@ -358,7 +354,7 @@ void CGumpPaperdoll::PrepareContent()
         g_PressedObject.LeftSerial != 0xFFFFFFFF &&
         g_MouseManager.LastLeftButtonClickTimer < g_Ticks)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
         if (CanBeDraggedByOffset(offset) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
@@ -377,6 +373,7 @@ void CGumpPaperdoll::PrepareContent()
                     g_Orion.PickupItem(equipment);
                     //g_LastGumpLeftMouseDown = 0;
                     g_PressedObject.ClearLeft();
+
                     g_MouseManager.LeftDropPosition = g_MouseManager.Position;
 
                     if (layer == OL_1_HAND || layer == OL_2_HAND)
@@ -419,7 +416,6 @@ void CGumpPaperdoll::PrepareContent()
 
 void CGumpPaperdoll::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     //Clear();
 
     CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
@@ -438,7 +434,7 @@ void CGumpPaperdoll::UpdateContent()
 
     CGUIGumppic *bodyGumppic = nullptr;
 
-    uint16_t color = obj->Color & 0x3FFF;
+    u16 color = obj->Color & 0x3FFF;
 
     if (obj->Graphic == 0x0191 || obj->Graphic == 0x0193)
     {
@@ -552,7 +548,7 @@ void CGumpPaperdoll::UpdateContent()
                     }
                 }
 
-                uint16_t id = equipment->AnimID;
+                u16 id = equipment->AnimID;
 
                 if (bodyIter != equipConv.end())
                 {
@@ -588,7 +584,7 @@ void CGumpPaperdoll::UpdateContent()
 
                 if (equipment == nullptr)
                 {
-                    uint16_t id = g_ObjectInHand.TiledataPtr->AnimID;
+                    u16 id = g_ObjectInHand.TiledataPtr->AnimID;
 
                     if (bodyIter != equipConv.end())
                     {
@@ -635,7 +631,7 @@ void CGumpPaperdoll::UpdateContent()
 
                 if (equipment != nullptr)
                 {
-                    uint32_t slotSerial = ID_GP_ITEMS + equipment->Layer;
+                    u32 slotSerial = ID_GP_ITEMS + equipment->Layer;
 
                     CIndexObjectStatic &sio = g_Orion.m_StaticDataIndex[equipment->Graphic];
                     CGLTexture *texture = sio.Texture;
@@ -661,7 +657,7 @@ void CGumpPaperdoll::UpdateContent()
                     {
                         short imageWidth = 0;
                         short imageHeight = 0;
-                        vector<uint16_t> pixels = g_UOFileReader.GetArtPixels(
+                        std::vector<u16> pixels = g_UOFileReader.GetArtPixels(
                             equipment->Graphic, sio, true, imageWidth, imageHeight);
 
                         int wantImageWidth = texture->ImageWidth;
@@ -673,7 +669,7 @@ void CGumpPaperdoll::UpdateContent()
                             continue;
                         }
 
-                        vector<uint16_t> wantPixels(wantImageWidth * wantImageHeight, 0);
+                        std::vector<u16> wantPixels(wantImageWidth * wantImageHeight, 0);
 
                         int imageOffsetX = texture->ImageOffsetX;
                         int imageOffsetY = texture->ImageOffsetY;
@@ -751,7 +747,7 @@ void CGumpPaperdoll::UpdateContent()
 
     if (equipment != nullptr && equipment->AnimID != 0)
     {
-        uint16_t backpackGraphic = equipment->AnimID + 50000;
+        u16 backpackGraphic = equipment->AnimID + 50000;
 
         if (obj->IsPlayer())
         {
@@ -793,9 +789,8 @@ void CGumpPaperdoll::UpdateContent()
     m_DataBox->Add(new CGUIShader(&g_ColorizerShader, false));
 }
 
-void CGumpPaperdoll::UpdateDescription(const string &text)
+void CGumpPaperdoll::UpdateDescription(const std::string &text)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Description != nullptr)
     {
         m_Description->CreateTextureA(1, text, 185);
@@ -806,7 +801,6 @@ void CGumpPaperdoll::UpdateDescription(const string &text)
 
 void CGumpPaperdoll::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
 
     if (obj == nullptr)
@@ -821,7 +815,7 @@ void CGumpPaperdoll::Draw()
 
     if (!Minimized)
     {
-        glTranslatef(g_GumpTranslate.X, g_GumpTranslate.Y, 0.0f);
+        glTranslatef(g_GumpTranslate.x, g_GumpTranslate.y, 0.0f);
 
         g_FontColorizerShader.Use();
 
@@ -829,13 +823,12 @@ void CGumpPaperdoll::Draw()
 
         UnuseShader();
 
-        glTranslatef(-g_GumpTranslate.X, -g_GumpTranslate.Y, 0.0f);
+        glTranslatef(-g_GumpTranslate.x, -g_GumpTranslate.y, 0.0f);
     }
 }
 
 CRenderObject *CGumpPaperdoll::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
 
     if (obj == nullptr)
@@ -847,9 +840,9 @@ CRenderObject *CGumpPaperdoll::Select()
 
     if (!Minimized)
     {
-        CPoint2Di oldPos = g_MouseManager.Position;
+        Core::Vec2<i32> oldPos = g_MouseManager.Position;
         g_MouseManager.Position =
-            CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
+            Core::Vec2<i32>(oldPos.x - (int)g_GumpTranslate.x, oldPos.y - (int)g_GumpTranslate.y);
 
         m_TextRenderer.Select(this);
 
@@ -861,7 +854,6 @@ CRenderObject *CGumpPaperdoll::Select()
 
 void CGumpPaperdoll::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     switch (serial)
     {
         case ID_GP_BUTTON_HELP: //Paperdoll button Help
@@ -953,10 +945,9 @@ void CGumpPaperdoll::GUMP_BUTTON_EVENT_C
 
 void CGumpPaperdoll::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
-    uint32_t serial = g_SelectedObject.Serial;
+    u32 serial = g_SelectedObject.Serial;
 
     CGameCharacter *container = g_World->FindWorldCharacter(Serial);
 
@@ -1060,7 +1051,6 @@ void CGumpPaperdoll::OnLeftMouseButtonUp()
 
 bool CGumpPaperdoll::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized)
     {
         Minimized = false;
@@ -1071,7 +1061,7 @@ bool CGumpPaperdoll::OnLeftMouseButtonDoubleClick()
     }
 
     bool result = false;
-    uint32_t serial = g_PressedObject.LeftSerial;
+    u32 serial = g_PressedObject.LeftSerial;
 
     if (serial < ID_GP_ITEMS)
     {

@@ -1,10 +1,6 @@
-// MIT License
-// Copyright (C) September 2017 Hotride
-
 #include <SDL_rect.h>
+#include "Core/File.h"
 #include "GumpCustomHouse.h"
-#include "../Point.h"
-#include "../FileSystem.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
 #include "../Target.h"
@@ -22,42 +18,33 @@
 CGumpCustomHouse *g_CustomHouseGump = nullptr;
 
 template <class T, class A>
-void ParseCustomHouseObjectFileWithCategory(vector<A> &list, const os_path &path)
+void ParseCustomHouseObjectFileWithCategory(std::vector<A>& list, const char* a_fileName)
 {
-    LOG("parse CH file (CAT): %s\n", CStringFromPath(path));
-    FILE *file = fs_open(path, FS_READ); //"r"
-    if (file != nullptr)
+    const std::filesystem::path filePath = g_App.GetGameDir() / a_fileName;
+    Core::File file(filePath, "r");
+    if (file)
     {
         int line = 0;
 
-        while (!feof(file))
+        while (!file.Eof())
         {
             char buf[256] = { 0 };
-            fgets(&buf[0], 256, file);
-
+            file.Gets(buf);
             if (!strlen(buf))
-            {
                 continue;
-            }
 
             line++;
-
             if (line <= 2)
-            {
                 continue;
-            }
 
             T item;
-
             if (item.Parse(buf))
             {
                 if (item.FeatureMask && !(g_LockedClientFeatures & item.FeatureMask))
-                {
                     continue;
-                }
 
                 bool found = false;
-                for (A &cat : list)
+                for (A& cat : list)
                 {
                     if (cat.Index == item.Category)
                     {
@@ -76,39 +63,31 @@ void ParseCustomHouseObjectFileWithCategory(vector<A> &list, const os_path &path
                 }
             }
         }
-
-        fs_close(file);
     }
 }
 
 template <class T>
-void ParseCustomHouseObjectFile(vector<T> &list, const os_path &path)
+void ParseCustomHouseObjectFile(std::vector<T>& list, const char* a_fileName)
 {
-    LOG("parse CH file: %s\n", CStringFromPath(path));
-    FILE *file = fs_open(path, FS_READ); //"r"
-    if (file != nullptr)
+    const std::filesystem::path filePath = g_App.GetGameDir() / a_fileName;
+    LOG("parse CH file: %s\n", filePath.string().c_str());
+    Core::File file(filePath, "r");
+    if (file)
     {
         int line = 0;
 
-        while (!feof(file))
+        while (!file.Eof())
         {
             char buf[256] = { 0 };
-            fgets(&buf[0], 256, file);
-
+            file.Gets(buf);
             if (!strlen(buf))
-            {
                 continue;
-            }
 
             line++;
-
             if (line <= 2)
-            {
                 continue;
-            }
 
             T item;
-
             if (item.Parse(buf))
             {
                 if (!item.FeatureMask || (g_LockedClientFeatures & item.FeatureMask))
@@ -117,15 +96,12 @@ void ParseCustomHouseObjectFile(vector<T> &list, const os_path &path)
                 }
             }
         }
-
-        fs_close(file);
     }
 }
 
 CGumpCustomHouse::CGumpCustomHouse(int serial, int x, int y)
     : CGump(GT_CUSTOM_HOUSE, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_FloorVisionState[0] = m_FloorVisionState[1] = m_FloorVisionState[2] = m_FloorVisionState[3] =
         CHGVS_NORMAL;
@@ -133,18 +109,16 @@ CGumpCustomHouse::CGumpCustomHouse(int serial, int x, int y)
     g_CustomHouseGump = this;
 
     ParseCustomHouseObjectFileWithCategory<CCustomHouseObjectWall, CCustomHouseObjectWallCategory>(
-        m_Walls, g_App.UOFilesPath("walls.txt"));
-    ParseCustomHouseObjectFile<CCustomHouseObjectFloor>(m_Floors, g_App.UOFilesPath("floors.txt"));
-    ParseCustomHouseObjectFile<CCustomHouseObjectDoor>(m_Doors, g_App.UOFilesPath("doors.txt"));
+        m_Walls, "walls.txt");
+    ParseCustomHouseObjectFile<CCustomHouseObjectFloor>(m_Floors, "floors.txt");
+    ParseCustomHouseObjectFile<CCustomHouseObjectDoor>(m_Doors, "doors.txt");
     ParseCustomHouseObjectFileWithCategory<CCustomHouseObjectMisc, CCustomHouseObjectMiscCategory>(
-        m_Miscs, g_App.UOFilesPath("misc.txt"));
-    ParseCustomHouseObjectFile<CCustomHouseObjectStair>(m_Stairs, g_App.UOFilesPath("stairs.txt"));
-    ParseCustomHouseObjectFile<CCustomHouseObjectTeleport>(
-        m_Teleports, g_App.UOFilesPath("teleprts.txt"));
+        m_Miscs, "misc.txt");
+    ParseCustomHouseObjectFile<CCustomHouseObjectStair>(m_Stairs, "stairs.txt");
+    ParseCustomHouseObjectFile<CCustomHouseObjectTeleport>(m_Teleports, "teleprts.txt");
     ParseCustomHouseObjectFileWithCategory<CCustomHouseObjectRoof, CCustomHouseObjectRoofCategory>(
-        m_Roofs, g_App.UOFilesPath("roof.txt"));
-    ParseCustomHouseObjectFile<CCustomHouseObjectPlaceInfo>(
-        m_ObjectsInfo, g_App.UOFilesPath("suppinfo.txt"));
+        m_Roofs, "roof.txt");
+    ParseCustomHouseObjectFile<CCustomHouseObjectPlaceInfo>(m_ObjectsInfo, "suppinfo.txt");
 
     CGameItem *foundationItem = g_World->GetWorldItem(serial);
 
@@ -156,14 +130,14 @@ CGumpCustomHouse::CGumpCustomHouse(int serial, int x, int y)
 
         if (multi != nullptr)
         {
-            StartPos.X = foundationItem->GetX() + multi->MinX;
-            StartPos.Y = foundationItem->GetY() + multi->MinY;
-            EndPos.X = foundationItem->GetX() + multi->MaxX + 1;
-            EndPos.Y = foundationItem->GetY() + multi->MaxY + 1;
+            StartPos.x = foundationItem->GetX() + multi->MinX;
+            StartPos.y = foundationItem->GetY() + multi->MinY;
+            EndPos.x = foundationItem->GetX() + multi->MaxX + 1;
+            EndPos.y = foundationItem->GetY() + multi->MaxY + 1;
         }
 
-        int width = abs(EndPos.X - StartPos.X);
-        int height = abs(EndPos.Y - StartPos.Y);
+        int width = abs(EndPos.x - StartPos.x);
+        int height = abs(EndPos.y - StartPos.y);
 
         if (width > 13 || height > 13)
         {
@@ -182,7 +156,7 @@ CGumpCustomHouse::CGumpCustomHouse(int serial, int x, int y)
         MaxFixtures = MaxComponents / 20;
     }
 
-    LOG("CH multi Bounds: %i %i %i %i\n", StartPos.X, StartPos.Y, EndPos.X, EndPos.Y);
+    LOG("CH multi Bounds: %i %i %i %i\n", StartPos.x, StartPos.y, EndPos.x, EndPos.y);
     LOG("MaxComponents=%i, MaxFixtures=%i\n", MaxComponents, MaxFixtures);
 
     Add(new CGUIPage(0));
@@ -242,10 +216,9 @@ CGumpCustomHouse::~CGumpCustomHouse()
 
 void CGumpCustomHouse::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
-    if ((g_GumpTranslate.X != 0.0f) || (g_GumpTranslate.Y != 0.0f))
+    if ((g_GumpTranslate.x != 0.0f) || (g_GumpTranslate.y != 0.0f))
     {
         WantRedraw = true;
     }
@@ -253,9 +226,8 @@ void CGumpCustomHouse::CalculateGumpState()
 
 void CGumpCustomHouse::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     if (id >= ID_GCH_ITEM_IN_LIST)
     {
@@ -458,7 +430,7 @@ void CGumpCustomHouse::InitToolTip()
         }
         case ID_GCH_AREA_OBJECTS_INFO:
         {
-            wstring str = g_ClilocManager.ParseArgumentsToClilocString(
+            std::wstring str = g_ClilocManager.ParseArgumentsToClilocString(
                 1061039,
                 true,
                 std::to_wstring(MaxComponents) + L"\t" + std::to_wstring(MaxFixtures));
@@ -499,22 +471,22 @@ void CGumpCustomHouse::DrawWallSection()
 
         for (int i = startCategory; i < endCategory; i++)
         {
-            const vector<CCustomHouseObjectWall> &vec = m_Walls[i].m_Items;
+            const std::vector<CCustomHouseObjectWall> &vec = m_Walls[i].m_Items;
 
             if (vec.empty())
             {
                 continue;
             }
 
-            CSize dims = g_Orion.GetStaticArtDimension(vec[0].East1);
+            Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(vec[0].East1);
 
-            int offsetX = x + 121 + (48 - dims.Width) / 2;
+            int offsetX = x + 121 + (48 - dims.x) / 2;
             int offsetY = y + 36;
 
             m_DataBox->Add(new CGUITilepic(vec[0].East1, 0, offsetX, offsetY));
 
             m_DataBox->Add(new CGUIHitBox(
-                ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.Width, dims.Height, true));
+                ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.x, dims.y, true));
 
             x += 48;
 
@@ -532,7 +504,7 @@ void CGumpCustomHouse::DrawWallSection()
     }
     else if (Category >= 0 && Category < (int)m_Walls.size())
     {
-        const vector<CCustomHouseObjectWall> &vec = m_Walls[Category].m_Items;
+        const std::vector<CCustomHouseObjectWall> &vec = m_Walls[Category].m_Items;
 
         if (Page >= 0 && Page < (int)vec.size())
         {
@@ -542,14 +514,14 @@ void CGumpCustomHouse::DrawWallSection()
 
             for (int i = 0; i < 8; i++)
             {
-                uint16_t graphic = (ShowWindow ? item.m_WindowGraphics[i] : item.m_Graphics[i]);
+                u16 graphic = (ShowWindow ? item.m_WindowGraphics[i] : item.m_Graphics[i]);
 
                 if (graphic != 0u)
                 {
-                    CSize dims = g_Orion.GetStaticArtDimension(graphic);
+                    Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(graphic);
 
-                    int offsetX = x + 130 + (48 - dims.Width) / 2;
-                    int offsetY = y + 36 + (120 - dims.Height) / 2;
+                    int offsetX = x + 130 + (48 - dims.x) / 2;
+                    int offsetY = y + 36 + (120 - dims.y) / 2;
 
                     m_DataBox->Add(new CGUITilepic(graphic, 0, offsetX, offsetY));
 
@@ -557,8 +529,8 @@ void CGumpCustomHouse::DrawWallSection()
                         ID_GCH_ITEM_IN_LIST + (int)i,
                         offsetX,
                         offsetY,
-                        dims.Width,
-                        dims.Height,
+                        dims.x,
+                        dims.y,
                         true));
                 }
 
@@ -599,25 +571,25 @@ void CGumpCustomHouse::DrawDoorSection()
 
         for (int i = 0; i < 8; i++)
         {
-            uint16_t graphic = item.m_Graphics[i];
+            u16 graphic = item.m_Graphics[i];
 
             if (graphic != 0u)
             {
-                CSize dims = g_Orion.GetStaticArtDimension(graphic);
+                Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(graphic);
 
-                int offsetX = x + 138 + (48 - dims.Width) / 2;
+                int offsetX = x + 138 + (48 - dims.x) / 2;
 
                 if (i > 3)
                 {
                     offsetX -= 20;
                 }
 
-                int offsetY = y + 36 + (120 - dims.Height) / 2;
+                int offsetY = y + 36 + (120 - dims.y) / 2;
 
                 m_DataBox->Add(new CGUITilepic(graphic, 0, offsetX, offsetY));
 
                 m_DataBox->Add(new CGUIHitBox(
-                    ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.Width, dims.Height, true));
+                    ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.x, dims.y, true));
             }
 
             x += 48;
@@ -730,14 +702,14 @@ void CGumpCustomHouse::DrawFloorSection()
         {
             for (int i = 0; i < 8; i++)
             {
-                uint16_t graphic = item.m_Graphics[index];
+                u16 graphic = item.m_Graphics[index];
 
                 if (graphic != 0u)
                 {
-                    CSize dims = g_Orion.GetStaticArtDimension(graphic);
+                    Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(graphic);
 
-                    int offsetX = x + 123 + (48 - dims.Width) / 2;
-                    int offsetY = y + 36 + (60 - dims.Height) / 2;
+                    int offsetX = x + 123 + (48 - dims.x) / 2;
+                    int offsetY = y + 36 + (60 - dims.y) / 2;
 
                     m_DataBox->Add(new CGUITilepic(graphic, 0, offsetX, offsetY));
 
@@ -745,8 +717,8 @@ void CGumpCustomHouse::DrawFloorSection()
                         ID_GCH_ITEM_IN_LIST + index,
                         offsetX,
                         offsetY,
-                        dims.Width,
-                        dims.Height,
+                        dims.x,
+                        dims.y,
                         true));
                 }
 
@@ -778,7 +750,7 @@ void CGumpCustomHouse::DrawStairSection()
             CGUIText *text =
                 (CGUIText *)m_DataBox->Add(new CGUIText(0xFFFF, 137, (j != 0 ? 111 : 51)));
             text->CreateTextureW(
-                0, g_ClilocManager.Cliloc(g_Language)->GetW(1062113 + (int)j), 30, 90);
+                0, g_ClilocManager.GetCliloc(g_Language)->GetW(1062113 + (int)j), 30, 90);
 
             int start = (j != 0 ? 0 : 5);
             int end = (j != 0 ? 6 : 9);
@@ -786,14 +758,14 @@ void CGumpCustomHouse::DrawStairSection()
 
             for (int i = start; i < end; i++)
             {
-                uint16_t graphic = item.m_Graphics[i];
+                u16 graphic = item.m_Graphics[i];
 
                 if (graphic != 0u)
                 {
-                    CSize dims = g_Orion.GetStaticArtDimension(graphic);
+                    Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(graphic);
 
-                    int offsetX = x + 123 + (48 - dims.Width) / 2;
-                    int offsetY = y + 36 + (60 - dims.Height) / 2;
+                    int offsetX = x + 123 + (48 - dims.x) / 2;
+                    int offsetY = y + 36 + (60 - dims.y) / 2;
 
                     m_DataBox->Add(new CGUITilepic(graphic, 0, offsetX, offsetY));
 
@@ -801,8 +773,8 @@ void CGumpCustomHouse::DrawStairSection()
                         ID_GCH_ITEM_IN_LIST + (int)i + combinedStair,
                         offsetX,
                         offsetY,
-                        dims.Width,
-                        dims.Height,
+                        dims.x,
+                        dims.y,
                         true));
                 }
 
@@ -835,22 +807,22 @@ void CGumpCustomHouse::DrawRoofSection()
 
         for (int i = startCategory; i < endCategory; i++)
         {
-            const vector<CCustomHouseObjectRoof> &vec = m_Roofs[i].m_Items;
+            const std::vector<CCustomHouseObjectRoof> &vec = m_Roofs[i].m_Items;
 
             if (vec.empty())
             {
                 continue;
             }
 
-            CSize dims = g_Orion.GetStaticArtDimension(vec[0].NSCrosspiece);
+            Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(vec[0].NSCrosspiece);
 
-            int offsetX = x + 121 + (48 - dims.Width) / 2;
+            int offsetX = x + 121 + (48 - dims.x) / 2;
             int offsetY = y + 36;
 
             m_DataBox->Add(new CGUITilepic(vec[0].NSCrosspiece, 0, offsetX, offsetY));
 
             m_DataBox->Add(new CGUIHitBox(
-                ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.Width, dims.Height, true));
+                ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.x, dims.y, true));
 
             x += 48;
 
@@ -868,7 +840,7 @@ void CGumpCustomHouse::DrawRoofSection()
     }
     else if (Category >= 0 && Category < (int)m_Roofs.size())
     {
-        const vector<CCustomHouseObjectRoof> &vec = m_Roofs[Category].m_Items;
+        const std::vector<CCustomHouseObjectRoof> &vec = m_Roofs[Category].m_Items;
 
         if (Page >= 0 && Page < (int)vec.size())
         {
@@ -882,14 +854,14 @@ void CGumpCustomHouse::DrawRoofSection()
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    uint16_t graphic = item.m_Graphics[index];
+                    u16 graphic = item.m_Graphics[index];
 
                     if (graphic != 0u)
                     {
-                        CSize dims = g_Orion.GetStaticArtDimension(graphic);
+                        Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(graphic);
 
-                        int offsetX = x + 130 + (48 - dims.Width) / 2;
-                        int offsetY = y + 44 + (60 - dims.Height) / 2;
+                        int offsetX = x + 130 + (48 - dims.x) / 2;
+                        int offsetY = y + 44 + (60 - dims.y) / 2;
 
                         m_DataBox->Add(new CGUITilepic(graphic, 0, offsetX, offsetY));
 
@@ -897,8 +869,8 @@ void CGumpCustomHouse::DrawRoofSection()
                             ID_GCH_ITEM_IN_LIST + index,
                             offsetX,
                             offsetY,
-                            dims.Width,
-                            dims.Height,
+                            dims.x,
+                            dims.y,
                             true));
                     }
 
@@ -949,22 +921,22 @@ void CGumpCustomHouse::DrawMiscSection()
 
         for (int i = startCategory; i < endCategory; i++)
         {
-            const vector<CCustomHouseObjectMisc> &vec = m_Miscs[i].m_Items;
+            const std::vector<CCustomHouseObjectMisc> &vec = m_Miscs[i].m_Items;
 
             if (vec.empty())
             {
                 continue;
             }
 
-            CSize dims = g_Orion.GetStaticArtDimension(vec[0].Piece5);
+            Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(vec[0].Piece5);
 
-            int offsetX = x + 121 + (48 - dims.Width) / 2;
+            int offsetX = x + 121 + (48 - dims.x) / 2;
             int offsetY = y + 36;
 
             m_DataBox->Add(new CGUITilepic(vec[0].Piece5, 0, offsetX, offsetY));
 
             m_DataBox->Add(new CGUIHitBox(
-                ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.Width, dims.Height, true));
+                ID_GCH_ITEM_IN_LIST + (int)i, offsetX, offsetY, dims.x, dims.y, true));
 
             x += 48;
 
@@ -982,7 +954,7 @@ void CGumpCustomHouse::DrawMiscSection()
     }
     else if (Category >= 0 && Category < (int)m_Miscs.size())
     {
-        const vector<CCustomHouseObjectMisc> &vec = m_Miscs[Category].m_Items;
+        const std::vector<CCustomHouseObjectMisc> &vec = m_Miscs[Category].m_Items;
 
         if (Page >= 0 && Page < (int)vec.size())
         {
@@ -992,14 +964,14 @@ void CGumpCustomHouse::DrawMiscSection()
 
             for (int i = 0; i < 8; i++)
             {
-                uint16_t graphic = item.m_Graphics[i];
+                u16 graphic = item.m_Graphics[i];
 
                 if (graphic != 0u)
                 {
-                    CSize dims = g_Orion.GetStaticArtDimension(graphic);
+                    Core::Vec2<i32> dims = g_Orion.GetStaticArtDimension(graphic);
 
-                    int offsetX = x + 130 + (48 - dims.Width) / 2;
-                    int offsetY = y + 44 + (120 - dims.Height) / 2;
+                    int offsetX = x + 130 + (48 - dims.x) / 2;
+                    int offsetY = y + 44 + (120 - dims.y) / 2;
 
                     m_DataBox->Add(new CGUITilepic(graphic, 0, offsetX, offsetY));
 
@@ -1007,8 +979,8 @@ void CGumpCustomHouse::DrawMiscSection()
                         ID_GCH_ITEM_IN_LIST + (int)i,
                         offsetX,
                         offsetY,
-                        dims.Width,
-                        dims.Height,
+                        dims.x,
+                        dims.y,
                         true));
                 }
 
@@ -1077,8 +1049,8 @@ void CGumpCustomHouse::DrawMenuSection()
 }
 
 template <class T, class A>
-pair<int, int>
-SeekGraphicInCustomHouseObjectListWithCategory(const vector<A> &list, uint16_t graphic)
+std::pair<int, int>
+SeekGraphicInCustomHouseObjectListWithCategory(const std::vector<A> &list, u16 graphic)
 {
     for (int i = 0; i < (int)list.size(); i++)
     {
@@ -1090,16 +1062,16 @@ SeekGraphicInCustomHouseObjectListWithCategory(const vector<A> &list, uint16_t g
 
             if (contains != -1)
             {
-                return pair<int, int>((int)i, (int)j);
+                return std::pair<int, int>((int)i, (int)j);
             }
         }
     }
 
-    return pair<int, int>(-1, -1);
+    return std::pair<int, int>(-1, -1);
 }
 
 template <class T>
-pair<int, int> SeekGraphicInCustomHouseObjectList(const vector<T> &list, uint16_t graphic)
+std::pair<int, int> SeekGraphicInCustomHouseObjectList(const std::vector<T> &list, u16 graphic)
 {
     for (int i = 0; i < (int)list.size(); i++)
     {
@@ -1107,16 +1079,16 @@ pair<int, int> SeekGraphicInCustomHouseObjectList(const vector<T> &list, uint16_
 
         if (contains != -1)
         {
-            return pair<int, int>((int)i, graphic);
+            return std::pair<int, int>((int)i, graphic);
         }
     }
 
-    return pair<int, int>(-1, -1);
+    return std::pair<int, int>(-1, -1);
 }
 
-pair<int, int> CGumpCustomHouse::ExistsInList(CUSTOM_HOUSE_GUMP_STATE &state, uint16_t graphic)
+std::pair<int, int> CGumpCustomHouse::ExistsInList(CUSTOM_HOUSE_GUMP_STATE &state, u16 graphic)
 {
-    pair<int, int> result = SeekGraphicInCustomHouseObjectListWithCategory<
+    std::pair<int, int> result = SeekGraphicInCustomHouseObjectListWithCategory<
         CCustomHouseObjectWall,
         CCustomHouseObjectWallCategory>(m_Walls, graphic);
 
@@ -1180,7 +1152,6 @@ pair<int, int> CGumpCustomHouse::ExistsInList(CUSTOM_HOUSE_GUMP_STATE &state, ui
 
 void CGumpCustomHouse::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_DataBox->Clear();
     m_DataBoxGUI->Clear();
@@ -1191,12 +1162,12 @@ void CGumpCustomHouse::UpdateContent()
         new CGUIButton(ID_GCH_STATE_ERASE, 0x5666 + (int)Erasing, 0x5667, 0x5668, 9, 100));
     Add(new CGUIButton(ID_GCH_STATE_EYEDROPPER, 0x5669 + (int)SeekTile, 0x566A, 0x566B, 39, 100));
 
-    uint16_t floorVisionGraphic1[3] = { 0x572E, 0x5734, 0x5731 };
-    uint16_t floorVisionGraphic2[3] = { 0x5725, 0x5728, 0x572B };
-    uint16_t floorVisionGraphic3[3] = { 0x571C, 0x571F, 0x5722 };
+    u16 floorVisionGraphic1[3] = { 0x572E, 0x5734, 0x5731 };
+    u16 floorVisionGraphic2[3] = { 0x5725, 0x5728, 0x572B };
+    u16 floorVisionGraphic3[3] = { 0x571C, 0x571F, 0x5722 };
     int associateGraphicTable[7] = { 0, 1, 2, 1, 2, 1, 2 };
 
-    uint16_t floorVisionGraphic = floorVisionGraphic1[associateGraphicTable[m_FloorVisionState[0]]];
+    u16 floorVisionGraphic = floorVisionGraphic1[associateGraphicTable[m_FloorVisionState[0]]];
     int graphicOffset = (CurrentFloor == 1 ? 3 : 0);
     int graphicOffset2 = (CurrentFloor == 1 ? 4 : 0);
     m_DataBoxGUI->Add(new CGUIButton(
@@ -1361,7 +1332,7 @@ void CGumpCustomHouse::UpdateContent()
                 if (item->IsCustomHouseMulti() && ((item->State & CHMOF_GENERIC_INTERNAL) == 0))
                 {
                     CUSTOM_HOUSE_GUMP_STATE state;
-                    pair<int, int> result = ExistsInList(state, item->Graphic);
+                    std::pair<int, int> result = ExistsInList(state, item->Graphic);
 
                     if (result.first != -1 && result.second != -1)
                     {
@@ -1391,7 +1362,6 @@ void CGumpCustomHouse::UpdateContent()
 
 void CGumpCustomHouse::UpdateMaxPage()
 {
-    DEBUG_TRACE_FUNCTION;
     MaxPage = 1;
 
     switch (State)
@@ -1479,10 +1449,10 @@ void CGumpCustomHouse::UpdateMaxPage()
     }
 }
 
-void CGumpCustomHouse::SeekGraphic(uint16_t graphic)
+void CGumpCustomHouse::SeekGraphic(u16 graphic)
 {
     CUSTOM_HOUSE_GUMP_STATE state;
-    pair<int, int> result = ExistsInList(state, graphic);
+    std::pair<int, int> result = ExistsInList(state, graphic);
 
     if (result.first != -1 && result.second != -1)
     {
@@ -1507,7 +1477,7 @@ void CGumpCustomHouse::SeekGraphic(uint16_t graphic)
 }
 
 bool CGumpCustomHouse::CanBuildHere(
-    vector<CBuildObject> &list, CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type)
+    std::vector<CBuildObject> &list, CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type)
 {
     type = CHBT_NORMAL;
 
@@ -1523,7 +1493,7 @@ bool CGumpCustomHouse::CanBuildHere(
             return false;
         }
 
-        pair<int, int> result =
+        std::pair<int, int> result =
             SeekGraphicInCustomHouseObjectList<CCustomHouseObjectStair>(m_Stairs, SelectedGraphic);
 
         if (result.first == -1 || result.second == -1 || result.first >= (int)m_Stairs.size())
@@ -1595,7 +1565,7 @@ bool CGumpCustomHouse::CanBuildHere(
     }
     else
     {
-        pair<int, int> fixtureCheck =
+        std::pair<int, int> fixtureCheck =
             SeekGraphicInCustomHouseObjectList<CCustomHouseObjectDoor>(m_Doors, SelectedGraphic);
         bool isFixture = false;
 
@@ -1651,7 +1621,7 @@ bool CGumpCustomHouse::CanBuildHere(
         CRenderWorldObject *rwo = (CRenderWorldObject *)g_SelectedObject.Object;
 
         if ((type != CHBT_STAIR || CombinedStair) && rwo->GetZ() < MinHouseZ &&
-            (rwo->GetX() == EndPos.X - 1 || rwo->GetY() == EndPos.Y - 1))
+            (rwo->GetX() == EndPos.x - 1 || rwo->GetY() == EndPos.y - 1))
         {
             return false;
         }
@@ -1664,7 +1634,7 @@ bool CGumpCustomHouse::CanBuildHere(
 
         int boundsOffset = (int)(State != CHGS_WALL);
         SDL_Rect rect = {
-            StartPos.X + boundsOffset, StartPos.Y + boundsOffset, EndPos.X, EndPos.Y
+            StartPos.x + boundsOffset, StartPos.y + boundsOffset, EndPos.x, EndPos.y
         };
 
         for (const CBuildObject &item : list)
@@ -1680,12 +1650,12 @@ bool CGumpCustomHouse::CanBuildHere(
                 }
                 else
                 {
-                    if (rwo->GetY() + item.Y < EndPos.Y || rwo->GetX() + item.X == StartPos.X ||
+                    if (rwo->GetY() + item.Y < EndPos.y || rwo->GetX() + item.X == StartPos.x ||
                         rwo->GetZ() >= MinHouseZ)
                     {
                         return false;
                     }
-                    if (rwo->GetY() + item.Y != EndPos.Y)
+                    if (rwo->GetY() + item.Y != EndPos.y)
                     {
                         list[0].Y = 0;
                     }
@@ -1740,7 +1710,7 @@ bool CGumpCustomHouse::CanBuildHere(
     return true;
 }
 
-bool CGumpCustomHouse::ValidateItemPlace(const SDL_Rect &rect, uint16_t graphic, int x, int y)
+bool CGumpCustomHouse::ValidateItemPlace(const SDL_Rect &rect, u16 graphic, int x, int y)
 {
     SDL_Point pos = { x, y };
 
@@ -1749,22 +1719,22 @@ bool CGumpCustomHouse::ValidateItemPlace(const SDL_Rect &rect, uint16_t graphic,
         return false;
     }
 
-    pair<int, int> infoCheck =
+    std::pair<int, int> infoCheck =
         SeekGraphicInCustomHouseObjectList<CCustomHouseObjectPlaceInfo>(m_ObjectsInfo, graphic);
 
     if (infoCheck.first != -1 && infoCheck.second != -1)
     {
         const CCustomHouseObjectPlaceInfo &info = m_ObjectsInfo[infoCheck.first];
 
-        if ((info.CanGoW == 0) && x == StartPos.X)
+        if ((info.CanGoW == 0) && x == StartPos.x)
         {
             return false;
         }
-        if ((info.CanGoN == 0) && y == StartPos.Y)
+        if ((info.CanGoN == 0) && y == StartPos.y)
         {
             return false;
         }
-        if ((info.CanGoNWS == 0) && x == StartPos.X && y == StartPos.Y)
+        if ((info.CanGoNWS == 0) && x == StartPos.x && y == StartPos.y)
         {
             return false;
         }
@@ -1783,13 +1753,13 @@ bool CGumpCustomHouse::ValidatePlaceStructure(
 
     QFOR(item, multi->m_Items, CMultiObject *)
     {
-        vector<CPoint2Di> validatedFloors;
+        std::vector<Core::Vec2<i32>> validatedFloors;
 
         if (item->IsCustomHouseMulti() &&
             ((item->State & (CHMOF_FLOOR | CHMOF_STAIR | CHMOF_ROOF | CHMOF_FIXTURE)) == 0) &&
             item->GetZ() >= minZ && item->GetZ() < maxZ)
         {
-            pair<int, int> infoCheck =
+            std::pair<int, int> infoCheck =
                 SeekGraphicInCustomHouseObjectList<CCustomHouseObjectPlaceInfo>(
                     m_ObjectsInfo, item->Graphic);
 
@@ -1894,7 +1864,7 @@ bool CGumpCustomHouse::ValidateItemPlace(
     CMultiObject *item,
     int minZ,
     int maxZ,
-    vector<CPoint2Di> &validatedFloors)
+    std::vector<Core::Vec2<i32>> &validatedFloors)
 {
     if (item == nullptr || !item->IsCustomHouseMulti())
     {
@@ -1902,19 +1872,17 @@ bool CGumpCustomHouse::ValidateItemPlace(
     }
     if ((item->State & CHMOF_FLOOR) != 0)
     {
-        auto existsInList = [](vector<CPoint2Di> &validatedFloors, const CPoint2Di &testPoint) {
-            for (const CPoint2Di &point : validatedFloors)
+        auto existsInList = [](std::vector<Core::Vec2<i32>> &validatedFloors, const Core::Vec2<i32> &testPoint) {
+            for (const Core::Vec2<i32> &point : validatedFloors)
             {
-                if (testPoint.X == point.X && testPoint.Y == point.Y)
-                {
+                if (testPoint.x == point.x && testPoint.y == point.y)
                     return true;
-                }
             }
 
             return false;
         };
 
-        //if (existsInList(validatedFloors, CPoint2Di(item->GetX(), item->GetY())))
+        //if (existsInList(validatedFloors, Core::Vec2<i32>(item->GetX(), item->GetY())))
         //	return false;
 
         if (ValidatePlaceStructure(
@@ -1936,13 +1904,13 @@ bool CGumpCustomHouse::ValidateItemPlace(
                 maxZ - 20,
                 CHVCF_DIRECT_SUPPORT | CHVCF_CANGO_N))
         {
-            const CPoint2Di table[4] = {
-                CPoint2Di(-1, 0), CPoint2Di(0, -1), CPoint2Di(1, 0), CPoint2Di(0, 1)
+            const Core::Vec2<i32> table[4] = {
+                Core::Vec2<i32>(-1, 0), Core::Vec2<i32>(0, -1), Core::Vec2<i32>(1, 0), Core::Vec2<i32>(0, 1)
             };
 
             for (int i = 0; i < 4; i++)
             {
-                CPoint2Di testPoint(item->GetX() + table[i].X, item->GetY() + table[i].Y);
+                Core::Vec2<i32> testPoint(item->GetX() + table[i].x, item->GetY() + table[i].y);
 
                 if (!existsInList(validatedFloors, testPoint))
                 {
@@ -1984,22 +1952,22 @@ bool CGumpCustomHouse::ValidateItemPlace(
         return false;
     }
 
-    pair<int, int> infoCheck = SeekGraphicInCustomHouseObjectList<CCustomHouseObjectPlaceInfo>(
+    std::pair<int, int> infoCheck = SeekGraphicInCustomHouseObjectList<CCustomHouseObjectPlaceInfo>(
         m_ObjectsInfo, item->Graphic);
 
     if (infoCheck.first != -1 && infoCheck.second != -1)
     {
         const CCustomHouseObjectPlaceInfo &info = m_ObjectsInfo[infoCheck.first];
 
-        if ((info.CanGoW == 0) && item->GetX() == StartPos.X)
+        if ((info.CanGoW == 0) && item->GetX() == StartPos.x)
         {
             return false;
         }
-        if ((info.CanGoN == 0) && item->GetY() == StartPos.Y)
+        if ((info.CanGoN == 0) && item->GetY() == StartPos.y)
         {
             return false;
         }
-        if ((info.CanGoNWS == 0) && item->GetX() == StartPos.X && item->GetY() == StartPos.Y)
+        if ((info.CanGoNWS == 0) && item->GetX() == StartPos.x && item->GetY() == StartPos.y)
         {
             return false;
         }
@@ -2209,7 +2177,7 @@ void CGumpCustomHouse::OnTargetWorld(CRenderWorldObject *place)
             }
             else if (SelectedGraphic != 0u)
             {
-                vector<CBuildObject> list;
+                std::vector<CBuildObject> list;
                 CUSTOM_HOUSE_BUILD_TYPE type;
 
                 if (CanBuildHere(list, place, type) &&
@@ -2223,7 +2191,7 @@ void CGumpCustomHouse::OnTargetWorld(CRenderWorldObject *place)
                         if (Page >= 0 && Page < (int)m_Stairs.size())
                         {
                             const CCustomHouseObjectStair &stair = m_Stairs[Page];
-                            uint16_t graphic = 0;
+                            u16 graphic = 0;
 
                             if (SelectedGraphic == stair.North)
                             {
@@ -2406,7 +2374,7 @@ void CGumpCustomHouse::GenerateFloorPlace()
                     continue;
                 }
 
-                pair<int, int> floorCheck =
+                std::pair<int, int> floorCheck =
                     SeekGraphicInCustomHouseObjectList<CCustomHouseObjectFloor>(
                         m_Floors, item->Graphic);
                 int state = item->State;
@@ -2428,7 +2396,7 @@ void CGumpCustomHouse::GenerateFloorPlace()
                 }
                 else
                 {
-                    pair<int, int> stairCheck =
+                    std::pair<int, int> stairCheck =
                         SeekGraphicInCustomHouseObjectList<CCustomHouseObjectStair>(
                             m_Stairs, item->Graphic);
 
@@ -2438,7 +2406,7 @@ void CGumpCustomHouse::GenerateFloorPlace()
                     }
                     else
                     {
-                        pair<int, int> roofCheck = SeekGraphicInCustomHouseObjectListWithCategory<
+                        std::pair<int, int> roofCheck = SeekGraphicInCustomHouseObjectListWithCategory<
                             CCustomHouseObjectRoof,
                             CCustomHouseObjectRoofCategory>(m_Roofs, item->Graphic);
 
@@ -2448,7 +2416,7 @@ void CGumpCustomHouse::GenerateFloorPlace()
                         }
                         else
                         {
-                            pair<int, int> fixtureCheck =
+                            std::pair<int, int> fixtureCheck =
                                 SeekGraphicInCustomHouseObjectList<CCustomHouseObjectDoor>(
                                     m_Doors, item->Graphic);
 
@@ -2487,9 +2455,9 @@ void CGumpCustomHouse::GenerateFloorPlace()
 
         int z = foundationItem->GetZ() + 7;
 
-        for (int x = StartPos.X + 1; x < EndPos.X; x++)
+        for (int x = StartPos.x + 1; x < EndPos.x; x++)
         {
-            for (int y = StartPos.Y + 1; y < EndPos.Y; y++)
+            for (int y = StartPos.y + 1; y < EndPos.y; y++)
             {
                 CMulti *multi = foundationItem->GetMultiAtXY((int)x, (int)y);
 
@@ -2553,11 +2521,11 @@ void CGumpCustomHouse::GenerateFloorPlace()
 
             for (int j = 0; j < 2; j++)
             {
-                vector<CPoint2Di> validatedFloors;
+                std::vector<Core::Vec2<i32>> validatedFloors;
 
-                for (int x = StartPos.X; x < EndPos.X + 1; x++)
+                for (int x = StartPos.x; x < EndPos.x + 1; x++)
                 {
-                    for (int y = StartPos.Y; y < EndPos.Y + 1; y++)
+                    for (int y = StartPos.y; y < EndPos.y + 1; y++)
                     {
                         CMulti *multi = foundationItem->GetMultiAtXY((int)x, (int)y);
 
@@ -2614,9 +2582,9 @@ void CGumpCustomHouse::GenerateFloorPlace()
 
                 if ((i != 0) && (j == 0))
                 {
-                    for (const CPoint2Di &point : validatedFloors)
+                    for (const Core::Vec2<i32> &point : validatedFloors)
                     {
-                        CMulti *multi = foundationItem->GetMultiAtXY(point.X, point.Y);
+                        CMulti *multi = foundationItem->GetMultiAtXY(point.x, point.y);
 
                         if (multi == nullptr)
                         {
@@ -2632,12 +2600,12 @@ void CGumpCustomHouse::GenerateFloorPlace()
                             }
                         }
                     }
-                    for (int x = StartPos.X; x < EndPos.X + 1; x++)
+                    for (int x = StartPos.x; x < EndPos.x + 1; x++)
                     {
                         int minY = 0;
                         int maxY = 0;
 
-                        for (int y = StartPos.Y; y < EndPos.Y + 1; y++)
+                        for (int y = StartPos.y; y < EndPos.y + 1; y++)
                         {
                             CMulti *multi = foundationItem->GetMultiAtXY((int)x, (int)y);
 
@@ -2665,7 +2633,7 @@ void CGumpCustomHouse::GenerateFloorPlace()
                             }
                         }
 
-                        for (int y = EndPos.Y; y >= StartPos.Y; y--)
+                        for (int y = EndPos.y; y >= StartPos.y; y--)
                         {
                             CMulti *multi = foundationItem->GetMultiAtXY((int)x, (int)y);
 
@@ -2715,12 +2683,12 @@ void CGumpCustomHouse::GenerateFloorPlace()
                         }
                     }
 
-                    for (int y = StartPos.Y; y < EndPos.Y + 1; y++)
+                    for (int y = StartPos.y; y < EndPos.y + 1; y++)
                     {
                         int minX = 0;
                         int maxX = 0;
 
-                        for (int x = StartPos.X; x < EndPos.X + 1; x++)
+                        for (int x = StartPos.x; x < EndPos.x + 1; x++)
                         {
                             CMulti *multi = foundationItem->GetMultiAtXY((int)x, (int)y);
 
@@ -2748,7 +2716,7 @@ void CGumpCustomHouse::GenerateFloorPlace()
                             }
                         }
 
-                        for (int x = EndPos.X; x >= StartPos.X; x--)
+                        for (int x = EndPos.x; x >= StartPos.x; x--)
                         {
                             CMulti *multi = foundationItem->GetMultiAtXY((int)x, (int)y);
 
@@ -2803,20 +2771,18 @@ void CGumpCustomHouse::GenerateFloorPlace()
 
         z = foundationItem->GetZ() + 7 + 20;
 
-        uint16_t color = 0x0051;
+        u16 color = 0x0051;
 
         for (int i = 1; i < CurrentFloor; i++)
         {
-            for (int x = StartPos.X; x < EndPos.X; x++)
+            for (int x = StartPos.x; x < EndPos.x; x++)
             {
-                for (int y = StartPos.Y; y < EndPos.Y; y++)
+                for (int y = StartPos.y; y < EndPos.y; y++)
                 {
-                    uint16_t tempColor = color;
+                    u16 tempColor = color;
 
-                    if (x == StartPos.X || y == StartPos.Y)
-                    {
+                    if (x == StartPos.x || y == StartPos.y)
                         tempColor++;
-                    }
 
                     CMultiObject *mo = foundationItem->AddMulti(
                         0x0496,
@@ -2838,7 +2804,6 @@ void CGumpCustomHouse::GenerateFloorPlace()
 
 void CGumpCustomHouse::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_DataBox->m_Items, CBaseGUI *)
     {
         if (item->Type == GOT_TEXTENTRY)
@@ -2853,7 +2818,6 @@ void CGumpCustomHouse::GUMP_TEXT_ENTRY_EVENT_C
 
 void CGumpCustomHouse::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     QFOR(item, m_DataBox->m_Items, CBaseGUI *)
@@ -2869,7 +2833,6 @@ void CGumpCustomHouse::OnLeftMouseButtonUp()
 
 void CGumpCustomHouse::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (serial >= ID_GCH_ITEM_IN_LIST)
     {
@@ -2907,7 +2870,7 @@ void CGumpCustomHouse::GUMP_BUTTON_EVENT_C
         else if (index >= 0 && Page >= 0)
         {
             bool combinedStair = false;
-            uint16_t graphic = 0;
+            u16 graphic = 0;
 
             if (State == CHGS_WALL || State == CHGS_ROOF || State == CHGS_MISC)
             {
@@ -2916,7 +2879,7 @@ void CGumpCustomHouse::GUMP_BUTTON_EVENT_C
                     if (State == CHGS_WALL && Category < (int)m_Walls.size() &&
                         index < CCustomHouseObjectWall::GRAPHICS_COUNT)
                     {
-                        const vector<CCustomHouseObjectWall> &list = m_Walls[Category].m_Items;
+                        const std::vector<CCustomHouseObjectWall> &list = m_Walls[Category].m_Items;
 
                         if (Page < (int)list.size())
                         {
@@ -2929,7 +2892,7 @@ void CGumpCustomHouse::GUMP_BUTTON_EVENT_C
                         State == CHGS_ROOF && Category < (int)m_Roofs.size() &&
                         index < CCustomHouseObjectRoof::GRAPHICS_COUNT)
                     {
-                        const vector<CCustomHouseObjectRoof> &list = m_Roofs[Category].m_Items;
+                        const std::vector<CCustomHouseObjectRoof> &list = m_Roofs[Category].m_Items;
 
                         if (Page < (int)list.size())
                         {
@@ -2940,7 +2903,7 @@ void CGumpCustomHouse::GUMP_BUTTON_EVENT_C
                         State == CHGS_MISC && Category < (int)m_Miscs.size() &&
                         index < CCustomHouseObjectMisc::GRAPHICS_COUNT)
                     {
-                        const vector<CCustomHouseObjectMisc> &list = m_Miscs[Category].m_Items;
+                        const std::vector<CCustomHouseObjectMisc> &list = m_Miscs[Category].m_Items;
 
                         if (Page < (int)list.size())
                         {

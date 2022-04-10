@@ -11,7 +11,7 @@
 
 struct UserEvent
 {
-    uint32_t code;
+    u32 code;
     void *data1;
     void *data2;
 };
@@ -252,5 +252,5 @@ typedef SDL_mutex *ProtectedSection;
 namespace Platform
 {
 void SetLanguageFromSystemLocale();
-void OpenBrowser(const string &url);
+void OpenBrowser(const std::string &url);
 } // namespace Platform

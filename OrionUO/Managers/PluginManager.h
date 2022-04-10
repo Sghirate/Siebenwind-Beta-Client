@@ -9,10 +9,10 @@
 class CPlugin : public CBaseQueueItem
 {
 private:
-    uint32_t m_Flags{ 0 };
+    u32 m_Flags{ 0 };
 
 public:
-    CPlugin(uint32_t flags);
+    CPlugin(u32 flags);
     virtual ~CPlugin();
 
     bool CanParseRecv() { return (m_Flags & PLUGIN_FLAGS_PARSE_RECV) != 0; }
@@ -34,9 +34,9 @@ public:
     CPluginManager();
     virtual ~CPluginManager() {}
 
-    uint32_t OnEvent(uint32_t msg, const void *data);
-    bool PacketRecv(uint8_t *buf, size_t size);
-    bool PacketSend(uint8_t *buf, size_t size);
+    u32 OnEvent(u32 msg, const void *data);
+    bool PacketRecv(u8 *buf, size_t size);
+    bool PacketSend(u8 *buf, size_t size);
     void Disconnect();
     void WorldDraw();
     void SceneDraw();

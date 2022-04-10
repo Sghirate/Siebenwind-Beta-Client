@@ -2,6 +2,24 @@
 // Copyright (c) 2018 Danny Angelo Carminati Grein
 
 #include "Sockets.h"
+
+#if defined(ORION_WINDOWS)
+#include <winsock.h>
+#pragma comment(lib, "wsock32.lib")
+#else
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+typedef struct hostent HOSTENT;
+typedef HOSTENT *LPHOSTENT;
+#define SOCKADDR struct sockaddr
+#define SOCKADDR_IN struct in_addr
+#define LPIN_ADDR struct in_addr *
+#define LPSOCKADDR const SOCKADDR *
+#endif
+
 #include <cassert>
 #include <string.h>
 
@@ -19,16 +37,16 @@ struct ICMPHDR
 {
     unsigned char Type;
     unsigned char Code;
-    uint16_t Checksum;
-    uint16_t ID;
-    uint16_t Seq;
+    u16 Checksum;
+    u16 ID;
+    u16 Seq;
     char Data;
 };
 
 struct ECHOREQUEST
 {
     ICMPHDR icmpHdr;
-    uint32_t dwTime;
+    u32 dwTime;
     char cData[64];
 };
 
@@ -41,7 +59,7 @@ struct IPHDR
     short FlagOff;
     unsigned char TTL;
     unsigned char Protocol;
-    uint16_t Checksum;
+    u16 Checksum;
     struct in_addr iaSrc;
     struct in_addr iaDst;
 };
@@ -53,9 +71,9 @@ struct ECHOREPLY
     char cFiller[256];
 };
 
-uint16_t icmp_checksum(const uint16_t *addr, int count)
+u16 icmp_checksum(const u16 *addr, int count)
 {
-    uint16_t checksum = 0;
+    u16 checksum = 0;
     while (count > 1)
     {
         checksum += *addr++;
@@ -86,7 +104,7 @@ inline static SOCKET socket_fd(T socket)
     return *(SOCKET *)socket;
 }
 
-uint32_t socket_localaddress()
+u32 socket_localaddress()
 {
     char hostName[1024]{};
     if (gethostname(hostName, sizeof(hostName)) != 0)
@@ -128,7 +146,7 @@ tcp_socket tcp_open()
     return (tcp_socket)s;
 }
 
-bool tcp_connect(tcp_socket socket, const char *address, uint16_t port)
+bool tcp_connect(tcp_socket socket, const char *address, u16 port)
 {
     auto h = socket_fd(socket);
     sockaddr_in caddr;
@@ -209,7 +227,7 @@ icmp_handle icmp_open()
     return (icmp_handle)s;
 }
 
-int icmp_query(icmp_handle handle, const char *ip, uint32_t *timems)
+int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
 {
     assert(wsa_initialized);
     assert(ip);
@@ -231,7 +249,7 @@ int icmp_query(icmp_handle handle, const char *ip, uint32_t *timems)
         memset(request.cData, 80, sizeof(request.cData));
 
         const auto rs = sizeof(ECHOREQUEST);
-        request.icmpHdr.Checksum = icmp_checksum((uint16_t *)&request, rs);
+        request.icmpHdr.Checksum = icmp_checksum((u16 *)&request, rs);
 
         const auto r = (LPSTR)&request;
         const auto dst = (LPSOCKADDR)&destAddress;
@@ -285,12 +303,12 @@ inline static int socket_fd(T socket)
     return *(int *)socket;
 }
 
-uint32_t socket_localaddress()
+u32 socket_localaddress()
 {
     struct ifaddrs *addrs = nullptr;
     struct ifaddrs *ifa = nullptr;
     void *tmp = nullptr;
-    uint32_t r = 0;
+    u32 r = 0;
 
     getifaddrs(&addrs);
     for (ifa = addrs; ifa != nullptr; ifa = ifa->ifa_next)
@@ -303,7 +321,7 @@ uint32_t socket_localaddress()
         if (ifa->ifa_addr->sa_family == AF_INET)
         {
             tmp = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            r = *(uint32_t *)tmp;
+            r = *(u32 *)tmp;
             if (r == 0x0100007f)
             {
                 continue;
@@ -352,7 +370,7 @@ tcp_socket tcp_open()
     return (tcp_socket)s;
 }
 
-bool tcp_connect(tcp_socket socket, const char *address, uint16_t port)
+bool tcp_connect(tcp_socket socket, const char *address, u16 port)
 {
     auto h = socket_fd(socket);
 
@@ -450,7 +468,7 @@ icmp_handle icmp_open()
     return (icmp_handle)s;
 }
 
-int icmp_query(icmp_handle handle, const char *ip, uint32_t *timems)
+int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
 {
     assert(timems);
     auto h = socket_fd(handle);
@@ -458,7 +476,7 @@ int icmp_query(icmp_handle handle, const char *ip, uint32_t *timems)
     auto lpHost = gethostbyname(ip);
     if (lpHost != nullptr)
     {
-        SOCKET_LOG("icmp %x\n", (uint32_t)((in_addr *)lpHost->h_addr_list[0])->s_addr);
+        SOCKET_LOG("icmp %x\n", (u32)((in_addr *)lpHost->h_addr_list[0])->s_addr);
         sockaddr_in destAddress;
         destAddress.sin_addr.s_addr = ((in_addr *)lpHost->h_addr_list[0])->s_addr;
         destAddress.sin_family = AF_INET;
@@ -471,7 +489,7 @@ int icmp_query(icmp_handle handle, const char *ip, uint32_t *timems)
         memset(request.cData, 80, sizeof(request.cData));
 
         const auto rs = sizeof(ECHOREQUEST);
-        request.icmpHdr.Checksum = icmp_checksum((uint16_t *)&request, rs);
+        request.icmpHdr.Checksum = icmp_checksum((u16 *)&request, rs);
 
         const auto r = (void *)&request;
         const auto dst = (LPSOCKADDR)&destAddress;

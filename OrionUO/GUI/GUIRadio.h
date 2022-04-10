@@ -10,9 +10,9 @@ class CGUIRadio : public CGUICheckbox
 public:
     CGUIRadio(
         int serial,
-        uint16_t graphic,
-        uint16_t graphicChecked,
-        uint16_t graphicDisabled,
+        u16 graphic,
+        u16 graphicChecked,
+        u16 graphicDisabled,
         int x,
         int y);
     virtual ~CGUIRadio();

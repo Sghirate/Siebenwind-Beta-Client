@@ -28,7 +28,6 @@ enum
 CGumpMenubar::CGumpMenubar(short x, short y)
     : CGump(GT_MENUBAR, 0, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     Page = 2;
 
     Add(new CGUIPage(1));
@@ -60,13 +59,13 @@ CGumpMenubar::CGumpMenubar(short x, short y)
                                             { 0x098D, 543, 546, largeWidth, ID_GMB_WORLD_MAP },
                                             { 0x098B, 651, 654, smallWidth, ID_GMB_INFO } };
 
-    static const wstring text[8] = {
-        g_ClilocManager.Cliloc(g_Language)->GetW(3000430, false, "Map"),
-        g_ClilocManager.Cliloc(g_Language)->GetW(3002133, false, "Paperdoll"),
-        g_ClilocManager.Cliloc(g_Language)->GetW(3000431, false, "Inventory"),
-        g_ClilocManager.Cliloc(g_Language)->GetW(3002135, false, "Journal"),
+    static const std::wstring text[8] = {
+        g_ClilocManager.GetCliloc(g_Language)->GetW(3000430, false, "Map"),
+        g_ClilocManager.GetCliloc(g_Language)->GetW(3002133, false, "Paperdoll"),
+        g_ClilocManager.GetCliloc(g_Language)->GetW(3000431, false, "Inventory"),
+        g_ClilocManager.GetCliloc(g_Language)->GetW(3002135, false, "Journal"),
         L"Chat",
-        g_ClilocManager.Cliloc(g_Language)->GetW(3000134, false, "Help"),
+        g_ClilocManager.GetCliloc(g_Language)->GetW(3000134, false, "Help"),
         L"World Map",
         L"< ? >"
     };
@@ -108,7 +107,6 @@ CGumpMenubar::~CGumpMenubar()
 
 void CGumpMenubar::SetOpened(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Opened = val;
 
     if (val)
@@ -125,8 +123,7 @@ void CGumpMenubar::SetOpened(bool val)
 
 void CGumpMenubar::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     if (!Minimized)
     {
@@ -189,7 +186,6 @@ void CGumpMenubar::InitToolTip()
 
 void CGumpMenubar::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     switch (serial)
     {
         case ID_GMB_MINIMIZE:
@@ -254,7 +250,6 @@ void CGumpMenubar::GUMP_BUTTON_EVENT_C
 
 void CGumpMenubar::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_Items, CBaseGUI *)
     {
         if (item->Type == GOT_TEXTENTRY)
@@ -269,7 +264,6 @@ void CGumpMenubar::GUMP_TEXT_ENTRY_EVENT_C
 
 void CGumpMenubar::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     QFOR(item, m_Items, CBaseGUI *)

@@ -8,7 +8,7 @@
 class CGumpScreenSelectTown : public CGump
 {
 private:
-    vector<CPoint2Di> m_TownButtonText;
+    std::vector<Core::Vec2<i32>> m_TownButtonText;
     CGUIHTMLGump *m_HTMLGump{ nullptr };
     CGUIText *m_Description{ nullptr };
 

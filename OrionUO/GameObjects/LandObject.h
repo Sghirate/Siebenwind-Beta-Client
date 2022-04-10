@@ -4,7 +4,7 @@
 #pragma once
 
 #include <SDL_rect.h>
-
+#include "Core/Minimal.h"
 #include "MapObject.h"
 
 class CLandObject : public CMapObject
@@ -14,7 +14,7 @@ public:
     char AverageZ = 0;
     // true - picture from texmaps, false - from art.mul
     bool IsStretched = false;
-    uint16_t OriginalGraphic = 0;
+    u16 OriginalGraphic = 0;
     GLuint PositionBuffer = 0;
     GLuint VertexBuffer = 0;
     GLuint NormalBuffer = 0;
@@ -23,11 +23,11 @@ private:
     int GetDirectionZ(int direction);
 
 public:
-    CLandObject(int serial, uint16_t graphic, uint16_t color, short x, short y, char z);
+    CLandObject(int serial, u16 graphic, u16 color, short x, short y, char z);
     virtual ~CLandObject();
 
     SDL_Rect m_Rect;
-    CVector m_Normals[4];
+    Core::Vec3<double> m_Normals[4];
 
     virtual void UpdateGraphicBySeason();
     int CalculateCurrentAverageZ(int direction);

@@ -11,10 +11,9 @@
 
 CGumpPopupMenu *g_PopupMenu = nullptr;
 
-CGumpPopupMenu::CGumpPopupMenu(uint32_t serial, short x, short y)
+CGumpPopupMenu::CGumpPopupMenu(u32 serial, short x, short y)
     : CGump(GT_POPUP_MENU, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     NoMove = true;
     g_PopupMenu = this;
     Page = 1;
@@ -26,18 +25,17 @@ CGumpPopupMenu::CGumpPopupMenu(uint32_t serial, short x, short y)
 
 CGumpPopupMenu::~CGumpPopupMenu()
 {
-    DEBUG_TRACE_FUNCTION;
     g_PopupMenu = nullptr;
 }
 
 void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 {
-    uint16_t mode = reader.ReadUInt16BE();
+    u16 mode = reader.ReadUInt16BE();
     bool isNewClilocs = (mode >= 2);
-    uint32_t serial = reader.ReadUInt32BE();
-    uint8_t count = reader.ReadUInt8();
+    u32 serial = reader.ReadUInt32BE();
+    u8 count = reader.ReadUInt8();
 
-    vector<CPopupMenuItemInfo> items;
+    std::vector<CPopupMenuItemInfo> items;
 
     for (int i = 0; i < count; i++)
     {
@@ -95,7 +93,7 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 
     for (const CPopupMenuItemInfo &info : items)
     {
-        wstring str = g_IntlocManager.Intloc(g_Language, info.Cliloc, isNewClilocs);
+        std::wstring str = g_IntlocManager.GetIntloc(g_Language, info.Cliloc, isNewClilocs);
 
         CGUITextEntry *item = new CGUITextEntry(
             info.Index,
@@ -177,7 +175,6 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 
 void CGumpPopupMenu::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump == this && g_SelectedObject.Object != nullptr &&
         ((CBaseGUI *)g_SelectedObject.Object)->Type == GOT_HITBOX)
     {
@@ -204,7 +201,6 @@ void CGumpPopupMenu::PrepareContent()
 
 void CGumpPopupMenu::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GPM_MAXIMIZE)
     {
         Page = 2;

@@ -3,6 +3,8 @@
 
 #include "ServerScreen.h"
 #include "MainScreen.h"
+#include "GameWindow.h"
+#include "SiebenwindClient.h"
 #include "../OrionUO.h"
 #include "../ServerList.h"
 #include "../OrionWindow.h"
@@ -21,9 +23,7 @@ CServerScreen::~CServerScreen()
 
 void CServerScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    g_OrionWindow.SetTitle(SiebenwindClient::WindowTitle + " - " + g_MainScreen.m_Account->c_str());
+    g_gameWindow.SetTitle(SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str());
     g_ScreenEffectManager.UseSunrise();
     SmoothScreenAction = 0;
 
@@ -33,7 +33,6 @@ void CServerScreen::Init()
 
 void CServerScreen::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Gump.OnKeyDown(ev);
 
@@ -45,9 +44,8 @@ void CServerScreen::OnKeyDown(const KeyEvent &ev)
     }
 }
 
-void CServerScreen::ProcessSmoothAction(uint8_t action)
+void CServerScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (action == 0xFF)
     {
@@ -60,7 +58,7 @@ void CServerScreen::ProcessSmoothAction(uint8_t action)
     }
     else if (action == ID_SMOOTH_SS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Destroy();
     }
     else if (action == ID_SMOOTH_SS_GO_SCREEN_MAIN)
     {

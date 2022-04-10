@@ -1,7 +1,7 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
+﻿#pragma once
 
-#pragma once
+#include <vector>
+#include <unordered_map>
 
 class CGameItem;
 class CMultiObject;
@@ -9,13 +9,13 @@ class CMultiObject;
 class CBuildObject
 {
 public:
-    uint16_t Graphic = 0;
+    u16 Graphic = 0;
     char X = 0;
     char Y = 0;
     char Z = 0;
 
     CBuildObject() {}
-    CBuildObject(uint16_t graphic, char x, char y, char z)
+    CBuildObject(u16 graphic, char x, char y, char z)
         : Graphic(graphic)
         , X(x)
         , Y(y)
@@ -28,8 +28,8 @@ public:
 class CCustomHouse
 {
 public:
-    uint32_t Serial = 0;
-    uint32_t Revision = 0;
+    u32 Serial = 0;
+    u32 Revision = 0;
 
     CCustomHouse() {}
     CCustomHouse(int serial, int revision)
@@ -39,14 +39,14 @@ public:
     }
     ~CCustomHouse() {}
 
-    vector<CBuildObject> m_Items;
+    std::vector<CBuildObject> m_Items;
 
     void Paste(CGameItem *foundation);
 };
 
-class CustomHousesManager : public Wisp::CDataReader
+class CustomHousesManager : public Core::StreamReader
 {
-    unordered_map<uint32_t, CCustomHouse *> m_Items;
+    std::unordered_map<u32, CCustomHouse *> m_Items;
 
 public:
     CustomHousesManager() {}
@@ -58,8 +58,8 @@ public:
 
     void Add(CCustomHouse *house);
 
-    void Load(const os_path &path);
-    void Save(const os_path &path);
+    void Load(const std::filesystem::path& a_path);
+    void Save(const std::filesystem::path& a_path);
 };
 
 extern CustomHousesManager g_CustomHousesManager;

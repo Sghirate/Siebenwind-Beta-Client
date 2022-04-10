@@ -2,7 +2,7 @@
 // Copyright (C) August 2016 Hotride
 
 #include "GumpWorldMap.h"
-#include "../FileSystem.h"
+#include "Core/File.h"
 #include "../OrionUO.h"
 #include "../OrionApplication.h"
 #include "../PressedObject.h"
@@ -19,7 +19,6 @@ const int m_Scales[7] = { 1, 1, 1, 2, 4, 6, 10 };
 CGumpWorldMap::CGumpWorldMap(short x, short y)
     : CGump(GT_WORLD_MAP, 0, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     Page = 2;
 
     Add(new CGUIPage(1));
@@ -34,11 +33,11 @@ CGumpWorldMap::CGumpWorldMap(short x, short y)
         new CGUIResizeButton(ID_GWM_RESIZE, 0x0837, 0x0838, 0x0838, Width - 8, Height + 13));
 
     //Map settings
-    static const string mapNames[7] = { "Current map", "Britannia", "Trammel", "Illshenar",
+    static const std::string mapNames[7] = { "Current map", "Britannia", "Trammel", "Illshenar",
                                         "Malas",       "Tokuno",    "TerMur" };
 
     //Scale settings
-    static const string scaleNames[7] = { "4:1", "2:1", "1:1", "1:2", "1:4", "1:6", "1:10" };
+    static const std::string scaleNames[7] = { "4:1", "2:1", "1:1", "1:2", "1:4", "1:6", "1:10" };
 
     //Link with player checkbox settings
     Text = (CGUIText *)Add(new CGUIText(0x03B2, 0, 0));
@@ -100,7 +99,6 @@ CGumpWorldMap::~CGumpWorldMap()
 
 int CGumpWorldMap::GetCurrentMap()
 {
-    DEBUG_TRACE_FUNCTION;
     int map = m_Map;
 
     if (map == 0)
@@ -117,7 +115,6 @@ int CGumpWorldMap::GetCurrentMap()
 
 void CGumpWorldMap::SetLinkWithPlayer(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_LinkWithPlayer = val;
     m_Checkbox->Checked = val;
     m_MapData->MoveOnDrag = (m_LinkWithPlayer || g_CurrentMap == GetCurrentMap());
@@ -126,7 +123,6 @@ void CGumpWorldMap::SetLinkWithPlayer(bool val)
 
 void CGumpWorldMap::SetScale(int val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Scale = val;
     m_ComboboxScale->SelectedIndex = val;
     WantRedraw = true;
@@ -134,7 +130,6 @@ void CGumpWorldMap::SetScale(int val)
 
 void CGumpWorldMap::SetMap(int val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Map = val;
     m_ComboboxMap->SelectedIndex = val;
     WantRedraw = true;
@@ -142,7 +137,6 @@ void CGumpWorldMap::SetMap(int val)
 
 void CGumpWorldMap::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
     if (g_GumpPressed)
@@ -154,13 +148,13 @@ void CGumpWorldMap::CalculateGumpState()
 
             if (Minimized)
             {
-                g_GumpTranslate.X = (float)MinimizedX;
-                g_GumpTranslate.Y = (float)MinimizedY;
+                g_GumpTranslate.x = (float)MinimizedX;
+                g_GumpTranslate.y = (float)MinimizedY;
             }
             else
             {
-                g_GumpTranslate.X = (float)m_X;
-                g_GumpTranslate.Y = (float)m_Y;
+                g_GumpTranslate.x = (float)m_X;
+                g_GumpTranslate.y = (float)m_Y;
             }
         }
         else
@@ -172,7 +166,6 @@ void CGumpWorldMap::CalculateGumpState()
 
 void CGumpWorldMap::GetCurrentCenter(int &x, int &y, int &mouseX, int &mouseY)
 {
-    DEBUG_TRACE_FUNCTION;
     x = -OffsetX + mouseX;
     y = -OffsetY + mouseY;
 
@@ -199,7 +192,6 @@ void CGumpWorldMap::GetCurrentCenter(int &x, int &y, int &mouseX, int &mouseY)
 
 void CGumpWorldMap::ScaleOffsets(int newScale, int mouseX, int mouseY)
 {
-    DEBUG_TRACE_FUNCTION;
     int offsetX = 0;
     int offsetY = 0;
 
@@ -232,7 +224,6 @@ void CGumpWorldMap::ScaleOffsets(int newScale, int mouseX, int mouseY)
 
 void CGumpWorldMap::GetScaledDimensions(int &width, int &height, int &playerX, int &playerY)
 {
-    DEBUG_TRACE_FUNCTION;
     int map = GetCurrentMap();
 
     width = g_MapSize[map].Width;
@@ -267,7 +258,6 @@ void CGumpWorldMap::GetScaledDimensions(int &width, int &height, int &playerX, i
 
 void CGumpWorldMap::FixOffsets(int &offsetX, int &offsetY, int &width, int &height)
 {
-    DEBUG_TRACE_FUNCTION;
     int mapWidth = 0;
     int mapHeight = 0;
     int playerX = 0;
@@ -298,7 +288,6 @@ void CGumpWorldMap::FixOffsets(int &offsetX, int &offsetY, int &width, int &heig
 
 void CGumpWorldMap::LoadMap(int map)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (!Called ||
         (g_FileManager.m_MapUOP[map].Start == nullptr &&
@@ -311,7 +300,7 @@ void CGumpWorldMap::LoadMap(int map)
 
     if (g_MapTexture[map].Texture == 0)
     {
-        uint32_t crc32 = 0;
+        u32 crc32 = 0;
 
         if (g_FileManager.m_MapUOP[map].Start == nullptr)
         {
@@ -351,46 +340,42 @@ void CGumpWorldMap::LoadMap(int map)
             }
         }
 
-        auto path = g_App.ExeFilePath("OrionData/WorldMap%08X.cuo", crc32);
+
+        char fileName[64];
+        std::snprintf(fileName, 64, "OrionData/WorldMap%08X.cuo", crc32);
+        std::filesystem::path path = g_App.GetGameDir() / fileName;
         bool fromFile = false;
-
-        vector<uint16_t> buf;
-
-        if (fs_path_exists(path))
+        std::vector<u16> buf;
+        if (std::filesystem::exists(path))
         {
             fromFile = true;
-            FILE *mapFile = fs_open(path, FS_READ); // "rb"
-            if (mapFile != nullptr)
+            Core::File file(path, "rb");
+            if (file.IsOpen())
             {
-                fseek(mapFile, 0, SEEK_END);
-                long size = ftell(mapFile) / sizeof(short);
-                fseek(mapFile, 0, SEEK_SET);
-
+                long size = file.Size();
                 buf.resize(size, 0);
-
                 if (buf.size() != size)
                 {
-                    LOG("Allocation pixels memory for World Map failed (want size: %i)\n", size);
-                    fs_close(mapFile);
+                    LOG("Allocation pixels memory for World Map failed (want size: %i)", size);
+                    file.Close();
                     return;
                 }
 
-                size_t readed = fread(&buf[0], sizeof(short), size, mapFile);
-                fs_close(mapFile);
-
-                if (readed != size)
+                size_t read = file.Read(&buf[0], sizeof(short), size);
+                file.Close();
+                if (read != size)
                 {
-                    LOG("Error reading world map file, want=%i, readed=%zi\n", size, readed);
+                    LOG("Error reading world map file, want=%i, read=%zi", size, read);
                     fromFile = false;
                 }
                 else
                 {
-                    LOG("World map readed from file!\n");
+                    LOG("World map read from file!");
                 }
             }
             else
             {
-                LOG("Error open world map file: %s\n", CStringFromPath(path));
+                LOG("Error open world map file: %s", path.string().c_str());
             }
         }
 
@@ -475,7 +460,7 @@ void CGumpWorldMap::LoadMap(int map)
 
                         for (int x = 0; x < 8; x++)
                         {
-                            uint16_t color =
+                            u16 color =
                                 0x8000 | g_ColorManager.GetRadarColorData(info.Cells[pos].TileID);
 
                             buf[block] = color;
@@ -492,14 +477,11 @@ void CGumpWorldMap::LoadMap(int map)
                 }
             }
 
-            fs_path_create(g_App.ExeFilePath("OrionData"));
-
-            FILE *mapFile = fs_open(path, FS_WRITE); // "wb"
-            if (mapFile != nullptr)
+            std::filesystem::create_directory(g_App.GetExeDir() / "OrionData");
+            Core::File file(path, "wb");
+            if (file.IsOpen())
             {
-                size_t written = fwrite(&buf[0], sizeof(short), buf.size(), mapFile);
-                fs_close(mapFile);
-
+                size_t written = file.Write(&buf[0], sizeof(short), buf.size());
                 LOG("Write world map file, want=%zi, written=%zi\n", buf.size(), written);
             }
         }
@@ -522,7 +504,6 @@ void CGumpWorldMap::LoadMap(int map)
 
 void CGumpWorldMap::GenerateFrame(bool stop)
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::GenerateFrame(false);
 
     //Player drawing
@@ -552,7 +533,6 @@ void CGumpWorldMap::GenerateFrame(bool stop)
 
 void CGumpWorldMap::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     CurrentOffsetX = OffsetX;
     CurrentOffsetY = OffsetY;
 
@@ -607,10 +587,10 @@ void CGumpWorldMap::PrepareContent()
     }
     else if (m_MapMoving)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
 
-        CurrentOffsetX += offset.X;
-        CurrentOffsetY += offset.Y;
+        CurrentOffsetX += offset.x;
+        CurrentOffsetY += offset.y;
 
         if (CurrentOffsetX > 0)
         {
@@ -636,7 +616,6 @@ void CGumpWorldMap::PrepareContent()
 
 void CGumpWorldMap::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonDown();
 
     if (g_PressedObject.LeftObject == m_MapData)
@@ -651,16 +630,15 @@ void CGumpWorldMap::OnLeftMouseButtonDown()
 
 void CGumpWorldMap::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     if (g_PressedObject.LeftObject == m_MapData)
     {
         if (m_MapMoving)
         {
-            CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
-            OffsetX += offset.X;
-            OffsetY += offset.Y;
+            Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+            OffsetX += offset.x;
+            OffsetY += offset.y;
             FixOffsets(OffsetX, OffsetY, Width, Height);
         }
 
@@ -670,7 +648,6 @@ void CGumpWorldMap::OnLeftMouseButtonUp()
 
 void CGumpWorldMap::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GWM_MINIMIZE)
     {
         Minimized = true;
@@ -681,7 +658,6 @@ void CGumpWorldMap::GUMP_BUTTON_EVENT_C
 
 void CGumpWorldMap::GUMP_CHECKBOX_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GWM_LINK_WITH_PLAYER)
     {
         m_LinkWithPlayer = state;
@@ -691,7 +667,6 @@ void CGumpWorldMap::GUMP_CHECKBOX_EVENT_C
 
 void CGumpWorldMap::GUMP_COMBOBOX_SELECTION_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial >= ID_GWM_SCALE_LIST)
     {
         int index = serial - ID_GWM_SCALE_LIST;
@@ -751,7 +726,6 @@ void CGumpWorldMap::GUMP_COMBOBOX_SELECTION_EVENT_C
 
 bool CGumpWorldMap::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (Page == 1)
@@ -768,7 +742,6 @@ bool CGumpWorldMap::OnLeftMouseButtonDoubleClick()
 
 void CGumpWorldMap::OnMidMouseButtonScroll(bool up)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (!Minimized && !g_MouseManager.LeftButtonPressed && !g_MouseManager.RightButtonPressed &&
         g_Orion.PolygonePixelsInXY(m_X + 8, m_Y + 31, Width - 16, Height - 16))
@@ -808,7 +781,6 @@ void CGumpWorldMap::OnMidMouseButtonScroll(bool up)
 
 void CGumpWorldMap::UpdateSize()
 {
-    DEBUG_TRACE_FUNCTION;
 
     int screenX, screenY;
     GetDisplaySize(&screenX, &screenY);
@@ -850,19 +822,17 @@ void CGumpWorldMap::UpdateSize()
 
 void CGumpWorldMap::GUMP_RESIZE_START_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     m_StartResizeWidth = Width;
     m_StartResizeHeight = Height;
 }
 
 void CGumpWorldMap::GUMP_RESIZE_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if ((m_StartResizeWidth != 0) && (m_StartResizeHeight != 0))
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
-        Width = m_StartResizeWidth + offset.X;
-        Height = m_StartResizeHeight + offset.Y;
+        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Width = m_StartResizeWidth + offset.x;
+        Height = m_StartResizeHeight + offset.y;
         UpdateSize();
     }
 }

@@ -24,23 +24,22 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
     int serial,
     int x,
     int y,
-    uint8_t variant,
+    u8 variant,
     int id,
-    const wstring &poster,
-    const wstring &subject,
-    const wstring &dataTime,
-    const wstring &data)
+    const std::wstring &poster,
+    const std::wstring &subject,
+    const std::wstring &dataTime,
+    const std::wstring &data)
     : CGumpBaseScroll(GT_BULLETIN_BOARD_ITEM, serial, 0x0820, 250, x, y, false, 70)
     , m_Variant(variant)
 {
-    DEBUG_TRACE_FUNCTION;
     ID = id;
     m_MinHeight = 200;
 
     bool useUnicode = (g_Config.ClientVersion >= CV_305D);
     int unicodeFontIndex = 1;
     int unicodeHeightOffset = 0;
-    uint16_t textColor = 0x0386;
+    u16 textColor = 0x0386;
 
     if (useUnicode)
     {
@@ -105,7 +104,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
         text->CreateTextureA(6, "Subject:");
     }
 
-    uint16_t subjectColor = textColor;
+    u16 subjectColor = textColor;
 
     if (m_Variant == 0u)
     {
@@ -204,7 +203,6 @@ CGumpBulletinBoardItem::~CGumpBulletinBoardItem()
 
 void CGumpBulletinBoardItem::UpdateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     CGumpBaseScroll::UpdateHeight();
 
     if (m_ButtonPost != nullptr)
@@ -225,7 +223,6 @@ void CGumpBulletinBoardItem::UpdateHeight()
 
 void CGumpBulletinBoardItem::RecalculateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_EntryPointer == &m_Entry->m_Entry)
     {
         m_Entry->m_Entry.CreateTextureA(9, m_Entry->m_Entry.c_str(), 0x0386, 220, TS_LEFT, 0);
@@ -242,7 +239,6 @@ void CGumpBulletinBoardItem::RecalculateHeight()
 
 void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_EntrySubject != nullptr)
     {
         if (serial == ID_GBBI_POST)
@@ -255,7 +251,7 @@ void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
         }
         else if (serial == ID_GBBI_REPLY)
         {
-            wstring subj(L"RE: ");
+            std::wstring subj(L"RE: ");
             subj += m_EntrySubject->m_Entry.Data();
 
             CGumpBulletinBoardItem *gump = new CGumpBulletinBoardItem(
@@ -274,7 +270,6 @@ void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
 
 void CGumpBulletinBoardItem::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_EntryPointer->Insert(EvChar(ev));
     RecalculateHeight();
@@ -283,7 +278,6 @@ void CGumpBulletinBoardItem::OnTextInput(const TextEvent &ev)
 
 void CGumpBulletinBoardItem::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
     auto key = EvKey(ev);
     if ((key == KEY_RETURN || key == KEY_RETURN2) && m_Entry != nullptr &&
         g_EntryPointer == &m_Entry->m_Entry)

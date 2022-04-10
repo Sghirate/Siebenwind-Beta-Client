@@ -9,13 +9,11 @@ CGLTexture::CGLTexture()
 
 CGLTexture::~CGLTexture()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 }
 
 void CGLTexture::Draw(int x, int y, bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         if (checktrans)
@@ -37,7 +35,6 @@ void CGLTexture::Draw(int x, int y, bool checktrans)
 
 void CGLTexture::Draw(int x, int y, int width, int height, bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         if (width == 0)
@@ -69,7 +66,6 @@ void CGLTexture::Draw(int x, int y, int width, int height, bool checktrans)
 
 void CGLTexture::DrawRotated(int x, int y, float angle)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         g_GL_DrawRotated(*this, x, y, angle);
@@ -78,7 +74,6 @@ void CGLTexture::DrawRotated(int x, int y, float angle)
 
 void CGLTexture::DrawTransparent(int x, int y, bool stencil)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         glEnable(GL_BLEND);
@@ -98,10 +93,9 @@ void CGLTexture::DrawTransparent(int x, int y, bool stencil)
 
 void CGLTexture::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     Width = 0;
     Height = 0;
-    m_HitMap.clear();
+    m_hitMap.Reset();
 
     if (Texture != 0)
     {
@@ -124,22 +118,10 @@ void CGLTexture::Clear()
 
 bool CGLTexture::Select(int x, int y, bool pixelCheck)
 {
-    x = g_MouseManager.Position.X - x;
-    y = g_MouseManager.Position.Y - y;
-
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    x = pos.x - x;
+    y = pos.y - y;
     if (x >= 0 && y >= 0 && x < Width && y < Height)
-    {
-        if (!pixelCheck)
-        {
-            return true;
-        }
-
-        int pos = (y * Width) + x;
-        if (pos < (int)m_HitMap.size())
-        {
-            return (m_HitMap[pos] != 0);
-        }
-    }
-
+        return !pixelCheck || m_hitMap.Get((y * Width) + x);
     return false;
 }

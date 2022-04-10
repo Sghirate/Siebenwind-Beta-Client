@@ -11,10 +11,10 @@
 #include "../Network/Packets.h"
 
 CGumpTextEntryDialog::CGumpTextEntryDialog(
-    uint32_t serial,
+    u32 serial,
     short x,
     short y,
-    uint8_t variant,
+    u8 variant,
     int maxLength,
     string text,
     string description)
@@ -24,7 +24,6 @@ CGumpTextEntryDialog::CGumpTextEntryDialog(
     , Variant(variant)
     , m_MaxLength(maxLength)
 {
-    DEBUG_TRACE_FUNCTION;
     NoMove = true;
     Blocked = true;
 
@@ -43,10 +42,9 @@ CGumpTextEntryDialog::~CGumpTextEntryDialog()
 
 void CGumpTextEntryDialog::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextField != nullptr && m_Entry != nullptr)
     {
-        uint16_t newGraphic = 0x0475; //Text field
+        u16 newGraphic = 0x0475; //Text field
 
         if (g_EntryPointer == &m_Entry->m_Entry)
         {
@@ -67,7 +65,6 @@ void CGumpTextEntryDialog::PrepareContent()
 
 void CGumpTextEntryDialog::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Add(new CGUIGumppic(0x0474, 0, 0));
@@ -105,7 +102,6 @@ void CGumpTextEntryDialog::UpdateContent()
 
 void CGumpTextEntryDialog::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GTED_BUTTON_OKAY)
     { //Button okay
         SendTextEntryDialogResponse(true);
@@ -118,7 +114,6 @@ void CGumpTextEntryDialog::GUMP_BUTTON_EVENT_C
 
 void CGumpTextEntryDialog::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto ch = EvChar(ev);
     if (Variant == 2) // Only numbers
@@ -149,7 +144,6 @@ void CGumpTextEntryDialog::OnTextInput(const TextEvent &ev)
 
 void CGumpTextEntryDialog::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto key = EvKey(ev);
     switch (key)
@@ -179,7 +173,6 @@ void CGumpTextEntryDialog::OnKeyDown(const KeyEvent &ev)
 
 void CGumpTextEntryDialog::SendTextEntryDialogResponse(bool mode)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!RemoveMark &&
         m_Entry != nullptr) //Непредвиденная ошибка при отсутствии поля ввода текста в гампе
     {

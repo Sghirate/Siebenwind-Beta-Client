@@ -3,8 +3,9 @@
 
 #include "MainScreen.h"
 #include "BaseScreen.h"
+#include "GameWindow.h"
+#include "SiebenwindClient.h"
 #include "../Config.h"
-#include "../Point.h"
 #include "../Definitions.h"
 #include "../OrionUO.h"
 #include "../QuestArrow.h"
@@ -24,31 +25,28 @@ CMainScreen::CMainScreen()
     , m_SavePassword(nullptr)
     , m_AutoLogin(nullptr)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Password = new CEntryText(32, 0, 300);
 }
 
 CMainScreen::~CMainScreen()
 {
-    DEBUG_TRACE_FUNCTION;
     delete m_Password;
 }
 
 void CMainScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     g_ConfigLoaded = false;
     g_GlobalScale = 1.0;
 
     Load();
 
 #if USE_WISP
-    g_OrionWindow.SetSize(CSize(640, 480));
-    g_OrionWindow.NoResize = true;
+    g_gameWindow.SetSize(Core::Vec2<i32>(640, 480));
+    g_gameWindow.NoResize = true;
 #else
     Reset();
 #endif
-    g_OrionWindow.SetTitle(SiebenwindClient::WindowTitle);
+    g_gameWindow.SetTitle(SiebenwindClient::GetWindowTitle().c_str());
     g_GL.UpdateRect();
 
     g_EntryPointer = m_MainGump.m_PasswordFake;
@@ -69,9 +67,8 @@ void CMainScreen::Init()
     m_Gump.PrepareTextures();
 }
 
-void CMainScreen::ProcessSmoothAction(uint8_t action)
+void CMainScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -83,13 +80,12 @@ void CMainScreen::ProcessSmoothAction(uint8_t action)
     }
     else if (action == ID_SMOOTH_MS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Destroy();
     }
 }
 
-void CMainScreen::SetAccounting(const string &account, const string &password)
+void CMainScreen::SetAccounting(const std::string &account, const std::string &password)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Account->SetTextA(account);
     m_Password->SetTextA(password);
 
@@ -104,7 +100,6 @@ void CMainScreen::SetAccounting(const string &account, const string &password)
 
 void CMainScreen::Paste()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_EntryPointer == m_MainGump.m_PasswordFake)
     {
         m_Password->Paste();
@@ -125,10 +120,9 @@ void CMainScreen::Paste()
 
 void CMainScreen::OnTextInput(const TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto ch = EvChar(ev);
-    if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((uint8_t)ch))
+    if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {
         return;
     }
@@ -157,7 +151,6 @@ void CMainScreen::OnTextInput(const TextEvent &ev)
 
 void CMainScreen::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_EntryPointer == nullptr)
     {
@@ -243,7 +236,7 @@ void CMainScreen::Save()
 
 void CMainScreen::Reset() const
 {
-    g_OrionWindow.RestoreWindow();
-    g_OrionWindow.SetSize(CSize(640, 480));
-    g_OrionWindow.SetWindowResizable(false);
+    g_gameWindow.RestoreWindow();
+    g_gameWindow.SetSize(Core::Vec2<i32>(640, 480));
+    g_gameWindow.SetWindowResizable(false);
 }

@@ -7,15 +7,15 @@
 
 struct SPELL_REQURIES
 {
-    uint8_t ManaCost;
-    uint8_t MinSkill;
+    u8 ManaCost;
+    u8 MinSkill;
 };
 
 struct PALADIN_SPELL_REQURIES
 {
-    uint8_t ManaCost;
-    uint8_t MinSkill;
-    uint8_t TithingPoints;
+    u8 ManaCost;
+    u8 MinSkill;
+    u8 TithingPoints;
 };
 
 class CGumpSpellbook : public CGump
@@ -33,17 +33,17 @@ public:
     static const int SPELLBOOK_7_SPELLS_COUNT = 30;
 
     static string m_SpellName1[SPELLBOOK_1_SPELLS_COUNT][2];
-    static const string m_SpellName2[SPELLBOOK_2_SPELLS_COUNT][2];
-    static const string m_SpellName3[SPELLBOOK_3_SPELLS_COUNT][2];
-    static const string m_SpellName4[SPELLBOOK_4_SPELLS_COUNT];
-    static const string m_SpellName5[SPELLBOOK_5_SPELLS_COUNT];
-    static const string m_SpellName6[SPELLBOOK_6_SPELLS_COUNT][2];
-    static const string m_SpellName7[SPELLBOOK_7_SPELLS_COUNT][2];
+    static const std::string m_SpellName2[SPELLBOOK_2_SPELLS_COUNT][2];
+    static const std::string m_SpellName3[SPELLBOOK_3_SPELLS_COUNT][2];
+    static const std::string m_SpellName4[SPELLBOOK_4_SPELLS_COUNT];
+    static const std::string m_SpellName5[SPELLBOOK_5_SPELLS_COUNT];
+    static const std::string m_SpellName6[SPELLBOOK_6_SPELLS_COUNT][2];
+    static const std::string m_SpellName7[SPELLBOOK_7_SPELLS_COUNT][2];
 
     static string m_SpellReagents1[SPELLBOOK_1_SPELLS_COUNT];
 
 private:
-    static const string m_SpellReagents2[SPELLBOOK_2_SPELLS_COUNT];
+    static const std::string m_SpellReagents2[SPELLBOOK_2_SPELLS_COUNT];
     static const SPELL_REQURIES m_SpellRequries2[SPELLBOOK_2_SPELLS_COUNT];
     static const PALADIN_SPELL_REQURIES m_SpellRequries3[SPELLBOOK_3_SPELLS_COUNT];
     static const SPELL_REQURIES m_SpellRequries4[SPELLBOOK_4_SPELLS_COUNT];
@@ -52,7 +52,7 @@ private:
     //static const SPELL_REQURIES m_SpellRequries7[SPELLBOOK_7_SPELLS_COUNT];
 
     int m_SpellCount{ 0 };
-    uint8_t m_Spells[MAX_SPELLS_COUNT];
+    u8 m_Spells[MAX_SPELLS_COUNT];
     int PageCount{ 8 };
 
     CGUIGumppic *m_Body{ nullptr };
@@ -70,19 +70,19 @@ private:
         int &dictionaryPagesCount,
         int &spellsOnPage,
         int &spellIndexOffset,
-        uint16_t &graphic,
-        uint16_t &minimizedGraphic,
-        uint16_t &iconStartGraphic);
+        u16 &graphic,
+        u16 &minimizedGraphic,
+        u16 &iconStartGraphic);
 
-    string GetSpellName(int offset, string &abbreviature, string &reagents);
+    string GetSpellName(int offset,std::string&abbreviature,std::string&reagents);
     string GetSpellRequries(int offset, int &y);
 
 public:
-    CGumpSpellbook(uint32_t serial, int x, int y);
+    CGumpSpellbook(u32 serial, int x, int y);
     virtual ~CGumpSpellbook();
 
     static void InitStaticData();
-    void UpdateGraphic(uint16_t parentGraphic);
+    void UpdateGraphic(u16 parentGraphic);
     void ChangePage(int newPage);
 
     virtual void InitToolTip() override;

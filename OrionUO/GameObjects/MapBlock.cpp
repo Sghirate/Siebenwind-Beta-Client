@@ -14,7 +14,6 @@ CMapBlock::CMapBlock(int index)
     : Index(index)
     , LastAccessTime(SDL_GetTicks())
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < 8; i++)
     {
         for (int j = 0; j < 8; j++)
@@ -26,7 +25,6 @@ CMapBlock::CMapBlock(int index)
 
 CMapBlock::~CMapBlock()
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < 8; i++)
     {
         for (int j = 0; j < 8; j++)
@@ -56,7 +54,6 @@ CMapBlock::~CMapBlock()
 
 bool CMapBlock::HasNoExternalData()
 {
-    DEBUG_TRACE_FUNCTION;
     for (int x = 0; x < 8; x++)
     {
         for (int y = 0; y < 8; y++)
@@ -75,9 +72,8 @@ bool CMapBlock::HasNoExternalData()
     return true;
 }
 
-uint16_t CMapBlock::GetRadarColor(int x, int y)
+u16 CMapBlock::GetRadarColor(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     CRenderWorldObject *obj = Block[x][y];
 
     while (obj != nullptr && obj->m_NextXY != nullptr)
@@ -108,7 +104,6 @@ uint16_t CMapBlock::GetRadarColor(int x, int y)
 
 void CMapBlock::CreateLandTextureRect()
 {
-    DEBUG_TRACE_FUNCTION;
     int map = g_MapManager.GetActualMap();
     for (int x = 0; x < 8; x++)
     {
@@ -138,7 +133,7 @@ void CMapBlock::CreateLandTextureRect()
                         GetLandZ(tileX + 1, tileY + 1, map),
                         GetLandZ(tileX + 1, tileY, map));
 
-                    CVector vec[3][3][4];
+                    Core::Vec3<double> vec[3][3][4];
 
                     for (int i = -1; i < 2; i++)
                     {
@@ -158,57 +153,43 @@ void CMapBlock::CreateLandTextureRect()
                             if (currentZ == leftZ && currentZ == rightZ && currentZ == bottomZ)
                             {
                                 for (int k = 0; k < 4; k++)
-                                {
-                                    vec[curI][curJ][k].Link(0.0, 0.0, 1.0);
-                                }
+                                    vec[curI][curJ][k].set(0.0, 0.0, 1.0);
                             }
                             else
                             {
-                                vec[curI][curJ][0].Link(-22.0, 22.0, (currentZ - rightZ) * 4);
-                                vec[curI][curJ][0].Merge(-22.0, -22.0, (leftZ - currentZ) * 4);
-                                vec[curI][curJ][0].Normalize();
-
-                                vec[curI][curJ][1].Link(22.0, 22.0, (rightZ - bottomZ) * 4);
-                                vec[curI][curJ][1].Merge(-22.0, 22.0, (currentZ - rightZ) * 4);
-                                vec[curI][curJ][1].Normalize();
-
-                                vec[curI][curJ][2].Link(22.0, -22.0, (bottomZ - leftZ) * 4);
-                                vec[curI][curJ][2].Merge(22.0, 22.0, (rightZ - bottomZ) * 4);
-                                vec[curI][curJ][2].Normalize();
-
-                                vec[curI][curJ][3].Link(-22.0, -22.0, (leftZ - currentZ) * 4);
-                                vec[curI][curJ][3].Merge(22.0, -22.0, (bottomZ - leftZ) * 4);
-                                vec[curI][curJ][3].Normalize();
+                                vec[curI][curJ][0] =
+                                    Core::Vec3<double>(-22.0, 22.0, (currentZ - rightZ) * 4)
+                                        .cross({ -22.0, -22.0, (leftZ - currentZ) * 4.0 })
+                                        .normalize();
+                                vec[curI][curJ][1] =
+                                    Core::Vec3<double>(22.0, 22.0, (rightZ - bottomZ) * 4)
+                                        .cross({ -22.0, 22.0, (currentZ - rightZ) * 4.0 })
+                                        .normalize();
+                                vec[curI][curJ][2] =
+                                    Core::Vec3<double>(22.0, -22.0, (bottomZ - leftZ) * 4)
+                                        .cross({ 22.0, 22.0, (rightZ - bottomZ) * 4.0 })
+                                        .normalize();
+                                vec[curI][curJ][3] =
+                                    Core::Vec3<double>(-22.0, -22.0, (leftZ - currentZ) * 4)
+                                        .cross({ 22.0, -22.0, (bottomZ - leftZ) * 4.0 })
+                                        .normalize();
                             }
                         }
                     }
-
                     int i = 1;
                     int j = 1;
-
-                    obj->m_Normals[0].Link(vec[i - 1][j - 1][2]);
-                    obj->m_Normals[0].Add(vec[i - 1][j][1]);
-                    obj->m_Normals[0].Add(vec[i][j - 1][3]);
-                    obj->m_Normals[0].Add(vec[i][j][0]);
-                    obj->m_Normals[0].Normalize();
-
-                    obj->m_Normals[1].Link(vec[i][j - 1][2]);
-                    obj->m_Normals[1].Add(vec[i][j][1]);
-                    obj->m_Normals[1].Add(vec[i + 1][j - 1][3]);
-                    obj->m_Normals[1].Add(vec[i + 1][j][0]);
-                    obj->m_Normals[1].Normalize();
-
-                    obj->m_Normals[2].Link(vec[i][j][2]);
-                    obj->m_Normals[2].Add(vec[i][j + 1][1]);
-                    obj->m_Normals[2].Add(vec[i + 1][j][3]);
-                    obj->m_Normals[2].Add(vec[i + 1][j + 1][0]);
-                    obj->m_Normals[2].Normalize();
-
-                    obj->m_Normals[3].Link(vec[i - 1][j][2]);
-                    obj->m_Normals[3].Add(vec[i - 1][j + 1][1]);
-                    obj->m_Normals[3].Add(vec[i][j][3]);
-                    obj->m_Normals[3].Add(vec[i][j + 1][0]);
-                    obj->m_Normals[3].Normalize();
+                    obj->m_Normals[0] =
+                        (vec[i - 1][j - 1][2] + vec[i - 1][j][1] + vec[i][j - 1][3] + vec[i][j][0])
+                            .normalize();
+                    obj->m_Normals[1] =
+                        (vec[i][j - 1][2] + vec[i][j][1] + vec[i + 1][j - 1][3] + vec[i + 1][j][0])
+                            .normalize();
+                    obj->m_Normals[2] =
+                        (vec[i][j][2] + vec[i][j + 1][1] + vec[i + 1][j][3] + vec[i + 1][j + 1][0])
+                            .normalize();
+                    obj->m_Normals[3] =
+                        (vec[i - 1][j][2] + vec[i - 1][j + 1][1] + vec[i][j][3] + vec[i][j + 1][0])
+                            .normalize();
 
                     if (g_GL.CanUseBuffer)
                     {
@@ -230,7 +211,7 @@ void CMapBlock::CreateLandTextureRect()
                             obj->NormalBuffer = normalBuffer;
 
                             const auto &rc = obj->m_Rect;
-                            CVector *normals = obj->m_Normals;
+                            Core::Vec3<double>* normals = obj->m_Normals;
 
                             int positionArray[] = { 0, 0, 0, 1, 1, 0, 1, 1 };
 
@@ -251,12 +232,12 @@ void CMapBlock::CreateLandTextureRect()
                                 &vertexArray[0],
                                 GL_STATIC_DRAW);
 
-                            float normalArray[] = { (float)normals[0].X, (float)normals[0].Y,
-                                                    (float)normals[0].Z, (float)normals[3].X,
-                                                    (float)normals[3].Y, (float)normals[3].Z,
-                                                    (float)normals[1].X, (float)normals[1].Y,
-                                                    (float)normals[1].Z, (float)normals[2].X,
-                                                    (float)normals[2].Y, (float)normals[2].Z };
+                            float normalArray[] = { (float)normals[0].x, (float)normals[0].y,
+                                                    (float)normals[0].z, (float)normals[3].x,
+                                                    (float)normals[3].y, (float)normals[3].z,
+                                                    (float)normals[1].x, (float)normals[1].y,
+                                                    (float)normals[1].z, (float)normals[2].x,
+                                                    (float)normals[2].y, (float)normals[2].z };
 
                             glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
                             glBufferData(
@@ -267,7 +248,6 @@ void CMapBlock::CreateLandTextureRect()
                         }
                     }
                 }
-
                 AddRender(obj, (int)x, (int)y);
             }
         }
@@ -276,7 +256,6 @@ void CMapBlock::CreateLandTextureRect()
 
 bool CMapBlock::TestStretched(int x, int y, char z, int map, bool recurse)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
     for (int i = -1; i < 2 && !result; i++)
     {
@@ -300,7 +279,6 @@ bool CMapBlock::TestStretched(int x, int y, char z, int map, bool recurse)
 
 char CMapBlock::GetLandZ(int x, int y, int map)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (x < 0 || y < 0)
     {
@@ -321,7 +299,6 @@ char CMapBlock::GetLandZ(int x, int y, int map)
 
 CLandObject *CMapBlock::GetLand(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     CMapObject *obj = Block[x][y];
     while (obj != nullptr)
     {
@@ -338,7 +315,6 @@ CLandObject *CMapBlock::GetLand(int x, int y)
 
 void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     item->RemoveRender();
 
     int priorityZ = item->GetZ();
@@ -455,7 +431,6 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
 
 CRenderWorldObject *CMapBlock::GetRender(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     CRenderWorldObject *obj = Block[x][y];
     while (obj != nullptr && obj->m_PrevXY != nullptr)
     {
@@ -466,7 +441,6 @@ CRenderWorldObject *CMapBlock::GetRender(int x, int y)
 
 CMapObject *CMapBlock::AddObject(CMapObject *obj, int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Block[x][y] != nullptr)
     {
         CMapObject *item = Block[x][y];

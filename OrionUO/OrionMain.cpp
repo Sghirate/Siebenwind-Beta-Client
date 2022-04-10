@@ -1,71 +1,16 @@
 // GPLv3 License
 // Copyright (C) 2019 Danny Angelo Carminati Grein
 
-#include "FileSystem.h"
 #include "Config.h"
+#include "GameWindow.h"
 #include "OrionUO.h"
 #include "OrionWindow.h"
 #include "OrionApplication.h"
 #include <SDL.h>
 #include <time.h>
 #include "Managers/ConfigManager.h"
-
-#if USE_WISP
-
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
-{
-    DEBUG_TRACE_FUNCTION;
-    INITLOGGER(L"orionuo.log");
-
-    //ParseCommandLine(); // FIXME
-    if (SDL_Init(SDL_INIT_TIMER) < 0)
-    {
-        SDL_LogError(
-            SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize SDL: %s\n", SDL_GetError());
-        return EXIT_FAILURE;
-    }
-
-    g_App.Init();
-    LoadGlobalConfig();
-    g_ConfigManager.Init();
-    auto path = g_App.ExeFilePath("crashlogs");
-    fs_path_create(path);
-
-    char buf[100]{};
-    auto t = time(nullptr);
-    auto now = *localtime(&t);
-    sprintf_s(
-        buf,
-        "/crash_%d%d%d_%d_%d_%d.txt",
-        now.tm_year + 1900,
-        now.tm_mon,
-        now.tm_mday,
-        now.tm_hour,
-        now.tm_min,
-        now.tm_sec);
-    path += ToPath(buf);
-    INITCRASHLOGGER(path);
-
-    socket_init();
-    g_OrionWindow.hInstance = hInstance;
-    if (!g_OrionWindow.Create(SiebenwindClient::WindowTitle.c_str(), SiebenwindClient::WindowTitle.c_str(), true, 640, 480))
-    {
-        socket_shutdown();
-        return 0;
-    }
-
-    g_OrionWindow.ShowWindow(true);
-    g_OrionWindow.NoResize = true;
-
-    g_Orion.LoadPluginConfig();
-
-    auto r = g_App.Run(hInstance);
-    socket_shutdown();
-    SDL_Quit();
-    return r;
-}
-
-#else
+#include "Core/Core.h"
+#include "SiebenwindClient.h"
 
 #if !defined(ORION_WINDOWS)
 #include <dlfcn.h>
@@ -84,7 +29,7 @@ ORION_EXPORT int plugin_main(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-    DEBUG_TRACE_FUNCTION;
+    Core::ScopedCore core(argc, argv);
 
     if (SDL_Init(SDL_INIT_TIMER) < 0)
     {
@@ -95,7 +40,7 @@ int main(int argc, char **argv)
 
     SDL_Log("SDL Initialized.");
     g_App.Init();
-    INITLOGGER(ToPath("orionuo.log"));
+    INITLOGGER("orionuo.log");
     LoadGlobalConfig();
 
     // TODO: good cli parsing api
@@ -126,7 +71,9 @@ int main(int argc, char **argv)
 
     if (!g_isHeadless)
     {
-        if (!g_OrionWindow.Create(SiebenwindClient::WindowTitle.c_str(), SiebenwindClient::WindowTitle.c_str(), false, 640, 480))
+        Core::TWindowPosition pos;
+        Core::TWindowSize size(640, 480);
+        if (!g_gameWindow.Create((SiebenwindClient::GetWindowTitle().c_str(), pos, size))
         {
             SDL_LogWarn(
                 SDL_LOG_CATEGORY_APPLICATION,
@@ -153,6 +100,4 @@ ORION_EXPORT void set_install(REVERSE_PLUGIN_INTERFACE *p)
 {
     g_oaReverse.Install = p->Install;
 }
-#endif
-
 #endif

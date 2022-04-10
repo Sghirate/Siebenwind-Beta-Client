@@ -6,10 +6,9 @@
 #include "../Gumps/Gump.h"
 
 CGUIColoredPolygone::CGUIColoredPolygone(
-    int serial, uint16_t color, int x, int y, int width, int height, int polygoneColor)
+    int serial, u16 color, int x, int y, int width, int height, int polygoneColor)
     : CGUIPolygonal(GOT_COLOREDPOLYGONE, x, y, width, height)
 {
-    DEBUG_TRACE_FUNCTION;
     Serial = serial;
     UpdateColor(color, polygoneColor);
 }
@@ -18,9 +17,8 @@ CGUIColoredPolygone::~CGUIColoredPolygone()
 {
 }
 
-void CGUIColoredPolygone::UpdateColor(uint16_t color, int polygoneColor)
+void CGUIColoredPolygone::UpdateColor(u16 color, int polygoneColor)
 {
-    DEBUG_TRACE_FUNCTION;
     Color = color;
 
     ColorR = ToColorR(polygoneColor);
@@ -36,7 +34,6 @@ void CGUIColoredPolygone::UpdateColor(uint16_t color, int polygoneColor)
 
 void CGUIColoredPolygone::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     glColor4ub(ColorR, ColorG, ColorB, ColorA);
 
     if (ColorA < 0xFF)
@@ -63,7 +60,6 @@ void CGUIColoredPolygone::Draw(bool checktrans)
 
 void CGUIColoredPolygone::OnMouseEnter()
 {
-    DEBUG_TRACE_FUNCTION;
     if (DrawDot && g_SelectedObject.Gump != nullptr)
     {
         g_SelectedObject.Gump->WantRedraw = true;
@@ -72,7 +68,6 @@ void CGUIColoredPolygone::OnMouseEnter()
 
 void CGUIColoredPolygone::OnMouseExit()
 {
-    DEBUG_TRACE_FUNCTION;
     if (DrawDot && g_LastSelectedObject.Gump != nullptr)
     {
         g_LastSelectedObject.Gump->WantRedraw = true;

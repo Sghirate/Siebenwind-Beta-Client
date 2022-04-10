@@ -11,7 +11,7 @@
 class CGumpSecureTrading : public CGump
 {
 public:
-    uint32_t ID2 = 0;
+    u32 ID2 = 0;
     bool StateMy = false;
     bool StateOpponent = false;
     string Text = "";
@@ -31,7 +31,7 @@ protected:
     virtual void CalculateGumpState();
 
 public:
-    CGumpSecureTrading(uint32_t serial, short x, short y, uint32_t id, uint32_t id2);
+    CGumpSecureTrading(u32 serial, short x, short y, u32 id, u32 id2);
     virtual ~CGumpSecureTrading();
 
     void SendTradingResponse(int code);

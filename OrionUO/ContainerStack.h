@@ -6,7 +6,7 @@
 class CContainerStackItem
 {
 public:
-    uint32_t Serial = 0;
+    u32 Serial = 0;
     short X = 0;
     short Y = 0;
     short MinimizedX = 0;
@@ -25,6 +25,6 @@ public:
     ~CContainerStackItem() {}
 };
 
-extern deque<CContainerStackItem> g_ContainerStack;
+extern std::deque<CContainerStackItem> g_ContainerStack;
 
-extern uint32_t g_CheckContainerStackTimer;
+extern u32 g_CheckContainerStackTimer;

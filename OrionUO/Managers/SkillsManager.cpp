@@ -7,7 +7,7 @@
 
 CSkillsManager g_SkillsManager;
 
-CSkill::CSkill(bool haveButton, const string &name)
+CSkill::CSkill(bool haveButton, const std::string &name)
     : Button(haveButton)
 {
     if (name.length() != 0u)
@@ -24,7 +24,6 @@ CSkill::CSkill(bool haveButton, const string &name)
 
 bool CSkillsManager::Load()
 {
-    DEBUG_TRACE_FUNCTION;
     if ((g_FileManager.m_SkillsIdx.Size == 0u) || (g_FileManager.m_SkillsMul.Size == 0u) ||
         (Count != 0u))
     {
@@ -76,7 +75,7 @@ void CSkillsManager::Clear()
     m_SortedTable.clear();
 }
 
-CSkill *CSkillsManager::Get(uint32_t index)
+CSkill *CSkillsManager::Get(u32 index)
 {
     if (index < Count)
     {
@@ -86,7 +85,7 @@ CSkill *CSkillsManager::Get(uint32_t index)
     return nullptr;
 }
 
-bool CSkillsManager::CompareName(const string &str1, const string &str2)
+bool CSkillsManager::CompareName(const std::string &str1, const std::string &str2)
 {
     //Вычисляем минимальную длину строки для сравнения
     const auto len = (int)std::min(str1.length(), str2.length());
@@ -116,14 +115,14 @@ bool CSkillsManager::CompareName(const string &str1, const string &str2)
 void CSkillsManager::Sort()
 {
     m_SortedTable.resize(Count, 0xFF);
-    vector<uint8_t> bufTable(Count, 0xFF);
+    std::vector<u8> bufTable(Count, 0xFF);
 
     //Установим первый элемент нулем и количество обработанных навыков - 1
     int parsed = 1;
     bufTable[0] = 0;
 
     //Пройдемся по всем нвыкам (кроме первого)
-    for (uint32_t i = 1; i < Count; i++)
+    for (u32 i = 1; i < Count; i++)
     {
         //Пройдемся по обработанным
         for (int j = 0; j < parsed; j++)
@@ -132,9 +131,9 @@ void CSkillsManager::Sort()
             if (CompareName(m_Skills[bufTable[j]].Name, m_Skills[i].Name))
             {
                 //Запомним индекс навыка
-                uint8_t buf = bufTable[j];
+                u8 buf = bufTable[j];
                 //Перезапишем
-                bufTable[j] = (uint8_t)i;
+                bufTable[j] = (u8)i;
 
                 //К следующему навыку
                 j++;
@@ -142,7 +141,7 @@ void CSkillsManager::Sort()
                 //Посмотрим остальные обработанные и перезапишем индекс при необходимости
                 for (; j < parsed; j++)
                 {
-                    uint8_t ptr = bufTable[j];
+                    u8 ptr = bufTable[j];
                     bufTable[j] = buf;
                     buf = ptr;
                 }
@@ -164,7 +163,7 @@ void CSkillsManager::Sort()
     }
 }
 
-int CSkillsManager::GetSortedIndex(uint32_t index)
+int CSkillsManager::GetSortedIndex(u32 index)
 {
     if (index < Count)
     {

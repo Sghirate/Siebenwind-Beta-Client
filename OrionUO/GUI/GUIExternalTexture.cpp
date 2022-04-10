@@ -1,9 +1,5 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIExternalTexture.h"
+﻿#include "GUIExternalTexture.h"
 #include "../Managers/ColorManager.h"
-#include "../Point.h"
 
 CGUIExternalTexture::CGUIExternalTexture(
     CGLTexture *texture, bool deleteTextureOnDestroy, int x, int y, int drawWidth, int drawHeight)
@@ -17,46 +13,32 @@ CGUIExternalTexture::CGUIExternalTexture(
 
 CGUIExternalTexture::~CGUIExternalTexture()
 {
-    DEBUG_TRACE_FUNCTION;
     if (DeleteTextureOnDestroy)
     {
         RELEASE_POINTER(m_Texture);
     }
 }
 
-CSize CGUIExternalTexture::GetSize()
+Core::Vec2<i32> CGUIExternalTexture::GetSize()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSize size;
-
+    Core::Vec2<i32> size;
     if (m_Texture != nullptr)
     {
         if (DrawWidth != 0)
-        {
-            size.Width = DrawWidth;
-        }
+            size.x = DrawWidth;
         else
-        {
-            size.Width = m_Texture->Width;
-        }
+            size.x = m_Texture->Width;
 
         if (DrawHeight != 0)
-        {
-            size.Height = DrawHeight;
-        }
+            size.y = DrawHeight;
         else
-        {
-            size.Height = m_Texture->Height;
-        }
+            size.y = m_Texture->Height;
     }
-
     return size;
 }
 
 void CGUIExternalTexture::SetShaderMode()
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (Color != 0)
     {
         if (PartialHue)
@@ -78,7 +60,6 @@ void CGUIExternalTexture::SetShaderMode()
 
 void CGUIExternalTexture::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Texture != nullptr)
     {
         SetShaderMode();
@@ -87,27 +68,17 @@ void CGUIExternalTexture::Draw(bool checktrans)
         {
             CGLTexture tex;
             tex.Texture = m_Texture->Texture;
-
             if (DrawWidth != 0)
-            {
                 tex.Width = DrawWidth;
-            }
             else
-            {
                 tex.Width = m_Texture->Width;
-            }
 
             if (DrawHeight != 0)
-            {
                 tex.Height = DrawHeight;
-            }
             else
-            {
                 tex.Height = m_Texture->Height;
-            }
 
             g_GL.GL1_Draw(tex, m_X, m_Y);
-
             tex.Texture = 0;
         }
         else
@@ -119,11 +90,5 @@ void CGUIExternalTexture::Draw(bool checktrans)
 
 bool CGUIExternalTexture::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    if (m_Texture != nullptr)
-    {
-        return m_Texture->Select(m_X, m_Y, !CheckPolygone);
-    }
-
-    return false;
+    return m_Texture ? m_Texture->Select(m_X, m_Y, !CheckPolygone) : false;
 }

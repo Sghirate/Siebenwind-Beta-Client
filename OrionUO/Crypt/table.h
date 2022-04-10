@@ -32,9 +32,9 @@
 #define RS_GF_FDBK 0x14D /* field generator */
 #define RS_rem(x)                                                                                  \
     {                                                                                              \
-        uint8_t b = (uint8_t)(x >> 24);                                                            \
-        uint32_t g2 = ((b << 1) ^ ((b & 0x80) ? RS_GF_FDBK : 0)) & 0xFF;                           \
-        uint32_t g3 = ((b >> 1) & 0x7F) ^ ((b & 1) ? RS_GF_FDBK >> 1 : 0) ^ g2;                    \
+        u8 b = (u8)(x >> 24);                                                            \
+        u32 g2 = ((b << 1) ^ ((b & 0x80) ? RS_GF_FDBK : 0)) & 0xFF;                           \
+        u32 g3 = ((b >> 1) & 0x7F) ^ ((b & 1) ? RS_GF_FDBK >> 1 : 0) ^ g2;                    \
         x = (x << 8) ^ (g3 << 24) ^ (g2 << 16) ^ (g3 << 8) ^ b;                                    \
     }
 
@@ -67,9 +67,9 @@
 #define LFSR2(x)                                                                                   \
     (((x) >> 2) ^ (((x)&0x02) ? MDS_GF_FDBK / 2 : 0) ^ (((x)&0x01) ? MDS_GF_FDBK / 4 : 0))
 
-#define Mx_1(x) ((uint32_t)(x))                         /* force result to dword so << will work */
-#define Mx_X(x) ((uint32_t)((x) ^ LFSR2(x)))            /* 5B */
-#define Mx_Y(x) ((uint32_t)((x) ^ LFSR1(x) ^ LFSR2(x))) /* EF */
+#define Mx_1(x) ((u32)(x))                         /* force result to dword so << will work */
+#define Mx_X(x) ((u32)((x) ^ LFSR2(x)))            /* 5B */
+#define Mx_Y(x) ((u32)((x) ^ LFSR1(x) ^ LFSR2(x))) /* EF */
 
 #define M00 Mul_1
 #define M01 Mul_Y
@@ -138,7 +138,7 @@
 * log2(skXor[ 0.. 0])
 * log2(skDup[ 0.. 6])=   ---  2.37  0.44  3.94  8.36 13.04 17.99
 ***********************************************************************/
-static CONST uint8_t P8x8[2][256] = {
+static CONST u8 P8x8[2][256] = {
     /*  p0:   */
     /*  dpMax      = 10.  lpMax      = 64.  cycleCnt=   1  1  1  0.         */
     /* 817D6F320B59ECA4.ECB81235F4A6709D.BA5E6D90C8F32471.D7F4126E9B3085CA. */

@@ -9,7 +9,7 @@
 class CGumpBulletinBoardItem : public CGumpBaseScroll
 {
 protected:
-    uint8_t m_Variant{ 0 };
+    u8 m_Variant{ 0 };
     CGUIButton *m_ButtonPost{ nullptr };
     CGUIButton *m_ButtonRemove{ nullptr };
     CGUIButton *m_ButtonReply{ nullptr };
@@ -23,12 +23,12 @@ public:
         int serial,
         int x,
         int y,
-        uint8_t variant,
+        u8 variant,
         int id,
-        const wstring &poster,
-        const wstring &subject,
-        const wstring &dataTime,
-        const wstring &data);
+        const std::wstring &poster,
+        const std::wstring &subject,
+        const std::wstring &dataTime,
+        const std::wstring &data);
     virtual ~CGumpBulletinBoardItem();
 
     CGUITextEntry *m_EntrySubject{ nullptr };

@@ -77,8 +77,8 @@ INCLUDE IMPLEMENTATION SPECIFIC INFORMATION.
     parameters at the bottom of the structs as appropriate.
 */
 
-typedef uint8_t u8;
-typedef uint32_t u32; /* 32-bit unsigned quantity */
+typedef u8 u8;
+typedef u32 u32; /* 32-bit unsigned quantity */
 typedef u32 fullSbox[4][256];
 
 /* The structure for key information */

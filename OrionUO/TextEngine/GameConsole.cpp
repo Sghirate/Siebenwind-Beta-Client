@@ -19,7 +19,6 @@ CGameConsole::CGameConsole()
 
 CGameConsole::~CGameConsole()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_EntryPointer == this)
     {
         g_EntryPointer = nullptr;
@@ -28,19 +27,17 @@ CGameConsole::~CGameConsole()
 
 void CGameConsole::Send()
 {
-    DEBUG_TRACE_FUNCTION;
     Send(Text);
     m_Type = GCTT_NORMAL;
 }
 
-void CGameConsole::Send(wstring text, uint16_t defaultColor)
+void CGameConsole::Send(wstring text, u16 defaultColor)
 {
-    DEBUG_TRACE_FUNCTION;
     size_t len = text.length();
     if (len != 0u)
     {
         SPEECH_TYPE speechType = ST_NORMAL;
-        uint16_t sendColor = g_ConfigManager.SpeechColor;
+        u16 sendColor = g_ConfigManager.SpeechColor;
         int offset = 0;
         if (len > 1)
         {
@@ -80,7 +77,7 @@ void CGameConsole::Send(wstring text, uint16_t defaultColor)
                 }
                 else if (type == GCTT_PARTY)
                 {
-                    uint32_t serial = 0;
+                    u32 serial = 0;
                     offset = 1;
                     sendColor = g_ConfigManager.PartyMessageColor;
                     if (member != -1)
@@ -169,17 +166,16 @@ void CGameConsole::Send(wstring text, uint16_t defaultColor)
         }
 
         CPacketUnicodeSpeechRequest(
-            text.c_str() + offset, speechType, 3, sendColor, (uint8_t *)g_Language.c_str())
+            text.c_str() + offset, speechType, 3, sendColor, (u8 *)g_Language.c_str())
             .Send();
     }
 }
 
-wstring CGameConsole::IsSystemCommand(
+std::wstring CGameConsole::IsSystemCommand(
     const wchar_t *text, size_t &len, int &member, GAME_CONSOLE_TEXT_TYPE &type)
 {
-    DEBUG_TRACE_FUNCTION;
     type = GCTT_NORMAL;
-    wstring result = {};
+    std::wstring result = {};
 
     if (*text == g_ConsolePrefix[GCTT_PARTY][0]) //Party
     {
@@ -313,11 +309,10 @@ bool CGameConsole::InChat() const
 }
 
 void CGameConsole::DrawW(
-    uint8_t font, uint16_t color, int x, int y, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     int posOffset = 0;
-    wstring wtext = Data();
+    std::wstring wtext = Data();
     if (wtext.empty())
     {
         m_Type = GCTT_NORMAL;
@@ -333,7 +328,7 @@ void CGameConsole::DrawW(
     if (len >= 2)
     {
         int member = 0;
-        wstring sysStr = IsSystemCommand(text, len, member, m_Type);
+        std::wstring sysStr = IsSystemCommand(text, len, member, m_Type);
         if (sysStr.length() != 0u)
         {
             posOffset = g_FontManager.GetWidthW(font, sysStr);
@@ -367,7 +362,6 @@ void CGameConsole::DrawW(
 
 void CGameConsole::SaveConsoleMessage()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_ConsoleStack[m_ConsoleSelectedIndex % MAX_CONSOLE_STACK_SIZE] != Text)
     {
         m_ConsoleStack[m_ConsoleStackCount % MAX_CONSOLE_STACK_SIZE] = Text;
@@ -383,7 +377,6 @@ void CGameConsole::SaveConsoleMessage()
 
 void CGameConsole::ChangeConsoleMessage(bool next)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_ConsoleStackCount != 0)
     {
         if (m_PositionChanged)
@@ -418,7 +411,6 @@ void CGameConsole::ChangeConsoleMessage(bool next)
 
 void CGameConsole::ClearStack()
 {
-    DEBUG_TRACE_FUNCTION;
     m_ConsoleStack[0] = {};
     m_ConsoleStackCount = 0;
     m_ConsoleSelectedIndex = 0;

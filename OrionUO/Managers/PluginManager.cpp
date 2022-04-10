@@ -12,23 +12,21 @@
 
 CPluginManager g_PluginManager;
 
-bool CDECL PluginRecvFunction(uint8_t *buf, size_t size)
+bool CDECL PluginRecvFunction(u8 *buf, size_t size)
 {
-    DEBUG_TRACE_FUNCTION;
-    auto owned = (uint8_t *)malloc(size);
+    auto owned = (u8 *)malloc(size);
     memcpy(owned, buf, size);
     PUSH_EVENT(UOMSG_RECV, owned, size);
     return true;
 }
 
-bool CDECL PluginSendFunction(uint8_t *buf, size_t size)
+bool CDECL PluginSendFunction(u8 *buf, size_t size)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    auto owned = (uint8_t *)malloc(size);
+    auto owned = (u8 *)malloc(size);
     memcpy(owned, buf, size);
     PUSH_EVENT(UOMSG_SEND, owned, size);
-    uint32_t ticks = g_Ticks;
+    u32 ticks = g_Ticks;
     g_TotalSendSize += checked_cast<int>(size);
     CPacketInfo &type = g_PacketManager.GetInfo(*buf);
     LOG("--- ^(%d) s(+%zd => %d) Plugin->Server:: %s\n",
@@ -54,10 +52,9 @@ bool CDECL PluginSendFunction(uint8_t *buf, size_t size)
     return true;
 }
 
-CPlugin::CPlugin(uint32_t flags)
+CPlugin::CPlugin(u32 flags)
     : m_Flags(flags)
 {
-    DEBUG_TRACE_FUNCTION;
     m_PPS = new PLUGIN_INTERFACE();
     memset(m_PPS, 0, sizeof(PLUGIN_INTERFACE));
     m_PPS->Handle = g_OrionWindow.Handle;
@@ -67,7 +64,6 @@ CPlugin::CPlugin(uint32_t flags)
 
 CPlugin::~CPlugin()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_PPS != nullptr)
     {
         delete m_PPS;
@@ -79,11 +75,10 @@ CPluginManager::CPluginManager()
 {
 }
 
-uint32_t CPluginManager::OnEvent(uint32_t msg, const void *data)
+u32 CPluginManager::OnEvent(u32 msg, const void *data)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint32_t result = 0;
+    u32 result = 0;
     QFOR(plugin, m_Items, CPlugin *)
     {
         if (plugin->CanEvent() && plugin->m_PPS->OnEvent != nullptr)
@@ -94,9 +89,8 @@ uint32_t CPluginManager::OnEvent(uint32_t msg, const void *data)
     return result;
 }
 
-bool CPluginManager::PacketRecv(uint8_t *buf, size_t size)
+bool CPluginManager::PacketRecv(u8 *buf, size_t size)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool result = true;
     QFOR(plugin, m_Items, CPlugin *)
@@ -113,9 +107,8 @@ bool CPluginManager::PacketRecv(uint8_t *buf, size_t size)
     return result;
 }
 
-bool CPluginManager::PacketSend(uint8_t *buf, size_t size)
+bool CPluginManager::PacketSend(u8 *buf, size_t size)
 {
-    DEBUG_TRACE_FUNCTION;
 
     bool result = true;
     QFOR(plugin, m_Items, CPlugin *)
@@ -134,7 +127,6 @@ bool CPluginManager::PacketSend(uint8_t *buf, size_t size)
 
 void CPluginManager::Disconnect()
 {
-    DEBUG_TRACE_FUNCTION;
 
     QFOR(plugin, m_Items, CPlugin *)
     {
@@ -147,7 +139,6 @@ void CPluginManager::Disconnect()
 
 void CPluginManager::WorldDraw()
 {
-    DEBUG_TRACE_FUNCTION;
 
     QFOR(plugin, m_Items, CPlugin *)
     {
@@ -160,7 +151,6 @@ void CPluginManager::WorldDraw()
 
 void CPluginManager::SceneDraw()
 {
-    DEBUG_TRACE_FUNCTION;
 
     QFOR(plugin, m_Items, CPlugin *)
     {
@@ -173,7 +163,6 @@ void CPluginManager::SceneDraw()
 
 void CPluginManager::WorldMapDraw()
 {
-    DEBUG_TRACE_FUNCTION;
 
     QFOR(plugin, m_Items, CPlugin *)
     {

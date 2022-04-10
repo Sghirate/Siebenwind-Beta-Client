@@ -1,9 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GLHeaders.h"
+#include "Core/BitSet.h"
 
 class CGLTexture
 {
@@ -21,7 +19,7 @@ public:
     virtual ~CGLTexture();
 
     GLuint Texture = 0;
-    vector<uint8_t> m_HitMap;
+    Core::DynamicBitSet m_hitMap;
 
     virtual void Draw(int x, int y, bool checktrans = false);
     virtual void Draw(int x, int y, int width, int height, bool checktrans = false);

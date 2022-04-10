@@ -27,7 +27,7 @@ private:
     CGUIButton *m_PrevPage{ nullptr };
     CGUIButton *m_NextPage{ nullptr };
 
-    void GetSummaryBookInfo(int &abilityOnPage, uint16_t &iconStartGraphic);
+    void GetSummaryBookInfo(int &abilityOnPage, u16 &iconStartGraphic);
 
     string GetAbilityName(int offset, bool &passive);
 

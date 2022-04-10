@@ -16,5 +16,5 @@ public:
         GUMP_OBJECT_TYPE type, int x, int y, int width, int height, bool callOnMouseUp = false);
     virtual ~CGUIPolygonal();
     virtual bool Select();
-    virtual CSize GetSize() { return CSize(Width, Height); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(Width, Height); }
 };

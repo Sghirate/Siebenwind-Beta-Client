@@ -6,13 +6,13 @@
 class CCorpse
 {
 public:
-    uint32_t CorpseSerial = 0;
-    uint32_t ObjectSerial = 0;
-    uint8_t Direction = 0;
+    u32 CorpseSerial = 0;
+    u32 ObjectSerial = 0;
+    u8 Direction = 0;
     bool Running = false;
 
     CCorpse() {}
-    CCorpse(int corpseSerial, int objectSerial, uint8_t direction, bool running)
+    CCorpse(int corpseSerial, int objectSerial, u8 direction, bool running)
         : CorpseSerial(corpseSerial)
         , ObjectSerial(objectSerial)
         , Direction(direction)
@@ -25,7 +25,7 @@ public:
 class CCorpseManager
 {
 private:
-    deque<CCorpse> m_List;
+    std::deque<CCorpse> m_List;
 
 public:
     CCorpseManager() {}

@@ -30,7 +30,7 @@ public:
     void EmulateOnLeftMouseButtonDown();
     int GetRenderDelay();
 
-    static const uint32_t MessageID = USER_MESSAGE_ID + 402;
+    static const u32 MessageID = USER_MESSAGE_ID + 402;
     void SetWindowResizable(const bool windowResizable) const;
     void RestoreWindow() const;
 
@@ -54,9 +54,9 @@ protected:
     virtual void OnDeactivate();
     virtual void OnShow(bool show);
     virtual void OnSetText(const char *str);
-    virtual void OnTimer(uint32_t id);
+    virtual void OnTimer(u32 id);
 #if USE_TIMERTHREAD
-    virtual void OnThreadedTimer(uint32_t nowTime, Wisp::CThreadedTimer *timer);
+    virtual void OnThreadedTimer(u32 nowTime, Wisp::CThreadedTimer *timer);
 #endif // USE_TIMERTHREAD
     virtual bool OnRepaint(const PaintEvent &ev);
     virtual bool OnUserMessages(const UserEvent &ev) override;

@@ -98,18 +98,18 @@ struct MidiInfoStruct
 struct WaveHeader
 {
     char chunkId[4];
-    uint32_t chunkSize;
+    u32 chunkSize;
     char format[4];
     char subChunkId[4];
-    uint32_t subChunkSize;
-    uint16_t audioFormat;
-    uint16_t numChannels;
-    uint32_t sampleRate;
-    uint32_t bytesPerSecond;
-    uint16_t blockAlign;
-    uint16_t bitsPerSample;
+    u32 subChunkSize;
+    u16 audioFormat;
+    u16 numChannels;
+    u32 sampleRate;
+    u32 bytesPerSecond;
+    u16 blockAlign;
+    u16 bitsPerSample;
     char dataChunkId[4];
-    uint32_t dataSize;
+    u32 dataSize;
     //data;
 };
 #pragma pack(pop)
@@ -139,11 +139,11 @@ static const MidiInfoStruct s_MidiInfo[MIDI_MUSIC_COUNT] = {
 
 CSoundManager g_SoundManager;
 
-static uint8_t *CreateWaveFile(CIndexSound &is)
+static u8 *CreateWaveFile(CIndexSound &is)
 {
     SOUND_DEBUG_TRACE;
     size_t dataSize = is.DataSize - sizeof(SOUND_BLOCK);
-    auto waveSound = (uint8_t *)malloc(dataSize + sizeof(WaveHeader));
+    auto waveSound = (u8 *)malloc(dataSize + sizeof(WaveHeader));
     auto waveHeader = reinterpret_cast<WaveHeader *>(waveSound);
 
     strcpy(waveHeader->chunkId, "RIFF");
@@ -151,7 +151,7 @@ static uint8_t *CreateWaveFile(CIndexSound &is)
     strcpy(waveHeader->subChunkId, "fmt ");
     strcpy(waveHeader->dataChunkId, "data");
 
-    waveHeader->chunkSize = uint32_t(dataSize + sizeof(WaveHeader));
+    waveHeader->chunkSize = u32(dataSize + sizeof(WaveHeader));
     waveHeader->subChunkSize = 16;
     waveHeader->audioFormat = 1;
     waveHeader->numChannels = 1;
@@ -159,10 +159,10 @@ static uint8_t *CreateWaveFile(CIndexSound &is)
     waveHeader->bitsPerSample = 16;
     waveHeader->bytesPerSecond = 88200;
     waveHeader->blockAlign = 4;
-    waveHeader->dataSize = uint32_t(dataSize);
+    waveHeader->dataSize = u32(dataSize);
 
-    is.Delay = uint32_t((dataSize - 16) / 88.2f);
-    auto sndDataPtr = reinterpret_cast<uint8_t *>(is.Address + sizeof(SOUND_BLOCK));
+    is.Delay = u32((dataSize - 16) / 88.2f);
+    auto sndDataPtr = reinterpret_cast<u8 *>(is.Address + sizeof(SOUND_BLOCK));
     memcpy(waveSound + sizeof(WaveHeader), sndDataPtr + 16, dataSize - 16);
 
     return waveSound;
@@ -222,7 +222,7 @@ bool CSoundManager::UpdateSoundEffect(SoundHandle stream, float volume)
 float CSoundManager::GetVolumeValue(int distance, bool music)
 {
     SOUND_DEBUG_TRACE;
-    uint16_t clientConfigVolume =
+    u16 clientConfigVolume =
         music ? g_ConfigManager.GetMusicVolume() : g_ConfigManager.GetSoundVolume();
 
     float volume = s_backend.getGlobalVolume();
@@ -327,7 +327,7 @@ bool CSoundManager::IsPlayingNormalMusic()
     return s_backend.isValidVoiceHandle(s_Music[0]);
 }
 
-void CSoundManager::PlayMP3(const string &fileName, int index, bool loop, bool warmode)
+void CSoundManager::PlayMP3(const std::string &fileName, int index, bool loop, bool warmode)
 {
     SOUND_DEBUG_TRACE;
 

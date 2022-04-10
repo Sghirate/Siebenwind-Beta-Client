@@ -1,17 +1,14 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../Point.h"
+#include <deque>
 
-typedef deque<CRect> SCISSOR_LIST;
+typedef std::deque<Core::Rect<i32>> SCISSOR_LIST;
 
 class CGLTexture;
 class CGLEngine;
 
-typedef void (CGLEngine::*BIND_TEXTURE_16_FUNCTION)(CGLTexture &, int, int, uint16_t *);
-typedef void (CGLEngine::*BIND_TEXTURE_32_FUNCTION)(CGLTexture &, int, int, uint32_t *);
+typedef void (CGLEngine::*BIND_TEXTURE_16_FUNCTION)(CGLTexture &, int, int, u16 *);
+typedef void (CGLEngine::*BIND_TEXTURE_32_FUNCTION)(CGLTexture &, int, int, u32 *);
 
 typedef void (CGLEngine::*DRAW_LAND_TEXTURE_FUNCTION)(
     const CGLTexture &, int, int, class CLandObject *);
@@ -111,10 +108,10 @@ public:
 
     //Указать область рисования (ножницами, сохраняет мартицу)
     void PushScissor(int x, int y, int width, int height);
-    void PushScissor(const CPoint2Di &position, int width, int height);
-    void PushScissor(int x, int y, const CSize &size);
-    void PushScissor(const CPoint2Di &position, const CSize &size);
-    void PushScissor(const CRect &rect);
+    void PushScissor(const Core::Vec2<i32> &position, int width, int height);
+    void PushScissor(int x, int y, const Core::Vec2<i32> &size);
+    void PushScissor(const Core::Vec2<i32> &position, const Core::Vec2<i32> &size);
+    void PushScissor(const Core::Rect<i32> &rect);
 
     void PopScissor();
 
@@ -134,8 +131,8 @@ public:
     //Функции OpenGL 1x
 
     //Загрузка текстур 16 и 32 бит
-    void GL1_BindTexture16(CGLTexture &texture, int width, int height, uint16_t *pixels);
-    void GL1_BindTexture32(CGLTexture &texture, int width, int height, uint32_t *pixels);
+    void GL1_BindTexture16(CGLTexture &texture, int width, int height, u16 *pixels);
+    void GL1_BindTexture32(CGLTexture &texture, int width, int height, u32 *pixels);
 
     //Нарисовать текстуру ландшафта
     void GL1_DrawLandTexture(const CGLTexture &texture, int x, int y, CLandObject *land);
@@ -173,8 +170,8 @@ public:
     void GL2_CreateArrays(CGLTexture &texture, int width, int height);
 
     //Загрузка текстур 16 и 32 бит
-    void GL2_BindTexture16(CGLTexture &texture, int width, int height, uint16_t *pixels);
-    void GL2_BindTexture32(CGLTexture &texture, int width, int height, uint32_t *pixels);
+    void GL2_BindTexture16(CGLTexture &texture, int width, int height, u16 *pixels);
+    void GL2_BindTexture32(CGLTexture &texture, int width, int height, u32 *pixels);
 
     //Нарисовать текстуру ландшафта
     void GL2_DrawLandTexture(const CGLTexture &texture, int x, int y, CLandObject *land);

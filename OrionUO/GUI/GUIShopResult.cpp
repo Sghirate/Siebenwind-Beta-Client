@@ -1,11 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIShopResult.h"
+﻿#include "GUIShopResult.h"
 #include "GUIMinMaxButtons.h"
 #include "GUIShopItem.h"
 #include "../OrionUO.h"
-#include "../Point.h"
 #include "../Managers/MouseManager.h"
 #include "../Managers/FontsManager.h"
 
@@ -14,7 +10,6 @@ CGUIShopResult::CGUIShopResult(CGUIShopItem *shopItem, int x, int y)
     , Price(shopItem->Price)
     , Name(shopItem->Name)
 {
-    DEBUG_TRACE_FUNCTION;
     MoveOnDrag = true;
 
     string name = Name + "\n" + "at " + std::to_string(Price) + " g.p.";
@@ -35,19 +30,17 @@ CGUIShopResult::CGUIShopResult(CGUIShopItem *shopItem, int x, int y)
 
 CGUIShopResult::~CGUIShopResult()
 {
-    DEBUG_TRACE_FUNCTION;
     m_NameText.Clear();
     RELEASE_POINTER(m_MinMaxButtons);
 }
 
 CBaseGUI *CGUIShopResult::SelectedItem()
 {
-    DEBUG_TRACE_FUNCTION;
     CBaseGUI *result = this;
-    CSize size = m_MinMaxButtons->GetSize();
+    Core::Vec2<i32> size = m_MinMaxButtons->GetSize();
 
     if (g_Orion.PolygonePixelsInXY(
-            m_X + m_MinMaxButtons->GetX(), m_Y + m_MinMaxButtons->GetY(), size.Width, size.Height))
+            m_X + m_MinMaxButtons->GetX(), m_Y + m_MinMaxButtons->GetY(), size.x, size.y))
     {
         result = m_MinMaxButtons;
     }
@@ -57,13 +50,11 @@ CBaseGUI *CGUIShopResult::SelectedItem()
 
 void CGUIShopResult::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     m_MinMaxButtons->PrepareTextures();
 }
 
 void CGUIShopResult::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     glTranslatef((GLfloat)m_X, (GLfloat)m_Y, 0.0f);
 
     glUniform1iARB(g_ShaderDrawMode, SDM_NO_COLOR);
@@ -76,9 +67,8 @@ void CGUIShopResult::Draw(bool checktrans)
 
 bool CGUIShopResult::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
-
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < 200 && y < m_NameText.Height);
 }

@@ -1,17 +1,13 @@
-// Copyright (C) August 2016 Hotride
-
 #include "Macro.h"
-#include "Definitions.h"
 #include "DefinitionMacro.h"
 
-CMacroObject *g_MacroPointer = nullptr;
+MacroObject *g_MacroPointer = nullptr;
 
-CMacroObject::CMacroObject(const MACRO_CODE &code, const MACRO_SUB_CODE &subCode)
-    : Code(code)
-    , SubCode(subCode)
+MacroObject::MacroObject(const MACRO_CODE& a_code, const MACRO_SUB_CODE& a_subCode)
+    : m_code(a_code)
+    , m_subCode(a_subCode)
 {
-    DEBUG_TRACE_FUNCTION;
-    switch (code)
+    switch (a_code)
     {
         //With sub menu
         case MC_WALK:
@@ -27,14 +23,14 @@ CMacroObject::CMacroObject(const MACRO_CODE &code, const MACRO_SUB_CODE &subCode
         case MC_SELECT_PREVIOUS:
         case MC_SELECT_NEAREST:
         {
-            if (subCode == MSC_NONE)
+            if (a_subCode == MSC_NONE)
             {
                 int count = 0;
                 int offset = 0;
-                CMacro::GetBoundByCode(code, count, offset);
-                SubCode = (MACRO_SUB_CODE)offset;
+                Macro::GetBoundByCode(a_code, count, offset);
+                m_subCode = (MACRO_SUB_CODE)offset;
             }
-            HasSubMenu = 1;
+            m_hasSubMenu = 1;
             break;
         }
         //With entry text
@@ -46,57 +42,54 @@ CMacroObject::CMacroObject(const MACRO_CODE &code, const MACRO_SUB_CODE &subCode
         case MC_SET_UPDATE_RANGE:
         case MC_MODIFY_UPDATE_RANGE:
         {
-            HasSubMenu = 2;
+            m_hasSubMenu = 2;
             break;
         }
         default:
         {
-            HasSubMenu = 0;
+            m_hasSubMenu = 0;
             break;
         }
     }
 }
 
-CMacroObject::~CMacroObject()
+MacroObject::~MacroObject()
 {
 }
 
-CMacroObjectString::CMacroObjectString(
-    const MACRO_CODE &code, const MACRO_SUB_CODE &subCode, const string &str)
-    : CMacroObject(code, subCode)
-    , m_String(str)
+MacroObjectString::MacroObjectString(const MACRO_CODE& a_code, const MACRO_SUB_CODE& a_subCode, const std::string& a_str)
+    : MacroObject(a_code, a_subCode)
+    , m_string(a_str)
 {
 }
 
-CMacroObjectString::~CMacroObjectString()
+MacroObjectString::~MacroObjectString()
 {
 }
 
-CMacro::CMacro(Keycode key, bool alt, bool ctrl, bool shift)
-    : Key(key)
-    , Alt(alt)
-    , Ctrl(ctrl)
-    , Shift(shift)
+Macro::Macro(Keycode a_key, bool a_alt, bool a_ctrl, bool a_shift)
+    : m_key(a_key)
+    , m_alt(a_alt)
+    , m_ctrl(a_ctrl)
+    , m_shift(a_shift)
 {
 }
 
-CMacro::~CMacro()
+Macro::~Macro()
 {
 }
 
-CMacro *CMacro::CreateBlankMacro()
+Macro *Macro::CreateBlankMacro()
 {
-    DEBUG_TRACE_FUNCTION;
-    auto obj = new CMacro(0, false, false, false);
-    obj->Add(new CMacroObject(MC_NONE, MSC_NONE));
+    auto obj = new Macro(0, false, false, false);
+    obj->Add(new MacroObject(MC_NONE, MSC_NONE));
     return obj;
 }
 
-CMacroObject *CMacro::CreateMacro(const MACRO_CODE &code)
+MacroObject *Macro::CreateMacro(const MACRO_CODE& a_code)
 {
-    DEBUG_TRACE_FUNCTION;
-    CMacroObject *obj = nullptr;
-    switch (code)
+    MacroObject *obj = nullptr;
+    switch (a_code)
     {
         //With entry text
         case MC_SAY:
@@ -107,12 +100,12 @@ CMacroObject *CMacro::CreateMacro(const MACRO_CODE &code)
         case MC_SET_UPDATE_RANGE:
         case MC_MODIFY_UPDATE_RANGE:
         {
-            obj = new CMacroObjectString(code, MSC_NONE, "");
+            obj = new MacroObjectString(a_code, MSC_NONE, "");
             break;
         }
         default:
         {
-            obj = new CMacroObject(code, MSC_NONE);
+            obj = new MacroObject(a_code, MSC_NONE);
             break;
         }
     }
@@ -120,37 +113,29 @@ CMacroObject *CMacro::CreateMacro(const MACRO_CODE &code)
     return obj;
 }
 
-void CMacro::ChangeObject(CMacroObject *source, CMacroObject *obj)
+void Macro::ChangeObject(MacroObject* a_source, MacroObject* a_obj)
 {
-    DEBUG_TRACE_FUNCTION;
-    obj->m_Prev = source->m_Prev;
-    obj->m_Next = source->m_Next;
-    if (source->m_Prev == nullptr)
-    {
-        m_Items = obj;
-    }
+    a_obj->m_Prev = a_source->m_Prev;
+    a_obj->m_Next = a_source->m_Next;
+    if (a_source->m_Prev == nullptr)
+        m_Items = a_obj;
     else
-    {
-        source->m_Prev->m_Next = obj;
-    }
+        a_source->m_Prev->m_Next = a_obj;
 
-    if (source->m_Next != nullptr)
-    {
-        source->m_Next->m_Prev = obj;
-    }
-    source->m_Prev = nullptr;
-    source->m_Next = nullptr;
-    delete source;
+    if (a_source->m_Next != nullptr)
+        a_source->m_Next->m_Prev = a_obj;
+    a_source->m_Prev = nullptr;
+    a_source->m_Next = nullptr;
+    delete a_source;
 }
 
-CMacro *CMacro::Load(Wisp::CMappedFile &file)
+Macro* Macro::Load(Core::MappedFile& a_file)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint8_t *next = file.Ptr;
-    short size = file.ReadInt16LE();
+    u8* next = a_file.GetPtr();
+    short size = a_file.ReadLE<i16>();
     next += size;
 
-    auto key = file.ReadInt32LE();
+    auto key = a_file.ReadLE<i32>();
     bool alt = false;
     if ((key & MODKEY_ALT) != 0)
     {
@@ -172,26 +157,26 @@ CMacro *CMacro::Load(Wisp::CMappedFile &file)
         shift = true;
     }
 
-    int count = file.ReadInt16LE();
-    auto macro = new CMacro(key, alt, ctrl, shift);
+    int count = a_file.ReadLE<i16>();
+    auto macro = new Macro(key, alt, ctrl, shift);
     for (int i = 0; i < count; i++)
     {
-        auto type = file.ReadUInt8();
-        MACRO_CODE code = (MACRO_CODE)file.ReadUInt16LE();
-        MACRO_SUB_CODE subCode = (MACRO_SUB_CODE)file.ReadUInt16LE();
-        CMacroObject *obj = nullptr;
+        auto type = a_file.ReadBE<u8>();
+        MACRO_CODE code = (MACRO_CODE)a_file.ReadLE<u16>();
+        MACRO_SUB_CODE subCode = (MACRO_SUB_CODE)a_file.ReadLE<u16>();
+        MacroObject *obj = nullptr;
         switch (type)
         {
             case 0: //original
             {
-                obj = new CMacroObject(code, subCode);
+                obj = new MacroObject(code, subCode);
                 break;
             }
-            case 2: //with string
+            case 2: //with std::string
             {
-                short len = file.ReadUInt16LE();
-                string str = file.ReadString(len);
-                obj = new CMacroObjectString(code, subCode, str);
+                short len = a_file.ReadLE<u16>();
+                std::string str = a_file.ReadString(len);
+                obj = new MacroObjectString(code, subCode, str);
                 break;
             }
             default:
@@ -202,104 +187,84 @@ CMacro *CMacro::Load(Wisp::CMappedFile &file)
             macro->Add(obj);
         }
     }
-    file.Ptr = next;
+    a_file.SetPtr(next);
     return macro;
 }
 
-void CMacro::Save(Wisp::CBinaryFileWriter &writer)
+void Macro::Save(Core::StreamWriter& a_writer)
 {
-    DEBUG_TRACE_FUNCTION;
     short size = 12;
     short count = 0;
-    for (auto obj = (CMacroObject *)m_Items; obj != nullptr; obj = (CMacroObject *)obj->m_Next)
+    for (auto obj = (MacroObject *)m_Items; obj != nullptr; obj = (MacroObject *)obj->m_Next)
     {
         size += 5;
         count++;
-        if (obj->HaveString()) //with string
+        if (obj->HasString()) //with std::string
         {
-            string str = ((CMacroObjectString *)obj)->m_String;
+            const std::string& str = ((MacroObjectString *)obj)->GetString();
             size += (short)str.length() + 3;
         }
     }
 
-    writer.WriteUInt16LE(size);
-    auto key = Key;
-    if (Alt)
-    {
+    a_writer.WriteLE<u16>(size);
+    auto key = m_key;
+    if (m_alt)
         key += MODKEY_ALT;
-    }
 
-    if (Ctrl)
-    {
+    if (m_ctrl)
         key += MODKEY_CTRL;
-    }
 
-    if (Shift)
-    {
+    if (m_shift)
         key += MODKEY_SHIFT;
-    }
 
-    writer.WriteInt32LE(key);
-    writer.WriteUInt16LE(count);
-    for (auto obj = (CMacroObject *)m_Items; obj != nullptr; obj = (CMacroObject *)obj->m_Next)
+    a_writer.WriteLE<i32>(key);
+    a_writer.WriteLE<u16>(count);
+    for (auto obj = (MacroObject*)m_Items; obj != nullptr; obj = (MacroObject*)obj->m_Next)
     {
-        uint8_t type = 0;
-        if (obj->HaveString())
-        {
+        u8 type = 0;
+        if (obj->HasString())
             type = 2;
-        }
 
-        writer.WriteUInt8(type);
-        writer.WriteUInt16LE(obj->Code);
-        writer.WriteUInt16LE(obj->SubCode);
-        if (type == 2) //with string
+        a_writer.WriteLE<u8>(type);
+        a_writer.WriteLE<u16>(obj->GetCode());
+        a_writer.WriteLE<u16>(obj->GetSubCode());
+        if (type == 2) //with std::string
         {
-            string str = ((CMacroObjectString *)obj)->m_String;
+            std::string str = ((MacroObjectString *)obj)->GetString();
             int len = (int)str.length();
-            writer.WriteInt16LE(len + 1);
-            writer.WriteString(str);
+            a_writer.WriteLE<i16>(len + 1);
+            a_writer.WriteString(str);
         }
-        writer.WriteBuffer();
     }
-    writer.WriteUInt32LE(0); //EOM
-    writer.WriteBuffer();
+    a_writer.WriteLE<u32>(0);
 }
 
-CMacro *CMacro::GetCopy()
+Macro* Macro::GetCopy()
 {
-    DEBUG_TRACE_FUNCTION;
-    CMacro *macro = new CMacro(Key, Alt, Ctrl, Shift);
+    Macro*macro = new Macro(m_key, m_alt, m_ctrl, m_shift);
     MACRO_CODE oldCode = MC_NONE;
-    for (auto obj = (CMacroObject *)m_Items; obj != nullptr; obj = (CMacroObject *)obj->m_Next)
+    for (auto obj = (MacroObject*)m_Items; obj != nullptr; obj = (MacroObject*)obj->m_Next)
     {
-        if (obj->HaveString())
-        {
-            macro->Add(new CMacroObjectString(
-                obj->Code, obj->SubCode, ((CMacroObjectString *)obj)->m_String));
-        }
+        if (obj->HasString())
+            macro->Add(new MacroObjectString(obj->GetCode(), obj->GetSubCode(), ((MacroObjectString *)obj)->GetString()));
         else
-        {
-            macro->Add(new CMacroObject(obj->Code, obj->SubCode));
-        }
-        oldCode = obj->Code;
+            macro->Add(new MacroObject(obj->GetCode(), obj->GetSubCode()));
+        oldCode = obj->GetCode();
     }
 
     if (oldCode != MC_NONE)
-    {
-        macro->Add(new CMacroObject(MC_NONE, MSC_NONE));
-    }
+        macro->Add(new MacroObject(MC_NONE, MSC_NONE));
     return macro;
 }
 
-void CMacro::GetBoundByCode(const MACRO_CODE &code, int &count, int &offset)
+void Macro::GetBoundByCode(const MACRO_CODE& a_code, int& a_count, int& a_offset)
 {
-    DEBUG_TRACE_FUNCTION;
-    switch (code)
+    switch (a_code)
     {
         case MC_WALK:
         {
-            offset = MSC_G1_NW;
-            count = MSC_G2_CONFIGURATION - MSC_G1_NW;
+            a_offset = MSC_G1_NW;
+            a_count = MSC_G2_CONFIGURATION - MSC_G1_NW;
             break;
         }
         case MC_OPEN:
@@ -307,40 +272,40 @@ void CMacro::GetBoundByCode(const MACRO_CODE &code, int &count, int &offset)
         case MC_MINIMIZE:
         case MC_MAXIMIZE:
         {
-            offset = MSC_G2_CONFIGURATION;
-            count = MSC_G3_ANATOMY - MSC_G2_CONFIGURATION;
+            a_offset = MSC_G2_CONFIGURATION;
+            a_count = MSC_G3_ANATOMY - MSC_G2_CONFIGURATION;
             break;
         }
         case MC_USE_SKILL:
         {
-            offset = MSC_G3_ANATOMY;
-            count = MSC_G4_LEFT_HAND - MSC_G3_ANATOMY;
+            a_offset = MSC_G3_ANATOMY;
+            a_count = MSC_G4_LEFT_HAND - MSC_G3_ANATOMY;
             break;
         }
         case MC_ARM_DISARM:
         {
-            offset = MSC_G4_LEFT_HAND;
-            count = MSC_G5_HONOR - MSC_G4_LEFT_HAND;
+            a_offset = MSC_G4_LEFT_HAND;
+            a_count = MSC_G5_HONOR - MSC_G4_LEFT_HAND;
             break;
         }
         case MC_INVOKE_VIRTUE:
         {
-            offset = MSC_G5_HONOR;
-            count = MSC_G6_CLUMSY - MSC_G5_HONOR;
+            a_offset = MSC_G5_HONOR;
+            a_count = MSC_G6_CLUMSY - MSC_G5_HONOR;
             break;
         }
         case MC_CAST_SPELL:
         {
-            offset = MSC_G6_CLUMSY;
-            count = MSC_G7_HOSTILE - MSC_G6_CLUMSY;
+            a_offset = MSC_G6_CLUMSY;
+            a_count = MSC_G7_HOSTILE - MSC_G6_CLUMSY;
             break;
         }
         case MC_SELECT_NEXT:
         case MC_SELECT_PREVIOUS:
         case MC_SELECT_NEAREST:
         {
-            offset = MSC_G7_HOSTILE;
-            count = MSC_TOTAL_COUNT - MSC_G7_HOSTILE;
+            a_offset = MSC_G7_HOSTILE;
+            a_count = MSC_TOTAL_COUNT - MSC_G7_HOSTILE;
             break;
         }
         default:
@@ -348,68 +313,69 @@ void CMacro::GetBoundByCode(const MACRO_CODE &code, int &count, int &offset)
     }
 }
 
-const char *CMacro::m_MacroActionName[MACRO_ACTION_NAME_COUNT] = { "(NONE)",
-                                                                   "Say",
-                                                                   "Emote",
-                                                                   "Whisper",
-                                                                   "Yell",
-                                                                   "Walk",
-                                                                   "War/Peace",
-                                                                   "Paste",
-                                                                   "Open",
-                                                                   "Close",
-                                                                   "Minimize",
-                                                                   "Maximize",
-                                                                   "OpenDoor",
-                                                                   "UseSkill",
-                                                                   "LastSkill",
-                                                                   "CastSpell",
-                                                                   "LastSpell",
-                                                                   "LastObject",
-                                                                   "Bow",
-                                                                   "Salute",
-                                                                   "QuitGame",
-                                                                   "AllNames",
-                                                                   "LastTarget",
-                                                                   "TargetSelf",
-                                                                   "Arm/Disarm",
-                                                                   "WaitForTarget",
-                                                                   "TargetNext",
-                                                                   "AttackLast",
-                                                                   "Delay",
-                                                                   "CircleTrans",
-                                                                   "CloseGumps",
-                                                                   "AlwaysRun",
-                                                                   "SaveDesktop",
-                                                                   "KillGumpOpen",
-                                                                   "PrimaryAbility",
-                                                                   "SecondaryAbility",
-                                                                   "EquipLastWeapon",
-                                                                   "SetUpdateRange",
-                                                                   "ModifyUpdateRange",
-                                                                   "IncreaseUpdateRange",
-                                                                   "DecreaseUpdateRange",
-                                                                   "MaxUpdateRange",
-                                                                   "MinUpdateRange",
-                                                                   "DefaultUpdateRange",
-                                                                   "UpdateRangeInfo",
-                                                                   "EnableRangeColor",
-                                                                   "DisableRangeColor",
-                                                                   "ToggleRangeColor",
-                                                                   "InvokeVirtue",
-                                                                   "SelectNext",
-                                                                   "SelectPrevious",
-                                                                   "SelectNearest",
-                                                                   "AttackSelectedTarget",
-                                                                   "UseSelectedTarget",
-                                                                   "CurrentTarget",
-                                                                   "TargetSystemOn/Off",
-                                                                   "ToggleBuficonWindow",
-                                                                   "BandageSelf",
-                                                                   "BandageTarget",
-                                                                   "ToggleGargoyleFlying" };
-
-const char *CMacro::m_MacroAction[MACRO_ACTION_COUNT] = {
+const char* Macro::s_macroActionName[kMacroActionNamesCount] = { 
+    "(NONE)",
+    "Say",
+    "Emote",
+    "Whisper",
+    "Yell",
+    "Walk",
+    "War/Peace",
+    "Paste",
+    "Open",
+    "Close",
+    "Minimize",
+    "Maximize",
+    "OpenDoor",
+    "UseSkill",
+    "LastSkill",
+    "CastSpell",
+    "LastSpell",
+    "LastObject",
+    "Bow",
+    "Salute",
+    "QuitGame",
+    "AllNames",
+    "LastTarget",
+    "TargetSelf",
+    "Arm/Disarm",
+    "WaitForTarget",
+    "TargetNext",
+    "AttackLast",
+    "Delay",
+    "CircleTrans",
+    "CloseGumps",
+    "AlwaysRun",
+    "SaveDesktop",
+    "KillGumpOpen",
+    "PrimaryAbility",
+    "SecondaryAbility",
+    "EquipLastWeapon",
+    "SetUpdateRange",
+    "ModifyUpdateRange",
+    "IncreaseUpdateRange",
+    "DecreaseUpdateRange",
+    "MaxUpdateRange",
+    "MinUpdateRange",
+    "DefaultUpdateRange",
+    "UpdateRangeInfo",
+    "EnableRangeColor",
+    "DisableRangeColor",
+    "ToggleRangeColor",
+    "InvokeVirtue",
+    "SelectNext",
+    "SelectPrevious",
+    "SelectNearest",
+    "AttackSelectedTarget",
+    "UseSelectedTarget",
+    "CurrentTarget",
+    "TargetSystemOn/Off",
+    "ToggleBuficonWindow",
+    "BandageSelf",
+    "BandageTarget",
+    "ToggleGargoyleFlying",
+};
+const char* Macro::s_macroAction[kMacroActionsCount] = {
     "?",
     "NW (top)", //Walk group
     "N (topright)",
@@ -619,5 +585,5 @@ const char *CMacro::m_MacroAction[MACRO_ACTION_COUNT] = {
     "Party",
     "Follower",
     "Object",
-    "Mobile"
+    "Mobile",
 };

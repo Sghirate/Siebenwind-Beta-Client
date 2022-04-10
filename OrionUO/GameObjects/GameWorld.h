@@ -5,12 +5,12 @@
 
 #include "GameItem.h"
 
-typedef map<uint32_t, CGameObject *> WORLD_MAP;
+typedef std::map<u32, CGameObject *> WORLD_MAP;
 
 class CGameWorld
 {
 public:
-    uint32_t ObjectToRemove = 0;
+    u32 ObjectToRemove = 0;
 
 private:
     void CreatePlayer(int serial);
@@ -60,47 +60,47 @@ public:
     }
 
     void MoveToTop(CGameObject *obj);
-    void Dump(uint8_t tCount = 0, uint32_t serial = 0xFFFFFFFF);
+    void Dump(u8 tCount = 0, u32 serial = 0xFFFFFFFF);
     CGameObject *SearchWorldObject(
         int serialStart, int scanDistance, SCAN_TYPE_OBJECT scanType, SCAN_MODE_OBJECT scanMode);
 
     void UpdateContainedItem(
         int serial,
-        uint16_t graphic,
-        uint8_t graphicIncrement,
-        uint16_t count,
+        u16 graphic,
+        u8 graphicIncrement,
+        u16 count,
         int x,
         int y,
         int containerSerial,
-        uint16_t color);
+        u16 color);
 
     void UpdateItemInContainer(CGameObject *obj, CGameObject *container, int x, int y);
 
     void UpdateGameObject(
         int serial,
-        uint16_t graphic,
-        uint8_t graphicIncrement,
+        u16 graphic,
+        u8 graphicIncrement,
         int count,
         int x,
         int y,
         char z,
-        uint8_t direction,
-        uint16_t color,
-        uint8_t flags,
+        u8 direction,
+        u16 color,
+        u8 flags,
         int a11,
         UPDATE_GAME_OBJECT_TYPE updateType,
-        uint16_t a13);
+        u16 a13);
 
     void UpdatePlayer(
         int serial,
-        uint16_t graphic,
-        uint8_t graphicIncrement,
-        uint16_t color,
-        uint8_t flags,
+        u16 graphic,
+        u8 graphicIncrement,
+        u16 color,
+        u8 flags,
         int x,
         int y,
-        uint16_t serverID,
-        uint8_t direction,
+        u16 serverID,
+        u8 direction,
         char z);
 };
 

@@ -3,6 +3,7 @@
 #ifndef WISP_WIN_H
 #define WISP_WIN_H
 
+#include "Core/Minimal.h"
 #include <SDL_video.h>
 #include "Platform.h"
 #include "plugin/plugininterface.h"
@@ -17,7 +18,7 @@ namespace Wisp
 class CWindow
 {
 #if USE_TIMERTHREAD
-    deque<Wisp::CThreadedTimer *> m_ThreadedTimersStack;
+    std::deque<Wisp::CThreadedTimer *> m_ThreadedTimersStack;
 #endif // USE_TIMERTHREAD
 
 public:
@@ -33,12 +34,12 @@ public:
     bool OnWindowProc(SDL_Event &ev);
 #endif
 
-    CSize GetSize() { return m_Size; };
-    void SetSize(const CSize &size);
-    CSize GetMinSize() { return m_MinSize; };
-    void SetMinSize(const CSize &newMinSize);
-    CSize GetMaxSize() { return m_MaxSize; };
-    void SetMaxSize(const CSize &newMaxSize);
+    Core::Vec2<i32> GetSize() { return m_Size; };
+    void SetSize(const Core::Vec2<i32> &size);
+    Core::Vec2<i32> GetMinSize() { return m_MinSize; };
+    void SetMinSize(const Core::Vec2<i32> &newMinSize);
+    Core::Vec2<i32> GetMaxSize() { return m_MaxSize; };
+    void SetMaxSize(const Core::Vec2<i32> &newMaxSize);
     void GetPositionSize(int *x, int *y, int *width, int *height);
     void SetPositionSize(int x, int y, int width, int height);
     void MaximizeWindow();
@@ -55,37 +56,37 @@ public:
         int height = 600);
     void Destroy();
 
-    static uint32_t PushEvent(uint32_t id, void *data1 = nullptr, void *data2 = nullptr);
-    static uint32_t PluginEvent(uint32_t id, const void *data = nullptr);
+    static u32 PushEvent(u32 id, void *data1 = nullptr, void *data2 = nullptr);
+    static u32 PluginEvent(u32 id, const void *data = nullptr);
 
-    void ShowMessage(const string &text, const string &title);
-    void ShowMessage(const wstring &text, const wstring &title);
+    void ShowMessage(const std::string &text, const std::string &title);
+    void ShowMessage(const std::wstring &text, const std::wstring &title);
     void SetMinSize(int width, int height);
     void SetMaxSize(int width, int height);
     bool IsActive() const;
-    void SetTitle(const string &text) const;
+    void SetTitle(const std::string &text) const;
     void ShowWindow(bool show) const;
     bool IsMinimizedWindow() const;
     bool IsMaximizedWindow() const;
-    void CreateTimer(uint32_t id, int delay);
-    void RemoveTimer(uint32_t id);
+    void CreateTimer(u32 id, int delay);
+    void RemoveTimer(u32 id);
     void Raise();
 
 #if USE_TIMERTHREAD
     CThreadedTimer *CreateThreadedTimer(
-        uint32_t id,
+        u32 id,
         int delay,
         bool oneShot = false,
         bool waitForProcessMessage = true,
         bool synchronizedDelay = false);
-    void RemoveThreadedTimer(uint32_t id);
-    Wisp::CThreadedTimer *GetThreadedTimer(uint32_t id);
+    void RemoveThreadedTimer(u32 id);
+    Wisp::CThreadedTimer *GetThreadedTimer(u32 id);
 #endif // USE_TIMERTHREAD
 
 protected:
-    CSize m_Size = CSize(640, 480);
-    CSize m_MinSize = CSize(640, 480);
-    CSize m_MaxSize = CSize(640, 480);
+    Core::Vec2<i32> m_Size = Core::Vec2<i32>(640, 480);
+    Core::Vec2<i32> m_MinSize = Core::Vec2<i32>(640, 480);
+    Core::Vec2<i32> m_MaxSize = Core::Vec2<i32>(640, 480);
 
     virtual bool OnCreate() { return true; }
     virtual void OnDestroy() {}
@@ -105,9 +106,9 @@ protected:
     virtual void OnActivate() {}
     virtual void OnDeactivate() {}
     virtual void OnShow(bool show) {}
-    virtual void OnTimer(uint32_t id) {}
+    virtual void OnTimer(u32 id) {}
 #if USE_TIMERTHREAD
-    virtual void OnThreadedTimer(uint32_t nowTime, Wisp::CThreadedTimer *timer) {}
+    virtual void OnThreadedTimer(u32 nowTime, Wisp::CThreadedTimer *timer) {}
 #endif // USE_TIMERTHREAD
     virtual void OnSetText(const char *text) {}
     virtual bool OnRepaint(const PaintEvent &ev);

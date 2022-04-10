@@ -10,9 +10,9 @@ class CGUIResizeButton : public CGUIButton
 public:
     CGUIResizeButton(
         int serial,
-        uint16_t graphic,
-        uint16_t graphicSelected,
-        uint16_t graphicPressed,
+        u16 graphic,
+        u16 graphicSelected,
+        u16 graphicPressed,
         int x,
         int y);
     virtual ~CGUIResizeButton();

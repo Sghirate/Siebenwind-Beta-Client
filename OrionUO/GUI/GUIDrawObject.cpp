@@ -1,13 +1,9 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIDrawObject.h"
+﻿#include "GUIDrawObject.h"
 #include "../OrionUO.h"
-#include "../Point.h"
 #include "../Managers/ColorManager.h"
 
 CGUIDrawObject::CGUIDrawObject(
-    GUMP_OBJECT_TYPE type, int serial, uint16_t graphic, uint16_t color, int x, int y)
+    GUMP_OBJECT_TYPE type, int serial, u16 graphic, u16 color, int x, int y)
     : CBaseGUI(type, serial, graphic, color, x, y)
 {
 }
@@ -16,16 +12,15 @@ CGUIDrawObject::~CGUIDrawObject()
 {
 }
 
-CSize CGUIDrawObject::GetSize()
+Core::Vec2<i32> CGUIDrawObject::GetSize()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSize size;
+    Core::Vec2<i32> size;
     CGLTexture *th = g_Orion.ExecuteGump(GetDrawGraphic());
 
     if (th != nullptr)
     {
-        size.Width = th->Width;
-        size.Height = th->Height;
+        size.x = th->Width;
+        size.y = th->Height;
     }
 
     return size;
@@ -33,7 +28,6 @@ CSize CGUIDrawObject::GetSize()
 
 void CGUIDrawObject::SetShaderMode()
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (Color != 0)
     {
@@ -56,13 +50,11 @@ void CGUIDrawObject::SetShaderMode()
 
 void CGUIDrawObject::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     g_Orion.ExecuteGump(Graphic);
 }
 
 void CGUIDrawObject::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture *th = g_Orion.ExecuteGump(GetDrawGraphic());
 
     if (th != nullptr)
@@ -75,7 +67,6 @@ void CGUIDrawObject::Draw(bool checktrans)
 
 bool CGUIDrawObject::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture *th = g_Orion.ExecuteGump(Graphic);
 
     if (th != nullptr)

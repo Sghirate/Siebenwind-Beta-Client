@@ -8,11 +8,11 @@
 class CGumpPropertyIcon : public CGump
 {
 protected:
-    wstring m_Text = L"No Data";
+    std::wstring m_Text = L"No Data";
 
 public:
-    wstring GetTextW() { return m_Text; };
-    void SetTextW(const wstring &val);
+    std::wstring GetTextW() { return m_Text; };
+    void SetTextW(const std::wstring &val);
     CRenderObject *Object = nullptr;
 
 private:

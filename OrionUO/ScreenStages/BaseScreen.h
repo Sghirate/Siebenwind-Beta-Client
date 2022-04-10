@@ -10,8 +10,8 @@
 class CBaseScreen : public CBaseQueue
 {
 public:
-    uint8_t SmoothScreenAction = 0;
-    uint16_t CursorGraphic = 0x2073;
+    u8 SmoothScreenAction = 0;
+    u16 CursorGraphic = 0x2073;
 
 protected:
     CGump &m_Gump;
@@ -26,8 +26,8 @@ public:
     virtual void InitToolTip() { m_Gump.InitToolTip(); }
     virtual void Render();
     virtual void SelectObject();
-    virtual void CreateSmoothAction(uint8_t action);
-    virtual void ProcessSmoothAction(uint8_t action = 0xFF) {}
+    virtual void CreateSmoothAction(u8 action);
+    virtual void ProcessSmoothAction(u8 action = 0xFF) {}
     virtual int DrawSmoothMonitor();
     virtual void DrawSmoothMonitorEffect();
 

@@ -20,7 +20,6 @@ CConnectionScreen::~CConnectionScreen()
 
 void CConnectionScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Text = "";
     m_ConnectionFailed = false;
     m_Connected = false;
@@ -65,15 +64,14 @@ void CConnectionScreen::SetType(CONNECTION_SCREEN_TYPE val)
     m_Gump.WantUpdateContent = true;
 }
 
-void CConnectionScreen::SetTextA(const string &val)
+void CConnectionScreen::SetTextA(const std::string &val)
 {
     m_Text = val;
     m_Gump.WantUpdateContent = true;
 }
 
-void CConnectionScreen::ProcessSmoothAction(uint8_t action)
+void CConnectionScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -99,7 +97,6 @@ void CConnectionScreen::ProcessSmoothAction(uint8_t action)
 
 void CConnectionScreen::OnKeyDown(const KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     const auto key = EvKey(ev);
     switch (key)

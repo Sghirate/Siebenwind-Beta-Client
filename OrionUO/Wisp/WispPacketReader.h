@@ -1,11 +1,12 @@
-﻿// MIT License
+﻿#pragma once
 
-#ifndef WISP_PR_H
-#define WISP_PR_H
+#include "Core/DataStream.h"
+#include <deque>
+#include <vector>
 
 namespace Wisp
 {
-class CPacketReader : public Wisp::CDataReader
+class CPacketReader : public Core::StreamReader
 {
     int MaxPacketStackSize = 5;
 
@@ -15,7 +16,7 @@ public:
 
     void Read(class CConnection *connection);
 
-    virtual int GetPacketSize(const vector<uint8_t> &packet, int &offsetToSize) { return 0; }
+    virtual int GetPacketSize(const std::vector<u8> &packet, int &offsetToSize) { return 0; }
 
 protected:
     virtual void OnPacket() {}
@@ -23,9 +24,7 @@ protected:
     virtual void OnReadFailed() {}
 
 public:
-    deque<vector<uint8_t>> m_PacketsStack;
+    std::deque<std::vector<u8>> m_PacketsStack;
 };
 
 }; // namespace Wisp
-
-#endif // WISP_PR_H

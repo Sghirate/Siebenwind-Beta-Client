@@ -17,7 +17,6 @@ CBaseScreen::CBaseScreen(CGump &gump)
 void CBaseScreen::Render()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
 
     g_GL.BeginDraw();
     if (DrawSmoothMonitor() != 0)
@@ -35,7 +34,6 @@ void CBaseScreen::Render()
 
 void CBaseScreen::SelectObject()
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_SelectedObject.Clear();
     CRenderObject *selected = m_Gump.Select();
@@ -62,7 +60,6 @@ void CBaseScreen::SelectObject()
 
 int CBaseScreen::DrawSmoothMonitor()
 {
-    DEBUG_TRACE_FUNCTION;
     if ((g_ScreenEffectManager.Process() != 0) && (SmoothScreenAction != 0u))
     {
         ProcessSmoothAction();
@@ -74,13 +71,11 @@ int CBaseScreen::DrawSmoothMonitor()
 
 void CBaseScreen::DrawSmoothMonitorEffect()
 {
-    DEBUG_TRACE_FUNCTION;
     g_ScreenEffectManager.Draw();
 }
 
-void CBaseScreen::CreateSmoothAction(uint8_t action)
+void CBaseScreen::CreateSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ScreenEffectManager.UseSunset())
     {
         SmoothScreenAction = action;

@@ -9,7 +9,7 @@ class CGUIShopResult : public CBaseGUI
 {
 public:
     //!Стоимость
-    uint32_t Price = 0;
+    u32 Price = 0;
 
     //!Название
     string Name = "";
@@ -28,7 +28,7 @@ public:
     //!Получить ссылку на выбранную компоненту или ссылку на себя
     CBaseGUI *SelectedItem();
 
-    virtual CSize GetSize() { return CSize(200, m_NameText.Height); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(200, m_NameText.Height); }
 
     virtual void PrepareTextures();
 

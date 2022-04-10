@@ -9,13 +9,13 @@ class CGUISlider : public CBaseGUI
 {
 public:
     //!ИД картинки в выбранном состоянии
-    uint16_t GraphicSelected = 0;
+    u16 GraphicSelected = 0;
 
     //!ИД картинки в зажатом состоянии
-    uint16_t GraphicPressed = 0;
+    u16 GraphicPressed = 0;
 
     //!ИД картинки фона
-    uint16_t BackgroundGraphic = 0;
+    u16 BackgroundGraphic = 0;
 
     //!Сборный фон
     bool CompositeBackground = false;
@@ -48,10 +48,10 @@ public:
     SLIDER_TEXT_POSITION TextPosition = STP_RIGHT;
 
     //!Шрифт текста
-    uint8_t Font = 0;
+    u8 Font = 0;
 
     //!Цвет текста
-    uint16_t TextColor = 0;
+    u16 TextColor = 0;
 
     //!Текст в юникоде
     bool Unicode = true;
@@ -63,7 +63,7 @@ public:
     TEXT_ALIGN_TYPE Align = TS_LEFT;
 
     //!Флаги текста
-    uint16_t TextFlags = 0;
+    u16 TextFlags = 0;
 
     //!Координата текста по оси X
     int TextX = 0;
@@ -75,7 +75,7 @@ public:
     int ScrollStep = 15;
 
     //!Время последнего скроллинга
-    uint32_t LastScrollTime = 0;
+    u32 LastScrollTime = 0;
 
     //!Стандартное смещение текста
     int DefaultTextOffset = 2;
@@ -87,10 +87,10 @@ private:
 public:
     CGUISlider(
         int serial,
-        uint16_t graphic,
-        uint16_t graphicSelected,
-        uint16_t graphicPressed,
-        uint16_t backgroundGraphic,
+        u16 graphic,
+        u16 graphicSelected,
+        u16 graphicPressed,
+        u16 backgroundGraphic,
         bool compositeBackground,
         bool vertical,
         int x,
@@ -103,7 +103,7 @@ public:
 
     virtual bool IsPressedOuthit() { return true; }
 
-    virtual CSize GetSize();
+    virtual Core::Vec2<i32> GetSize();
 
     //!Скроллинг
     virtual void OnScroll(bool up, int delay);
@@ -121,16 +121,16 @@ public:
     void SetTextParameters(
         bool haveText,
         SLIDER_TEXT_POSITION textPosition,
-        uint8_t font,
-        uint16_t color,
+        u8 font,
+        u16 color,
         bool unicode,
         int textWidth = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t textFlags = 0);
+        u16 textFlags = 0);
 
     virtual void PrepareTextures();
 
-    virtual uint16_t GetDrawGraphic();
+    virtual u16 GetDrawGraphic();
 
     virtual void Draw(bool checktrans = false);
     virtual bool Select();

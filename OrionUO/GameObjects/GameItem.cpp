@@ -1,10 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GameItem.h"
 #include "CustomHouseMultiObject.h"
+#include "Globals.h"
 #include "../Config.h"
-#include "../Point.h"
 #include "../OrionUO.h"
 #include "../TargetGump.h"
 #include "../SelectedObject.h"
@@ -27,7 +24,6 @@ CGameItem::CGameItem(int serial)
 
 CGameItem::~CGameItem()
 {
-    DEBUG_TRACE_FUNCTION;
     ClearMultiItems();
 
     if (Opened)
@@ -55,7 +51,6 @@ CGameItem::~CGameItem()
 
 void CGameItem::ClearMultiItems()
 {
-    DEBUG_TRACE_FUNCTION;
     if (MultiBody && m_Items != nullptr)
     {
         CMulti *multi = (CMulti *)m_Items;
@@ -68,7 +63,6 @@ void CGameItem::ClearMultiItems()
 
 void CGameItem::OnGraphicChange(int direction)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!MultiBody)
     {
         if (Graphic >= g_Orion.m_StaticData.size())
@@ -133,7 +127,6 @@ void CGameItem::OnGraphicChange(int direction)
 
 void CGameItem::CalculateFieldColor()
 {
-    DEBUG_TRACE_FUNCTION;
     FieldColor = 0;
 
     if (!g_ConfigManager.GetChangeFieldsGraphic())
@@ -170,7 +163,6 @@ void CGameItem::CalculateFieldColor()
 
 void CGameItem::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Container == 0xFFFFFFFF)
     {
         if (MultiBody)
@@ -219,8 +211,8 @@ void CGameItem::Draw(int x, int y)
         {
             bool doubleDraw = false;
             bool selMode = false;
-            uint16_t objGraphic = GetDrawGraphic(doubleDraw);
-            uint16_t objColor = Color & 0x3FFF;
+            u16 objGraphic = GetDrawGraphic(doubleDraw);
+            u16 objColor = Color & 0x3FFF;
 
             if (Hidden())
             {
@@ -272,14 +264,14 @@ void CGameItem::Draw(int x, int y)
         if (!g_ConfigManager.DisableNewTargetSystem && g_NewTargetSystem.Serial == Serial &&
             !Locked())
         {
-            CSize size = g_Orion.GetStaticArtDimension(Graphic);
+            Core::Vec2<i32> size = g_Orion.GetStaticArtDimension(Graphic);
 
-            if (size.Width >= 80)
+            if (size.x >= 80)
             {
                 g_NewTargetSystem.GumpTop = 0x756D;
                 g_NewTargetSystem.GumpBottom = 0x756A;
             }
-            else if (size.Width >= 40)
+            else if (size.x >= 40)
             {
                 g_NewTargetSystem.GumpTop = 0x756E;
                 g_NewTargetSystem.GumpBottom = 0x756B;
@@ -294,7 +286,7 @@ void CGameItem::Draw(int x, int y)
 
             g_NewTargetSystem.Hits = 0;
             g_NewTargetSystem.X = x;
-            g_NewTargetSystem.TopY = y - size.Height - 8;
+            g_NewTargetSystem.TopY = y - size.y - 8;
             g_NewTargetSystem.BottomY = y + 7;
         }
 
@@ -304,7 +296,6 @@ void CGameItem::Draw(int x, int y)
 
 void CGameItem::Select(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Container == 0xFFFFFFFF)
     {
         if (MultiBody)
@@ -329,7 +320,7 @@ void CGameItem::Select(int x, int y)
         else
         {
             bool doubleDraw = false;
-            uint16_t objGraphic = GetDrawGraphic(doubleDraw);
+            u16 objGraphic = GetDrawGraphic(doubleDraw);
 
             if (doubleDraw)
             {
@@ -357,10 +348,9 @@ void CGameItem::Select(int x, int y)
     }
 }
 
-uint16_t CGameItem::GetMountAnimation()
+u16 CGameItem::GetMountAnimation()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t graphic = Graphic;
+    u16 graphic = Graphic;
 
     if (Layer == OL_MOUNT)
     {
@@ -613,7 +603,7 @@ uint16_t CGameItem::GetMountAnimation()
     }
     else if (IsCorpse())
     {
-        graphic = (uint16_t)Count;
+        graphic = (u16)Count;
     }
 
     return graphic;
@@ -659,7 +649,7 @@ void CGameItem::ClearCustomHouseMultis(int state)
 }
 
 CMultiObject *CGameItem::AddMulti(
-    uint16_t graphic, uint16_t color, char x, char y, char z, bool isCustomHouseMulti)
+    u16 graphic, u16 color, char x, char y, char z, bool isCustomHouseMulti)
 {
     CMultiObject *mo = nullptr;
 
@@ -680,7 +670,6 @@ CMultiObject *CGameItem::AddMulti(
 
 void CGameItem::LoadMulti(bool dropAlpha)
 {
-    DEBUG_TRACE_FUNCTION;
     ClearMultiItems();
 
     if (Graphic >= MAX_MULTI_DATA_INDEX_COUNT)
@@ -700,7 +689,7 @@ void CGameItem::LoadMulti(bool dropAlpha)
     int maxX = 0;
     int maxY = 0;
 
-    uint8_t alpha = 0;
+    u8 alpha = 0;
 
     if (!dropAlpha)
     {
@@ -709,24 +698,24 @@ void CGameItem::LoadMulti(bool dropAlpha)
 
     if (index.UopBlock != nullptr)
     {
-        vector<uint8_t> data = g_FileManager.m_MultiCollection.GetData(*index.UopBlock);
+        std::vector<u8> data = g_FileManager.m_MultiCollection.GetData(*index.UopBlock);
 
         if (data.empty())
         {
             return;
         }
 
-        Wisp::CDataReader reader(&data[0], data.size());
+        Core::StreamReader reader(&data[0], data.size());
         reader.Move(8); //ID + Count
 
         for (int i = 0; i < count; i++)
         {
-            uint16_t graphic = reader.ReadUInt16LE();
-            short x = reader.ReadInt16LE();
-            short y = reader.ReadInt16LE();
-            short z = reader.ReadInt16LE();
-            uint16_t flags = reader.ReadUInt16LE();
-            uint32_t clilocsCount = reader.ReadUInt32LE();
+            u16 graphic = reader.ReadLE<u16>();
+            short x = reader.ReadLE<i16>();
+            short y = reader.ReadLE<i16>();
+            short z = reader.ReadLE<i16>();
+            u16 flags = reader.ReadLE<u16>();
+            u32 clilocsCount = reader.ReadLE<u32>();
 
             if (clilocsCount != 0u)
             {
@@ -837,7 +826,6 @@ void CGameItem::LoadMulti(bool dropAlpha)
 
 void CGameItem::AddMultiObject(CMultiObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Items == nullptr)
     {
         m_Items = new CMulti(obj->GetX(), obj->GetY());
@@ -904,7 +892,6 @@ void CGameItem::AddMultiObject(CMultiObject *obj)
 
 CMulti *CGameItem::GetMultiAtXY(short x, short y)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(multi, m_Items, CMulti *)
     {
         if (multi->X == x && multi->Y == y)
@@ -916,14 +903,13 @@ CMulti *CGameItem::GetMultiAtXY(short x, short y)
     return nullptr;
 }
 
-CGameItem *CGameItem::FindItem(uint16_t graphic, uint16_t color)
+CGameItem *CGameItem::FindItem(u16 graphic, u16 color)
 {
-    DEBUG_TRACE_FUNCTION;
     CGameItem *item = nullptr;
 
     if (color == 0xFFFF) //Поиск по минимальному цвету
     {
-        uint16_t minColor = 0xFFFF;
+        u16 minColor = 0xFFFF;
         QFOR(obj, m_Items, CGameItem *)
         {
             if (obj->Graphic == graphic)

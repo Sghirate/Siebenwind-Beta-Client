@@ -7,8 +7,8 @@
 
 CGumpBaseScroll::CGumpBaseScroll(
     GUMP_TYPE type,
-    uint32_t serial,
-    uint16_t graphic,
+    u32 serial,
+    u16 graphic,
     int height,
     short x,
     short y,
@@ -22,7 +22,6 @@ CGumpBaseScroll::CGumpBaseScroll(
     , HaveBackgroundLines(haveBackgroundLines)
     , ScissorOffsetHeight(scissorOffsetHeight)
 {
-    DEBUG_TRACE_FUNCTION;
     Page = 2;
     Add(new CGUIPage(2));
 
@@ -44,7 +43,7 @@ CGumpBaseScroll::CGumpBaseScroll(
 
     m_Background =
         (CGUIScrollBackground *)Add(new CGUIScrollBackground(0, graphic, 0, offsetY, Height));
-    CRect rect = m_Background->WorkSpace;
+    Core::Rect<i32> rect = m_Background->WorkSpace;
 
     if (type != GT_SKILLS)
     {
@@ -122,7 +121,6 @@ CGumpBaseScroll::~CGumpBaseScroll()
 
 void CGumpBaseScroll::UpdateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     Height = StartResizeHeight + g_MouseManager.LeftDroppedOffset().Y;
 
     if (Height < m_MinHeight)
@@ -165,13 +163,11 @@ void CGumpBaseScroll::UpdateHeight()
 
 void CGumpBaseScroll::GUMP_RESIZE_START_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     StartResizeHeight = Height;
 }
 
 void CGumpBaseScroll::GUMP_RESIZE_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (StartResizeHeight != 0)
     {
         UpdateHeight();
@@ -181,7 +177,6 @@ void CGumpBaseScroll::GUMP_RESIZE_EVENT_C
 
 void CGumpBaseScroll::GUMP_RESIZE_END_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (StartResizeHeight != 0)
     {
         StartResizeHeight = 0;

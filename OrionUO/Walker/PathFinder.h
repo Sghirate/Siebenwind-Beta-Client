@@ -38,10 +38,10 @@ protected:
     int CalculateMinMaxZ(
         int &minZ, int &maxZ, int newX, int newY, int currentZ, int newDirection, int stepState);
 
-    bool CreateItemsList(vector<CPathObject> &list, int x, int y, int stepState);
+    bool CreateItemsList(std::vector<CPathObject> &list, int x, int y, int stepState);
 
-    CPoint2Di m_StartPoint{ CPoint2Di() };
-    CPoint2Di m_EndPoint{ CPoint2Di() };
+    Core::Vec2<i32> m_StartPoint{ Core::Vec2<i32>() };
+    Core::Vec2<i32> m_EndPoint{ Core::Vec2<i32>() };
 
     int m_GoalNode{ 0 };
     bool m_GoalFound{ 0 };
@@ -54,7 +54,7 @@ protected:
     int m_PointIndex{ 0 };
     int m_PathSize{ 0 };
 
-    int GetGoalDistCost(const CPoint2Di &p, int cost);
+    int GetGoalDistCost(const Core::Vec2<i32> &p, int cost);
     bool DoesNotExistOnOpenList(int x, int y, int z);
     bool DoesNotExistOnClosedList(int x, int y, int z);
 
@@ -69,9 +69,9 @@ public:
     CPathFinder();
     virtual ~CPathFinder();
 
-    void GetNewXY(uint8_t direction, int &x, int &y);
-    bool CanWalk(uint8_t &direction, int &x, int &y, char &z);
-    bool Walk(bool run, uint8_t direction);
+    void GetNewXY(u8 direction, int &x, int &y);
+    bool CanWalk(u8 &direction, int &x, int &y, char &z);
+    bool Walk(bool run, u8 direction);
     bool WalkTo(int x, int y, int z, int distance);
     void ProcessAutowalk();
     void StopAutoWalk();

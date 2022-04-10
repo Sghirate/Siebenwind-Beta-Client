@@ -27,7 +27,7 @@ public:
 
     void UpdateDataPositions();
 
-    virtual CSize GetSize();
+    virtual Core::Vec2<i32> GetSize();
 
     virtual void PrepareTextures();
 

@@ -18,28 +18,28 @@ struct DRAW_FRAME_INFORMATION
 class CGameObject : public CRenderStaticObject
 {
 public:
-    uint32_t Container = 0xFFFFFFFF;
-    uint8_t MapIndex = 0;
-    uint32_t Count = 0;
+    u32 Container = 0xFFFFFFFF;
+    u8 MapIndex = 0;
+    u32 Count = 0;
 
 protected:
-    uint8_t m_Flags = 0;
+    u8 m_Flags = 0;
 
 public:
-    uint8_t GetFlags() { return m_Flags; };
-    void SetFlags(uint8_t val);
+    u8 GetFlags() { return m_Flags; };
+    void SetFlags(u8 val);
 
 protected:
     string m_Name = "";
 
 public:
     string GetName() { return m_Name; };
-    void SetName(const string &newName);
+    void SetName(const std::string &newName);
     bool NPC = false;
     bool Clicked = false;
     char AnimIndex = 0;
     string JournalPrefix = "";
-    uint32_t LastAnimationChangeTime = 0;
+    u32 LastAnimationChangeTime = 0;
     bool SA_Poisoned = false;
     bool ClosedObjectHandle = false;
     bool pvpCaller = false;
@@ -53,13 +53,13 @@ public:
     virtual ~CGameObject();
 
     DRAW_FRAME_INFORMATION m_FrameInfo;
-    vector<class CGameItem *> m_DrawLayeredObjects;
+    std::vector<class CGameItem *> m_DrawLayeredObjects;
 
     virtual void AddText(CTextData *msg);
-    void GenerateObjectHandlesTexture(wstring text);
+    void GenerateObjectHandlesTexture(std::wstring text);
     void DrawObjectHandlesTexture();
     void SelectObjectHandlesTexture();
-    virtual uint16_t GetMountAnimation();
+    virtual u16 GetMountAnimation();
     virtual void OnGraphicChange(int direction = 0) {}
     virtual bool TranparentTest(int playerZ) { return false; }
     void DrawEffects(int x, int y);
@@ -94,8 +94,8 @@ public:
     bool Caller();
     virtual bool IsHuman() { return false; }
     virtual bool IsPlayer() { return false; }
-    static int IsGold(uint16_t graphic);
-    uint16_t GetDrawGraphic(bool &doubleDraw);
+    static int IsGold(u16 graphic);
+    u16 GetDrawGraphic(bool &doubleDraw);
     bool IsGameObject() { return true; }
     bool IsCorpse() { return (Graphic == 0x2006); }
     CGameObject *GetTopObject();

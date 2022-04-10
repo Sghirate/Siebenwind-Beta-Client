@@ -9,10 +9,10 @@ class CGUIButton : public CGUIDrawObject
 {
 public:
     //!ИД картинки для состояния, когда мышка находится над кнопкой
-    uint16_t GraphicSelected = 0;
+    u16 GraphicSelected = 0;
 
     //!ИД картинки для зажатого состояния
-    uint16_t GraphicPressed = 0;
+    u16 GraphicPressed = 0;
 
     //!Индекс страницы, если указан -1 то используется событие OnButton для гампа с идентификатором кнопки, если отличное значение - переход на страницу без вызова события
     int ToPage = -1;
@@ -22,15 +22,15 @@ public:
 
     CGUIButton(
         int serial,
-        uint16_t graphic,
-        uint16_t graphicSelected,
-        uint16_t graphicPressed,
+        u16 graphic,
+        u16 graphicSelected,
+        u16 graphicPressed,
         int x,
         int y);
     virtual ~CGUIButton();
 
     virtual void PrepareTextures();
-    virtual uint16_t GetDrawGraphic();
+    virtual u16 GetDrawGraphic();
 
     virtual void OnMouseEnter();
     virtual void OnMouseExit();

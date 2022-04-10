@@ -16,7 +16,6 @@ CEffectManager::CEffectManager()
 
 void CEffectManager::AddEffect(CGameEffect *effect)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (effect->EffectType)
     {
         case EF_MOVING:
@@ -106,7 +105,6 @@ void CEffectManager::AddEffect(CGameEffect *effect)
 
 void CEffectManager::RemoveEffect(CGameEffect *effect)
 {
-    DEBUG_TRACE_FUNCTION;
     Unlink(effect);
 
     effect->m_Next = nullptr;
@@ -116,7 +114,6 @@ void CEffectManager::RemoveEffect(CGameEffect *effect)
 
 void CEffectManager::CreateExplodeEffect(CGameEffect *effect, const EFFECT_TYPE &type)
 {
-    DEBUG_TRACE_FUNCTION;
     CGameEffect *newEffect = new CGameEffect();
 
     newEffect->EffectType = type;
@@ -138,7 +135,6 @@ void CEffectManager::CreateExplodeEffect(CGameEffect *effect, const EFFECT_TYPE 
 void CEffectManager::UpdateEffects()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     for (CGameEffect *effect = (CGameEffect *)m_Items; effect != nullptr;)
     {
         CGameEffect *next = (CGameEffect *)effect->m_Next;
@@ -151,5 +147,4 @@ void CEffectManager::UpdateEffects()
 
 void CEffectManager::RemoveRangedEffects()
 {
-    DEBUG_TRACE_FUNCTION;
 }
