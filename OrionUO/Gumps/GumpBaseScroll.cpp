@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpBaseScroll.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"
@@ -29,7 +26,7 @@ CGumpBaseScroll::CGumpBaseScroll(
 
     if (haveMinimizer)
     {
-        CGLTexture *th = g_Orion.ExecuteGump(0x082D);
+        CGLTexture* th = g_Orion.ExecuteGump(0x082D);
 
         if (th != nullptr)
         {
@@ -38,11 +35,11 @@ CGumpBaseScroll::CGumpBaseScroll(
     }
 
     m_Minimizer =
-        (CGUIButton *)Add(new CGUIButton(ID_GBS_BUTTON_MINIMIZE, 0x082D, 0x082D, 0x082D, 0, 0));
+        (CGUIButton*)Add(new CGUIButton(ID_GBS_BUTTON_MINIMIZE, 0x082D, 0x082D, 0x082D, 0, 0));
     m_Minimizer->Visible = haveMinimizer;
 
     m_Background =
-        (CGUIScrollBackground *)Add(new CGUIScrollBackground(0, graphic, 0, offsetY, Height));
+        (CGUIScrollBackground*)Add(new CGUIScrollBackground(0, graphic, 0, offsetY, Height));
     Core::Rect<i32> rect = m_Background->WorkSpace;
 
     if (type != GT_SKILLS)
@@ -62,47 +59,47 @@ CGumpBaseScroll::CGumpBaseScroll(
         heightDecBonus += 16;
     }
 
-    m_HTMLGump = (CGUIHTMLGump *)Add(new CGUIHTMLGump(
+    m_HTMLGump = (CGUIHTMLGump*)Add(new CGUIHTMLGump(
         ID_GBS_HTMLGUMP,
         0,
-        rect.Position.X,
-        offsetY + rect.Position.Y + ScrollerOffsetY,
-        rect.Size.Width,
-        rect.Size.Height - ScrollerOffsetY - heightDecBonus,
+        rect.pos.x,
+        offsetY + rect.pos.y + ScrollerOffsetY,
+        rect.size.x,
+        rect.size.y - ScrollerOffsetY - heightDecBonus,
         false,
         true));
 
-    CGUIHTMLButton *button = m_HTMLGump->m_ButtonUp;
+    CGUIHTMLButton* button = m_HTMLGump->m_ButtonUp;
 
     if (button != nullptr)
     {
-        button->Graphic = 0x0824;
+        button->Graphic         = 0x0824;
         button->GraphicSelected = 0x0824;
-        button->GraphicPressed = 0x0824;
-        button->CheckPolygone = true;
+        button->GraphicPressed  = 0x0824;
+        button->CheckPolygone   = true;
     }
 
     button = m_HTMLGump->m_ButtonDown;
 
     if (button != nullptr)
     {
-        button->Graphic = 0x0825;
+        button->Graphic         = 0x0825;
         button->GraphicSelected = 0x0825;
-        button->GraphicPressed = 0x0825;
-        button->CheckPolygone = true;
+        button->GraphicPressed  = 0x0825;
+        button->CheckPolygone   = true;
     }
 
-    CGUIHTMLSlider *slider = m_HTMLGump->m_Slider;
+    CGUIHTMLSlider* slider = m_HTMLGump->m_Slider;
 
     if (slider != nullptr)
     {
-        slider->Graphic = 0x001F;
-        slider->GraphicSelected = 0x001F;
-        slider->GraphicPressed = 0x001F;
+        slider->Graphic           = 0x001F;
+        slider->GraphicSelected   = 0x001F;
+        slider->GraphicPressed    = 0x001F;
         slider->BackgroundGraphic = 0;
     }
 
-    m_Resizer = (CGUIResizeButton *)Add(new CGUIResizeButton(
+    m_Resizer = (CGUIResizeButton*)Add(new CGUIResizeButton(
         ID_GBS_BUTTON_RESIZE, 0x082E, 0x082F, 0x082F, 0, offsetY + Height - 3));
 
     if (type != GT_SKILLS)
@@ -121,7 +118,7 @@ CGumpBaseScroll::~CGumpBaseScroll()
 
 void CGumpBaseScroll::UpdateHeight()
 {
-    Height = StartResizeHeight + g_MouseManager.LeftDroppedOffset().Y;
+    Height = StartResizeHeight + g_MouseManager.GetLeftDroppedOffset().y;
 
     if (Height < m_MinHeight)
     {
@@ -139,7 +136,7 @@ void CGumpBaseScroll::UpdateHeight()
 
     int offsetY = 0;
 
-    CGLTexture *th = g_Orion.ExecuteGump(0x082D);
+    CGLTexture* th = g_Orion.ExecuteGump(0x082D);
 
     if (th != nullptr && m_Minimizer->Visible)
     {
@@ -155,8 +152,7 @@ void CGumpBaseScroll::UpdateHeight()
         heightDecBonus += 16;
     }
 
-    m_HTMLGump->UpdateHeight(
-        m_Background->WorkSpace.Size.Height - ScrollerOffsetY - heightDecBonus);
+    m_HTMLGump->UpdateHeight(m_Background->WorkSpace.size.y - ScrollerOffsetY - heightDecBonus);
 
     m_Resizer->SetY(offsetY + Height - 3);
 }

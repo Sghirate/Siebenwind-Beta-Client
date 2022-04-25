@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "SelectProfessionScreen.h"
+﻿#include "SelectProfessionScreen.h"
 #include "ConnectionScreen.h"
 #include "GameWindow.h"
 #include "../ToolTip.h"

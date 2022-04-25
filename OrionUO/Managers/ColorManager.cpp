@@ -1,8 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "ColorManager.h"
+﻿#include "ColorManager.h"
+#include "Constants.h"
 #include "FileManager.h"
+#include "Globals.h"
 
 CColorManager g_ColorManager;
 
@@ -18,7 +17,7 @@ CColorManager::~CColorManager()
 void CColorManager::Init()
 {
     intptr_t addr = (intptr_t)g_FileManager.m_HuesMul.GetBuffer();
-    size_t size = g_FileManager.m_HuesMul.Size;
+    size_t size = g_FileManager.m_HuesMul.GetSize();
 
     if (addr > 0 && size > 0 && addr != -1 && size != -1)
     {
@@ -34,13 +33,13 @@ void CColorManager::Init()
         m_HuesCount = 0;
     }
 
-    if (g_FileManager.m_RadarcolMul.Size != 0u)
+    if (g_FileManager.m_RadarcolMul.GetSize() != 0u)
     {
-        m_Radarcol.resize(g_FileManager.m_RadarcolMul.Size / 2);
+        m_Radarcol.resize(g_FileManager.m_RadarcolMul.GetSize() / 2);
         memcpy(
             &m_Radarcol[0],
-            (void *)g_FileManager.m_RadarcolMul.Start,
-            g_FileManager.m_RadarcolMul.Size);
+            (void *)g_FileManager.m_RadarcolMul.GetBuffer(),
+            g_FileManager.m_RadarcolMul.GetSize());
     }
 }
 

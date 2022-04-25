@@ -9,8 +9,6 @@ project(OrionUO)
 #
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ORION_BUILD_MODULES "Enables Modular Project Structure" OFF)
-option(ORION_WISP "Use WISP pure Win32 API Implementation (DEPRECATED)" OFF)
-option(ORION_THREADED "Use threaded render (DEPRECATED)" OFF)
 
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/CMake

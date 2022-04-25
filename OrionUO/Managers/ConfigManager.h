@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Minimal.h"
+
 class CConfigManager
 {
 protected:

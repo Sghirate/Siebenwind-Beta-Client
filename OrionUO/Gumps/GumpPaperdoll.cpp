@@ -1,8 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpPaperdoll.h"
 #include "Core/Input.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
@@ -86,7 +85,7 @@ CGumpPaperdoll::CGumpPaperdoll(u32 serial, short x, short y, bool minimized)
         Add(new CGUIButton(ID_GP_BUTTON_OPTIONS, 0x07D6, 0x07D8, 0x07D7, 185, 71));
         Add(new CGUIButton(ID_GP_BUTTON_LOGOUT, 0x07D9, 0x07DB, 0x07DA, 185, 98));
 
-        if (g_Config.ClientVersion >= CV_500A)
+        if (GameVars::GetClientVersion() >= CV_500A)
         {
             Add(new CGUIButton(ID_GP_BUTTON_JOURNAL_OR_QUESTS, 0x57B5, 0x57B6, 0x57B7, 185, 125));
         }
@@ -97,7 +96,7 @@ CGumpPaperdoll::CGumpPaperdoll(u32 serial, short x, short y, bool minimized)
 
         Add(new CGUIButton(ID_GP_BUTTON_SKILLS, 0x07DF, 0x07E1, 0x07E0, 185, 152));
 
-        if (g_Config.ClientVersion >= CV_500A)
+        if (GameVars::GetClientVersion() >= CV_500A)
         {
             Add(new CGUIButton(ID_GP_BUTTON_CHAT_OR_GUILD, 0x57B2, 0x57B3, 0x57B4, 185, 179));
         }
@@ -133,7 +132,7 @@ CGumpPaperdoll::CGumpPaperdoll(u32 serial, short x, short y, bool minimized)
         {
             Add(new CGUIButton(ID_GP_COMBAT_BOOK, 0x2B34, 0x2B34, 0x2B34, 156, 200));
 
-            if (g_Config.ClientVersion >= CV_7000)
+            if (GameVars::GetClientVersion() >= CV_7000)
             {
                 Add(new CGUIButton(ID_GP_RACIAL_ABILITIES_BOOK, 0x2B28, 0x2B28, 0x2B28, 23, 200));
                 profileX += SCROLLS_STEP;
@@ -175,7 +174,7 @@ void CGumpPaperdoll::CalculateGumpState()
     if (g_GumpPressed && g_PressedObject.LeftObject != nullptr &&
         g_PressedObject.LeftObject->IsText())
     {
-        g_GumpMovingOffset.Reset();
+        g_GumpMovingOffset.set(0, 0);
 
         if (Minimized)
         {
@@ -215,7 +214,7 @@ void CGumpPaperdoll::InitToolTip()
             }
             case ID_GP_BUTTON_JOURNAL_OR_QUESTS:
             {
-                if (g_Config.ClientVersion >= CV_500A)
+                if (GameVars::GetClientVersion() >= CV_500A)
                 {
                     g_ToolTip.Set(L"Open the quests gump");
                 }
@@ -233,7 +232,7 @@ void CGumpPaperdoll::InitToolTip()
             }
             case ID_GP_BUTTON_CHAT_OR_GUILD:
             {
-                if (g_Config.ClientVersion >= CV_500A)
+                if (GameVars::GetClientVersion() >= CV_500A)
                 {
                     g_ToolTip.Set(L"Open the guild gump");
                 }
@@ -310,10 +309,10 @@ void CGumpPaperdoll::DelayedClick(CRenderObject *obj)
         td->Color = 0x038F;
         td->Timer = g_Ticks;
         td->Type = TT_CLIENT;
-        td->SetX(g_MouseManager.Position.X - m_X);
-        td->SetY(g_MouseManager.Position.Y - m_Y);
+        td->SetX(g_MouseManager.GetPosition().x - m_X);
+        td->SetY(g_MouseManager.GetPosition().y - m_Y);
 
-        string text = "Party Manifest";
+        std::string text = "Party Manifest";
 
         if (obj->Serial == ID_GP_PROFILE_SCROLL)
         {
@@ -354,7 +353,7 @@ void CGumpPaperdoll::PrepareContent()
         g_PressedObject.LeftSerial != 0xFFFFFFFF &&
         g_MouseManager.LastLeftButtonClickTimer < g_Ticks)
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if (CanBeDraggedByOffset(offset) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
@@ -374,7 +373,7 @@ void CGumpPaperdoll::PrepareContent()
                     //g_LastGumpLeftMouseDown = 0;
                     g_PressedObject.ClearLeft();
 
-                    g_MouseManager.LeftDropPosition = g_MouseManager.Position;
+                    g_MouseManager.LeftDropPosition = g_MouseManager.GetPosition();
 
                     if (layer == OL_1_HAND || layer == OL_2_HAND)
                     {
@@ -840,13 +839,10 @@ CRenderObject *CGumpPaperdoll::Select()
 
     if (!Minimized)
     {
-        Core::Vec2<i32> oldPos = g_MouseManager.Position;
-        g_MouseManager.Position =
-            Core::Vec2<i32>(oldPos.x - (int)g_GumpTranslate.x, oldPos.y - (int)g_GumpTranslate.y);
-
+        Core::TMousePos oldPos = g_MouseManager.GetPosition();
+        g_MouseManager.SetPosition(oldPos - Core::TMousePos(g_GumpTranslate.x, g_GumpTranslate.y));
         m_TextRenderer.Select(this);
-
-        g_MouseManager.Position = oldPos;
+        g_MouseManager.SetPosition(oldPos);
     }
 
     return selected;
@@ -873,7 +869,7 @@ void CGumpPaperdoll::GUMP_BUTTON_EVENT_C
         }
         case ID_GP_BUTTON_JOURNAL_OR_QUESTS: //Paperdoll button Journal
         {
-            if (g_Config.ClientVersion >= CV_500A)
+            if (GameVars::GetClientVersion() >= CV_500A)
             {
                 CPacketQuestMenuRequest().Send();
             }
@@ -890,7 +886,7 @@ void CGumpPaperdoll::GUMP_BUTTON_EVENT_C
         }
         case ID_GP_BUTTON_CHAT_OR_GUILD: //Paperdoll button Chat
         {
-            if (g_Config.ClientVersion >= CV_500A)
+            if (GameVars::GetClientVersion() >= CV_500A)
             {
                 CPacketGuildMenuRequest().Send();
             }
@@ -985,7 +981,7 @@ void CGumpPaperdoll::OnLeftMouseButtonUp()
                         g_Orion.DropItem(equipment->Serial, 0xFFFF, 0xFFFF, 0);
                     }
 
-                    g_MouseManager.LeftDropPosition = g_MouseManager.Position;
+                    g_MouseManager.LeftDropPosition = g_MouseManager.GetPosition();
                     g_MouseManager.CancelDoubleClick = true;
 
                     FrameCreated = false;
@@ -1008,7 +1004,7 @@ void CGumpPaperdoll::OnLeftMouseButtonUp()
                         g_Orion.EquipItem();
                     }
 
-                    g_MouseManager.LeftDropPosition = g_MouseManager.Position;
+                    g_MouseManager.LeftDropPosition = g_MouseManager.GetPosition();
                     g_MouseManager.CancelDoubleClick = true;
 
                     FrameCreated = false;
@@ -1041,8 +1037,8 @@ void CGumpPaperdoll::OnLeftMouseButtonUp()
                 {
                     g_ClickObject.Init(equipment);
                     g_ClickObject.Timer = g_Ticks + g_MouseManager.DoubleClickDelay;
-                    g_ClickObject.X = g_MouseManager.Position.X - m_X;
-                    g_ClickObject.Y = g_MouseManager.Position.Y - m_Y;
+                    g_ClickObject.X = g_MouseManager.GetPosition().x - m_X;
+                    g_ClickObject.Y = g_MouseManager.GetPosition().y - m_Y;
                 }
             }
         }

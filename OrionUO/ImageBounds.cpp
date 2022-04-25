@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ImageBounds.h"
 #include "TextEngine/TextData.h"
 
@@ -18,7 +15,7 @@ CImageBounds::~CImageBounds()
 {
 }
 
-bool CImageBounds::InRect(const CImageBounds &ib)
+bool CImageBounds::InRect(const CImageBounds& ib)
 {
     bool inRect = false;
 
@@ -52,13 +49,13 @@ bool CImageBounds::InRect(const CImageBounds &ib)
     return inRect;
 }
 
-CTextImageBounds::CTextImageBounds(int x, int y, int width, int height, CRenderTextObject *text)
+CTextImageBounds::CTextImageBounds(int x, int y, int width, int height, CRenderTextObject* text)
     : CImageBounds(x, y, width, height)
     , Text(text)
 {
 }
 
-CTextImageBounds::CTextImageBounds(CTextData *text)
+CTextImageBounds::CTextImageBounds(CTextData* text)
     : CImageBounds(text->RealDrawX, text->RealDrawY, text->m_Texture.Width, text->m_Texture.Height)
     , Text(text)
 {

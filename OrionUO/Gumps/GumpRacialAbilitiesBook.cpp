@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) December 2016 Hotride
-
 #include "GumpRacialAbilitiesBook.h"
+#include "Globals.h"
 #include "GumpRacialAbility.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
@@ -53,17 +51,17 @@ void CGumpRacialAbilitiesBook::PrepareContent()
         g_PressedObject.LeftSerial >= (u32)ID_GRAB_ICON &&
         !((CBaseGUI *)g_PressedObject.LeftObject)->MoveOnDrag)
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if ((abs(offset.x) >= DRAG_PIXEL_RANGE || abs(offset.y) >= DRAG_PIXEL_RANGE) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
         {
             g_GumpManager.AddGump(new CGumpRacialAbility(
                 iconStartGraphic + g_PressedObject.LeftSerial - ID_GRAB_ICON,
-                g_MouseManager.Position.X - 20,
-                g_MouseManager.Position.Y - 20));
+                g_MouseManager.GetPosition().x - 20,
+                g_MouseManager.GetPosition().y - 20));
 
-            g_OrionWindow.EmulateOnLeftMouseButtonDown();
+            g_MouseManager.EmulateOnLeftMouseButtonDown();
         }
     }
 }
@@ -103,7 +101,7 @@ void CGumpRacialAbilitiesBook::GetSummaryBookInfo(int &abilityOnPage, u16 &iconS
 
 std::string CGumpRacialAbilitiesBook::GetAbilityName(int offset, bool &passive)
 {
-    string result{};
+    std::string result{};
     passive = true;
 
     static const std::string humanNames[] = {

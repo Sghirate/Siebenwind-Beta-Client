@@ -1,9 +1,8 @@
-﻿// MIT License
-// Copyright (C) September 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "BaseGUI.h"
+#include "Core/Input.h"
+#include "Core/Optional.h"
 
 class CGUIMinMaxButtons : public CBaseGUI
 {
@@ -79,7 +78,7 @@ public:
     virtual void Scroll(int delay);
 
     //Нажатие
-    virtual void OnClick();
+    virtual void OnClick(Core::Optional<Core::TMousePos> a_position = Core::Optional<Core::TMousePos>());
 
     //!Обновить текст
     void UpdateText();

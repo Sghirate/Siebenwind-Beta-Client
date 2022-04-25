@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIHTMLHitBox.h"
+﻿#include "GUIHTMLHitBox.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLHitBox::CGUIHTMLHitBox(

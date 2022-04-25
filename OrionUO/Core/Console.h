@@ -1,12 +1,14 @@
 #pragma once
 
 #include "Core/Minimal.h"
+#include "Core/StringUtils.h"
 #include <string>
+#include <vector>
 
 namespace Core
 {
 
-struct ConsoleVariable;
+struct BaseConsoleVariable;
 struct ConsoleCommand;
 struct IConsoleListener;
 struct Console
@@ -18,8 +20,8 @@ struct Console
 };
 struct IConsoleListener
 {
-    virtual void OnConsoleVariableRegistered(ConsoleVariable* a_variable) {}
-    virtual void OnConsoleVariableChanged(ConsoleVariable* a_variable) {}
+    virtual void OnConsoleVariableRegistered(BaseConsoleVariable* a_variable) {}
+    virtual void OnConsoleVariableChanged(BaseConsoleVariable* a_variable) {}
     virtual void OnConsoleCommandRegistered(ConsoleCommand* a_command) {}
     virtual void OnConsoleCommandExcecuted(ConsoleCommand* a_command) {}
 };
@@ -48,7 +50,7 @@ ConsoleFlags operator&(ConsoleFlags lhs, ConsoleFlags rhs)
     return static_cast<ConsoleFlags>(static_cast<u8>(lhs) & static_cast<u8>(rhs));
 }
 typedef void (*ConsoleInit)(void);
-typedef void (*ConsoleVariableChanged)(const char* a_oldValue, const char* a_newValue);
+typedef void (*ConsoleVariableChanged)(void);
 typedef void (*ConsoleCommandExecuted)(void);
 struct ConsoleInteraction
 {
@@ -70,6 +72,7 @@ protected:
         ConsoleInit a_initCallback = nullptr);
     virtual ~ConsoleInteraction();
 
+    void Register();
     void Create(
         ConsoleInteractionType a_type,
         const char* a_name,
@@ -87,7 +90,7 @@ private:
     ConsoleFlags m_flags          = ConsoleFlags::None;
     ConsoleInit m_initCallback    = nullptr;
 };
-struct ConsoleCommand : ConsoleInteraction
+struct ConsoleCommand final : public ConsoleInteraction
 {
     ConsoleCommand();
     ConsoleCommand(
@@ -112,35 +115,108 @@ protected:
 private:
     ConsoleCommandExecuted m_callback;
 };
-struct ConsoleVariable : ConsoleInteraction
+struct BaseConsoleVariable : public ConsoleInteraction
 {
-    ConsoleVariable(
-        const char* a_name, const char* a_defaultValue, ConsoleFlags a_flags = ConsoleFlags::None);
-    ConsoleVariable(
-        const char* a_name,
-        const char* a_defaultValue,
-        const char* a_description,
-        ConsoleFlags a_flags                     = ConsoleFlags::None,
-        ConsoleVariableChanged a_changedCallback = nullptr,
-        ConsoleInit a_initCallback               = nullptr);
-    virtual ~ConsoleVariable() {}
+    std::string GetStringValue() const;
 
 protected:
     friend struct Console;
-    void Create(
-        const char* a_name, const char* a_defaultValue, ConsoleFlags a_flags = ConsoleFlags::None);
-    void Create(
+
+    BaseConsoleVariable(
         const char* a_name,
-        const char* a_defaultValue,
         const char* a_description,
         ConsoleFlags a_flags                     = ConsoleFlags::None,
         ConsoleVariableChanged a_changedCallback = nullptr,
         ConsoleInit a_initCallback               = nullptr);
-    virtual bool Save(std::string& out_string) { return false; }
-    virtual void Load(const std::vector<std::string>& a_tokens) {}
+    virtual ~BaseConsoleVariable() {}
 
-private:
+    virtual bool Save(std::string& out_string) const { return false; }
+    virtual bool Load(const std::string& a_string) { return false; }
+
+protected:
     ConsoleVariableChanged m_changedCallback;
 };
+template <typename TValue>
+struct ConsoleVariable final : public BaseConsoleVariable
+{
+    ConsoleVariable(
+        const char* a_name,
+        TValue a_defaultValue,
+        ConsoleFlags a_flags                     = ConsoleFlags::None,
+        ConsoleVariableChanged a_changedCallback = nullptr,
+        ConsoleInit a_initCallback               = nullptr);
+    ConsoleVariable(
+        const char* a_name,
+        const char* a_description,
+        TValue a_defaultValue,
+        ConsoleFlags a_flags                     = ConsoleFlags::None,
+        ConsoleVariableChanged a_changedCallback = nullptr,
+        ConsoleInit a_initCallback               = nullptr);
+    ~ConsoleVariable() {}
+
+    bool Save(std::string& out_string) const override;
+    bool Load(const std::string& a_string) override;
+
+    const TValue& GetValue() const;
+    void SetValue(const TValue& a_value);
+    void ResetValue();
+
+private:
+    TValue m_defaultValue;
+    TValue m_currentValue;
+};
+
+template <typename TValue>
+ConsoleVariable<TValue>::ConsoleVariable(
+    const char* a_name,
+    TValue a_defaultValue,
+    ConsoleFlags a_flags /* = ConsoleFlags::None*/,
+    ConsoleVariableChanged a_changedCallback /* = nullptr*/,
+    ConsoleInit a_initCallback /* = nullptr*/)
+    : BaseConsoleVariable(a_name, nullptr, a_flags, a_changedCallback, a_initCallback)
+    , m_defaultValue(a_defaultValue)
+    , m_currentValue(a_defaultValue)
+{
+}
+template <typename TValue>
+ConsoleVariable<TValue>::ConsoleVariable(
+    const char* a_name,
+    const char* a_description,
+    TValue a_defaultValue,
+    ConsoleFlags a_flags /*= ConsoleFlags::None*/,
+    ConsoleVariableChanged a_changedCallback /*= nullptr*/,
+    ConsoleInit a_initCallback /*= nullptr*/)
+    : BaseConsoleVariable(a_name, a_description, a_flags, a_changedCallback, a_initCallback)
+    , m_defaultValue(a_defaultValue)
+    , m_currentValue(a_defaultValue)
+{
+}
+template <typename TValue>
+const TValue& ConsoleVariable<TValue>::GetValue() const
+{
+    return m_currentValue;
+}
+template <typename TValue>
+void ConsoleVariable<TValue>::SetValue(const TValue& a_value)
+{
+    m_currentValue = a_value;
+    if (m_changedCallback)
+        m_changedCallback();
+}
+template <typename TValue>
+void ConsoleVariable<TValue>::ResetValue()
+{
+    m_currentValue = m_defaultValue;
+}
+template <typename TData>
+bool ConsoleVariable<TData>::Save(std::string& out_string) const
+{
+    return ToString(m_currentValue, out_string);
+}
+template <typename TData>
+bool ConsoleVariable<TData>::Load(const std::string& a_string)
+{
+    return FromString(a_string, m_currentValue);
+}
 
 } // namespace Core

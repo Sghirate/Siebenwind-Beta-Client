@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Walker.h"
 #include "../Network/Packets.h"
 #include "../GameObjects/GamePlayer.h"

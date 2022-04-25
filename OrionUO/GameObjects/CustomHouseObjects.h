@@ -1,7 +1,6 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
+﻿#pragma once
 
-#pragma once
+#include "Core/Minimal.h"
 
 class CCustomHouseObject
 {
@@ -12,7 +11,7 @@ public:
 
     CCustomHouseObject() {}
     virtual ~CCustomHouseObject() {}
-    virtual bool Parse(const char *text) { return false; }
+    virtual bool Parse(const char* text) { return false; }
 };
 
 class CCustomHouseObjectWall : public CCustomHouseObject
@@ -74,7 +73,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectWall() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 8;
@@ -151,7 +150,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectFloor() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 16;
@@ -192,7 +191,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectDoor() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 8;
@@ -239,7 +238,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectMisc() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 8;
@@ -306,7 +305,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectStair() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 9;
@@ -371,7 +370,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectTeleport() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 16;
@@ -401,16 +400,16 @@ public:
 
     int NSCrosspiece = 0;
     int EWCrosspiece = 0;
-    int NDent = 0;
-    int SDent = 0;
-    int WDent = 0;
-    int NTPiece = 0;
-    int ETPiece = 0;
-    int STPiece = 0;
-    int WTPiece = 0;
-    int XPiece = 0;
-    int Extra = 0;
-    int Piece = 0;
+    int NDent        = 0;
+    int SDent        = 0;
+    int WDent        = 0;
+    int NTPiece      = 0;
+    int ETPiece      = 0;
+    int STPiece      = 0;
+    int WTPiece      = 0;
+    int XPiece       = 0;
+    int Extra        = 0;
+    int Piece        = 0;
 
     CCustomHouseObjectRoof()
         : CCustomHouseObject()
@@ -419,7 +418,7 @@ public:
     }
 
     virtual ~CCustomHouseObjectRoof() {}
-    virtual bool Parse(const char *text);
+    virtual bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 16;
@@ -491,7 +490,7 @@ public:
 
     CCustomHouseObjectPlaceInfo() { memset(&m_Graphics[0], 0, sizeof(m_Graphics)); }
     virtual ~CCustomHouseObjectPlaceInfo() {}
-    bool Parse(const char *text);
+    bool Parse(const char* text);
     int Contains(u16 graphic) const;
 
     static const int GRAPHICS_COUNT = 1;

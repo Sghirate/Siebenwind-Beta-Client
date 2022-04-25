@@ -1,7 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpStatusbar.h"
+#include "GameVars.h"
+#include "Globals.h"
+#include "Platform.h"
 #include <SDL_rect.h>
 #include "../Config.h"
 #include "../OrionUO.h"
@@ -138,7 +138,7 @@ CGumpStatusbar::CGumpStatusbar(u32 serial, short x, short y, bool minimized)
 
 CGumpStatusbar::~CGumpStatusbar()
 {
-    if (g_ConnectionManager.Connected() && g_Config.ClientVersion >= CV_200 && g_World != nullptr &&
+    if (g_ConnectionManager.Connected() && GameVars::GetClientVersion() >= CV_200 && g_World != nullptr &&
         g_World->FindWorldObject(Serial) != nullptr)
     {
         CPacketCloseStatusbarGump(Serial).Send();
@@ -353,7 +353,7 @@ bool CGumpStatusbar::GetStatusbarGroupOffset(int &x, int &y)
         {
             if (gump != this && g_PressedObject.LeftGump == gump && gump->CanBeMoved())
             {
-                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+                Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
                 x += offset.x;
                 y += offset.y;
@@ -477,8 +477,8 @@ void CGumpStatusbar::CalculateGumpState()
 
         if (!InGroup())
         {
-            int testX = g_MouseManager.Position.X;
-            int testY = g_MouseManager.Position.Y;
+            int testX = g_MouseManager.GetPosition().x;
+            int testY = g_MouseManager.GetPosition().y;
 
             if (GetNearStatusbar(testX, testY) != nullptr)
             {
@@ -547,7 +547,7 @@ void CGumpStatusbar::UpdateContent()
         {
             SDL_Point p = { 0, 0 };
 
-            if (g_Config.ClientVersion >= CV_308D && !g_ConfigManager.GetOldStyleStatusbar())
+            if (GameVars::GetClientVersion() >= CV_308D && !g_ConfigManager.GetOldStyleStatusbar())
             {
                 Add(new CGUIGumppic(0x2A6C, 0, 0));
             }
@@ -877,7 +877,7 @@ void CGumpStatusbar::UpdateContent()
                     true));
             }
 #else
-            if (g_Config.ClientVersion >= CV_308Z && !g_ConfigManager.GetOldStyleStatusbar())
+            if (GameVars::GetClientVersion() >= CV_308Z && !g_ConfigManager.GetOldStyleStatusbar())
             {
                 p.x = 389;
                 p.y = 152;
@@ -889,7 +889,7 @@ void CGumpStatusbar::UpdateContent()
                     text->CreateTextureA(1, g_Player->GetName(), 320, TS_CENTER);
                 }
 
-                if (g_Config.ClientVersion >= CV_5020)
+                if (GameVars::GetClientVersion() >= CV_5020)
                 {
                     Add(new CGUIButton(ID_GSB_BUFF_GUMP, 0x7538, 0x7538, 0x7538, 40, 50));
                 }
@@ -1226,14 +1226,14 @@ void CGumpStatusbar::UpdateContent()
 
                 if (!g_ConfigManager.GetOldStyleStatusbar())
                 {
-                    if (g_Config.ClientVersion == CV_308D)
+                    if (GameVars::GetClientVersion() == CV_308D)
                     {
                         text = (CGUIText *)Add(new CGUIText(0x0386, 171, 124));
                         text->CreateTextureA(1, std::to_string(g_Player->StatsCap));
 
                         Add(new CGUIHitBox(ID_GSB_TEXT_MAX_STATS, 171, 124, 34, 12));
                     }
-                    else if (g_Config.ClientVersion == CV_308J)
+                    else if (GameVars::GetClientVersion() == CV_308J)
                     {
                         text = (CGUIText *)Add(new CGUIText(0x0386, 180, 131));
                         text->CreateTextureA(1, std::to_string(g_Player->StatsCap));
@@ -1402,7 +1402,7 @@ void CGumpStatusbar::UpdateContent()
                     CGUIGumppic *bodyGump = (CGUIGumppic *)Add(new CGUIGumppic(0x0803, 0, 0));
                     bodyGump->SelectOnly = true;
 
-                    string memberName = member.GetName((int)i);
+                    std::string memberName = member.GetName((int)i);
                     bool outofRange = false;
                     if (member.Character->RemovedFromRender())
                     {
@@ -1515,7 +1515,7 @@ void CGumpStatusbar::UpdateContent()
             u16 hitsColor = 0x0386;
             u16 textColor = 0x0386;
             CGameCharacter *obj = g_World->FindWorldCharacter(Serial);
-            string objName = m_Name;
+            std::string objName = m_Name;
             bool canChangeName = false;
 
             if (obj != nullptr)
@@ -1756,7 +1756,7 @@ void CGumpStatusbar::OnTextInput(const TextEvent &ev)
 
     if (Serial != g_PlayerSerial)
     {
-        string str = g_EntryPointer->c_str();
+        std::string str = g_EntryPointer->c_str();
         if (g_EntryPointer->Pos() > 0)
         {
             str.resize(g_EntryPointer->Pos());

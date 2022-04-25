@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIHTMLSlider.h"
+﻿#include "GUIHTMLSlider.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLSlider::CGUIHTMLSlider(

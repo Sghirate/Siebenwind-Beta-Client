@@ -1,7 +1,5 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIGenericTextEntry.h"
+﻿#include "GUIGenericTextEntry.h"
+#include "GameVars.h"
 #include "../Config.h"
 #include "../DefinitionMacro.h"
 
@@ -16,7 +14,7 @@ CGUIGenericTextEntry::CGUIGenericTextEntry(
           y,
           maxWidth,
           true,
-          (u8)(g_Config.ClientVersion >= CV_305D),
+          (u8)(GameVars::GetClientVersion() >= CV_305D),
           TS_LEFT,
           UOFONT_BLACK_BORDER,
           maxLength)

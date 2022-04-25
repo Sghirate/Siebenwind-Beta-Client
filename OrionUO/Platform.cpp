@@ -2,6 +2,7 @@
 // Copyright (c) 2018 Danny Angelo Carminati Grein
 
 #include "Platform.h"
+#include "Core/Log.h"
 #include "Globals.h"
 
 namespace Platform
@@ -65,7 +66,7 @@ void SetLanguageFromSystemLocale()
             }
         }
     }
-    LOG("Locale: %s\n", g_Language.c_str());
+    LOG_INFO("Platform", "Locale: %s\n", g_Language.c_str());
 }
 
 void OpenBrowser(const std::string &url)
@@ -125,7 +126,7 @@ void SetLanguageFromSystemLocale()
         g_Language = "PTG";
     }
 
-    LOG("Locale: %s\n", g_Language.c_str());
+    LOG_INFO("Platform", "Locale: %s\n", g_Language.c_str());
 }
 
 void OpenBrowser(const std::string &url)

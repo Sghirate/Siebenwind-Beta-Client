@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIResizepic.h"
+﻿#include "GUIResizepic.h"
 #include "../OrionUO.h"
 
 CGUIResizepic::CGUIResizepic(int serial, u16 graphic, int x, int y, int width, int height)

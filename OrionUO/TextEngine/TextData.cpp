@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "TextData.h"
+﻿#include "TextData.h"
 #include "../Managers/ConfigManager.h"
 #include "../Managers/FontsManager.h"
 

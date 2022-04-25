@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) November 2017 Hotride
-
 #include "GumpPropertyIcon.h"
 #include "../ToolTip.h"
 #include "../SelectedObject.h"

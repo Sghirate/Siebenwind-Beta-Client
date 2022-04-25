@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "BaseGUI.h"
 #include "../GLEngine/GLTextTexture.h"

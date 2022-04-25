@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSelectFont.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/ConfigManager.h"

@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenSelectTown.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "../Config.h"
 #include "../CityList.h"
 #include "../DefinitionMacro.h"
@@ -68,7 +67,7 @@ void CGumpScreenSelectTown::UpdateContent()
     Add(new CGUIGumppic(0x157C, 0, 0));
     Add(new CGUIGumppic(0x15A0, 0, 4));
 
-    if (g_Config.ClientVersion >= CV_70130)
+    if (GameVars::GetClientVersion() >= CV_70130)
     {
         Add(new CGUIGumppic(0x15D9 + map, 62, 54));
         Add(new CGUIGumppic(0x15DF, 57, 49));
@@ -104,7 +103,7 @@ void CGumpScreenSelectTown::UpdateContent()
 
     for (int i = 0; i < (int)g_CityList.CityCount(); i++)
     {
-        if (g_Config.ClientVersion >= CV_70130)
+        if (GameVars::GetClientVersion() >= CV_70130)
         {
             city = g_CityList.GetCity((u32)i);
         }
@@ -132,8 +131,8 @@ void CGumpScreenSelectTown::UpdateContent()
                 map = 5;
             }
 
-            x = 62 + CalculatePercents(g_MapSize[map].Width - 2048, newCity->X, 383);
-            y = 54 + CalculatePercents(g_MapSize[map].Height, newCity->Y, 384);
+            x = 62 + CalculatePercents(g_MapSize[map].x - 2048, newCity->X, 383);
+            y = 54 + CalculatePercents(g_MapSize[map].y, newCity->Y, 384);
         }
         else if (i < (int)m_TownButtonText.size())
         {

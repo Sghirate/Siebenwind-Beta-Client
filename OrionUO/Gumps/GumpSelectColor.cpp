@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSelectColor.h"
 #include "GumpOptions.h"
 #include "../Managers/ColorManager.h"

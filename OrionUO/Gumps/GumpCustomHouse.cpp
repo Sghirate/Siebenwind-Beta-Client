@@ -1,5 +1,6 @@
 #include <SDL_rect.h>
 #include "Core/File.h"
+#include "Globals.h"
 #include "GumpCustomHouse.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
@@ -70,7 +71,7 @@ template <class T>
 void ParseCustomHouseObjectFile(std::vector<T>& list, const char* a_fileName)
 {
     const std::filesystem::path filePath = g_App.GetGameDir() / a_fileName;
-    LOG("parse CH file: %s\n", filePath.string().c_str());
+    LOG_INFO("GumpCustomHouse", "parse CH file: %s", filePath.string().c_str());
     Core::File file(filePath, "r");
     if (file)
     {
@@ -156,8 +157,8 @@ CGumpCustomHouse::CGumpCustomHouse(int serial, int x, int y)
         MaxFixtures = MaxComponents / 20;
     }
 
-    LOG("CH multi Bounds: %i %i %i %i\n", StartPos.x, StartPos.y, EndPos.x, EndPos.y);
-    LOG("MaxComponents=%i, MaxFixtures=%i\n", MaxComponents, MaxFixtures);
+    LOG_INFO("GumpCustopmHouse", "multi Bounds: %i %i %i %i", StartPos.x, StartPos.y, EndPos.x, EndPos.y);
+    LOG_INFO("GumpCustopmHouse", "MaxComponents=%i, MaxFixtures=%i", MaxComponents, MaxFixtures);
 
     Add(new CGUIPage(0));
     Add(new CGUIGumppicTiled(0x0E14, 121, 36, 397, 120));

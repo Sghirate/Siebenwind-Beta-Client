@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIShopItem.h"
+﻿#include "GUIShopItem.h"
 #include "Core/StringUtils.h"
 #include <SDL_timer.h>
 #include "../OrionUO.h"

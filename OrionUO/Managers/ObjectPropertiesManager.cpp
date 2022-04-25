@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) October 2017 Hotride
-
 #include "ObjectPropertiesManager.h"
 #include "ConfigManager.h"
 #include "GumpManager.h"

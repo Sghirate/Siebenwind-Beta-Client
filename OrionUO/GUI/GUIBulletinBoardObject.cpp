@@ -1,5 +1,6 @@
 ﻿#include "GUIBulletinBoardObject.h"
 #include "Core/StringUtils.h"
+#include "GameVars.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../Managers/FontsManager.h"
@@ -10,7 +11,7 @@ CGUIBulletinBoardObject::CGUIBulletinBoardObject(int serial, int x, int y, const
     , Text(text)
 {
     MoveOnDrag = true;
-    if (g_Config.ClientVersion >= CV_305D)
+    if (GameVars::GetClientVersion() >= CV_305D)
         g_FontManager.GenerateW(1, m_Texture, text, 0);
     else
         g_FontManager.GenerateA(9, m_Texture, Core::ToString(text), 0x0386);

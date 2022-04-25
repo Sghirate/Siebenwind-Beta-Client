@@ -1,5 +1,3 @@
-// MIT License
-
 #include <memory.h>
 #include <string.h>
 #include "md5.h"

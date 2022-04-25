@@ -1,7 +1,5 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GumpContainer.h"
+﻿#include "GumpContainer.h"
+#include "Globals.h"
 #include "GumpDrag.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
@@ -100,7 +98,7 @@ void CGumpContainer::CalculateGumpState()
     if (g_GumpPressed && g_PressedObject.LeftObject != nullptr &&
         g_PressedObject.LeftObject->IsText())
     {
-        g_GumpMovingOffset.Set(0, 0);
+        g_GumpMovingOffset.set(0, 0);
         if (Minimized)
         {
             g_GumpTranslate.x = (float)MinimizedX;
@@ -147,7 +145,7 @@ void CGumpContainer::PrepareContent()
         g_PressedObject.LeftSerial != ID_GC_MINIMIZE &&
         g_MouseManager.LastLeftButtonClickTimer < g_Ticks)
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if (CanBeDraggedByOffset(offset) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
@@ -158,11 +156,11 @@ void CGumpContainer::PrepareContent()
             {
                 CGumpDrag *newgump = new CGumpDrag(
                     g_PressedObject.LeftSerial,
-                    g_MouseManager.Position.X - 80,
-                    g_MouseManager.Position.Y - 38);
+                    g_MouseManager.GetPosition().x - 80,
+                    g_MouseManager.GetPosition().y - 38);
 
                 g_GumpManager.AddGump(newgump);
-                g_OrionWindow.EmulateOnLeftMouseButtonDown();
+                g_MouseManager.EmulateOnLeftMouseButtonDown();
                 selobj->Dragged = true;
             }
             else if (selobj != nullptr)
@@ -322,13 +320,10 @@ CRenderObject *CGumpContainer::Select()
 
     if (!Minimized)
     {
-        Core::Vec2<i32> oldPos = g_MouseManager.Position;
-        g_MouseManager.Position =
-            Core::Vec2<i32>(oldPos.x - (int)g_GumpTranslate.x, oldPos.y - (int)g_GumpTranslate.y);
-
+        Core::TMousePos oldPos = g_MouseManager.GetPosition();
+        g_MouseManager.SetPosition(oldPos - Core::TMousePos(g_GumpTranslate.x, g_GumpTranslate.y));
         m_TextRenderer.Select(this);
-
-        g_MouseManager.Position = oldPos;
+        g_MouseManager.SetPosition(oldPos);
     }
 
     return selected;
@@ -415,8 +410,8 @@ void CGumpContainer::OnLeftMouseButtonUp()
         g_Orion.PlaySoundEffect(0x0051);
     }
 
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
+    int x = g_MouseManager.GetPosition().x - m_X;
+    int y = g_MouseManager.GetPosition().y - m_Y;
 
     if (canDrop && g_ObjectInHand.Enabled)
     {

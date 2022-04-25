@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) October 2017 Hotride
-
 #pragma once
 
 class CObjectProperty

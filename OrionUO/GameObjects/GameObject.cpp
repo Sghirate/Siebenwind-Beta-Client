@@ -2,6 +2,7 @@
 #include "Core/StringUtils.h"
 #include "GameEffect.h"
 #include "GameCharacter.h"
+#include "GameVars.h"
 #include "Globals.h"
 #include "SiebenwindClient.h"
 #include <SDL_timer.h>
@@ -382,7 +383,7 @@ void CGameObject::ClearNotOpenedItems()
 
 bool CGameObject::Poisoned()
 {
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
         return SA_Poisoned;
     }
@@ -391,7 +392,7 @@ bool CGameObject::Poisoned()
 
 bool CGameObject::Flying()
 {
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
         return (m_Flags & 0x04) != 0;
     }
@@ -654,7 +655,7 @@ CGameItem *CGameObject::FindLayer(int layer)
 
 bool CGameObject::Caller()
 {
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
         return pvpCaller;
     }

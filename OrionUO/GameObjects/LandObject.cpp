@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "LandObject.h"
+﻿#include "LandObject.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 

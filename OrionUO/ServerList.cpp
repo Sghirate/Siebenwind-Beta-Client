@@ -1,4 +1,5 @@
 #include "ServerList.h"
+#include "Core/Log.h"
 #include "OrionUO.h"
 #include "ScreenStages/MainScreen.h"
 #include "ScreenStages/ServerScreen.h"
@@ -44,7 +45,7 @@ void CServerList::ParsePacket(Core::StreamReader& a_reader)
 
     if (numServers == 0)
     {
-        LOG("Warning!!! Empty server list\n");
+        LOG_WARNING("ServerList", "Empty server list!");
     }
 
     for (u16 i = 0; i < numServers; i++)

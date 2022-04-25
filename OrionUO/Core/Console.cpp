@@ -41,8 +41,8 @@ void Console::Init()
                         std::string curName = Core::ToLowerA(cur->GetName());
                         if (curName == key)
                         {
-                            ConsoleVariable* var = static_cast<ConsoleVariable*>(cur);
-                            var->Load(strings);
+                            BaseConsoleVariable* var = static_cast<BaseConsoleVariable*>(cur);
+                            var->Load(strings[1]);
                         }
                     }
                     cur = cur->m_next;
@@ -67,7 +67,7 @@ void Console::Init()
                 }
                 else if (cur->GetInteractionType() == ConsoleInteractionType::Variable)
                 {
-                    ConsoleVariable* variable = static_cast<ConsoleVariable*>(cur);
+                    BaseConsoleVariable* variable = static_cast<BaseConsoleVariable*>(cur);
                     for (IConsoleListener* listener : g_coreConsoleListeners)
                         listener->OnConsoleVariableRegistered(variable);
                 }
@@ -90,7 +90,7 @@ void Console::Shutdown()
         {
             if (cur->GetInteractionType() == ConsoleInteractionType::Variable)
             {
-                ConsoleVariable* var = static_cast<ConsoleVariable*>(cur);
+                BaseConsoleVariable* var = static_cast<BaseConsoleVariable*>(cur);
                 if (var->Save(value))
                 {
                     file.Print("%s=%s\n", var->GetName(), value.c_str());
@@ -107,8 +107,8 @@ void Console::Shutdown()
 // ConsoleInteraction
 ConsoleInteraction::ConsoleInteraction(ConsoleInteractionType a_type)
     : m_type(a_type)
-    , m_name(nullptr)
     , m_next(nullptr)
+    , m_name(nullptr)
     , m_description(nullptr)
     , m_flags(ConsoleFlags::None)
     , m_initCallback(nullptr)
@@ -121,27 +121,22 @@ ConsoleInteraction::ConsoleInteraction(
     const char* a_description,
     ConsoleFlags a_flags,
     ConsoleInit a_initCallback)
+    : m_type(a_type)
+    , m_next(nullptr)
+    , m_name(a_name)
+    , m_description(a_description)
+    , m_flags(a_flags & ~ConsoleFlags::Registered)
+    , m_initCallback(a_initCallback)
 {
-    Create(a_type, a_name, a_description, a_flags, a_initCallback);
+    Register();
 }
 
 ConsoleInteraction::~ConsoleInteraction()
 {
 }
 
-void ConsoleInteraction::Create(
-    ConsoleInteractionType a_type,
-    const char* a_name,
-    const char* a_description,
-    ConsoleFlags a_flags,
-    ConsoleInit a_initCallback)
+void ConsoleInteraction::Register()
 {
-    m_type         = a_type;
-    m_next         = nullptr;
-    m_name         = a_name;
-    m_description  = a_description;
-    m_flags        = a_flags & ~ConsoleFlags::Registered;
-    m_initCallback = a_initCallback;
     if (m_type != ConsoleInteractionType::Unknown && !HasFlag(ConsoleFlags::Disabled))
     {
         m_next                = g_coreConsoleRegistry;
@@ -170,24 +165,13 @@ ConsoleCommand::ConsoleCommand(
     const char* a_description,
     ConsoleFlags a_flags,
     ConsoleInit a_initCallback)
+    : ConsoleInteraction(ConsoleInteractionType::Command, a_name, a_description, a_flags, a_initCallback)
+    , m_callback(a_callback)
 {
-    Create(a_name, a_callback, a_description, a_flags, a_initCallback);
 }
 
 ConsoleCommand::~ConsoleCommand()
 {
-}
-
-void ConsoleCommand::Create(
-    const char* a_name,
-    ConsoleCommandExecuted a_callback,
-    const char* a_description,
-    ConsoleFlags a_flags,
-    ConsoleInit a_initCallback)
-{
-    m_callback = a_callback;
-    ConsoleInteraction::Create(
-        ConsoleInteractionType::Command, a_name, a_description, a_flags, a_initCallback);
 }
 
 void ConsoleCommand::Init()
@@ -205,40 +189,22 @@ void ConsoleCommand::Execute()
 // ~ConsoleCommand
 
 // ConsoleVariable
-ConsoleVariable::ConsoleVariable(const char* a_name, const char* a_defaultValue, ConsoleFlags a_flags)
-{
-    Create(a_name, a_defaultValue, a_flags);
-}
-
-ConsoleVariable::ConsoleVariable(
+BaseConsoleVariable::BaseConsoleVariable(
     const char* a_name,
-    const char* a_defaultValue,
     const char* a_description,
     ConsoleFlags a_flags,
     ConsoleVariableChanged a_changedCallback,
     ConsoleInit a_initCallback)
+    : ConsoleInteraction(ConsoleInteractionType::Variable, a_name, a_description, a_flags, a_initCallback)
+    , m_changedCallback(a_changedCallback)
 {
-    Create(a_name, a_defaultValue, a_description, a_flags, a_changedCallback, a_initCallback);
 }
 
-void ConsoleVariable::Create(const char* a_name, const char* a_defaultValue, ConsoleFlags a_flags)
+std::string BaseConsoleVariable::GetStringValue() const
 {
-    m_changedCallback = nullptr;
-    // TODO: default value!
-    ConsoleInteraction::Create(ConsoleInteractionType::Variable, a_name, nullptr, a_flags, nullptr);
-}
-
-void ConsoleVariable::Create(
-    const char* a_name,
-    const char* a_defaultValue,
-    const char* a_description,
-    ConsoleFlags a_flags,
-    ConsoleVariableChanged a_changedCallback,
-    ConsoleInit a_initCallback)
-{
-    m_changedCallback = a_changedCallback;
-    // TODO: default value!
-    ConsoleInteraction::Create(ConsoleInteractionType::Variable, a_name, a_description, a_flags, a_initCallback);
+    std::string value;
+    Save(value);
+    return value;
 }
 // ~ConsoleVariable
 

@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIGumppicTiled.h"
+﻿#include "GUIGumppicTiled.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"
 

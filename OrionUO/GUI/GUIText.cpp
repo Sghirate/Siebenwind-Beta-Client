@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIText.h"
+﻿#include "GUIText.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/MouseManager.h"
 

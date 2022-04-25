@@ -1,4 +1,5 @@
 #include "GumpBuff.h"
+#include "Globals.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
 #include "../SelectedObject.h"
@@ -8,7 +9,7 @@
 CGumpBuff::CGumpBuff(short x, short y)
     : CGump(GT_BUFF, 0, x, y)
 {
-    Graphic = 0x7580;
+    Graphic         = 0x7580;
     m_Locker.Serial = ID_GB_LOCK_MOVING;
 
     Add(new CGUIGumppic(Graphic, 0, 0));
@@ -29,13 +30,13 @@ bool CGumpBuff::CanBeDisplayed()
 
 void CGumpBuff::UpdateBuffIcons()
 {
-    for (CBaseGUI *item = (CBaseGUI *)m_Items; item != nullptr;)
+    for (CBaseGUI* item = (CBaseGUI*)m_Items; item != nullptr;)
     {
-        CBaseGUI *next = (CBaseGUI *)item->m_Next;
+        CBaseGUI* next = (CBaseGUI*)item->m_Next;
 
         if (item->Type == GOT_BUFF)
         {
-            CGUIBuff *buff = (CGUIBuff *)item;
+            CGUIBuff* buff = (CGUIBuff*)item;
 
             int delta = (int)(buff->Timer - g_Ticks);
 
@@ -50,7 +51,7 @@ void CGumpBuff::UpdateBuffIcons()
                 }
                 else
                 {
-                    int alpha = buff->Alpha;
+                    int alpha  = buff->Alpha;
                     int addVal = (USE_ALPHA_BLENDING_WHEN_TIMER_LESS - delta) / ALPHA_CHANGE_KOEFF;
 
                     if (buff->DecAlpha)
@@ -60,7 +61,7 @@ void CGumpBuff::UpdateBuffIcons()
                         if (alpha <= MUNIMUM_ICON_ALPHA)
                         {
                             buff->DecAlpha = false;
-                            alpha = MUNIMUM_ICON_ALPHA;
+                            alpha          = MUNIMUM_ICON_ALPHA;
                         }
                     }
                     else
@@ -70,7 +71,7 @@ void CGumpBuff::UpdateBuffIcons()
                         if (alpha >= 255)
                         {
                             buff->DecAlpha = true;
-                            alpha = 255;
+                            alpha          = 255;
                         }
                     }
 
@@ -83,7 +84,7 @@ void CGumpBuff::UpdateBuffIcons()
     }
 }
 
-void CGumpBuff::AddBuff(u16 id, u16 timer, const std::wstring &text)
+void CGumpBuff::AddBuff(u16 id, u16 timer, const std::wstring& text)
 {
     u32 ticks = 0xFFFFFFFF;
     if (timer != 0u)
@@ -91,16 +92,16 @@ void CGumpBuff::AddBuff(u16 id, u16 timer, const std::wstring &text)
         ticks = g_Ticks + (timer * 1000);
     }
 
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_BUFF && item->Graphic == id)
         {
-            CGUIBuff *buff = (CGUIBuff *)item;
+            CGUIBuff* buff = (CGUIBuff*)item;
 
-            buff->Timer = ticks;
-            buff->Text = text;
-            buff->DecAlpha = true;
-            buff->Alpha = 0xFF;
+            buff->Timer        = ticks;
+            buff->Text         = text;
+            buff->DecAlpha     = true;
+            buff->Alpha        = 0xFF;
             buff->TooltipTimer = 0;
 
             MoveToBack(buff);
@@ -116,7 +117,7 @@ void CGumpBuff::AddBuff(u16 id, u16 timer, const std::wstring &text)
 
 void CGumpBuff::DeleteBuff(u16 id)
 {
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_BUFF && item->Graphic == id)
         {
@@ -136,7 +137,7 @@ void CGumpBuff::InitToolTip()
     }
     else if (g_SelectedObject.Object != nullptr)
     {
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item != g_SelectedObject.Object)
             {
@@ -145,7 +146,7 @@ void CGumpBuff::InitToolTip()
 
             if (item->Type == GOT_BUFF)
             {
-                CGUIBuff *buff = (CGUIBuff *)item;
+                CGUIBuff* buff = (CGUIBuff*)item;
 
                 g_FontManager.SetUseHTML(true);
 
@@ -165,7 +166,7 @@ void CGumpBuff::InitToolTip()
                     g_ToolTip.Set(buf);
 
                     g_ToolTip.Timer = 0;
-                    g_ToolTip.Use = true;
+                    g_ToolTip.Use   = true;
                 }
                 else
                 {
@@ -185,13 +186,13 @@ void CGumpBuff::InitToolTip()
 }
 
 void CGumpBuff::GetGumpStatus(
-    Core::Vec2<i32> &ball,
-    Core::Vec2<i32> &items,
-    bool &useX,
-    bool &decX,
-    bool &decY,
-    Core::Vec2<i32> &startGump,
-    Core::Vec2<i32> &endGump)
+    Core::Vec2<i32>& ball,
+    Core::Vec2<i32>& items,
+    bool& useX,
+    bool& decX,
+    bool& decY,
+    Core::Vec2<i32>& startGump,
+    Core::Vec2<i32>& endGump)
 {
     startGump.x = 0;
     startGump.y = 0;
@@ -202,54 +203,54 @@ void CGumpBuff::GetGumpStatus(
     {
         case 0x757F: //v
         {
-            ball.x = 0;
-            ball.y = 0;
+            ball.x  = 0;
+            ball.y  = 0;
             items.x = 25;
             items.y = 25;
-            decY = false;
-            decX = false;
-            useX = false;
+            decY    = false;
+            decX    = false;
+            useX    = false;
             break;
         }
         case 0x7581: //^
         {
-            ball.x = 34;
-            ball.y = 78;
+            ball.x  = 34;
+            ball.y  = 78;
             items.x = 7;
             items.y = 52;
-            decY = true;
-            decX = false;
-            useX = false;
+            decY    = true;
+            decX    = false;
+            useX    = false;
             break;
         }
         case 0x7582: //<
         {
-            ball.x = 76;
-            ball.y = 36;
+            ball.x  = 76;
+            ball.y  = 36;
             items.x = 52;
             items.y = 7;
-            decY = false;
-            decX = true;
-            useX = true;
+            decY    = false;
+            decX    = true;
+            useX    = true;
             break;
         }
         case 0x7580: //>
         default:
         {
-            ball.x = -2;
-            ball.y = 36;
+            ball.x  = -2;
+            ball.y  = 36;
             items.x = 20;
             items.y = 7;
-            decY = false;
-            decX = false;
-            useX = true;
+            decY    = false;
+            decX    = false;
+            useX    = true;
             break;
         }
     }
 
     Core::Vec2<i32> itemsOfs = items;
 
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type != GOT_BUFF)
         {
@@ -264,22 +265,22 @@ void CGumpBuff::GetGumpStatus(
         {
             if (decX)
             {
-                itemsOfs.x -= gumpDim.Width + BUFF_ITEM_STEP_OFFSET_X;
+                itemsOfs.x -= gumpDim.x + BUFF_ITEM_STEP_OFFSET_X;
             }
             else
             {
-                itemsOfs.x += gumpDim.Width + BUFF_ITEM_STEP_OFFSET_X;
+                itemsOfs.x += gumpDim.x + BUFF_ITEM_STEP_OFFSET_X;
             }
         }
         else
         {
             if (decY)
             {
-                itemsOfs.y -= gumpDim.Height + BUFF_ITEM_STEP_OFFSET_Y;
+                itemsOfs.y -= gumpDim.y + BUFF_ITEM_STEP_OFFSET_Y;
             }
             else
             {
-                itemsOfs.y += gumpDim.Height + BUFF_ITEM_STEP_OFFSET_Y;
+                itemsOfs.y += gumpDim.y + BUFF_ITEM_STEP_OFFSET_Y;
             }
         }
     }
@@ -317,14 +318,14 @@ void CGumpBuff::GetGumpStatus(
         startGump.y = itemsOfs.y;
     }
 
-    if (itemsOfs.x > endGump.Width)
+    if (itemsOfs.x > endGump.x)
     {
-        endGump.Width = itemsOfs.x;
+        endGump.x = itemsOfs.x;
     }
 
-    if (itemsOfs.y > endGump.Height)
+    if (itemsOfs.y > endGump.y)
     {
-        endGump.Height = itemsOfs.y;
+        endGump.y = itemsOfs.y;
     }
 }
 
@@ -332,7 +333,7 @@ void CGumpBuff::PrepareContent()
 {
     if (Graphic < 0x757F || Graphic > 0x7582)
     {
-        Graphic = 0x7580;
+        Graphic           = 0x7580;
         WantUpdateContent = true;
     }
 }
@@ -351,24 +352,24 @@ void CGumpBuff::UpdateContent()
     GetGumpStatus(ballCoordinates, startCoordinates, useX, decX, decY, startGump, endGump);
 
     //Body
-    CBaseGUI *gui = (CBaseGUI *)m_Items;
-    gui->Graphic = Graphic;
+    CBaseGUI* gui = (CBaseGUI*)m_Items;
+    gui->Graphic  = Graphic;
 
     //Selection zone
-    gui = (CBaseGUI *)gui->m_Next;
+    gui = (CBaseGUI*)gui->m_Next;
     gui->SetX(startGump.x);
     gui->SetY(startGump.y);
-    ((CGUIPolygonal *)gui)->Width = endGump.Width;
-    ((CGUIPolygonal *)gui)->Height = endGump.Height;
+    ((CGUIPolygonal*)gui)->Width  = endGump.x;
+    ((CGUIPolygonal*)gui)->Height = endGump.y;
 
     //Crystall ball
-    gui = (CBaseGUI *)gui->m_Next;
+    gui = (CBaseGUI*)gui->m_Next;
     gui->SetX(ballCoordinates.x);
     gui->SetY(ballCoordinates.y);
 
     gui = nullptr;
 
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type != GOT_BUFF)
         {
@@ -380,7 +381,7 @@ void CGumpBuff::UpdateContent()
             continue;
         }
 
-        CGUIBuff *buff = (CGUIBuff *)item;
+        CGUIBuff* buff = (CGUIBuff*)item;
 
         Core::Vec2<i32> gumpDim = g_Orion.GetGumpDimension(buff->Graphic);
         buff->SetX(startCoordinates.x);
@@ -390,22 +391,22 @@ void CGumpBuff::UpdateContent()
         {
             if (decX)
             {
-                startCoordinates.x -= gumpDim.Width + BUFF_ITEM_STEP_OFFSET_X;
+                startCoordinates.x -= gumpDim.x + BUFF_ITEM_STEP_OFFSET_X;
             }
             else
             {
-                startCoordinates.x += gumpDim.Width + BUFF_ITEM_STEP_OFFSET_X;
+                startCoordinates.x += gumpDim.x + BUFF_ITEM_STEP_OFFSET_X;
             }
         }
         else
         {
             if (decY)
             {
-                startCoordinates.y -= gumpDim.Height + BUFF_ITEM_STEP_OFFSET_Y;
+                startCoordinates.y -= gumpDim.y + BUFF_ITEM_STEP_OFFSET_Y;
             }
             else
             {
-                startCoordinates.y += gumpDim.Height + BUFF_ITEM_STEP_OFFSET_Y;
+                startCoordinates.y += gumpDim.y + BUFF_ITEM_STEP_OFFSET_Y;
             }
         }
     }

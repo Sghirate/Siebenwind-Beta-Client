@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpBulletinBoardItem.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
 #include "../Config.h"
 #include "../Managers/GumpManager.h"
 #include "../Network/Packets.h"
@@ -26,28 +25,28 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
     int y,
     u8 variant,
     int id,
-    const std::wstring &poster,
-    const std::wstring &subject,
-    const std::wstring &dataTime,
-    const std::wstring &data)
+    const std::wstring& poster,
+    const std::wstring& subject,
+    const std::wstring& dataTime,
+    const std::wstring& data)
     : CGumpBaseScroll(GT_BULLETIN_BOARD_ITEM, serial, 0x0820, 250, x, y, false, 70)
     , m_Variant(variant)
 {
-    ID = id;
+    ID          = id;
     m_MinHeight = 200;
 
-    bool useUnicode = (g_Config.ClientVersion >= CV_305D);
-    int unicodeFontIndex = 1;
+    bool useUnicode         = (GameVars::GetClientVersion() >= CV_305D);
+    int unicodeFontIndex    = 1;
     int unicodeHeightOffset = 0;
-    u16 textColor = 0x0386;
+    u16 textColor           = 0x0386;
 
     if (useUnicode)
     {
         unicodeHeightOffset = -6;
-        textColor = 0;
+        textColor           = 0;
     }
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(0, 30, 40));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(0, 30, 40));
 
     if (useUnicode)
     {
@@ -58,7 +57,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
         text->CreateTextureA(6, "Author:");
     }
 
-    CGUIText *text2 = (CGUIText *)Add(
+    CGUIText* text2 = (CGUIText*)Add(
         new CGUIText(textColor, 30 + text->m_Texture.Width, 46 + unicodeHeightOffset));
 
     if (useUnicode)
@@ -67,10 +66,10 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
     }
     else
     {
-        text2->CreateTextureA(9, ToString(poster));
+        text2->CreateTextureA(9, Core::ToString(poster));
     }
 
-    text = (CGUIText *)Add(new CGUIText(0, 30, 56));
+    text = (CGUIText*)Add(new CGUIText(0, 30, 56));
 
     if (useUnicode)
     {
@@ -81,7 +80,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
         text->CreateTextureA(6, "Time:");
     }
 
-    text2 = (CGUIText *)Add(
+    text2 = (CGUIText*)Add(
         new CGUIText(textColor, 30 + text->m_Texture.Width, 62 + unicodeHeightOffset));
 
     if (useUnicode)
@@ -90,10 +89,10 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
     }
     else
     {
-        text2->CreateTextureA(9, ToString(dataTime));
+        text2->CreateTextureA(9, Core::ToString(dataTime));
     }
 
-    text = (CGUIText *)Add(new CGUIText(0, 30, 72));
+    text = (CGUIText*)Add(new CGUIText(0, 30, 72));
 
     if (useUnicode)
     {
@@ -113,7 +112,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
 
     Add(new CGUIHitBox(ID_GBBI_SUBJECT_TEXT_FIELD, 30 + text->m_Texture.Width, 78, 160, 16));
 
-    m_EntrySubject = (CGUITextEntry *)Add(new CGUITextEntry(
+    m_EntrySubject = (CGUITextEntry*)Add(new CGUITextEntry(
         ID_GBBI_SUBJECT_TEXT_FIELD,
         subjectColor,
         subjectColor,
@@ -127,7 +126,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
 
     if (m_Variant == 0u)
     {
-        CGump *gumpEntry = g_GumpManager.GetTextEntryOwner();
+        CGump* gumpEntry = g_GumpManager.GetTextEntryOwner();
 
         if (gumpEntry != nullptr)
         {
@@ -139,7 +138,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
 
     Add(new CGUIGumppicTiled(0x0835, 30, 100, 204, 0));
 
-    m_Entry = (CGUITextEntry *)m_HTMLGump->Add(new CGUITextEntry(
+    m_Entry                   = (CGUITextEntry*)m_HTMLGump->Add(new CGUITextEntry(
         ID_GBBI_TEXT_FIELD,
         textColor,
         textColor,
@@ -152,7 +151,7 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
     m_Entry->m_Entry.MaxWidth = 0;
     m_Entry->m_Entry.SetTextW(data);
     m_Entry->m_Entry.CreateTextureA(9, m_Entry->m_Entry.c_str(), textColor, 220, TS_LEFT, 0);
-    m_HitBox = (CGUIHitBox *)m_HTMLGump->Add(
+    m_HitBox = (CGUIHitBox*)m_HTMLGump->Add(
         new CGUIHitBox(ID_GBBI_TEXT_FIELD, 3, 3, 220, m_Entry->m_Entry.m_Texture.Height));
 
     if (m_HitBox->Height < 14)
@@ -162,38 +161,37 @@ CGumpBulletinBoardItem::CGumpBulletinBoardItem(
 
     m_HTMLGump->CalculateDataSize();
 
-    m_ButtonPost = nullptr;
+    m_ButtonPost   = nullptr;
     m_ButtonRemove = nullptr;
-    m_ButtonReply = nullptr;
+    m_ButtonReply  = nullptr;
 
     switch (m_Variant)
     {
         case 0:
         {
             Add(new CGUIGumppic(0x0883, 97, 12)); //NEW MESSAGE
-            m_ButtonPost = (CGUIButton *)Add(
+            m_ButtonPost = (CGUIButton*)Add(
                 new CGUIButton(ID_GBBI_POST, 0x0886, 0x0886, 0x0886, 37, Height - 22)); //Post
             m_ButtonPost->CheckPolygone = true;
 
             break;
         }
         case 2:
-            m_ButtonRemove = (CGUIButton *)Add(
+            m_ButtonRemove = (CGUIButton*)Add(
                 new CGUIButton(ID_GBBI_REMOVE, 0x0885, 0x0885, 0x0885, 235, Height - 22)); //Remove
             m_ButtonRemove->CheckPolygone = true;
         case 1:
         {
-            m_ButtonReply = (CGUIButton *)Add(
+            m_ButtonReply = (CGUIButton*)Add(
                 new CGUIButton(ID_GBBI_REPLY, 0x0884, 0x0884, 0x0884, 37, Height - 22)); //Reply
             m_ButtonReply->CheckPolygone = true;
 
             m_EntrySubject->ReadOnly = true;
-            m_Entry->ReadOnly = true;
+            m_Entry->ReadOnly        = true;
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -254,8 +252,8 @@ void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
             std::wstring subj(L"RE: ");
             subj += m_EntrySubject->m_Entry.Data();
 
-            CGumpBulletinBoardItem *gump = new CGumpBulletinBoardItem(
-                0, 0, 0, 0, ID, ToWString(g_Player->GetName()), subj, L"Date/Time", {});
+            CGumpBulletinBoardItem* gump = new CGumpBulletinBoardItem(
+                0, 0, 0, 0, ID, Core::ToWString(g_Player->GetName()), subj, L"Date/Time", {});
 
             g_GumpManager.AddGump(gump);
         }
@@ -268,15 +266,14 @@ void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
     }
 }
 
-void CGumpBulletinBoardItem::OnTextInput(const TextEvent &ev)
+void CGumpBulletinBoardItem::OnTextInput(const TextEvent& ev)
 {
-
     g_EntryPointer->Insert(EvChar(ev));
     RecalculateHeight();
     WantRedraw = true;
 }
 
-void CGumpBulletinBoardItem::OnKeyDown(const KeyEvent &ev)
+void CGumpBulletinBoardItem::OnKeyDown(const KeyEvent& ev)
 {
     auto key = EvKey(ev);
     if ((key == KEY_RETURN || key == KEY_RETURN2) && m_Entry != nullptr &&

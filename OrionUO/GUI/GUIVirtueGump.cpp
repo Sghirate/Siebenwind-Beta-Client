@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) May 2017 Hotride
-
 #include "GUIVirtueGump.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"

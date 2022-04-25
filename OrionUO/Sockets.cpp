@@ -3,23 +3,6 @@
 
 #include "Sockets.h"
 
-#if defined(ORION_WINDOWS)
-#include <winsock.h>
-#pragma comment(lib, "wsock32.lib")
-#else
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-typedef struct hostent HOSTENT;
-typedef HOSTENT *LPHOSTENT;
-#define SOCKADDR struct sockaddr
-#define SOCKADDR_IN struct in_addr
-#define LPIN_ADDR struct in_addr *
-#define LPSOCKADDR const SOCKADDR *
-#endif
-
 #include <cassert>
 #include <string.h>
 
@@ -71,7 +54,7 @@ struct ECHOREPLY
     char cFiller[256];
 };
 
-u16 icmp_checksum(const u16 *addr, int count)
+u16 icmp_checksum(const u16* addr, int count)
 {
     u16 checksum = 0;
     while (count > 1)
@@ -82,7 +65,7 @@ u16 icmp_checksum(const u16 *addr, int count)
 
     if (count > 0)
     {
-        checksum += *(unsigned char *)addr;
+        checksum += *(unsigned char*)addr;
     }
 
     while ((checksum >> 16) != 0)
@@ -100,8 +83,8 @@ static bool wsa_initialized = false;
 template <class T>
 inline static SOCKET socket_fd(T socket)
 {
-    assert(socket && *(int *)socket != INVALID_SOCKET);
-    return *(SOCKET *)socket;
+    assert(socket && *(int*)socket != INVALID_SOCKET);
+    return *(SOCKET*)socket;
 }
 
 u32 socket_localaddress()
@@ -141,19 +124,19 @@ tcp_socket tcp_open()
     if (h == INVALID_SOCKET)
         return nullptr;
 
-    auto *s = new SOCKET;
-    *s = h;
+    auto* s = new SOCKET;
+    *s      = h;
     return (tcp_socket)s;
 }
 
-bool tcp_connect(tcp_socket socket, const char *address, u16 port)
+bool tcp_connect(tcp_socket socket, const char* address, u16 port)
 {
     auto h = socket_fd(socket);
     sockaddr_in caddr;
     memset(&caddr, 0, sizeof(sockaddr_in));
     caddr.sin_family = AF_INET;
 
-    struct hostent *he;
+    struct hostent* he;
     int rt = inet_addr(address);
     if (rt != -1)
     {
@@ -169,7 +152,7 @@ bool tcp_connect(tcp_socket socket, const char *address, u16 port)
     }
 
     caddr.sin_port = htons(port);
-    if (connect(h, (struct sockaddr *)&caddr, sizeof(caddr)) == -1)
+    if (connect(h, (struct sockaddr*)&caddr, sizeof(caddr)) == -1)
     {
         auto e = WSAGetLastError();
         return false;
@@ -189,26 +172,26 @@ int tcp_select(tcp_socket socket)
     return select((int)h, &rfds, nullptr, nullptr, &tv);
 }
 
-int tcp_recv(tcp_socket socket, unsigned char *data, size_t max_size)
+int tcp_recv(tcp_socket socket, unsigned char* data, size_t max_size)
 {
     auto h = socket_fd(socket);
-    auto s = recv(h, (char *)data, (int)max_size, 0);
+    auto s = recv(h, (char*)data, (int)max_size, 0);
     SOCKET_DUMP(data, s);
     return s;
 }
 
-int tcp_send(tcp_socket socket, unsigned char *data, size_t size)
+int tcp_send(tcp_socket socket, unsigned char* data, size_t size)
 {
     auto h = socket_fd(socket);
     SOCKET_DUMP(data, size);
-    return send(h, (char *)data, (int)size, 0);
+    return send(h, (char*)data, (int)size, 0);
 }
 
 void tcp_close(tcp_socket socket)
 {
     auto h = socket_fd(socket);
     closesocket(h);
-    delete (int *)socket;
+    delete (int*)socket;
     socket = nullptr;
 }
 
@@ -222,12 +205,12 @@ icmp_handle icmp_open()
     if (h == SOCKET_ERROR)
         return nullptr;
 
-    auto *s = new SOCKET;
-    *s = h;
+    auto* s = new SOCKET;
+    *s      = h;
     return (icmp_handle)s;
 }
 
-int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
+int icmp_query(icmp_handle handle, const char* ip, u32* timems)
 {
     assert(wsa_initialized);
     assert(ip);
@@ -238,20 +221,20 @@ int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
     if (lpHost != nullptr)
     {
         sockaddr_in destAddress;
-        destAddress.sin_addr.s_addr = ((in_addr *)lpHost->h_addr_list[0])->s_addr;
-        destAddress.sin_family = AF_INET;
-        destAddress.sin_port = 0;
+        destAddress.sin_addr.s_addr = ((in_addr*)lpHost->h_addr_list[0])->s_addr;
+        destAddress.sin_family      = AF_INET;
+        destAddress.sin_port        = 0;
 
         const int ICMP_ECHOREQ = 8;
-        ECHOREQUEST request = {};
-        request.icmpHdr.Type = ICMP_ECHOREQ;
-        request.dwTime = *timems;
+        ECHOREQUEST request    = {};
+        request.icmpHdr.Type   = ICMP_ECHOREQ;
+        request.dwTime         = *timems;
         memset(request.cData, 80, sizeof(request.cData));
 
-        const auto rs = sizeof(ECHOREQUEST);
-        request.icmpHdr.Checksum = icmp_checksum((u16 *)&request, rs);
+        const auto rs            = sizeof(ECHOREQUEST);
+        request.icmpHdr.Checksum = icmp_checksum((u16*)&request, rs);
 
-        const auto r = (LPSTR)&request;
+        const auto r   = (LPSTR)&request;
         const auto dst = (LPSOCKADDR)&destAddress;
         ::sendto(h, r, rs, 0, dst, sizeof(SOCKADDR_IN));
 
@@ -259,7 +242,7 @@ int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(h, &readfds);
-        timeoutInfo.tv_sec = 1;
+        timeoutInfo.tv_sec  = 1;
         timeoutInfo.tv_usec = 0;
 
         if (::select(1, &readfds, nullptr, nullptr, &timeoutInfo))
@@ -268,8 +251,8 @@ int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
             sockaddr_in sourceAddress;
             int length = sizeof(sockaddr_in);
 
-            const auto a = (LPSTR)&answer;
-            const auto as = sizeof(ECHOREPLY);
+            const auto a   = (LPSTR)&answer;
+            const auto as  = sizeof(ECHOREPLY);
             const auto src = (LPSOCKADDR)&sourceAddress;
             if (::recvfrom(h, a, as, 0, src, &length) != -1)
             {
@@ -288,7 +271,7 @@ void icmp_close(icmp_handle handle)
 {
     auto h = socket_fd(handle);
     closesocket(h);
-    delete (int *)handle;
+    delete (int*)handle;
     handle = nullptr;
 }
 
@@ -299,16 +282,16 @@ void icmp_close(icmp_handle handle)
 template <class T>
 inline static int socket_fd(T socket)
 {
-    assert(socket && *(int *)socket != -1);
-    return *(int *)socket;
+    assert(socket && *(int*)socket != -1);
+    return *(int*)socket;
 }
 
 u32 socket_localaddress()
 {
-    struct ifaddrs *addrs = nullptr;
-    struct ifaddrs *ifa = nullptr;
-    void *tmp = nullptr;
-    u32 r = 0;
+    struct ifaddrs* addrs = nullptr;
+    struct ifaddrs* ifa   = nullptr;
+    void* tmp             = nullptr;
+    u32 r                 = 0;
 
     getifaddrs(&addrs);
     for (ifa = addrs; ifa != nullptr; ifa = ifa->ifa_next)
@@ -320,8 +303,8 @@ u32 socket_localaddress()
 
         if (ifa->ifa_addr->sa_family == AF_INET)
         {
-            tmp = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            r = *(u32 *)tmp;
+            tmp = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+            r   = *(u32*)tmp;
             if (r == 0x0100007f)
             {
                 continue;
@@ -359,18 +342,18 @@ tcp_socket tcp_open()
     }
 
     SOCKET_LOG("socket opened\n");
-    int *s = new int;
-    *s = h;
+    int* s            = new int;
+    *s                = h;
 
 #if !USE_SELECT
     struct timeval tv = { 0, 0 };
-    setsockopt(h, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
+    setsockopt(h, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
 #endif
 
     return (tcp_socket)s;
 }
 
-bool tcp_connect(tcp_socket socket, const char *address, u16 port)
+bool tcp_connect(tcp_socket socket, const char* address, u16 port)
 {
     auto h = socket_fd(socket);
 
@@ -378,7 +361,7 @@ bool tcp_connect(tcp_socket socket, const char *address, u16 port)
     memset(&caddr, 0, sizeof(sockaddr_in));
     caddr.sin_family = AF_INET;
 
-    struct hostent *he;
+    struct hostent* he;
     int rt = inet_addr(address);
     if (rt != -1)
     {
@@ -396,7 +379,7 @@ bool tcp_connect(tcp_socket socket, const char *address, u16 port)
     }
     SOCKET_LOG("socket connected\n");
     caddr.sin_port = htons(port);
-    return (connect(h, (struct sockaddr *)&caddr, sizeof(caddr)) != -1);
+    return (connect(h, (struct sockaddr*)&caddr, sizeof(caddr)) != -1);
 }
 
 int tcp_select(tcp_socket socket)
@@ -415,7 +398,7 @@ int tcp_select(tcp_socket socket)
     return r;
 }
 
-int tcp_recv(tcp_socket socket, unsigned char *data, size_t max_size)
+int tcp_recv(tcp_socket socket, unsigned char* data, size_t max_size)
 {
     auto h = socket_fd(socket);
     auto r = recv(h, data, max_size, 0);
@@ -424,7 +407,7 @@ int tcp_recv(tcp_socket socket, unsigned char *data, size_t max_size)
     return r;
 }
 
-int tcp_send(tcp_socket socket, unsigned char *data, size_t size)
+int tcp_send(tcp_socket socket, unsigned char* data, size_t size)
 {
     auto h = socket_fd(socket);
     auto r = send(h, data, size, 0);
@@ -438,7 +421,7 @@ void tcp_close(tcp_socket socket)
     auto h = socket_fd(socket);
     close(h);
     SOCKET_LOG("socket closed\n");
-    delete (int *)socket;
+    delete (int*)socket;
     socket = nullptr;
 }
 
@@ -463,12 +446,12 @@ icmp_handle icmp_open()
     }
 
     SOCKET_LOG("icmp opened\n");
-    int *s = new int;
-    *s = h;
+    int* s = new int;
+    *s     = h;
     return (icmp_handle)s;
 }
 
-int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
+int icmp_query(icmp_handle handle, const char* ip, u32* timems)
 {
     assert(timems);
     auto h = socket_fd(handle);
@@ -476,22 +459,22 @@ int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
     auto lpHost = gethostbyname(ip);
     if (lpHost != nullptr)
     {
-        SOCKET_LOG("icmp %x\n", (u32)((in_addr *)lpHost->h_addr_list[0])->s_addr);
+        SOCKET_LOG("icmp %x\n", (u32)((in_addr*)lpHost->h_addr_list[0])->s_addr);
         sockaddr_in destAddress;
-        destAddress.sin_addr.s_addr = ((in_addr *)lpHost->h_addr_list[0])->s_addr;
-        destAddress.sin_family = AF_INET;
-        destAddress.sin_port = 0;
+        destAddress.sin_addr.s_addr = ((in_addr*)lpHost->h_addr_list[0])->s_addr;
+        destAddress.sin_family      = AF_INET;
+        destAddress.sin_port        = 0;
 
         const int ICMP_ECHOREQ = 8;
-        ECHOREQUEST request = {};
-        request.icmpHdr.Type = ICMP_ECHOREQ;
-        request.dwTime = *timems;
+        ECHOREQUEST request    = {};
+        request.icmpHdr.Type   = ICMP_ECHOREQ;
+        request.dwTime         = *timems;
         memset(request.cData, 80, sizeof(request.cData));
 
-        const auto rs = sizeof(ECHOREQUEST);
-        request.icmpHdr.Checksum = icmp_checksum((u16 *)&request, rs);
+        const auto rs            = sizeof(ECHOREQUEST);
+        request.icmpHdr.Checksum = icmp_checksum((u16*)&request, rs);
 
-        const auto r = (void *)&request;
+        const auto r   = (void*)&request;
         const auto dst = (LPSOCKADDR)&destAddress;
         sendto(h, r, rs, 0, dst, sizeof(SOCKADDR_IN));
 
@@ -505,9 +488,9 @@ int icmp_query(icmp_handle handle, const char *ip, u32 *timems)
             ECHOREPLY answer;
             sockaddr_in sourceAddress;
 
-            const auto a = (void *)&answer;
-            const auto as = sizeof(ECHOREPLY);
-            const auto src = (sockaddr *)&sourceAddress;
+            const auto a     = (void*)&answer;
+            const auto as    = sizeof(ECHOREPLY);
+            const auto src   = (sockaddr*)&sourceAddress;
             socklen_t length = sizeof(sockaddr_in);
             if (recvfrom(h, a, as, 0, src, &length) != -1)
             {
@@ -528,7 +511,7 @@ void icmp_close(icmp_handle handle)
 {
     auto h = socket_fd(handle);
     close(h);
-    delete (int *)handle;
+    delete (int*)handle;
     handle = nullptr;
     SOCKET_LOG("icmp closed\n");
 }

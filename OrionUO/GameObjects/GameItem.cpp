@@ -1,5 +1,6 @@
 #include "GameItem.h"
 #include "CustomHouseMultiObject.h"
+#include "GameVars.h"
 #include "Globals.h"
 #include "../Config.h"
 #include "../OrionUO.h"
@@ -759,7 +760,7 @@ void CGameItem::LoadMulti(bool dropAlpha)
     {
         int itemOffset = sizeof(MULTI_BLOCK);
 
-        if (g_Config.ClientVersion >= CV_7090)
+        if (GameVars::GetClientVersion() >= CV_7090)
         {
             itemOffset = sizeof(MULTI_BLOCK_NEW);
         }
@@ -813,7 +814,7 @@ void CGameItem::LoadMulti(bool dropAlpha)
         multi->MaxX = maxX;
         multi->MaxY = maxY;
 
-        MultiDistanceBonus = std::max(std::max(abs(minX), maxX), std::max(abs(minY), maxY));
+        MultiDistanceBonus = Core::Max(Core::Max(abs(minX), maxX), Core::Max(abs(minY), maxY));
     }
 
     CGumpMinimap *minimap = (CGumpMinimap *)g_GumpManager.GetGump(0, 0, GT_MINIMAP);

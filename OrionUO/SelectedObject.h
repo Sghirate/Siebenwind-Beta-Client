@@ -1,22 +1,21 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
 
 class CSelectedObject
 {
 public:
-    u32 Serial = 0;
-    CRenderObject *Object = nullptr;
-    CGump *Gump = nullptr;
+    u32 Serial                  = 0;
+    class CRenderObject* Object = nullptr;
+    class CGump* Gump           = nullptr;
     CSelectedObject();
     virtual ~CSelectedObject();
 
     void Clear();
-    void Clear(CRenderObject *obj);
+    void Clear(class CRenderObject* obj);
 
-    void Init(CRenderObject *obj, CGump *gump = nullptr);
-    void Init(const CSelectedObject &obj);
+    void Init(class CRenderObject* obj, class CGump* gump = nullptr);
+    void Init(const class CSelectedObject& obj);
 };
 
 extern CSelectedObject g_SelectedObject;

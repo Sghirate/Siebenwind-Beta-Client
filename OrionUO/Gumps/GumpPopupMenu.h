@@ -1,9 +1,8 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
+
+namespace Core { struct PacketReader; }
 
 class CPopupMenuItemInfo
 {
@@ -33,7 +32,7 @@ public:
 
     virtual void PrepareContent();
 
-    static void Parse(Wisp::CPacketReader &reader);
+    static void Parse(Core::PacketReader &reader);
 
     GUMP_BUTTON_EVENT_H;
 };

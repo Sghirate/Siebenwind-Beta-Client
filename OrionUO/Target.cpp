@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Target.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "Config.h"
 #include "OrionUO.h"
 #include "Multi.h"
@@ -227,7 +226,7 @@ void CTarget::Plugin_SendTargetObject(int serial)
         if (obj != nullptr && obj->NPC && ((CGameCharacter*)obj)->MaxHits == 0)
         {
             CPacketStatusRequest packet(serial);
-            UOMsg_Send(packet.Data().data(), packet.Data().size());
+            UOMsg_Send(packet.GetData().data(), packet.GetData().size());
         }
     }
 
@@ -368,7 +367,7 @@ void CTarget::LoadMulti(int offsetX, int offsetY, char offsetZ)
     {
         int itemOffset = sizeof(MULTI_BLOCK);
 
-        if (g_Config.ClientVersion >= CV_7090)
+        if (GameVars::GetClientVersion() >= CV_7090)
         {
             itemOffset = sizeof(MULTI_BLOCK_NEW);
         }

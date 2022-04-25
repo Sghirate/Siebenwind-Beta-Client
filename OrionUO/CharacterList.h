@@ -1,6 +1,4 @@
-﻿// MIT License
-
-#pragma once
+﻿#pragma once
 
 class CCharacterList
 {

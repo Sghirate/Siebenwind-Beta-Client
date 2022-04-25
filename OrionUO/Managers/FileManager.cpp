@@ -1,9 +1,8 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "FileManager.h"
 #include "AnimationManager.h"
 #include "ClilocManager.h"
+#include "Core/Log.h"
+#include "GameVars.h"
 #include "../OrionUO.h"
 #include "../OrionApplication.h"
 #include "../Config.h"
@@ -53,7 +52,7 @@ std::vector<u8> CUopMappedFile::GetData(const CUopBlockHeader& block)
         int z_err = mz_uncompress(&result[0], &decompressedSize, m_ptr, compressedSize);
         if (z_err != Z_OK)
         {
-            LOG("Uncompress error: %i", z_err);
+            LOG_ERROR("FileManager", "Uncompress error: %i", z_err);
             result.clear();
         }
     }
@@ -74,7 +73,7 @@ CFileManager::~CFileManager()
 
 bool CFileManager::Load()
 {
-    if (g_Config.ClientVersion >= CV_7000 && LoadUOPFile(m_MainMisc, "MainMisc.uop"))
+    if (GameVars::GetClientVersion() >= CV_7000 && LoadUOPFile(m_MainMisc, "MainMisc.uop"))
     {
         return LoadWithUOP();
     }
@@ -623,9 +622,9 @@ bool CFileManager::DecompressUOPFileData(
     delete[] buf;
     if (z_err != Z_OK)
     {
-        LOG("UOP anim decompression failed %d", z_err);
-        LOG("Anim file: %s", animData.path.string().c_str());
-        LOG("Anim offset: %d", animData.offset);
+        LOG_ERROR("FileManager", "UOP anim decompression failed %d", z_err);
+        LOG_ERROR("FileManager", "Anim file: %s", animData.path.string().c_str());
+        LOG_ERROR("FileManager", "Anim offset: %d", animData.offset);
         return false;
     }
     return true;
@@ -633,7 +632,7 @@ bool CFileManager::DecompressUOPFileData(
 
 bool CFileManager::LoadUOPFile(CUopMappedFile& a_file, const char* a_fileName)
 {
-    LOG("Loading UOP fileName: %s", a_fileName);
+    LOG_INFO("FileManager", "Loading UOP fileName: %s", a_fileName);
     if (!a_file.Load(g_App.GetGameDir() / a_fileName))
     {
         return false;
@@ -642,14 +641,14 @@ bool CFileManager::LoadUOPFile(CUopMappedFile& a_file, const char* a_fileName)
     u32 formatID = a_file.ReadLE<u32>();
     if (formatID != 0x0050594D)
     {
-        LOG("WARNING!!! UOP file '%s' formatID is %i!", a_fileName, formatID);
+        LOG_WARNING("FileManager", "WARNING!!! UOP file '%s' formatID is %i!", a_fileName, formatID);
         return false;
     }
 
     u32 formatVersion = a_file.ReadLE<u32>();
     if (formatVersion > 5)
     {
-        LOG("WARNING!!! UOP file '%s' version is %i!", a_fileName, formatVersion);
+        LOG_WARNING("FileManager", "WARNING!!! UOP file '%s' version is %i!", a_fileName, formatVersion);
     }
 
     a_file.Move(4); //Signature?
@@ -705,7 +704,7 @@ bool CFileManager::LoadUOPFile(CUopMappedFile& a_file, const char* a_fileName)
          i != a_file.m_Map.end();
          ++i)
     {
-        LOG("item dump start: %016llX, %i\n", i->first, i->second.CompressedSize);
+        LOG_INFO("FileManager", "item dump start: %016llX, %i\n", i->first, i->second.CompressedSize);
 
         std::vector<u8> data = a_file.GetData(i->second);
 
@@ -718,9 +717,9 @@ bool CFileManager::LoadUOPFile(CUopMappedFile& a_file, const char* a_fileName)
 
         //LOG("%s\n", reader.ReadString(decompressedSize));
 
-        LOG_DUMP(reader.GetBuffer(), (int)reader.GetSize());
+        //LOG_DUMP(reader.GetBuffer(), (int)reader.GetSize());
 
-        LOG("item dump end:\n");
+        LOG_INFO("FileManager", "item dump end:\n");
     }
 
     a_file.ResetPtr();
@@ -730,14 +729,14 @@ bool CFileManager::LoadUOPFile(CUopMappedFile& a_file, const char* a_fileName)
 
 bool CFileManager::TryOpenFileStream(std::fstream& a_stream, const std::filesystem::path& a_path)
 {
-    LOG("Trying to open file stream for %s", a_path.string().c_str());
+    LOG_INFO("FileManager", "Trying to open file stream for %s", a_path.string().c_str());
     if (!std::filesystem::exists(a_path))
     {
-        LOG("File doesnt exist");
+        LOG_ERROR("FileManager", "File doesnt exist");
         return false;
     }
     a_stream.open(a_path, std::ios::binary | std::ios::in);
-    LOG("File stream opened");
+    LOG_INFO("FileManager", "File stream opened");
     return true;
 }
 

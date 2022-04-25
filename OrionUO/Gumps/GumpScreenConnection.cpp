@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Connection.h"
 #include "GumpScreenConnection.h"
 #include "../CharacterList.h"

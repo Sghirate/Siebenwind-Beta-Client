@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSpell.h"
+#include "Globals.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
 #include "../PressedObject.h"
@@ -326,7 +324,7 @@ bool CGumpSpell::GetSpellGroupOffset(int &x, int &y)
             //Если гамп захватили и (может быть) двигают
             if (gump != this && g_PressedObject.LeftGump == gump && gump->CanBeMoved())
             {
-                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+                Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
                 x += offset.x;
                 y += offset.y;
@@ -446,8 +444,8 @@ void CGumpSpell::CalculateGumpState()
     {
         if (!InGroup())
         {
-            int testX = g_MouseManager.Position.X;
-            int testY = g_MouseManager.Position.Y;
+            int testX = g_MouseManager.GetPosition().x;
+            int testY = g_MouseManager.GetPosition().y;
 
             if (GetNearSpell(testX, testY) != nullptr)
             {

@@ -1,7 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenSelectProfession.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "../Config.h"
 #include "../ToolTip.h"
 #include "../Profession.h"
@@ -64,7 +64,7 @@ void CGumpScreenSelectProfession::UpdateContent()
         return;
     }
 
-    if (g_Config.ClientVersion >= CV_308Z)
+    if (GameVars::GetClientVersion() >= CV_308Z)
     {
         UpdateContentNew();
     }
@@ -165,7 +165,7 @@ void CGumpScreenSelectProfession::UpdateContentOld()
                 ID_SPS_LABEL + index, child->Gump, child->Gump, child->Gump + 1, 509, 109 + offsY));
 
             CGUIText *text = (CGUIText *)Add(new CGUIText(0, 350, 135 + offsY));
-            text->CreateTextureW(2, ToWString(child->Name), 30, 185, TS_LEFT, UOFONT_SOLID);
+            text->CreateTextureW(2, Core::ToWString(child->Name), 30, 185, TS_LEFT, UOFONT_SOLID);
 
             offsY += 79;
 
@@ -446,7 +446,7 @@ void CGumpScreenSelectProfession::UpdateContentNew()
             int skillsCount = 3;
             int skillStep = 80;
 
-            if (g_Config.ClientVersion >= CV_70160)
+            if (GameVars::GetClientVersion() >= CV_70160)
             {
                 yPtr -= 12;
                 skillStep = 70;
@@ -581,7 +581,7 @@ void CGumpScreenSelectProfession::GUMP_BUTTON_EVENT_C
     }
     else if (serial == ID_SPS_ARROW_PREV) //< button
     {
-        if (g_Config.ClientVersion >= CV_308Z &&
+        if (GameVars::GetClientVersion() >= CV_308Z &&
             g_ProfessionManager.Selected->Type == PT_PROFESSION &&
             g_ProfessionManager.Selected->DescriptionIndex == -1 /*Advanced*/)
         {
@@ -606,7 +606,7 @@ void CGumpScreenSelectProfession::GUMP_BUTTON_EVENT_C
             {
                 int skillsCount = 3;
 
-                if (g_Config.ClientVersion >= CV_70160)
+                if (GameVars::GetClientVersion() >= CV_70160)
                 {
                     skillsCount++;
                 }
@@ -660,7 +660,7 @@ void CGumpScreenSelectProfession::GUMP_BUTTON_EVENT_C
                 g_ProfessionManager.Selected = child;
                 g_SelectProfessionScreen.SetSkillSelection(0);
 
-                if (g_Config.ClientVersion >= CV_308Z && child->Type == PT_PROFESSION &&
+                if (GameVars::GetClientVersion() >= CV_308Z && child->Type == PT_PROFESSION &&
                     child->DescriptionIndex != -1)
                 {
                     g_SelectProfessionScreen.CreateSmoothAction(
@@ -690,7 +690,7 @@ void CGumpScreenSelectProfession::GUMP_BUTTON_EVENT_C
         {
             int skillsCount = 3;
 
-            if (g_Config.ClientVersion >= CV_70160)
+            if (GameVars::GetClientVersion() >= CV_70160)
             {
                 skillsCount++;
             }
@@ -717,7 +717,7 @@ void CGumpScreenSelectProfession::GUMP_SLIDER_MOVE_EVENT_C
 {
     int skillsCount = 3;
 
-    if (g_Config.ClientVersion >= CV_70160)
+    if (GameVars::GetClientVersion() >= CV_70160)
     {
         skillsCount++;
     }
@@ -725,9 +725,9 @@ void CGumpScreenSelectProfession::GUMP_SLIDER_MOVE_EVENT_C
     //Stats
     if (serial >= ID_SPS_STATS_SPHERE && (int)serial < ID_SPS_STATS_SPHERE + skillsCount)
     {
-        if (g_Config.ClientVersion >= CV_308Z)
+        if (GameVars::GetClientVersion() >= CV_308Z)
         {
-            if (g_Config.ClientVersion >= CV_70160)
+            if (GameVars::GetClientVersion() >= CV_70160)
             {
                 ShuffleStats(serial - ID_SPS_STATS_SPHERE, 90, 60);
             }
@@ -870,7 +870,7 @@ void CGumpScreenSelectProfession::ShuffleSkills(int id)
     int skillsCount = 3;
     bool use4Skill = false;
 
-    if (g_Config.ClientVersion >= CV_70160)
+    if (GameVars::GetClientVersion() >= CV_70160)
     {
         use4Skill = true;
         skillsCount++;

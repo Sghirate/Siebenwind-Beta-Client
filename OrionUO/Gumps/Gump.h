@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "../Platform.h"
 #include "../GUI/GUI.h"
@@ -72,7 +69,7 @@ public:
     CGump(GUMP_TYPE type, u32 serial, int x, int y);
     virtual ~CGump();
 
-    virtual void PasteClipboardData(wstring &data);
+    virtual void PasteClipboardData(std::wstring &data);
     static void ProcessListing();
 
     static bool

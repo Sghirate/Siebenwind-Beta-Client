@@ -1,8 +1,6 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
+﻿#pragma once
 
-#pragma once
-
+#include "Core/Minimal.h"
 #include "MultiObject.h"
 
 class CCustomHouseMultiObject : public CMultiObject

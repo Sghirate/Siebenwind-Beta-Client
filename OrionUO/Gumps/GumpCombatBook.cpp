@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) December 2016 Hotride
-
 #include "GumpCombatBook.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GumpAbility.h"
 #include "../Config.h"
 #include "../OrionUO.h"
@@ -19,9 +18,9 @@ CGumpCombatBook::CGumpCombatBook(int x, int y)
 {
     Draw2Page = 1;
 
-    if (g_Config.ClientVersion < CV_7000)
+    if (GameVars::GetClientVersion() < CV_7000)
     {
-        if (g_Config.ClientVersion >= CV_500A)
+        if (GameVars::GetClientVersion() >= CV_500A)
         {
             AbilityCount = 29;
         }
@@ -393,17 +392,17 @@ void CGumpCombatBook::PrepareContent()
         (g_PressedObject.LeftSerial == ID_GCB_ICON_FIRST ||
          g_PressedObject.LeftSerial == ID_GCB_ICON_SECOND))
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if ((abs(offset.x) >= DRAG_PIXEL_RANGE || abs(offset.y) >= DRAG_PIXEL_RANGE) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
         {
             g_GumpManager.AddGump(new CGumpAbility(
                 static_cast<int>(g_PressedObject.LeftSerial == ID_GCB_ICON_SECOND),
-                g_MouseManager.Position.X - 20,
-                g_MouseManager.Position.Y - 20));
+                g_MouseManager.GetPosition().x - 20,
+                g_MouseManager.GetPosition().y - 20));
 
-            g_OrionWindow.EmulateOnLeftMouseButtonDown();
+            g_MouseManager.EmulateOnLeftMouseButtonDown();
         }
     }
 }

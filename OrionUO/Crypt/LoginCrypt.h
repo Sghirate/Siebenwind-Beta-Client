@@ -1,6 +1,6 @@
-// MIT License
-
 #pragma once
+
+#include "Core/Minimal.h"
 
 class CLoginCrypt
 {
@@ -16,9 +16,9 @@ public:
     ~CLoginCrypt() {}
 
     void Init(u8 ps[4]);
-    void Encrypt(const u8 *in, u8 *out, int size);
-    void Encrypt_Old(const u8 *in, u8 *out, int size);
-    void Encrypt_1_25_36(const u8 *in, u8 *out, int size);
+    void Encrypt(const u8* in, u8* out, int size);
+    void Encrypt_Old(const u8* in, u8* out, int size);
+    void Encrypt_1_25_36(const u8* in, u8* out, int size);
 };
 
 extern CLoginCrypt g_LoginCrypt;

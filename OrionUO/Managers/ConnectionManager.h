@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "../Network/Connection.h"
 
@@ -64,7 +61,7 @@ public:
 
     void Init();
     void Init(u8 *gameSeed);
-    bool Connected() { return (m_LoginSocket.Connected || m_GameSocket.Connected); }
+    bool Connected() { return (m_LoginSocket.IsConnected() || m_GameSocket.IsConnected()); }
     bool Connect(const std::string &address, int port, u8 *gameSeed);
     void Disconnect();
     void Recv();

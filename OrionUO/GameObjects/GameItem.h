@@ -1,9 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "GameObject.h"
+#include "Core/Minimal.h"
 
 class CMulti;
 class CMultiObject;

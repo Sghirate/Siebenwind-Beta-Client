@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUISkillItem.h"
+﻿#include "GUISkillItem.h"
 #include "GUIButton.h"
 #include "../OrionUO.h"
 #include "../PressedObject.h"

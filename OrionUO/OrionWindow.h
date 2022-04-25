@@ -1,33 +1,19 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Platform.h"
 
 enum
 {
-#if USE_TIMERTHREAD
-    RENDER_TIMER_ID = 1,
-    UPDATE_TIMER_ID = 2,
-    FASTLOGIN_TIMER_ID = 3,
-#else
     FASTLOGIN_TIMER_ID = 1,
-#endif // USE_TIMERTHREAD
 };
 
 class COrionWindow : public Wisp::CWindow
 {
 public:
-#if USE_TIMERTHREAD
-    Wisp::CThreadedTimer *m_TimerThread = nullptr;
-#endif // USE_TIMERTHREAD
-
     COrionWindow();
     virtual ~COrionWindow();
 
     void SetRenderTimerDelay(int delay);
-    void EmulateOnLeftMouseButtonDown();
     int GetRenderDelay();
 
     static const u32 MessageID = USER_MESSAGE_ID + 402;
@@ -55,9 +41,6 @@ protected:
     virtual void OnShow(bool show);
     virtual void OnSetText(const char *str);
     virtual void OnTimer(u32 id);
-#if USE_TIMERTHREAD
-    virtual void OnThreadedTimer(u32 nowTime, Wisp::CThreadedTimer *timer);
-#endif // USE_TIMERTHREAD
     virtual bool OnRepaint(const PaintEvent &ev);
     virtual bool OnUserMessages(const UserEvent &ev) override;
     virtual void OnTextInput(const TextEvent &ev) override;

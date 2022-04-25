@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ConnectionScreen.h"
 #include "../OrionUO.h"
 #include "../CharacterList.h"

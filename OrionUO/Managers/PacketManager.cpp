@@ -1,9 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include <miniz.h>
-
 #include "PacketManager.h"
+#include "Core/Log.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GumpManager.h"
 #include "ConfigManager.h"
 #include "CustomHousesManager.h"
@@ -22,6 +23,7 @@
 #include "PluginManager.h"
 #include "FileManager.h"
 #include "MultiMap.h"
+#include "Sockets.h"
 #include "../Sockets.h"
 #include "../Config.h"
 #include "../OrionUO.h"
@@ -401,16 +403,15 @@ CPacketManager::~CPacketManager()
     RELEASE_MUTEX(m_Mutex);
 }
 
-bool CPacketManager::AutoLoginNameExists(const std::string &name)
+bool CPacketManager::AutoLoginNameExists(const std::string& name)
 {
-
     if (AutoLoginNames.length() == 0u)
     {
         return false;
     }
 
-    string search = string("|") + name + "|";
-    return (AutoLoginNames.find(search) != string::npos);
+    std::string search = std::string("|") + name + "|";
+    return (AutoLoginNames.find(search) != std::string::npos);
 }
 
 #define CV_PRINT 0
@@ -423,7 +424,6 @@ bool CPacketManager::AutoLoginNameExists(const std::string &name)
 
 void CPacketManager::ConfigureClientVersion(u32 newClientVersion)
 {
-
     if (newClientVersion >= CV_500A)
     {
         CVPRINT("Set new length for packet 0x0B (>= 5.0.0a)\n");
@@ -604,7 +604,7 @@ void CPacketManager::ConfigureClientVersion(u32 newClientVersion)
     }
 }
 
-int CPacketManager::GetPacketSize(const std::vector<u8> &packet, int &offsetToSize)
+int CPacketManager::GetPacketSize(const std::vector<u8>& packet, int& offsetToSize)
 {
     if (static_cast<unsigned int>(!packet.empty()) != 0u)
     {
@@ -619,7 +619,7 @@ void CPacketManager::SendMegaClilocRequests()
     PROFILER_EVENT();
     if (g_TooltipsEnabled && !m_MegaClilocRequests.empty())
     {
-        if (g_Config.ClientVersion >= CV_500A)
+        if (GameVars::GetClientVersion() >= CV_500A)
         {
             while (!m_MegaClilocRequests.empty())
             {
@@ -652,8 +652,7 @@ void CPacketManager::AddMegaClilocRequest(int serial)
 
 void CPacketManager::OnReadFailed()
 {
-
-    LOG("OnReadFailed...Disconnecting...\n");
+    LOG_INFO("PacketManager", "OnReadFailed...Disconnecting...");
     g_Orion.DisconnectGump();
     //g_Orion.Disconnect();
     g_AbyssPacket03First = true;
@@ -663,10 +662,9 @@ void CPacketManager::OnReadFailed()
 
 void CPacketManager::OnPacket()
 {
-
     u32 ticks = g_Ticks;
-    g_TotalRecvSize += (u32)Size;
-    CPacketInfo &info = m_Packets[*Start];
+    g_TotalRecvSize += (u32)GetSize();
+    CPacketInfo& info = m_Packets[*GetBuffer()];
     if (info.save)
     {
 #if defined(ORION_WINDOWS) // FIXME: localtime_s (use C++ if possible)
@@ -677,44 +675,45 @@ void CPacketManager::OnPacket()
         time(&rawtime);
         localtime_s(&timeinfo, &rawtime);
         strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", &timeinfo);
-        LOG("--- ^(%d) r(+%zd => %d) %s Server:: %s\n",
+        LOG_INFO(
+            "PacketManager",
+            "--- ^(%d) r(+%zd => %d) %s Server:: %s",
             ticks - g_LastPacketTime,
-            Size,
+            GetSize(),
             g_TotalRecvSize,
             buffer,
             info.Name);
 #else
-        LOG("--- ^(%d) r(+%zd => %d) Server:: %s\n",
+        LOG_INFO(
+            "PacketManager",
+            "--- ^(%d) r(+%zd => %d) Server:: %s",
             ticks - g_LastPacketTime,
             Size,
             g_TotalRecvSize,
             info.Name);
 #endif
-        LOG_DUMP(Start, (int)Size);
+        //LOG_DUMP(Start, (int)Size);
     }
 
     g_LastPacketTime = ticks;
     if (info.Direction != DIR_RECV && info.Direction != DIR_BOTH)
     {
-        LOG("message direction invalid: 0x%02X\n", *Start);
+        LOG_INFO("PacketManager", "message direction invalid: 0x%02X", *GetBuffer());
     }
-    else if (g_PluginManager.PacketRecv(Start, (int)Size))
+    else if (g_PluginManager.PacketRecv(GetBuffer(), (int)GetSize()))
     {
         if (info.Handler != 0)
         {
-            Ptr = Start + 1;
+            SetPtr(GetBuffer() + 1);
             if (info.Size == 0)
-            {
-                Ptr += 2;
-            }
+                SetPtr(GetPtr() + 2);
             (this->*(info.Handler))();
         }
     }
 }
 
-void CPacketManager::SavePluginReceivePacket(u8 *buf, int size)
+void CPacketManager::SavePluginReceivePacket(u8* buf, int size)
 {
-
     std::vector<u8> packet(size);
     memcpy(&packet[0], &buf[0], size);
 
@@ -730,7 +729,7 @@ void CPacketManager::ProcessPluginPackets()
     LOCK(m_Mutex);
     while (!m_PluginData.empty())
     {
-        std::vector<u8> &packet = m_PluginData.back();
+        std::vector<u8>& packet = m_PluginData.back();
 
         PluginReceiveHandler(&packet[0], (int)packet.size());
         packet.clear();
@@ -740,32 +739,32 @@ void CPacketManager::ProcessPluginPackets()
     UNLOCK(m_Mutex);
 }
 
-void CPacketManager::PluginReceiveHandler(u8 *buf, int size)
+void CPacketManager::PluginReceiveHandler(u8* buf, int size)
 {
     SetData(buf, size);
 
     u32 ticks = g_Ticks;
-    g_TotalRecvSize += (u32)Size;
-    CPacketInfo &info = m_Packets[*Start];
-    LOG("--- ^(%d) r(+%zd => %d) Plugin->Client:: %s\n",
+    g_TotalRecvSize += (u32)GetSize();
+    CPacketInfo& info = m_Packets[*GetBuffer()];
+    LOG_INFO(
+        "PacketManager",
+        "--- ^(%d) r(+%zd => %d) Plugin->Client:: %s",
         ticks - g_LastPacketTime,
-        Size,
+        GetSize(),
         g_TotalRecvSize,
         info.Name);
-    LOG_DUMP(Start, (int)Size);
+    //LOG_DUMP(Start, (int)Size);
 
     g_LastPacketTime = ticks;
     if (info.Direction != DIR_RECV && info.Direction != DIR_BOTH)
     {
-        LOG("message direction invalid: 0x%02X\n", *buf);
+        LOG_ERROR("PacketManager", "message direction invalid: 0x%02X", *buf);
     }
     else if (info.Handler != 0)
     {
-        Ptr = Start + 1;
+        SetPtr(GetBuffer() + 1);
         if (info.Size == 0)
-        {
-            Ptr += 2;
-        }
+            SetPtr(GetPtr() + 2);
         (this->*(info.Handler))();
     }
 }
@@ -778,7 +777,7 @@ PACKET_HANDLER(LoginError)
         g_GameState == GS_GAME_CONNECT)
     {
         g_ConnectionScreen.SetConnectionFailed(true);
-        g_ConnectionScreen.SetErrorCode(ReadUInt8());
+        g_ConnectionScreen.SetErrorCode(ReadBE<u8>());
         g_ConnectionManager.Disconnect();
     }
 }
@@ -792,7 +791,7 @@ PACKET_HANDLER(RelayServer)
 {
     memset(&g_SelectedCharName[0], 0, sizeof(g_SelectedCharName));
     in_addr addr;
-    u32 *paddr = (u32 *)Ptr;
+    u32* paddr = (u32*)GetPtr();
     Move(4);
 #if defined(ORION_WINDOWS)
     addr.S_un.S_addr = *paddr;
@@ -801,34 +800,33 @@ PACKET_HANDLER(RelayServer)
 #endif
     char relayIP[30] = { 0 };
     memcpy(&relayIP[0], inet_ntoa(addr), 29);
-    int relayPort = ReadUInt16BE();
-    g_Orion.RelayServer(relayIP, relayPort, Ptr);
+    int relayPort = ReadBE<u16>();
+    g_Orion.RelayServer(relayIP, relayPort, GetPtr());
     g_PacketLoginComplete = false;
-    g_CurrentMap = 0;
+    g_CurrentMap          = 0;
 }
 
 PACKET_HANDLER(CharacterList)
 {
-
     HandleResendCharacterList();
-    u8 locCount = ReadUInt8();
+    u8 locCount = ReadBE<u8>();
     g_CityList.Clear();
-    if (g_Config.ClientVersion >= CV_70130)
+    if (GameVars::GetClientVersion() >= CV_70130)
     {
         for (int i = 0; i < locCount; i++)
         {
-            CCityItemNew *city = new CCityItemNew();
+            CCityItemNew* city = new CCityItemNew();
 
-            city->LocationIndex = ReadUInt8();
+            city->LocationIndex = ReadBE<u8>();
 
             city->Name = ReadString(32);
             city->Area = ReadString(32);
 
-            city->X = ReadUInt32BE();
-            city->Y = ReadUInt32BE();
-            city->Z = ReadUInt32BE();
-            city->MapIndex = ReadUInt32BE();
-            city->Cliloc = ReadUInt32BE();
+            city->X        = ReadBE<u32>();
+            city->Y        = ReadBE<u32>();
+            city->Z        = ReadBE<u32>();
+            city->MapIndex = ReadBE<u32>();
+            city->Cliloc   = ReadBE<u32>();
 
             Move(4);
 
@@ -839,9 +837,9 @@ PACKET_HANDLER(CharacterList)
     {
         for (int i = 0; i < locCount; i++)
         {
-            CCityItem *city = new CCityItem();
+            CCityItem* city = new CCityItem();
 
-            city->LocationIndex = ReadUInt8();
+            city->LocationIndex = ReadBE<u8>();
 
             city->Name = ReadString(31);
             city->Area = ReadString(31);
@@ -852,13 +850,13 @@ PACKET_HANDLER(CharacterList)
         }
     }
 
-    g_ClientFlag = ReadUInt32BE();
+    g_ClientFlag = ReadBE<u32>();
 
     g_CharacterList.OnePerson = (bool)(g_ClientFlag & CLF_ONE_CHARACTER_SLOT);
     //g_SendLogoutNotification = (bool)(g_ClientFlag & LFF_RE);
     g_PopupEnabled = (bool)(g_ClientFlag & CLF_CONTEXT_MENU);
     g_TooltipsEnabled =
-        (bool)(((g_ClientFlag & CLF_PALADIN_NECROMANCER_TOOLTIPS) != 0u) && (g_Config.ClientVersion >= CV_308Z));
+        (bool)(((g_ClientFlag & CLF_PALADIN_NECROMANCER_TOOLTIPS) != 0u) && (GameVars::GetClientVersion() >= CV_308Z));
     g_PaperdollBooks = (bool)(g_ClientFlag & CLF_PALADIN_NECROMANCER_TOOLTIPS);
 
     g_CharacterListScreen.UpdateContent();
@@ -868,33 +866,33 @@ PACKET_HANDLER(ResendCharacterList)
 {
     g_Orion.InitScreen(GS_CHARACTER);
 
-    int numSlots = ReadInt8();
-    if (*Start == 0x86)
+    int numSlots = ReadBE<u8>();
+    if (*GetBuffer() == 0x86)
     {
-        LOG("/======Resend chars===\n");
+        LOG_INFO("PacketManager", "/======Resend chars===");
     }
     else
     {
-        LOG("/======Chars===\n");
+        LOG_INFO("PacketManager", "/======Chars===");
     }
 
     g_CharacterList.Clear();
     g_CharacterList.Count = numSlots;
 
-    int autoPos = -1;
-    bool autoLogin = g_MainScreen.m_AutoLogin->Checked;
+    int autoPos        = -1;
+    bool autoLogin     = g_MainScreen.m_AutoLogin->Checked;
     bool haveCharacter = false;
 
     if (numSlots == 0)
     {
-        LOG("Warning!!! No slots in character list\n");
+        LOG_WARNING("PacketManager", "No slots in character list");
     }
     else
     {
         int selectedPos = -1;
         for (int i = 0; i < numSlots; i++)
         {
-            string name = ReadString(30);
+            std::string name = ReadString(30);
             Move(30);
             if (name.length() != 0u)
             {
@@ -916,7 +914,7 @@ PACKET_HANDLER(ResendCharacterList)
                 }
             }
 
-            LOG("%d: %s (%zd)\n", i, name.c_str(), name.length());
+            LOG_INFO("PacketManager", "%d: %s (%zd)", i, name.c_str(), name.length());
         }
 
         if (autoLogin && autoPos == -1)
@@ -939,7 +937,7 @@ PACKET_HANDLER(ResendCharacterList)
         }
     }
 
-    if (*Start == 0x86)
+    if (*GetBuffer() == 0x86)
     {
         g_CharacterListScreen.UpdateContent();
     }
@@ -958,25 +956,25 @@ PACKET_HANDLER(LoginComplete)
 
 PACKET_HANDLER(SetTime)
 {
-    g_ServerTimeHour = ReadUInt8();
-    g_ServerTimeMinute = ReadUInt8();
-    g_ServerTimeSecond = ReadUInt8();
+    g_ServerTimeHour   = ReadBE<u8>();
+    g_ServerTimeMinute = ReadBE<u8>();
+    g_ServerTimeSecond = ReadBE<u8>();
 }
 
 PACKET_HANDLER(EnterWorld)
 {
-    u32 serial = ReadUInt32BE();
-    ConfigSerial = serial;
+    u32 serial      = ReadBE<u32>();
+    ConfigSerial    = serial;
     bool loadConfig = false;
 
     if (g_World != nullptr)
     {
-        LOG("Warning!!! Duplicate enter world message\n");
+        LOG_WARNING("PacketManager", "Duplicate enter world message");
 
         g_Orion.SaveLocalConfig(g_PacketManager.ConfigSerial);
-        ConfigSerial = g_PlayerSerial;
+        ConfigSerial   = g_PlayerSerial;
         g_ConfigLoaded = false;
-        loadConfig = true;
+        loadConfig     = true;
     }
 
     g_Orion.ClearWorld();
@@ -990,13 +988,13 @@ PACKET_HANDLER(EnterWorld)
         g_Player->SetName(g_SelectedCharName);
     }
 
-    g_Player->Graphic = ReadUInt16BE();
+    g_Player->Graphic = ReadBE<u16>();
     g_Player->OnGraphicChange();
 
-    g_Player->SetX(ReadUInt16BE());
-    g_Player->SetY(ReadUInt16BE());
-    g_Player->SetZ((char)ReadUInt16BE());
-    g_Player->Direction = ReadUInt8();
+    g_Player->SetX(ReadBE<u16>());
+    g_Player->SetY(ReadBE<u16>());
+    g_Player->SetZ((char)ReadBE<u16>());
+    g_Player->Direction = ReadBE<u8>();
     /*Move(1); //serverID
 	Move(4); //unused
 	Move(2); //serverBoundaryX
@@ -1014,7 +1012,7 @@ PACKET_HANDLER(EnterWorld)
     g_Player->OffsetY = 0;
     g_Player->OffsetZ = 0;
 
-    LOG("Player 0x%08lX entered the world.\n", serial);
+    LOG_INFO("PacketManager", "Player 0x%08lX entered the world.", serial);
 
     g_MapManager.Init();
     g_MapManager.AddRender(g_Player);
@@ -1024,14 +1022,14 @@ PACKET_HANDLER(EnterWorld)
     g_LastSpellIndex = 1;
     g_LastSkillIndex = 1;
 
-    CPacketClientVersion(g_Config.ClientVersionString).Send();
+    CPacketClientVersion(GameVars::GetClientVersion()String).Send();
 
-    if (g_Config.ClientVersion >= CV_200)
+    if (GameVars::GetClientVersion() >= CV_200)
     {
         CPacketGameWindowSize().Send();
     }
 
-    if (g_Config.ClientVersion >= CV_200)
+    if (GameVars::GetClientVersion() >= CV_200)
     {
         CPacketLanguage(g_Language).Send();
     }
@@ -1050,7 +1048,7 @@ PACKET_HANDLER(EnterWorld)
     }
     else
     {
-        CServer *server = g_ServerList.GetSelectedServer();
+        CServer* server = g_ServerList.GetSelectedServer();
         if (server != nullptr)
         {
             g_Orion.CreateTextMessageF(3, 0x0037, "Login confirm to %s", server->Name.c_str());
@@ -1065,15 +1063,15 @@ PACKET_HANDLER(UpdateHitpoints)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    u32 serial          = ReadBE<u32>();
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
     if (obj == nullptr)
     {
         return;
     }
 
-    obj->MaxHits = ReadInt16BE();
-    obj->Hits = ReadInt16BE();
+    obj->MaxHits = ReadBE<i16>();
+    obj->Hits    = ReadBE<i16>();
 
     g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
     g_GumpManager.UpdateContent(serial, 0, GT_TARGET_SYSTEM);
@@ -1086,16 +1084,16 @@ PACKET_HANDLER(UpdateMana)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
     if (obj == nullptr)
     {
         return;
     }
 
-    obj->MaxMana = ReadInt16BE();
-    obj->Mana = ReadInt16BE();
+    obj->MaxMana = ReadBE<i16>();
+    obj->Mana    = ReadBE<i16>();
     g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
 }
 
@@ -1106,16 +1104,16 @@ PACKET_HANDLER(UpdateStamina)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
     if (obj == nullptr)
     {
         return;
     }
 
-    obj->MaxStam = ReadInt16BE();
-    obj->Stam = ReadInt16BE();
+    obj->MaxStam = ReadBE<i16>();
+    obj->Stam    = ReadBE<i16>();
     g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
 }
 
@@ -1126,23 +1124,23 @@ PACKET_HANDLER(MobileAttributes)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
 
     if (obj == nullptr)
     {
         return;
     }
 
-    obj->MaxHits = ReadInt16BE();
-    obj->Hits = ReadInt16BE();
+    obj->MaxHits = ReadBE<i16>();
+    obj->Hits    = ReadBE<i16>();
 
-    obj->MaxMana = ReadInt16BE();
-    obj->Mana = ReadInt16BE();
+    obj->MaxMana = ReadBE<i16>();
+    obj->Mana    = ReadBE<i16>();
 
-    obj->MaxStam = ReadInt16BE();
-    obj->Stam = ReadInt16BE();
+    obj->MaxStam = ReadBE<i16>();
+    obj->Stam    = ReadBE<i16>();
 
     g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
     g_GumpManager.UpdateContent(serial, 0, GT_TARGET_SYSTEM);
@@ -1155,30 +1153,30 @@ PACKET_HANDLER(NewHealthbarUpdate)
         return;
     }
 
-    if (*Start == 0x16 && g_Config.ClientVersion < CV_500A)
+    if (*GetBuffer() == 0x16 && GameVars::GetClientVersion() < CV_500A)
     {
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    u32 serial          = ReadBE<u32>();
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
     if (obj == nullptr)
     {
         return;
     }
 
-    u16 count = ReadUInt16BE();
+    u16 count = ReadBE<u16>();
     for (int i = 0; i < count; i++)
     {
-        u16 type = ReadUInt16BE();
-        u8 enable = ReadUInt8(); //enable/disable
-        u8 flags = obj->GetFlags();
+        u16 type  = ReadBE<u16>();
+        u8 enable = ReadBE<u8>(); //enable/disable
+        u8 flags  = obj->GetFlags();
         if (type == 1) //Poison, enable as poisonlevel + 1
         {
             u8 poisonFlag = 0x04;
             if (enable != 0u)
             {
-                if (g_Config.ClientVersion >= CV_7000)
+                if (GameVars::GetClientVersion() >= CV_7000)
                 {
                     obj->SA_Poisoned = true;
                 }
@@ -1189,7 +1187,7 @@ PACKET_HANDLER(NewHealthbarUpdate)
             }
             else
             {
-                if (g_Config.ClientVersion >= CV_7000)
+                if (GameVars::GetClientVersion() >= CV_7000)
                 {
                     obj->SA_Poisoned = false;
                 }
@@ -1227,21 +1225,23 @@ PACKET_HANDLER(UpdatePlayer)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    u8 graphicIncrement = ReadUInt8();
-    u16 color = ReadUInt16BE();
-    u8 flags = ReadUInt8();
-    u16 x = ReadUInt16BE();
-    u16 y = ReadUInt16BE();
-    u16 serverID = ReadUInt16BE();
-    u8 direction = ReadUInt8();
-    char z = ReadUInt8();
+    u32 serial          = ReadBE<u32>();
+    u16 graphic         = ReadBE<u16>();
+    u8 graphicIncrement = ReadBE<u8>();
+    u16 color           = ReadBE<u16>();
+    u8 flags            = ReadBE<u8>();
+    u16 x               = ReadBE<u16>();
+    u16 y               = ReadBE<u16>();
+    u16 serverID        = ReadBE<u16>();
+    u8 direction        = ReadBE<u8>();
+    char z              = ReadBE<u8>();
 
     // Invert character wakthrough bit.
     flags ^= 0x10;
 
-    LOG("0x%08X 0x%04X %i 0x%04X 0x%02X %i %i %i %i %i\n",
+    LOG_INFO(
+        "PacketManager",
+        "0x%08X 0x%04X %i 0x%04X 0x%02X %i %i %i %i %i",
         serial,
         graphic,
         graphicIncrement,
@@ -1263,33 +1263,33 @@ PACKET_HANDLER(CharacterStatus)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
     if (obj == nullptr)
     {
         return;
     }
 
-    string name = ReadString(30);
+    std::string name = ReadString(30);
     obj->SetName(name);
 
-    obj->Hits = ReadInt16BE();
-    obj->MaxHits = ReadInt16BE();
+    obj->Hits    = ReadBE<i16>();
+    obj->MaxHits = ReadBE<i16>();
 
-    obj->CanChangeName = (ReadUInt8() != 0);
+    obj->CanChangeName = (ReadBE<u8>() != 0);
 
-    u8 flag = ReadUInt8();
+    u8 flag = ReadBE<u8>();
 
     if (flag > 0)
     {
-        obj->Female = (ReadUInt8() != 0); //buf[43];
+        obj->Female = (ReadBE<u8>() != 0); //buf[43];
 
         if (serial == g_PlayerSerial)
         {
-            short newStr = ReadInt16BE();
-            short newDex = ReadInt16BE();
-            short newInt = ReadInt16BE();
+            short newStr = ReadBE<i16>();
+            short newDex = ReadBE<i16>();
+            short newInt = ReadBE<i16>();
 
             if (g_ConfigManager.StatReport && (g_Player->Str != 0))
             {
@@ -1331,18 +1331,18 @@ PACKET_HANDLER(CharacterStatus)
             g_Player->Dex = newDex;
             g_Player->Int = newInt;
 
-            g_Player->Stam = ReadInt16BE();
-            g_Player->MaxStam = ReadInt16BE();
-            g_Player->Mana = ReadInt16BE();
-            g_Player->MaxMana = ReadInt16BE();
-            g_Player->Gold = ReadUInt32BE();
-            g_Player->Armor = ReadInt16BE();
-            g_Player->Weight = ReadInt16BE(); //+64
+            g_Player->Stam    = ReadBE<i16>();
+            g_Player->MaxStam = ReadBE<i16>();
+            g_Player->Mana    = ReadBE<i16>();
+            g_Player->MaxMana = ReadBE<i16>();
+            g_Player->Gold    = ReadBE<u32>();
+            g_Player->Armor   = ReadBE<i16>();
+            g_Player->Weight  = ReadBE<i16>(); //+64
 
             if (flag >= 5)
             {
-                g_Player->MaxWeight = ReadInt16BE(); //unpack16(buf + 66);
-                u32 race = ReadUInt8();
+                g_Player->MaxWeight = ReadBE<i16>(); //unpack16(buf + 66);
+                u32 race            = ReadBE<u8>();
 
                 if (race == 0u)
                 {
@@ -1353,7 +1353,7 @@ PACKET_HANDLER(CharacterStatus)
             }
             else
             {
-                if (g_Config.ClientVersion >= CV_500A)
+                if (GameVars::GetClientVersion() >= CV_500A)
                 {
                     g_Player->MaxWeight = 7 * (g_Player->Str / 2) + 40;
                 }
@@ -1365,40 +1365,40 @@ PACKET_HANDLER(CharacterStatus)
 
             if (flag >= 3)
             {
-                g_Player->StatsCap = ReadUInt16BE();
-                g_Player->Followers = ReadUInt8();
-                g_Player->MaxFollowers = ReadUInt8();
+                g_Player->StatsCap     = ReadBE<u16>();
+                g_Player->Followers    = ReadBE<u8>();
+                g_Player->MaxFollowers = ReadBE<u8>();
             }
 
             if (flag >= 4)
             {
-                g_Player->FireResistance = ReadInt16BE();
-                g_Player->ColdResistance = ReadInt16BE();
-                g_Player->PoisonResistance = ReadInt16BE();
-                g_Player->EnergyResistance = ReadInt16BE();
-                g_Player->Luck = ReadInt16BE();
-                g_Player->MinDamage = ReadInt16BE();
-                g_Player->MaxDamage = ReadInt16BE();
-                g_Player->TithingPoints = ReadUInt32BE();
+                g_Player->FireResistance   = ReadBE<i16>();
+                g_Player->ColdResistance   = ReadBE<i16>();
+                g_Player->PoisonResistance = ReadBE<i16>();
+                g_Player->EnergyResistance = ReadBE<i16>();
+                g_Player->Luck             = ReadBE<i16>();
+                g_Player->MinDamage        = ReadBE<i16>();
+                g_Player->MaxDamage        = ReadBE<i16>();
+                g_Player->TithingPoints    = ReadBE<u32>();
             }
 
             if (flag >= 6)
             {
-                g_Player->MaxPhysicalResistance = ReadInt16BE();
-                g_Player->MaxFireResistance = ReadInt16BE();
-                g_Player->MaxColdResistance = ReadInt16BE();
-                g_Player->MaxPoisonResistance = ReadInt16BE();
-                g_Player->MaxEnergyResistance = ReadInt16BE();
-                g_Player->DefenceChance = ReadInt16BE();
-                g_Player->MaxDefenceChance = ReadInt16BE();
-                g_Player->AttackChance = ReadInt16BE();
-                g_Player->WeaponSpeed = ReadInt16BE();
-                g_Player->WeaponDamage = ReadInt16BE();
-                g_Player->LowerRegCost = ReadInt16BE();
-                g_Player->SpellDamage = ReadInt16BE();
-                g_Player->CastRecovery = ReadInt16BE();
-                g_Player->CastSpeed = ReadInt16BE();
-                g_Player->LowerManaCost = ReadInt16BE();
+                g_Player->MaxPhysicalResistance = ReadBE<i16>();
+                g_Player->MaxFireResistance     = ReadBE<i16>();
+                g_Player->MaxColdResistance     = ReadBE<i16>();
+                g_Player->MaxPoisonResistance   = ReadBE<i16>();
+                g_Player->MaxEnergyResistance   = ReadBE<i16>();
+                g_Player->DefenceChance         = ReadBE<i16>();
+                g_Player->MaxDefenceChance      = ReadBE<i16>();
+                g_Player->AttackChance          = ReadBE<i16>();
+                g_Player->WeaponSpeed           = ReadBE<i16>();
+                g_Player->WeaponDamage          = ReadBE<i16>();
+                g_Player->LowerRegCost          = ReadBE<i16>();
+                g_Player->SpellDamage           = ReadBE<i16>();
+                g_Player->CastRecovery          = ReadBE<i16>();
+                g_Player->CastSpeed             = ReadBE<i16>();
+                g_Player->LowerManaCost         = ReadBE<i16>();
             }
 
             if (!g_ConnectionScreen.GetCompleted() && g_PacketLoginComplete)
@@ -1419,7 +1419,7 @@ PACKET_HANDLER(UpdateItem)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
     if (serial == g_PlayerSerial)
     {
@@ -1427,11 +1427,11 @@ PACKET_HANDLER(UpdateItem)
     }
 
     UPDATE_GAME_OBJECT_TYPE updateType = UGOT_ITEM;
-    u16 count = 0;
-    u8 graphicIncrement = 0;
-    u8 direction = 0;
-    u16 color = 0;
-    u8 flags = 0;
+    u16 count                          = 0;
+    u8 graphicIncrement                = 0;
+    u8 direction                       = 0;
+    u16 color                          = 0;
+    u8 flags                           = 0;
 
     if ((serial & 0x80000000) != 0u)
     {
@@ -1439,7 +1439,7 @@ PACKET_HANDLER(UpdateItem)
         count = 1;
     }
 
-    u16 graphic = ReadUInt16BE();
+    u16 graphic = ReadBE<u16>();
 
     if (g_Config.TheAbyss && (graphic & 0x7FFF) == 0x0E5C)
     {
@@ -1449,19 +1449,19 @@ PACKET_HANDLER(UpdateItem)
     if ((graphic & 0x8000) != 0)
     {
         graphic &= 0x7FFF;
-        graphicIncrement = ReadUInt8();
+        graphicIncrement = ReadBE<u8>();
     }
 
     if (count != 0u)
     {
-        count = ReadUInt16BE();
+        count = ReadBE<u16>();
     }
     else
     {
         count++;
     }
 
-    u16 x = ReadUInt16BE();
+    u16 x = ReadBE<u16>();
 
     if ((x & 0x8000) != 0)
     {
@@ -1469,7 +1469,7 @@ PACKET_HANDLER(UpdateItem)
         direction = 1;
     }
 
-    u16 y = ReadUInt16BE();
+    u16 y = ReadBE<u16>();
 
     if ((y & 0x8000) != 0)
     {
@@ -1485,19 +1485,19 @@ PACKET_HANDLER(UpdateItem)
 
     if (direction != 0u)
     {
-        direction = ReadUInt8();
+        direction = ReadBE<u8>();
     }
 
-    char z = ReadUInt8();
+    char z = ReadBE<u8>();
 
     if (color != 0u)
     {
-        color = ReadUInt16BE();
+        color = ReadBE<u16>();
     }
 
     if (flags != 0u)
     {
-        flags = ReadUInt8();
+        flags = ReadBE<u8>();
     }
 
     if (graphic >= 0x4000)
@@ -1531,19 +1531,19 @@ PACKET_HANDLER(UpdateItemSA)
     }
 
     Move(2);
-    UPDATE_GAME_OBJECT_TYPE updateType = (UPDATE_GAME_OBJECT_TYPE)ReadUInt8();
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    u8 graphicIncrement = ReadUInt8();
-    u16 count = ReadUInt16BE();
-    u16 unknown = ReadUInt16BE();
-    u16 x = ReadUInt16BE();
-    u16 y = ReadUInt16BE();
-    u8 z = ReadUInt8();
-    u8 direction = ReadUInt8();
-    u16 color = ReadUInt16BE();
-    u8 flags = ReadUInt8();
-    u16 unknown2 = ReadUInt16BE();
+    UPDATE_GAME_OBJECT_TYPE updateType = (UPDATE_GAME_OBJECT_TYPE)ReadBE<u8>();
+    u32 serial                         = ReadBE<u32>();
+    u16 graphic                        = ReadBE<u16>();
+    u8 graphicIncrement                = ReadBE<u8>();
+    u16 count                          = ReadBE<u16>();
+    u16 unknown                        = ReadBE<u16>();
+    u16 x                              = ReadBE<u16>();
+    u16 y                              = ReadBE<u16>();
+    u8 z                               = ReadBE<u8>();
+    u8 direction                       = ReadBE<u8>();
+    u16 color                          = ReadBE<u16>();
+    u8 flags                           = ReadBE<u8>();
+    u16 unknown2                       = ReadBE<u16>();
 
     if (serial != g_PlayerSerial)
     {
@@ -1562,7 +1562,7 @@ PACKET_HANDLER(UpdateItemSA)
             updateType,
             unknown2);
     }
-    else if (*Start == 0xF7)
+    else if (*GetBuffer() == 0xF7)
     { //из пакета 0xF7 для игрока определенная обработка
         g_World->UpdatePlayer(
             serial, graphic, graphicIncrement, color, flags, x, y, 0 /*serverID*/, direction, z);
@@ -1576,15 +1576,15 @@ PACKET_HANDLER(UpdateObject)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    u16 x = ReadUInt16BE();
-    u16 y = ReadUInt16BE();
-    u8 z = ReadUInt8();
-    u8 direction = ReadUInt8();
-    u16 color = ReadUInt16BE();
-    u8 flags = ReadUInt8();
-    u8 notoriety = ReadUInt8();
+    u32 serial   = ReadBE<u32>();
+    u16 graphic  = ReadBE<u16>();
+    u16 x        = ReadBE<u16>();
+    u16 y        = ReadBE<u16>();
+    u8 z         = ReadBE<u8>();
+    u8 direction = ReadBE<u8>();
+    u16 color    = ReadBE<u16>();
+    u8 flags     = ReadBE<u8>();
+    u8 notoriety = ReadBE<u8>();
     bool oldDead = false;
 
     bool isAlreadyExists = (g_World->FindWorldObject(serial) != nullptr);
@@ -1595,7 +1595,7 @@ PACKET_HANDLER(UpdateObject)
         {
             bool updateStatusbar = (g_Player->GetFlags() != flags);
 
-            oldDead = g_Player->Dead();
+            oldDead           = g_Player->Dead();
             g_Player->Graphic = graphic;
             g_Player->OnGraphicChange(1000);
             g_Player->Color = g_ColorManager.FixColor(color);
@@ -1613,7 +1613,7 @@ PACKET_HANDLER(UpdateObject)
             serial, graphic, 0, 0, x, y, z, direction, color, flags, 0, UGOT_ITEM, 1);
     }
 
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameObject* obj = g_World->FindWorldObject(serial);
 
     if (obj == nullptr)
     {
@@ -1624,48 +1624,54 @@ PACKET_HANDLER(UpdateObject)
 
     if (obj->NPC)
     {
-        ((CGameCharacter *)obj)->Notoriety = notoriety;
+        ((CGameCharacter*)obj)->Notoriety = notoriety;
         g_GumpManager.UpdateContent(serial, 0, GT_PAPERDOLL);
     }
 
-    if (*Start != 0x78)
+    if (*GetBuffer() != 0x78)
     {
         Move(6);
     }
 
-    u32 itemSerial = ReadUInt32BE();
+    u32 itemSerial = ReadBE<u32>();
 
     while (itemSerial != 0 && !IsEOF())
     {
-        u16 itemGraphic = ReadUInt16BE();
-        u8 layer = ReadUInt8();
-        u16 itemColor = 0;
+        u16 itemGraphic = ReadBE<u16>();
+        u8 layer        = ReadBE<u8>();
+        u16 itemColor   = 0;
 
-        if (g_Config.ClientVersion >= CV_70331)
+        if (GameVars::GetClientVersion() >= CV_70331)
         {
-            itemColor = ReadUInt16BE();
+            itemColor = ReadBE<u16>();
         }
         else if ((itemGraphic & 0x8000) != 0)
         {
             itemGraphic &= 0x7FFF;
-            itemColor = ReadUInt16BE();
+            itemColor = ReadBE<u16>();
         }
 
-        CGameItem *item = g_World->GetWorldItem(itemSerial);
+        CGameItem* item = g_World->GetWorldItem(itemSerial);
 
         item->MapIndex = g_CurrentMap;
 
         item->Graphic = itemGraphic;
-        item->Color = g_ColorManager.FixColor(itemColor);
+        item->Color   = g_ColorManager.FixColor(itemColor);
 
         g_World->PutEquipment(item, obj, layer);
         item->OnGraphicChange();
 
-        LOG("\t0x%08X:%04X [%d] %04X\n", item->Serial, item->Graphic, layer, item->Color);
+        LOG_INFO(
+            "PacketManager",
+            "\t0x%08X:%04X [%d] %04X",
+            item->Serial,
+            item->Graphic,
+            layer,
+            item->Color);
 
         g_World->MoveToTop(item);
 
-        itemSerial = ReadUInt32BE();
+        itemSerial = ReadBE<u32>();
     }
 
     if (obj->IsPlayer())
@@ -1695,21 +1701,21 @@ PACKET_HANDLER(EquipItem)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameItem *obj = g_World->GetWorldItem(serial);
-    obj->MapIndex = g_CurrentMap;
+    CGameItem* obj = g_World->GetWorldItem(serial);
+    obj->MapIndex  = g_CurrentMap;
 
     if ((obj->Graphic != 0u) && obj->Layer != OL_BACKPACK)
     {
         obj->Clear();
     }
 
-    obj->Graphic = ReadUInt16BE();
+    obj->Graphic = ReadBE<u16>();
     Move(1);
-    int layer = ReadUInt8();
-    u32 cserial = ReadUInt32BE();
-    obj->Color = g_ColorManager.FixColor(ReadUInt16BE());
+    int layer   = ReadBE<u8>();
+    u32 cserial = ReadBE<u32>();
+    obj->Color  = g_ColorManager.FixColor(ReadBE<u16>());
 
     if (obj->Container != 0xFFFFFFFF)
     {
@@ -1747,20 +1753,20 @@ PACKET_HANDLER(UpdateContainedItem)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    u8 graphicIncrement = ReadUInt8();
-    u16 count = ReadUInt16BE();
-    u16 x = ReadUInt16BE();
-    u16 y = ReadUInt16BE();
+    u32 serial          = ReadBE<u32>();
+    u16 graphic         = ReadBE<u16>();
+    u8 graphicIncrement = ReadBE<u8>();
+    u16 count           = ReadBE<u16>();
+    u16 x               = ReadBE<u16>();
+    u16 y               = ReadBE<u16>();
 
-    if (g_Config.ClientVersion >= CV_6017)
+    if (GameVars::GetClientVersion() >= CV_6017)
     {
         Move(1);
     }
 
-    u32 containerSerial = ReadUInt32BE();
-    u16 color = ReadUInt16BE();
+    u32 containerSerial = ReadBE<u32>();
+    u16 color           = ReadBE<u16>();
 
     g_World->UpdateContainedItem(
         serial, graphic, graphicIncrement, count, x, y, containerSerial, color);
@@ -1773,32 +1779,32 @@ PACKET_HANDLER(UpdateContainedItems)
         return;
     }
 
-    u16 itemsCount = ReadUInt16BE();
+    u16 itemsCount = ReadBE<u16>();
 
     for (int i = 0; i < itemsCount; i++)
     {
-        u32 serial = ReadUInt32BE();
-        u16 graphic = ReadUInt16BE();
-        u8 graphicIncrement = ReadUInt8();
-        u16 count = ReadUInt16BE();
-        u16 x = ReadUInt16BE();
-        u16 y = ReadUInt16BE();
+        u32 serial          = ReadBE<u32>();
+        u16 graphic         = ReadBE<u16>();
+        u8 graphicIncrement = ReadBE<u8>();
+        u16 count           = ReadBE<u16>();
+        u16 x               = ReadBE<u16>();
+        u16 y               = ReadBE<u16>();
 
-        if (g_Config.ClientVersion >= CV_6017)
+        if (GameVars::GetClientVersion() >= CV_6017)
         {
             Move(1);
         }
 
-        u32 containerSerial = ReadUInt32BE();
-        u16 color = ReadUInt16BE();
+        u32 containerSerial = ReadBE<u32>();
+        u16 color           = ReadBE<u16>();
 
         if (i == 0)
         {
-            CGameObject *container = g_World->FindWorldObject(containerSerial);
+            CGameObject* container = g_World->FindWorldObject(containerSerial);
 
             if (container != nullptr)
             {
-                LOG("Making %08X empty...\n", containerSerial);
+                LOG_INFO("PacketManager", "Making %08X empty...", containerSerial);
 
                 if (container->IsCorpse())
                 {
@@ -1872,20 +1878,20 @@ PACKET_HANDLER(DenyMoveItem)
             }
             else
             {
-                CGameItem *obj = g_World->GetWorldItem(g_ObjectInHand.Serial);
+                CGameItem* obj = g_World->GetWorldItem(g_ObjectInHand.Serial);
 
                 if (obj != nullptr)
                 {
                     obj->Graphic = g_ObjectInHand.Graphic;
-                    obj->Color = g_ObjectInHand.Color;
-                    obj->Count = g_ObjectInHand.TotalCount;
+                    obj->Color   = g_ObjectInHand.Color;
+                    obj->Count   = g_ObjectInHand.TotalCount;
                     obj->SetFlags(g_ObjectInHand.Flags);
                     obj->SetX(g_ObjectInHand.X);
                     obj->SetY(g_ObjectInHand.Y);
                     obj->SetZ(g_ObjectInHand.Z);
                     obj->OnGraphicChange();
 
-                    CGameObject *container = g_World->FindWorldObject(g_ObjectInHand.Container);
+                    CGameObject* container = g_World->FindWorldObject(g_ObjectInHand.Container);
 
                     if (container != nullptr)
                     {
@@ -1919,7 +1925,7 @@ PACKET_HANDLER(DenyMoveItem)
         g_ObjectInHand.Clear();
     }
 
-    u8 code = ReadUInt8();
+    u8 code = ReadBE<u8>();
 
     if (code < 5)
     {
@@ -1968,33 +1974,33 @@ PACKET_HANDLER(DeleteObject)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
     if (serial == g_PlayerSerial)
     {
         return;
     }
 
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameObject* obj = g_World->FindWorldObject(serial);
 
     if (obj != nullptr)
     {
         bool updateAbilities = false;
-        u32 cont = obj->Container & 0x7FFFFFFF;
+        u32 cont             = obj->Container & 0x7FFFFFFF;
 
         if (obj->Container != 0xFFFFFFFF)
         {
-            CGameObject *top = obj->GetTopObject();
+            CGameObject* top = obj->GetTopObject();
 
             if (top != nullptr)
             {
                 if (top->IsPlayer())
                 {
-                    CGameItem *item = (CGameItem *)obj;
+                    CGameItem* item = (CGameItem*)obj;
                     updateAbilities = (item->Layer == OL_1_HAND || item->Layer == OL_2_HAND);
                 }
 
-                CGameObject *tradeBox = top->FindSecureTradeBox();
+                CGameObject* tradeBox = top->FindSecureTradeBox();
 
                 if (tradeBox != nullptr)
                 {
@@ -2002,28 +2008,28 @@ PACKET_HANDLER(DeleteObject)
                 }
             }
 
-            if (cont == g_PlayerSerial && ((CGameItem *)obj)->Layer == OL_NONE)
+            if (cont == g_PlayerSerial && ((CGameItem*)obj)->Layer == OL_NONE)
             {
                 g_ObjectInHand.Enabled = false;
             }
 
-            if (!obj->NPC && ((CGameItem *)obj)->Layer != OL_NONE)
+            if (!obj->NPC && ((CGameItem*)obj)->Layer != OL_NONE)
             {
                 g_GumpManager.UpdateContent(cont, 0, GT_PAPERDOLL);
             }
 
-            CGump *gump = g_GumpManager.UpdateContent(cont, 0, GT_CONTAINER);
+            CGump* gump = g_GumpManager.UpdateContent(cont, 0, GT_CONTAINER);
 
             if (obj->Graphic == 0x0EB0)
             {
                 g_GumpManager.CloseGump(serial, cont, GT_BULLETIN_BOARD_ITEM);
 
-                CGumpBulletinBoard *bbGump =
-                    (CGumpBulletinBoard *)g_GumpManager.UpdateGump(cont, 0, GT_BULLETIN_BOARD);
+                CGumpBulletinBoard* bbGump =
+                    (CGumpBulletinBoard*)g_GumpManager.UpdateGump(cont, 0, GT_BULLETIN_BOARD);
 
                 if (bbGump != nullptr && bbGump->m_HTMLGump != nullptr)
                 {
-                    QFOR(go, bbGump->m_HTMLGump->m_Items, CBaseGUI *)
+                    QFOR(go, bbGump->m_HTMLGump->m_Items, CBaseGUI*)
                     {
                         if (go->Serial == serial)
                         {
@@ -2031,7 +2037,7 @@ PACKET_HANDLER(DeleteObject)
 
                             int posY = 0;
 
-                            QFOR(go1, bbGump->m_HTMLGump->m_Items, CBaseGUI *)
+                            QFOR(go1, bbGump->m_HTMLGump->m_Items, CBaseGUI*)
                             {
                                 if (go1->Type == GOT_BB_OBJECT)
                                 {
@@ -2084,22 +2090,22 @@ PACKET_HANDLER(UpdateCharacter)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    u32 serial          = ReadBE<u32>();
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
 
     if (obj == nullptr)
     {
         return;
     }
 
-    u16 graphic = ReadUInt16BE();
-    u16 x = ReadUInt16BE();
-    u16 y = ReadUInt16BE();
-    char z = ReadUInt8();
-    u8 direction = ReadUInt8();
-    u16 color = ReadUInt16BE();
-    u8 flags = ReadUInt8();
-    u8 notoriety = ReadUInt8();
+    u16 graphic  = ReadBE<u16>();
+    u16 x        = ReadBE<u16>();
+    u16 y        = ReadBE<u16>();
+    char z       = ReadBE<u8>();
+    u8 direction = ReadBE<u8>();
+    u16 color    = ReadBE<u16>();
+    u8 flags     = ReadBE<u8>();
+    u8 notoriety = ReadBE<u8>();
 
     // Bug #78
     // Outlands server somewhat sends back what seems to be invalid direction data
@@ -2110,7 +2116,7 @@ PACKET_HANDLER(UpdateCharacter)
     // direction of 0x08 will come in.
     if ((direction & 0x87) != direction)
     {
-        LOG("Clamping invalid/unknown direction: %d\n", direction);
+        LOG_WARNING("PacketManager", "Clamping invalid/unknown direction: %d", direction);
         direction &= 0x87;
     }
 
@@ -2124,7 +2130,7 @@ PACKET_HANDLER(UpdateCharacter)
     {
         if (!obj->m_Steps.empty() && obj->Direction == obj->m_Steps.back().Direction)
         {
-            CWalkData &wd = obj->m_Steps.back();
+            CWalkData& wd = obj->m_Steps.back();
 
             obj->SetX(wd.X);
             obj->SetY(wd.Y);
@@ -2148,11 +2154,11 @@ PACKET_HANDLER(Warmode)
         return;
     }
 
-    g_Player->Warmode = (ReadUInt8() != 0u);
+    g_Player->Warmode = (ReadBE<u8>() != 0u);
 
     g_GumpManager.UpdateContent(g_PlayerSerial, 0, GT_STATUSBAR);
 
-    CGumpPaperdoll *gump = (CGumpPaperdoll *)g_GumpManager.GetGump(g_PlayerSerial, 0, GT_PAPERDOLL);
+    CGumpPaperdoll* gump = (CGumpPaperdoll*)g_GumpManager.GetGump(g_PlayerSerial, 0, GT_PAPERDOLL);
 
     if (gump != nullptr && gump->m_ButtonWarmode != nullptr)
     {
@@ -2163,9 +2169,9 @@ PACKET_HANDLER(Warmode)
             graphic += 3;
         }
 
-        gump->m_ButtonWarmode->Graphic = graphic;
+        gump->m_ButtonWarmode->Graphic         = graphic;
         gump->m_ButtonWarmode->GraphicSelected = graphic + 2;
-        gump->m_ButtonWarmode->GraphicPressed = graphic + 1;
+        gump->m_ButtonWarmode->GraphicPressed  = graphic + 1;
 
         gump->WantRedraw = true;
     }
@@ -2175,7 +2181,7 @@ PACKET_HANDLER(Warmode)
 
 PACKET_HANDLER(PauseControl)
 {
-    /*g_ClientPaused = ReadUInt8();
+    /*g_ClientPaused = ReadBE<u8>();
 
 	if (!g_ClientPaused)
 	UO->ResumeClient();*/
@@ -2188,20 +2194,20 @@ PACKET_HANDLER(OpenPaperdoll)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
 
-    string text = ReadString(60);
+    std::string text = ReadString(60);
 
-    u8 flags = ReadUInt8();
+    u8 flags = ReadBE<u8>();
 
     if (obj != nullptr)
     {
         obj->Title = text;
     }
 
-    CGumpPaperdoll *gump = (CGumpPaperdoll *)g_GumpManager.UpdateGump(serial, 0, GT_PAPERDOLL);
+    CGumpPaperdoll* gump = (CGumpPaperdoll*)g_GumpManager.UpdateGump(serial, 0, GT_PAPERDOLL);
 
     if (gump == nullptr)
     {
@@ -2215,7 +2221,7 @@ PACKET_HANDLER(OpenPaperdoll)
 
 PACKET_HANDLER(ClientVersion)
 {
-    CPacketClientVersion(g_Config.ClientVersionString).Send();
+    CPacketClientVersion(GameVars::GetClientVersion()String).Send();
 }
 
 PACKET_HANDLER(Ping)
@@ -2227,9 +2233,9 @@ PACKET_HANDLER(SetWeather)
 {
     g_Weather.Reset();
 
-    u8 type = ReadUInt8();
-    g_Weather.Type = type;
-    g_Weather.Count = ReadUInt8();
+    u8 type         = ReadBE<u8>();
+    g_Weather.Type  = type;
+    g_Weather.Count = ReadBE<u8>();
 
     bool showMessage = (g_Weather.Count > 0);
 
@@ -2238,8 +2244,8 @@ PACKET_HANDLER(SetWeather)
         g_Weather.Count = 70;
     }
 
-    g_Weather.Temperature = ReadUInt8();
-    g_Weather.Timer = g_Ticks + WEATHER_TIMER;
+    g_Weather.Temperature = ReadBE<u8>();
+    g_Weather.Timer       = g_Ticks + WEATHER_TIMER;
     g_Weather.Generate();
 
     switch (type)
@@ -2287,18 +2293,17 @@ PACKET_HANDLER(SetWeather)
             g_Weather.Timer = 0;
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
 PACKET_HANDLER(PersonalLightLevel)
 {
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
     if (serial == g_PlayerSerial)
     {
-        u8 level = ReadUInt8();
+        u8 level = ReadBE<u8>();
 
         if (level > 0x1F)
         {
@@ -2311,7 +2316,7 @@ PACKET_HANDLER(PersonalLightLevel)
 
 PACKET_HANDLER(LightLevel)
 {
-    u8 level = ReadUInt8();
+    u8 level = ReadBE<u8>();
 
     if (level > 0x1F)
     {
@@ -2323,13 +2328,13 @@ PACKET_HANDLER(LightLevel)
 
 PACKET_HANDLER(EnableLockedFeatures)
 {
-    if (g_Config.ClientVersion >= CV_60142)
+    if (GameVars::GetClientVersion() >= CV_60142)
     {
-        g_LockedClientFeatures = ReadUInt32BE();
+        g_LockedClientFeatures = ReadBE<u32>();
     }
     else
     {
-        g_LockedClientFeatures = ReadUInt16BE();
+        g_LockedClientFeatures = ReadBE<u16>();
     }
 
     g_ChatEnabled = (bool)(g_LockedClientFeatures & LFF_T2A);
@@ -2344,10 +2349,10 @@ PACKET_HANDLER(OpenContainer)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 gumpid = ReadUInt16BE();
+    u32 serial = ReadBE<u32>();
+    u16 gumpid = ReadBE<u16>();
 
-    CGump *gump = nullptr;
+    CGump* gump = nullptr;
 
     if (gumpid == 0xFFFF) //Spellbook
     {
@@ -2376,29 +2381,29 @@ PACKET_HANDLER(OpenContainer)
     {
         g_GumpManager.CloseGump(serial, 0, GT_SHOP);
 
-        CGameCharacter *vendor = g_World->FindWorldCharacter(serial);
+        CGameCharacter* vendor = g_World->FindWorldCharacter(serial);
 
         if (vendor != nullptr)
         {
-            CGumpShop *buyGump = new CGumpShop(serial, true, 150, 5);
-            gump = buyGump;
-            buyGump->Visible = true;
+            CGumpShop* buyGump = new CGumpShop(serial, true, 150, 5);
+            gump               = buyGump;
+            buyGump->Visible   = true;
 
             for (int layer = OL_BUY_RESTOCK; layer < OL_BUY + 1; layer++)
             {
-                CGameItem *item = vendor->FindLayer((int)layer);
+                CGameItem* item = vendor->FindLayer((int)layer);
 
                 if (item == nullptr)
                 {
-                    LOG("Buy layer %i not found!\n", layer);
+                    LOG_WARNING("PacketManager", "Buy layer %i not found!", layer);
                     continue;
                 }
 
-                item = (CGameItem *)item->m_Items;
+                item = (CGameItem*)item->m_Items;
 
                 if (item == nullptr)
                 {
-                    LOG("Buy items not found!\n");
+                    LOG_WARNING("PacketManager", "Buy items not found!");
                     continue;
                 }
 
@@ -2408,25 +2413,25 @@ PACKET_HANDLER(OpenContainer)
                 {
                     while (item != nullptr && item->m_Next != nullptr)
                     {
-                        item = (CGameItem *)item->m_Next;
+                        item = (CGameItem*)item->m_Next;
                     }
                 }
 
-                CGUIHTMLGump *htmlGump = buyGump->m_ItemList[0];
+                CGUIHTMLGump* htmlGump = buyGump->m_ItemList[0];
 
                 int currentY = 0;
 
-                QFOR(shopItem, htmlGump->m_Items, CBaseGUI *)
+                QFOR(shopItem, htmlGump->m_Items, CBaseGUI*)
                 {
                     if (shopItem->Type == GOT_SHOPITEM)
                     {
-                        currentY += shopItem->GetSize().Height;
+                        currentY += shopItem->GetSize().y;
                     }
                 }
 
                 while (item != nullptr)
                 {
-                    CGUIShopItem *shopItem = (CGUIShopItem *)htmlGump->Add(new CGUIShopItem(
+                    CGUIShopItem* shopItem   = (CGUIShopItem*)htmlGump->Add(new CGUIShopItem(
                         item->Serial,
                         item->Graphic,
                         item->Color,
@@ -2444,15 +2449,15 @@ PACKET_HANDLER(OpenContainer)
                         shopItem->UpdateOffsets();
                     }
 
-                    currentY += shopItem->GetSize().Height;
+                    currentY += shopItem->GetSize().y;
 
                     if (reverse)
                     {
-                        item = (CGameItem *)item->m_Prev;
+                        item = (CGameItem*)item->m_Prev;
                     }
                     else
                     {
-                        item = (CGameItem *)item->m_Next;
+                        item = (CGameItem*)item->m_Next;
                     }
                 }
 
@@ -2461,7 +2466,7 @@ PACKET_HANDLER(OpenContainer)
         }
         else
         {
-            LOG("Buy vendor not found!\n");
+            LOG_WARNING("PacketManager", "Buy vendor not found!");
         }
     }
     else //Container
@@ -2484,7 +2489,7 @@ PACKET_HANDLER(OpenContainer)
 
         g_ContainerRect.Calculate(gumpid);
 
-        gump = new CGumpContainer(serial, gumpid, g_ContainerRect.X, g_ContainerRect.Y);
+        gump          = new CGumpContainer(serial, gumpid, g_ContainerRect.X, g_ContainerRect.Y);
         gump->Graphic = graphic;
         g_Orion.ExecuteGump(gumpid);
     }
@@ -2500,7 +2505,7 @@ PACKET_HANDLER(OpenContainer)
     {
         if (static_cast<unsigned int>(!g_ContainerStack.empty()) != 0u)
         {
-            for (deque<CContainerStackItem>::iterator cont = g_ContainerStack.begin();
+            for (std::deque<CContainerStackItem>::iterator cont = g_ContainerStack.begin();
                  cont != g_ContainerStack.end();
                  ++cont)
             {
@@ -2508,7 +2513,7 @@ PACKET_HANDLER(OpenContainer)
                 {
                     gump->SetX(cont->X);
                     gump->SetY(cont->Y);
-                    gump->Minimized = cont->Minimized;
+                    gump->Minimized  = cont->Minimized;
                     gump->MinimizedX = cont->MinimizedX;
                     gump->MinimizedY = cont->MinimizedY;
                     gump->LockMoving = cont->LockMoving;
@@ -2537,7 +2542,7 @@ PACKET_HANDLER(OpenContainer)
             }
         }
 
-        CGameItem *obj = g_World->FindWorldItem(serial);
+        CGameItem* obj = g_World->FindWorldItem(serial);
 
         if (obj != nullptr)
         {
@@ -2549,7 +2554,7 @@ PACKET_HANDLER(OpenContainer)
 
             if (gumpid == 0xFFFF)
             {
-                ((CGumpSpellbook *)gump)->UpdateGraphic(obj->Graphic);
+                ((CGumpSpellbook*)gump)->UpdateGraphic(obj->Graphic);
             }
         }
     }
@@ -2564,20 +2569,20 @@ PACKET_HANDLER(UpdateSkills)
         return;
     }
 
-    u8 type = ReadUInt8();
-    bool haveCap = (((type != 0u) && type <= 0x03) || type == 0xDF);
+    u8 type             = ReadBE<u8>();
+    bool haveCap        = (((type != 0u) && type <= 0x03) || type == 0xDF);
     bool isSingleUpdate = (type == 0xFF || type == 0xDF);
-    LOG("Skill update type %i (cap=%d)\n", type, haveCap);
+    LOG_INFO("PacketManager", "Skill update type %i (cap=%d)", type, haveCap);
 
     if (type == 0xFE)
     {
-        int count = ReadInt16BE();
+        int count = ReadBE<i16>();
         g_SkillsManager.Clear();
 
         for (int i = 0; i < count; i++)
         {
-            bool haveButton = (ReadUInt8() != 0);
-            int nameLength = ReadUInt8();
+            bool haveButton = (ReadBE<u8>() != 0);
+            int nameLength  = ReadBE<u8>();
             g_SkillsManager.Add(CSkill(haveButton, ReadString(nameLength)));
         }
 
@@ -2586,7 +2591,7 @@ PACKET_HANDLER(UpdateSkills)
         return;
     }
 
-    CGumpSkills *gump = (CGumpSkills *)g_GumpManager.UpdateGump(0, 0, GT_SKILLS);
+    CGumpSkills* gump = (CGumpSkills*)g_GumpManager.UpdateGump(0, 0, GT_SKILLS);
 
     if (!isSingleUpdate && (type == 1 || type == 3 || g_SkillsManager.SkillsRequested))
     {
@@ -2603,7 +2608,7 @@ PACKET_HANDLER(UpdateSkills)
 
     while (!IsEOF())
     {
-        u16 id = ReadUInt16BE();
+        u16 id = ReadBE<u16>();
 
         if (IsEOF())
         {
@@ -2619,17 +2624,17 @@ PACKET_HANDLER(UpdateSkills)
             id--;
         }
 
-        u16 baseVal = ReadUInt16BE();
-        u16 realVal = ReadUInt16BE();
-        u8 lock = ReadUInt8();
-        u16 cap = 1000;
+        u16 baseVal = ReadBE<u16>();
+        u16 realVal = ReadBE<u16>();
+        u8 lock     = ReadBE<u8>();
+        u16 cap     = 1000;
 
         if (haveCap)
         {
-            cap = ReadUInt16BE();
+            cap = ReadBE<u16>();
         }
 
-        CSkill *skill = g_SkillsManager.Get(id);
+        CSkill* skill = g_SkillsManager.Get(id);
 
         if (id < g_SkillsManager.Count && skill != nullptr)
         {
@@ -2653,9 +2658,9 @@ PACKET_HANDLER(UpdateSkills)
             }
 
             skill->BaseValue = (float)(baseVal / 10.0f);
-            skill->Value = (float)(realVal / 10.0f);
-            skill->Cap = (float)(cap / 10.0f);
-            skill->Status = lock;
+            skill->Value     = (float)(realVal / 10.0f);
+            skill->Cap       = (float)(cap / 10.0f);
+            skill->Status    = lock;
 
             if (gump != nullptr)
             {
@@ -2683,44 +2688,43 @@ PACKET_HANDLER(UpdateSkills)
         gump->UpdateSkillsSum();
     }
 
-    LOG("Skill(s) updated!\n");
+    LOG_INFO("PacketManager", "Skill(s) updated!");
 }
 
 PACKET_HANDLER(ExtendedCommand)
 {
-    u16 cmd = ReadUInt16BE();
+    u16 cmd = ReadBE<u16>();
 
     switch (cmd)
     {
-        case 0:
-            break;
+        case 0: break;
         case 1: //Initialize Fast Walk Prevention
         {
             for (int i = 0; i < 6; i++)
             {
-                g_Player->m_FastWalkStack.SetValue((int)i, ReadUInt32BE());
+                g_Player->m_FastWalkStack.SetValue((int)i, ReadBE<u32>());
             }
 
             break;
         }
         case 2: //Add key to Fast Walk Stack
         {
-            g_Player->m_FastWalkStack.AddValue(ReadUInt32BE());
+            g_Player->m_FastWalkStack.AddValue(ReadBE<u32>());
 
             break;
         }
         case 4: //Close generic gump
         {
-            u32 id = ReadUInt32BE();
-            u32 button = ReadUInt32BE();
+            u32 id     = ReadBE<u32>();
+            u32 button = ReadBE<u32>();
 
-            for (CGump *gump = (CGump *)g_GumpManager.m_Items; gump != nullptr;)
+            for (CGump* gump = (CGump*)g_GumpManager.m_Items; gump != nullptr;)
             {
-                CGump *next = (CGump *)gump->m_Next;
+                CGump* next = (CGump*)gump->m_Next;
 
                 if (gump->GumpType == GT_GENERIC && gump->ID == id)
                 {
-                    ((CGumpGeneric *)gump)->SendGumpResponse(button);
+                    ((CGumpGeneric*)gump)->SendGumpResponse(button);
                 }
 
                 gump = next;
@@ -2742,55 +2746,55 @@ PACKET_HANDLER(ExtendedCommand)
         }
         case 8: //Set cursor / map
         {
-            g_Orion.ChangeMap(ReadUInt8());
+            g_Orion.ChangeMap(ReadBE<u8>());
 
             break;
         }
         case 0xC: //Close statusbar gump
         {
-            u32 serial = ReadUInt32BE();
+            u32 serial = ReadBE<u32>();
             g_GumpManager.CloseGump(serial, 0, GT_STATUSBAR);
 
             break;
         }
         case 0x10: //DisplayEquipmentInfo
         {
-            u32 serial = ReadUInt32BE();
-            CGameItem *item = g_World->FindWorldItem(serial);
+            u32 serial      = ReadBE<u32>();
+            CGameItem* item = g_World->FindWorldItem(serial);
             if (item == nullptr)
             {
                 return;
             }
 
             item->JournalPrefix = "";
-            std::wstring str = {};
-            int clilocNum = ReadInt32BE();
+            std::wstring str    = {};
+            int clilocNum       = ReadBE<i32>();
             if (clilocNum != 0)
             {
                 str = g_ClilocManager.GetCliloc(g_Language)->GetW(clilocNum, true);
                 if (str.length() > 0)
                 {
-                    item->SetName(ToString(str));
+                    item->SetName(Core::ToString(str));
                 }
 
                 g_Orion.CreateUnicodeTextMessage(TT_OBJECT, serial, 0x03, 0x3B2, str);
             }
 
-            str = {};
+            str                = {};
             u16 crafterNameLen = 0;
-            u32 next = ReadUInt32BE();
+            u32 next           = ReadBE<u32>();
             if (next == 0xFFFFFFFD)
             {
-                crafterNameLen = ReadUInt16BE();
+                crafterNameLen = ReadBE<u16>();
                 if (crafterNameLen != 0u)
                 {
-                    str = L"Crafted by " + DecodeUTF8(ReadString(crafterNameLen));
+                    str = L"Crafted by " + Core::DecodeUTF8(ReadString(crafterNameLen));
                 }
             }
 
             if (crafterNameLen != 0)
             {
-                next = ReadUInt32BE();
+                next = ReadBE<u32>();
             }
             if (next == 0xFFFFFFFC)
             {
@@ -2798,15 +2802,15 @@ PACKET_HANDLER(ExtendedCommand)
             }
 
             // -4 потому что последние 4 байта в пакете 0xFFFFFFFF
-            u8 *end = Start + Size - 4;
+            u8* end  = GetBuffer() + GetSize() - 4;
             u8 count = 0;
-            while (Ptr < end)
+            while (GetPtr() < end)
             {
                 if (count != 0 || next == 0xFFFFFFFD || next == 0xFFFFFFFC)
                 {
-                    next = ReadInt32BE();
+                    next = ReadBE<i32>();
                 }
-                short charges = ReadInt16BE();
+                short charges            = ReadBE<i16>();
                 std::wstring attrsString = g_ClilocManager.GetCliloc(g_Language)->GetW(next, true);
                 if (charges == -1)
                 {
@@ -2857,8 +2861,8 @@ PACKET_HANDLER(ExtendedCommand)
             //0x02: Status
             //0x08: Character Profile
             //0x0C: Container
-            u32 id = ReadUInt32BE();
-            u32 serial = ReadUInt32BE();
+            u32 id     = ReadBE<u32>();
+            u32 serial = ReadBE<u32>();
 
             switch (id)
             {
@@ -2882,8 +2886,7 @@ PACKET_HANDLER(ExtendedCommand)
                     g_GumpManager.CloseGump(serial, 0, GT_CONTAINER);
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             break;
@@ -2896,20 +2899,20 @@ PACKET_HANDLER(ExtendedCommand)
         }
         case 0x19: //Extended stats
         {
-            u8 version = ReadUInt8();
-            u32 serial = ReadUInt32BE();
+            u8 version = ReadBE<u8>();
+            u32 serial = ReadBE<u32>();
 
             switch (version)
             {
                 case 0:
                 {
-                    CGameCharacter *bonded = g_World->FindWorldCharacter(serial);
+                    CGameCharacter* bonded = g_World->FindWorldCharacter(serial);
                     if (bonded == nullptr)
                     {
                         break;
                     }
 
-                    bool dead = ReadUInt8() != 0u;
+                    bool dead = ReadBE<u8>() != 0u;
                     bonded->SetDead(dead);
                     break;
                 }
@@ -2917,15 +2920,15 @@ PACKET_HANDLER(ExtendedCommand)
                 {
                     if (serial == g_PlayerSerial)
                     {
-                        u8 updateGump = ReadUInt8();
-                        u8 state = ReadUInt8();
+                        u8 updateGump     = ReadBE<u8>();
+                        u8 state          = ReadBE<u8>();
                         g_DrawStatLockers = true;
 
                         g_Player->LockStr = (state >> 4) & 3;
                         g_Player->LockDex = (state >> 2) & 3;
                         g_Player->LockInt = state & 3;
 
-                        CGump *statusbar = g_GumpManager.GetGump(g_PlayerSerial, 0, GT_STATUSBAR);
+                        CGump* statusbar = g_GumpManager.GetGump(g_PlayerSerial, 0, GT_STATUSBAR);
 
                         if (statusbar != nullptr && !statusbar->Minimized)
                         {
@@ -2941,15 +2944,15 @@ PACKET_HANDLER(ExtendedCommand)
                         return;
                     }
 
-                    CGameCharacter *character = g_World->FindWorldCharacter(serial);
+                    CGameCharacter* character = g_World->FindWorldCharacter(serial);
                     if (character == nullptr)
                     {
                         break;
                     }
 
-                    if (Size == 19)
+                    if (GetSize() == 19)
                     {
-                        bool dead = ReadUInt8() != 0u;
+                        bool dead = ReadBE<u8>() != 0u;
                         character->SetDead(dead);
                     }
                     break;
@@ -2960,20 +2963,20 @@ PACKET_HANDLER(ExtendedCommand)
         case 0x1B: //New spellbook content
         {
             Move(2);
-            u32 serial = ReadUInt32BE();
+            u32 serial = ReadBE<u32>();
 
-            CGameItem *spellbook = g_World->FindWorldItem(serial);
+            CGameItem* spellbook = g_World->FindWorldItem(serial);
 
             if (spellbook == nullptr)
             {
-                LOG("Where is a spellbook?!?\n");
+                LOG_WARNING("PacketManager", "Where is a spellbook?!?");
                 return;
             }
 
             g_World->ClearContainer(spellbook);
 
-            u16 graphic = ReadUInt16BE();
-            SPELLBOOK_TYPE bookType = (SPELLBOOK_TYPE)ReadUInt16BE();
+            u16 graphic             = ReadBE<u16>();
+            SPELLBOOK_TYPE bookType = (SPELLBOOK_TYPE)ReadBE<u16>();
 
             for (int j = 0; j < 2; j++)
             {
@@ -2981,16 +2984,16 @@ PACKET_HANDLER(ExtendedCommand)
 
                 for (int i = 0; i < 4; i++)
                 {
-                    spells |= (ReadUInt8() << (i * 8));
+                    spells |= (ReadBE<u8>() << (i * 8));
                 }
 
                 for (int i = 0; i < 32; i++)
                 {
                     if ((spells & (1 << i)) != 0u)
                     {
-                        CGameItem *spellItem = new CGameItem();
-                        spellItem->Graphic = 0x1F2E;
-                        spellItem->Count = ((int)j * 32) + (int)i + 1;
+                        CGameItem* spellItem = new CGameItem();
+                        spellItem->Graphic   = 0x1F2E;
+                        spellItem->Count     = ((int)j * 32) + (int)i + 1;
 
                         spellbook->AddItem(spellItem);
                     }
@@ -3002,15 +3005,16 @@ PACKET_HANDLER(ExtendedCommand)
         case 0x1D:
         {
             //house revision state, server sends this when player comes in range of a custom house
-            u32 serial = ReadUInt32BE();
-            u32 revision = ReadUInt32BE();
+            u32 serial   = ReadBE<u32>();
+            u32 revision = ReadBE<u32>();
 
-            CCustomHouse *house = g_CustomHousesManager.Get(serial);
-            LOG("Seek house: 0x%08X 0x%08X\n", serial, revision);
+            CCustomHouse* house = g_CustomHousesManager.Get(serial);
+            LOG_INFO("PacketManager", "Seek house: 0x%08X 0x%08X", serial, revision);
 
             if (house != nullptr)
             {
-                LOG("House found: 0x%08X 0x%08X\n", house->Serial, house->Revision);
+                LOG_INFO(
+                    "PacketManager", "House found: 0x%08X 0x%08X", house->Serial, house->Revision);
             }
 
             if (house == nullptr || house->Revision != revision)
@@ -3026,12 +3030,12 @@ PACKET_HANDLER(ExtendedCommand)
         }
         case 0x20:
         {
-            u32 serial = ReadUInt32BE();
-            u8 type = ReadUInt8();
-            u16 graphic = ReadUInt16BE();
-            u16 x = ReadUInt16BE();
-            u16 y = ReadUInt16BE();
-            u8 z = ReadUInt8();
+            u32 serial  = ReadBE<u32>();
+            u8 type     = ReadBE<u8>();
+            u16 graphic = ReadBE<u16>();
+            u16 x       = ReadBE<u16>();
+            u16 y       = ReadBE<u16>();
+            u8 z        = ReadBE<u8>();
 
             switch (type)
             {
@@ -3054,7 +3058,7 @@ PACKET_HANDLER(ExtendedCommand)
                         break;
                     }
 
-                    CGumpCustomHouse *gump = new CGumpCustomHouse(serial, 50, 50);
+                    CGumpCustomHouse* gump = new CGumpCustomHouse(serial, 50, 50);
 
                     g_GumpManager.AddGump(gump);
 
@@ -3065,8 +3069,7 @@ PACKET_HANDLER(ExtendedCommand)
                     g_GumpManager.CloseGump(serial, 0, GT_CUSTOM_HOUSE);
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             break;
@@ -3089,25 +3092,25 @@ PACKET_HANDLER(ExtendedCommand)
             }
 
             Move(1);
-            u32 serial = ReadUInt32BE();
-            CGameCharacter *character = g_World->FindWorldCharacter(serial);
+            u32 serial                = ReadBE<u32>();
+            CGameCharacter* character = g_World->FindWorldCharacter(serial);
 
             if (character != nullptr)
             {
-                int damage = ReadUInt8();
+                int damage = ReadBE<u8>();
 
-                CTextData *text = new CTextData();
-                text->Unicode = false;
-                text->Font = 3;
-                text->Serial = serial;
-                text->Color = (serial == g_PlayerSerial ? 0x0034 : 0x0021);
-                text->Type = TT_OBJECT;
-                text->Text = std::to_string(damage);
+                CTextData* text = new CTextData();
+                text->Unicode   = false;
+                text->Font      = 3;
+                text->Serial    = serial;
+                text->Color     = (serial == g_PlayerSerial ? 0x0034 : 0x0021);
+                text->Type      = TT_OBJECT;
+                text->Text      = std::to_string(damage);
                 text->GenerateTexture(0);
                 text->SetX(text->m_Texture.Width / 2);
                 int height = text->m_Texture.Height;
 
-                CTextData *head = (CTextData *)character->m_DamageTextControl.Last();
+                CTextData* head = (CTextData*)character->m_DamageTextControl.Last();
 
                 if (head != nullptr)
                 {
@@ -3132,7 +3135,7 @@ PACKET_HANDLER(ExtendedCommand)
         }
         case 0x26:
         {
-            u8 val = ReadUInt8();
+            u8 val = ReadBE<u8>();
 
             if (val > CST_FAST_UNMOUNT_AND_CANT_RUN)
             {
@@ -3143,8 +3146,7 @@ PACKET_HANDLER(ExtendedCommand)
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -3157,11 +3159,11 @@ PACKET_HANDLER(DenyWalk)
 
     g_Ping = 0;
 
-    u8 sequence = ReadUInt8();
-    u16 x = ReadUInt16BE();
-    u16 y = ReadUInt16BE();
-    u8 direction = ReadUInt8();
-    char z = ReadUInt8();
+    u8 sequence  = ReadBE<u8>();
+    u16 x        = ReadBE<u16>();
+    u16 y        = ReadBE<u16>();
+    u8 direction = ReadBE<u8>();
+    char z       = ReadBE<u8>();
 
     g_Walker.DenyWalk(sequence, x, y, z);
 
@@ -3177,11 +3179,11 @@ PACKET_HANDLER(ConfirmWalk)
         return;
     }
 
-    u8 sequence = ReadUInt8();
+    u8 sequence = ReadBE<u8>();
 
     //player->SetDirection(newdir);
 
-    u8 newnoto = ReadUInt8() & (~0x40);
+    u8 newnoto = ReadBE<u8>() & (~0x40);
 
     if ((newnoto == 0u) || newnoto >= 8)
     {
@@ -3207,7 +3209,7 @@ PACKET_HANDLER(Target)
     if (g_PartyHelperTimer > g_Ticks && (g_PartyHelperTarget != 0u))
     {
         g_Target.SendTargetObject(g_PartyHelperTarget);
-        g_PartyHelperTimer = 0;
+        g_PartyHelperTimer  = 0;
         g_PartyHelperTarget = 0;
     }
 }
@@ -3218,16 +3220,16 @@ PACKET_HANDLER(Talk)
     {
         if (g_GameState == GS_GAME_CONNECT)
         {
-            u32 serial = ReadUInt32BE();
-            u16 graphic = ReadUInt16BE();
-            SPEECH_TYPE type = (SPEECH_TYPE)ReadUInt8();
-            u16 textColor = ReadUInt16BE();
-            u16 font = ReadUInt16BE();
+            u32 serial       = ReadBE<u32>();
+            u16 graphic      = ReadBE<u16>();
+            SPEECH_TYPE type = (SPEECH_TYPE)ReadBE<u8>();
+            u16 textColor    = ReadBE<u16>();
+            u16 font         = ReadBE<u16>();
 
-            string name(ReadString());
-            if (Size > 44)
+            std::string name(ReadString());
+            if (GetSize() > 44)
             {
-                Ptr = Start + 44;
+                SetPtr(GetBuffer() + 44);
                 g_ConnectionScreen.SetConnectionFailed(true);
                 g_ConnectionScreen.SetTextA(ReadString());
             }
@@ -3236,20 +3238,20 @@ PACKET_HANDLER(Talk)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    SPEECH_TYPE type = (SPEECH_TYPE)ReadUInt8();
-    u16 textColor = ReadUInt16BE();
-    u16 font = ReadUInt16BE();
-    string name(ReadString());
+    u32 serial       = ReadBE<u32>();
+    u16 graphic      = ReadBE<u16>();
+    SPEECH_TYPE type = (SPEECH_TYPE)ReadBE<u8>();
+    u16 textColor    = ReadBE<u16>();
+    u16 font         = ReadBE<u16>();
+    std::string name(ReadString());
 
     if ((serial == 0u) && (graphic == 0u) && type == ST_NORMAL && font == 0xFFFF &&
-        textColor == 0xFFFF && ToLowerA(name) == "system")
+        textColor == 0xFFFF && Core::ToLowerA(name) == "system")
     {
         u8 sbuffer[0x28] = { 0x03, 0x00, 0x28, 0x20, 0x00, 0x34, 0x00, 0x03, 0xdb, 0x13,
-                                  0x14, 0x3f, 0x45, 0x2c, 0x58, 0x0f, 0x5d, 0x44, 0x2e, 0x50,
-                                  0x11, 0xdf, 0x75, 0x5c, 0xe0, 0x3e, 0x71, 0x4f, 0x31, 0x34,
-                                  0x05, 0x4e, 0x18, 0x1e, 0x72, 0x0f, 0x59, 0xad, 0xf5, 0x00 };
+                             0x14, 0x3f, 0x45, 0x2c, 0x58, 0x0f, 0x5d, 0x44, 0x2e, 0x50,
+                             0x11, 0xdf, 0x75, 0x5c, 0xe0, 0x3e, 0x71, 0x4f, 0x31, 0x34,
+                             0x05, 0x4e, 0x18, 0x1e, 0x72, 0x0f, 0x59, 0xad, 0xf5, 0x00 };
 
         g_Orion.Send(sbuffer, 0x28);
 
@@ -3261,19 +3263,19 @@ PACKET_HANDLER(Talk)
         return;
     }
 
-    string str{};
-    if (Size > 44)
+    std::string str{};
+    if (GetSize() > 44)
     {
-        Ptr = Start + 44;
+        SetPtr(GetBuffer() + 44);
         str = ReadString();
     }
 
-    LOG("%s: %s\n", name.c_str(), str.c_str());
+    LOG_INFO("PacketManager", "%s: %s", name.c_str(), str.c_str());
 
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameObject* obj = g_World->FindWorldObject(serial);
 
     if (type == ST_BROADCAST || /*type == ST_SYSTEM ||*/ serial == 0xFFFFFFFF || (serial == 0u) ||
-        (ToLowerA(name) == "system" && obj == nullptr))
+        (Core::ToLowerA(name) == "system" && obj == nullptr))
     {
         g_Orion.CreateTextMessage(TT_SYSTEM, serial, (u8)font, textColor, str);
     }
@@ -3282,7 +3284,7 @@ PACKET_HANDLER(Talk)
         if (type == ST_EMOTE)
         {
             textColor = g_ConfigManager.EmoteColor;
-            str = "*" + str + "*";
+            str       = "*" + str + "*";
         }
 
         if (obj != nullptr)
@@ -3319,41 +3321,41 @@ PACKET_HANDLER(UnicodeTalk)
     {
         if (g_GameState == GS_GAME_CONNECT)
         {
-            u32 serial = ReadUInt32BE();
-            u16 graphic = ReadUInt16BE();
-            SPEECH_TYPE type = (SPEECH_TYPE)ReadUInt8();
-            u16 textColor = ReadUInt16BE();
-            u16 font = ReadUInt16BE();
-            u32 language = ReadUInt32BE();
+            u32 serial       = ReadBE<u32>();
+            u16 graphic      = ReadBE<u16>();
+            SPEECH_TYPE type = (SPEECH_TYPE)ReadBE<u8>();
+            u16 textColor    = ReadBE<u16>();
+            u16 font         = ReadBE<u16>();
+            u32 language     = ReadBE<u32>();
 
-            string name(ReadString());
+            std::string name(ReadString());
 
-            if (Size > 48)
+            if (GetSize() > 48)
             {
-                Ptr = Start + 48;
+                SetPtr(GetBuffer() + 48);
                 g_ConnectionScreen.SetConnectionFailed(true);
-                g_ConnectionScreen.SetTextA(ToString(ReadWStringBE((Size - 48) / 2)));
+                g_ConnectionScreen.SetTextA(Core::ToString(ReadWStringBE((GetSize() - 48) / 2)));
             }
         }
 
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    SPEECH_TYPE type = (SPEECH_TYPE)ReadUInt8();
-    u16 textColor = ReadUInt16BE();
-    u16 font = ReadUInt16BE();
-    u32 language = ReadUInt32BE();
-    string name(ReadString());
+    u32 serial       = ReadBE<u32>();
+    u16 graphic      = ReadBE<u16>();
+    SPEECH_TYPE type = (SPEECH_TYPE)ReadBE<u8>();
+    u16 textColor    = ReadBE<u16>();
+    u16 font         = ReadBE<u16>();
+    u32 language     = ReadBE<u32>();
+    std::string name(ReadString());
 
     if ((serial == 0u) && (graphic == 0u) && type == ST_NORMAL && font == 0xFFFF &&
-        textColor == 0xFFFF && ToLowerA(name) == "system")
+        textColor == 0xFFFF && Core::ToLowerA(name) == "system")
     {
         u8 sbuffer[0x28] = { 0x03, 0x00, 0x28, 0x20, 0x00, 0x34, 0x00, 0x03, 0xdb, 0x13,
-                                  0x14, 0x3f, 0x45, 0x2c, 0x58, 0x0f, 0x5d, 0x44, 0x2e, 0x50,
-                                  0x11, 0xdf, 0x75, 0x5c, 0xe0, 0x3e, 0x71, 0x4f, 0x31, 0x34,
-                                  0x05, 0x4e, 0x18, 0x1e, 0x72, 0x0f, 0x59, 0xad, 0xf5, 0x00 };
+                             0x14, 0x3f, 0x45, 0x2c, 0x58, 0x0f, 0x5d, 0x44, 0x2e, 0x50,
+                             0x11, 0xdf, 0x75, 0x5c, 0xe0, 0x3e, 0x71, 0x4f, 0x31, 0x34,
+                             0x05, 0x4e, 0x18, 0x1e, 0x72, 0x0f, 0x59, 0xad, 0xf5, 0x00 };
 
         g_Orion.Send(sbuffer, 0x28);
 
@@ -3361,30 +3363,30 @@ PACKET_HANDLER(UnicodeTalk)
     }
 
     std::wstring str = {};
-    if (Size > 48)
+    if (GetSize() > 48)
     {
-        Ptr = Start + 48;
-        str = ReadWStringBE((Size - 48) / 2);
+        SetPtr(GetBuffer() + 48);
+        str = ReadWStringBE((GetSize() - 48) / 2);
     }
 
-    LOG("%s: %s\n", name.c_str(), ToString(str).c_str());
+    LOG_INFO("PacketManager", "%s: %s", name.c_str(), Core::ToString(str).c_str());
 
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameObject* obj = g_World->FindWorldObject(serial);
     if (type == ST_GUILD_CHAT)
     {
-        type = ST_BROADCAST;
+        type      = ST_BROADCAST;
         textColor = g_ConfigManager.GuildMessageColor;
-        str = L"[Guild][" + ToWString(name) + L"]: " + str;
+        str       = L"[Guild][" + Core::ToWString(name) + L"]: " + str;
     }
     else if (type == ST_ALLIANCE_CHAT)
     {
-        type = ST_BROADCAST;
+        type      = ST_BROADCAST;
         textColor = g_ConfigManager.AllianceMessageColor;
-        str = L"[Alliance][" + ToWString(name) + L"]: " + str;
+        str       = L"[Alliance][" + Core::ToWString(name) + L"]: " + str;
     }
 
     if (type == ST_BROADCAST /*|| type == ST_SYSTEM*/ || serial == 0xFFFFFFFF || (serial == 0u) ||
-        (ToLowerA(name) == "system" && obj == nullptr))
+        (Core::ToLowerA(name) == "system" && obj == nullptr))
     {
         g_Orion.CreateUnicodeTextMessage(
             TT_SYSTEM, serial, (u8)g_ConfigManager.SpeechFont, textColor, str);
@@ -3433,25 +3435,25 @@ PACKET_HANDLER(ClientTalk)
     {
         bool parse = true;
 
-        if (Start[4] == 0x78)
+        if (m_buffer[4] == 0x78)
         {
-            Size = ReadInt16BE(2);
-            Start += 4;
+            m_size = ReadBE<i16>(2);
+            m_buffer += 4;
         }
-        else if (Start[4] == 0x3C)
+        else if (m_buffer[4] == 0x3C)
         {
-            Size = ReadInt16BE(2);
-            Start += 4;
+            m_size = ReadBE<i16>(2);
+            m_buffer += 4;
         }
-        else if (Start[4] == 0x25)
+        else if (m_buffer[4] == 0x25)
         {
-            Size = 0x14;
-            Start += 4;
+            m_size = 0x14;
+            m_buffer += 4;
         }
-        else if (Start[4] == 0x2E)
+        else if (m_buffer[4] == 0x2E)
         {
-            Size = 0x0F;
-            Start += 4;
+            m_size = 0x0F;
+            m_buffer += 4;
         }
         else
         {
@@ -3487,14 +3489,14 @@ PACKET_HANDLER(GraphicEffect)
         return;
     }
 
-    u8 type = ReadUInt8();
+    u8 type = ReadBE<u8>();
 
     if (type > 3)
     {
-        if (type == 4 && *Start == 0x70)
+        if (type == 4 && *GetBuffer() == 0x70)
         {
             Move(8);
-            u16 val = ReadInt16BE();
+            u16 val = ReadBE<i16>();
 
             if (val > SET_TO_BLACK_VERY_FAST)
             {
@@ -3507,32 +3509,32 @@ PACKET_HANDLER(GraphicEffect)
         return;
     }
 
-    u32 sourceSerial = ReadUInt32BE();
-    u32 destSerial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    short sourceX = ReadInt16BE();
-    short sourceY = ReadInt16BE();
-    char sourceZ = ReadInt8();
-    short destX = ReadInt16BE();
-    short destY = ReadInt16BE();
-    char destZ = ReadInt8();
-    u8 speed = ReadUInt8();
-    short duration = (short)ReadUInt8() * 50;
+    u32 sourceSerial = ReadBE<u32>();
+    u32 destSerial   = ReadBE<u32>();
+    u16 graphic      = ReadBE<u16>();
+    short sourceX    = ReadBE<i16>();
+    short sourceY    = ReadBE<i16>();
+    char sourceZ     = ReadBE<i8>();
+    short destX      = ReadBE<i16>();
+    short destY      = ReadBE<i16>();
+    char destZ       = ReadBE<i8>();
+    u8 speed         = ReadBE<u8>();
+    short duration   = (short)ReadBE<u8>() * 50;
     //what is in 24-25 bytes?
     Move(2);
-    u8 fixedDirection = ReadUInt8();
-    u8 explode = ReadUInt8();
+    u8 fixedDirection = ReadBE<u8>();
+    u8 explode        = ReadBE<u8>();
 
-    u32 color = 0;
+    u32 color      = 0;
     u32 renderMode = 0;
 
-    if (*Start != 0x70)
+    if (*GetBuffer() != 0x70)
     {
         //0xC0
-        color = ReadUInt32BE();
-        renderMode = ReadUInt32BE() % 7;
+        color      = ReadBE<u32>();
+        renderMode = ReadBE<u32>() % 7;
 
-        if (*Start == 0xC7)
+        if (*m_buffer == 0xC7)
         {
             /*
 			0000: c7 03 00 13 82 2f 00 00 00 00 37 6a 05 d6 06 47 : ...../....7j...G
@@ -3543,7 +3545,7 @@ PACKET_HANDLER(GraphicEffect)
         }
     }
 
-    CGameEffect *effect = nullptr;
+    CGameEffect* effect = nullptr;
     if (type == 0u) //Moving
     {
         effect = new CGameEffectMoving();
@@ -3553,7 +3555,7 @@ PACKET_HANDLER(GraphicEffect)
             speed++;
         }
 
-        ((CGameEffectMoving *)effect)->MoveDelay = 20 / speed;
+        ((CGameEffectMoving*)effect)->MoveDelay = 20 / speed;
     }
     else
     {
@@ -3561,11 +3563,11 @@ PACKET_HANDLER(GraphicEffect)
     }
 
     effect->EffectType = (EFFECT_TYPE)type;
-    effect->Serial = sourceSerial;
+    effect->Serial     = sourceSerial;
     effect->DestSerial = destSerial;
-    effect->Graphic = graphic;
+    effect->Graphic    = graphic;
 
-    CGameCharacter *sourceObject = g_World->FindWorldCharacter(sourceSerial);
+    CGameCharacter* sourceObject = g_World->FindWorldCharacter(sourceSerial);
 
     if (sourceObject != nullptr)
     {
@@ -3580,7 +3582,7 @@ PACKET_HANDLER(GraphicEffect)
         effect->SetZ(sourceZ);
     }
 
-    CGameCharacter *destObject = g_World->FindWorldCharacter(destSerial);
+    CGameCharacter* destObject = g_World->FindWorldCharacter(destSerial);
 
     if (destObject != nullptr)
     {
@@ -3595,12 +3597,11 @@ PACKET_HANDLER(GraphicEffect)
         effect->DestZ = destZ;
     }
 
-    uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.Start;
+    uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.GetBuffer();
 
     if (addressAnimData != 0u)
     {
-        ANIM_DATA *pad =
-            (ANIM_DATA *)(addressAnimData + ((graphic * 68) + 4 * ((graphic / 8) + 1)));
+        ANIM_DATA* pad = (ANIM_DATA*)(addressAnimData + ((graphic * 68) + 4 * ((graphic / 8) + 1)));
 
         effect->Speed = pad->FrameInterval * 45;
         //effect->Speed = (pad->FrameInterval - effect->Speed) * 45;
@@ -3610,11 +3611,11 @@ PACKET_HANDLER(GraphicEffect)
         effect->Speed = speed + 6;
     }
 
-    effect->Duration = g_Ticks + duration;
+    effect->Duration       = g_Ticks + duration;
     effect->FixedDirection = (fixedDirection != 0);
-    effect->Explode = (explode != 0);
+    effect->Explode        = (explode != 0);
 
-    effect->Color = (u16)color;
+    effect->Color      = (u16)color;
     effect->RenderMode = renderMode;
 
     g_EffectManager.AddEffect(effect);
@@ -3622,7 +3623,7 @@ PACKET_HANDLER(GraphicEffect)
 
 PACKET_HANDLER(DeathScreen)
 {
-    u8 action = ReadUInt8();
+    u8 action = ReadBE<u8>();
 
     if (action != 1)
     {
@@ -3648,16 +3649,16 @@ PACKET_HANDLER(DeathScreen)
 PACKET_HANDLER(PlaySoundEffect)
 {
     Move(1);
-    u16 index = ReadUInt16BE();
-    u16 volume = ReadUInt16BE();
-    u16 xCoord = ReadUInt16BE(); // CHECK: unsigned for position?
-    u16 yCoord = ReadUInt16BE();
+    u16 index  = ReadBE<u16>();
+    u16 volume = ReadBE<u16>();
+    u16 xCoord = ReadBE<u16>(); // CHECK: unsigned for position?
+    u16 yCoord = ReadBE<u16>();
     g_Orion.PlaySoundEffectAtPosition(index, xCoord, yCoord);
 }
 
 PACKET_HANDLER(PlayMusic)
 {
-    u16 index = ReadUInt16BE();
+    u16 index = ReadBE<u16>();
 
     //LOG("Play midi music 0x%04X\n", index);
     if (!g_ConfigManager.GetMusic() || !g_OrionWindow.IsActive() ||
@@ -3676,20 +3677,20 @@ PACKET_HANDLER(DragAnimation)
         return;
     }
 
-    u16 graphic = ReadUInt16BE();
-    graphic += ReadUInt8(); //graphic increment
+    u16 graphic = ReadBE<u16>();
+    graphic += ReadBE<u8>(); //graphic increment
 
-    u16 color = ReadUInt16BE();
-    u16 count = ReadUInt16BE();
+    u16 color = ReadBE<u16>();
+    u16 count = ReadBE<u16>();
 
-    u32 sourceSerial = ReadUInt32BE();
-    short sourceX = ReadInt16BE();
-    short sourceY = ReadInt16BE();
-    char sourceZ = ReadInt8();
-    u32 destSerial = ReadUInt32BE();
-    short destX = ReadInt16BE();
-    short destY = ReadInt16BE();
-    char destZ = ReadInt8();
+    u32 sourceSerial = ReadBE<u32>();
+    short sourceX    = ReadBE<i16>();
+    short sourceY    = ReadBE<i16>();
+    char sourceZ     = ReadBE<i8>();
+    u32 destSerial   = ReadBE<u32>();
+    short destX      = ReadBE<i16>();
+    short destY      = ReadBE<i16>();
+    char destZ       = ReadBE<i8>();
 
     if (graphic == 0x0EED)
     {
@@ -3704,7 +3705,7 @@ PACKET_HANDLER(DragAnimation)
         graphic = 0x0EF2;
     }
 
-    CGameCharacter *sourceObj = g_World->FindWorldCharacter(sourceSerial);
+    CGameCharacter* sourceObj = g_World->FindWorldCharacter(sourceSerial);
 
     if (sourceObj == nullptr)
     {
@@ -3717,7 +3718,7 @@ PACKET_HANDLER(DragAnimation)
         sourceZ = sourceObj->GetZ();
     }
 
-    CGameCharacter *destObj = g_World->FindWorldCharacter(destSerial);
+    CGameCharacter* destObj = g_World->FindWorldCharacter(destSerial);
 
     if (destObj == nullptr)
     {
@@ -3730,42 +3731,41 @@ PACKET_HANDLER(DragAnimation)
         destZ = destObj->GetZ();
     }
 
-    CGameEffect *effect = nullptr;
+    CGameEffect* effect = nullptr;
 
     u8 speed = 5;
 
     if ((sourceSerial == 0u) || (destSerial == 0u)) //Игрок/НПС кладет предмет в контейнер
     {
-        effect = new CGameEffectMoving();
-        effect->EffectType = EF_MOVING;
+        effect                 = new CGameEffectMoving();
+        effect->EffectType     = EF_MOVING;
         effect->FixedDirection = true;
 
-        ((CGameEffectMoving *)effect)->MoveDelay = 20 / speed;
+        ((CGameEffectMoving*)effect)->MoveDelay = 20 / speed;
     }
     else //Предмет взяли из контейнера
     {
-        effect = new CGameEffectDrag();
+        effect             = new CGameEffectDrag();
         effect->EffectType = EF_DRAG;
     }
 
-    effect->Graphic = graphic;
-    effect->Color = color;
-    effect->Serial = sourceSerial;
+    effect->Graphic    = graphic;
+    effect->Color      = color;
+    effect->Serial     = sourceSerial;
     effect->DestSerial = destSerial;
     effect->SetX(sourceX);
     effect->SetY(sourceY);
     effect->SetZ(sourceZ);
-    effect->DestX = destX;
-    effect->DestY = destY;
-    effect->DestZ = destZ;
+    effect->DestX    = destX;
+    effect->DestY    = destY;
+    effect->DestZ    = destZ;
     effect->Duration = g_Ticks + 5000;
 
-    uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.Start;
+    uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.GetBuffer();
 
     if (addressAnimData != 0u)
     {
-        ANIM_DATA *pad =
-            (ANIM_DATA *)(addressAnimData + ((graphic * 68) + 4 * ((graphic / 8) + 1)));
+        ANIM_DATA* pad = (ANIM_DATA*)(addressAnimData + ((graphic * 68) + 4 * ((graphic / 8) + 1)));
 
         effect->Speed = pad->FrameInterval * 45;
     }
@@ -3784,24 +3784,24 @@ PACKET_HANDLER(CorpseEquipment)
         return;
     }
 
-    u32 cserial = ReadUInt32BE();
+    u32 cserial = ReadBE<u32>();
 
-    u8 *end = Start + Size;
+    u8* end = GetBuffer() + GetSize();
 
-    int layer = ReadUInt8();
+    int layer = ReadBE<u8>();
 
-    while ((layer != 0) && Ptr < end)
+    while ((layer != 0) && GetPtr() < end)
     {
-        u32 serial = ReadUInt32BE();
+        u32 serial = ReadBE<u32>();
 
-        CGameItem *obj = g_World->FindWorldItem(serial);
+        CGameItem* obj = g_World->FindWorldItem(serial);
 
         if (obj != nullptr && obj->Container == cserial)
         {
             g_World->PutEquipment(obj, cserial, layer);
         }
 
-        layer = ReadUInt8();
+        layer = ReadBE<u8>();
     }
 }
 
@@ -3813,7 +3813,7 @@ PACKET_HANDLER(ASCIIPrompt)
     }
 
     g_ConsolePrompt = PT_ASCII;
-    memcpy(&g_LastASCIIPrompt[0], &Start[0], 11);
+    memcpy(&g_LastASCIIPrompt[0], &m_buffer[0], 11);
 }
 
 PACKET_HANDLER(UnicodePrompt)
@@ -3824,7 +3824,7 @@ PACKET_HANDLER(UnicodePrompt)
     }
 
     g_ConsolePrompt = PT_UNICODE;
-    memcpy(&g_LastUnicodePrompt[0], &Start[0], 11);
+    memcpy(&g_LastUnicodePrompt[0], &m_buffer[0], 11);
 }
 
 PACKET_HANDLER(CharacterAnimation)
@@ -3834,18 +3834,18 @@ PACKET_HANDLER(CharacterAnimation)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    u32 serial          = ReadBE<u32>();
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
 
     if (obj != nullptr)
     {
-        u16 action = ReadUInt16BE();
-        u16 frameCount = ReadUInt16BE();
-        frameCount = 0;
-        u16 repeatMode = ReadUInt16BE();
-        bool frameDirection = (ReadUInt8() == 0); //true - forward, false - backward
-        bool repeat = (ReadUInt8() != 0);
-        u8 delay = ReadUInt8();
+        u16 action          = ReadBE<u16>();
+        u16 frameCount      = ReadBE<u16>();
+        frameCount          = 0;
+        u16 repeatMode      = ReadBE<u16>();
+        bool frameDirection = (ReadBE<u8>() == 0); //true - forward, false - backward
+        bool repeat         = (ReadBE<u8>() != 0);
+        u8 delay            = ReadBE<u8>();
         obj->SetAnimation(
             g_AnimationManager.GetReplacedObjectAnimation(obj, action),
             delay,
@@ -3864,21 +3864,21 @@ PACKET_HANDLER(NewCharacterAnimation)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGameCharacter *obj = g_World->FindWorldCharacter(serial);
+    u32 serial          = ReadBE<u32>();
+    CGameCharacter* obj = g_World->FindWorldCharacter(serial);
 
     if (obj != nullptr)
     {
-        u16 type = ReadUInt16BE();
-        u16 action = ReadUInt16BE();
-        u8 mode = ReadUInt8();
+        u16 type   = ReadBE<u16>();
+        u16 action = ReadBE<u16>();
+        u8 mode    = ReadBE<u8>();
 
         u8 group = g_AnimationManager.GetObjectNewAnimation(obj, type, action, mode);
 
         obj->SetAnimation(group);
 
         obj->AnimationRepeatMode = 1;
-        obj->AnimationDirection = true;
+        obj->AnimationDirection  = true;
 
         if ((type == 1 || type == 2) && obj->Graphic == 0x0015)
         {
@@ -3891,20 +3891,20 @@ PACKET_HANDLER(NewCharacterAnimation)
 
 PACKET_HANDLER(DisplayQuestArrow)
 {
-    g_QuestArrow.Timer = g_Ticks + 1000;
-    g_QuestArrow.Enabled = (ReadUInt8() != 0);
-    g_QuestArrow.X = ReadUInt16BE();
-    g_QuestArrow.Y = ReadUInt16BE();
+    g_QuestArrow.Timer   = g_Ticks + 1000;
+    g_QuestArrow.Enabled = (ReadBE<u8>() != 0);
+    g_QuestArrow.X       = ReadBE<u16>();
+    g_QuestArrow.Y       = ReadBE<u16>();
 }
 
 PACKET_HANDLER(ClientViewRange)
 {
-    g_ConfigManager.UpdateRange = ReadUInt8();
+    g_ConfigManager.UpdateRange = ReadBE<u8>();
 }
 
 PACKET_HANDLER(KrriosClientSpecial)
 {
-    u8 type = ReadUInt8();
+    u8 type = ReadBE<u8>();
     if (type == 0xFE)
     {
         CPacketRazorAnswer().Send();
@@ -3913,8 +3913,8 @@ PACKET_HANDLER(KrriosClientSpecial)
 
 PACKET_HANDLER(AssistVersion)
 {
-    u32 version = ReadUInt32BE();
-    CPacketAssistVersion(version, g_Config.ClientVersionString).Send();
+    u32 version = ReadBE<u32>();
+    CPacketAssistVersion(version, GameVars::GetClientVersion()String).Send();
 }
 
 PACKET_HANDLER(CharacterListNotification)
@@ -3922,12 +3922,12 @@ PACKET_HANDLER(CharacterListNotification)
     g_Orion.InitScreen(GS_DELETE);
     g_ConnectionScreen.SetType(CST_CHARACTER_LIST);
     g_ConnectionScreen.SetConnectionFailed(true);
-    g_ConnectionScreen.SetErrorCode(ReadUInt8());
+    g_ConnectionScreen.SetErrorCode(ReadBE<u8>());
 }
 
 PACKET_HANDLER(ErrorCode)
 {
-    u8 code = ReadUInt8();
+    u8 code = ReadBE<u8>();
 
     g_Orion.InitScreen(GS_DELETE);
     g_ConnectionScreen.SetType(CST_GAME_LOGIN);
@@ -3941,11 +3941,11 @@ PACKET_HANDLER(ErrorCode)
 
 PACKET_HANDLER(AttackCharacter)
 {
-    g_LastAttackObject = ReadUInt32BE();
+    g_LastAttackObject = ReadBE<u32>();
 
     if (g_LastAttackObject != 0 && g_World != nullptr)
     {
-        CGameCharacter *obj = g_World->FindWorldCharacter(g_LastAttackObject);
+        CGameCharacter* obj = g_World->FindWorldCharacter(g_LastAttackObject);
 
         if (obj != nullptr && (obj->MaxHits == 0))
         {
@@ -3961,7 +3961,7 @@ PACKET_HANDLER(Season)
         return;
     }
 
-    u8 season = ReadUInt8();
+    u8 season = ReadBE<u8>();
 
     if (season > ST_DESOLATION)
     {
@@ -3973,8 +3973,8 @@ PACKET_HANDLER(Season)
         return;
     }
 
-    g_OldSeason = (SEASON_TYPE)season;
-    g_OldSeasonMusic = ReadUInt8();
+    g_OldSeason      = (SEASON_TYPE)season;
+    g_OldSeasonMusic = ReadBE<u8>();
 
     if (g_Season == ST_DESOLATION)
     {
@@ -3991,11 +3991,11 @@ PACKET_HANDLER(DisplayDeath)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u32 corpseSerial = ReadUInt32BE();
-    u32 running = ReadUInt32BE();
+    u32 serial       = ReadBE<u32>();
+    u32 corpseSerial = ReadBE<u32>();
+    u32 running      = ReadBE<u32>();
 
-    CGameCharacter *owner = g_World->FindWorldCharacter(serial);
+    CGameCharacter* owner = g_World->FindWorldCharacter(serial);
 
     if (owner == nullptr)
     {
@@ -4024,43 +4024,42 @@ PACKET_HANDLER(OpenChat)
 
 PACKET_HANDLER(DisplayClilocString)
 {
-
     if (g_World == nullptr)
     {
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 graphic = ReadUInt16BE();
-    u8 type = ReadUInt8();
-    u16 color = ReadUInt16BE();
-    u8 font = (u8)ReadUInt16BE();
-    u32 cliloc = ReadUInt32BE();
+    u32 serial  = ReadBE<u32>();
+    u16 graphic = ReadBE<u16>();
+    u8 type     = ReadBE<u8>();
+    u16 color   = ReadBE<u16>();
+    u8 font     = (u8)ReadBE<u16>();
+    u32 cliloc  = ReadBE<u32>();
     if (!g_FontManager.UnicodeFontExists(font))
     {
         font = 0;
     }
 
     u8 flags = 0;
-    if (*Start == 0xCC)
+    if (*m_buffer == 0xCC)
     {
-        flags = ReadUInt8();
+        flags = ReadBE<u8>();
     }
 
-    string name = ReadString(30);
+    std::string name = ReadString(30);
     std::wstring affix{};
-    if (*Start == 0xCC)
+    if (*m_buffer == 0xCC)
     {
-        affix = DecodeUTF8(ReadString());
+        affix = Core::DecodeUTF8(ReadString());
     }
 
     std::wstring wc = ReadWStringLE();
-    auto message = g_ClilocManager.ParseArgumentsToClilocString(cliloc, false, wc);
+    auto message    = g_ClilocManager.ParseArgumentsToClilocString(cliloc, false, wc);
     message += affix;
 
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameObject* obj = g_World->FindWorldObject(serial);
     if (/*type == ST_BROADCAST || type == ST_SYSTEM ||*/ serial == 0xFFFFFFFF || (serial == 0u) ||
-        (ToLowerA(name) == "system" && obj == nullptr))
+        (Core::ToLowerA(name) == "system" && obj == nullptr))
     {
         g_Orion.CreateUnicodeTextMessage(TT_SYSTEM, serial, font, color, message);
     }
@@ -4098,27 +4097,27 @@ PACKET_HANDLER(MegaCliloc)
         return;
     }
 
-    u16 unknown = ReadUInt16BE();
+    u16 unknown = ReadBE<u16>();
     if (unknown > 1)
     {
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
     Move(2);
-    u32 clilocRevision = ReadUInt32BE();
+    u32 clilocRevision = ReadBE<u32>();
 
-    u8 *end = Start + Size;
-    std::vector<wstring> list;
-    while (Ptr < end)
+    u8* end = m_buffer + m_size;
+    std::vector<std::wstring> list;
+    while (m_ptr < end)
     {
-        u32 cliloc = ReadUInt32BE();
+        u32 cliloc = ReadBE<u32>();
         if (cliloc == 0u)
         {
             break;
         }
 
-        const int len = ReadInt16BE();
+        const int len         = ReadBE<i16>();
         std::wstring argument = {};
         if (len > 0)
         {
@@ -4130,7 +4129,7 @@ PACKET_HANDLER(MegaCliloc)
         //LOG("Cliloc: 0x%08X len=%i arg=%s\n", cliloc, len, ToString(argument).c_str());
 
         bool canAdd = true;
-        for (const std::wstring &tempStr : list)
+        for (const std::wstring& tempStr : list)
         {
             if (tempStr == str)
             {
@@ -4145,8 +4144,8 @@ PACKET_HANDLER(MegaCliloc)
         }
     }
 
-    CGameItem *container = nullptr;
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameItem* container = nullptr;
+    CGameObject* obj     = g_World->FindWorldObject(serial);
     if (obj != nullptr)
     {
         container = g_World->FindWorldItem(obj->Container);
@@ -4160,19 +4159,19 @@ PACKET_HANDLER(MegaCliloc)
              container->Layer == OL_SELL);
     }
 
-    bool first = true;
+    bool first        = true;
     std::wstring name = {};
     std::wstring data = {};
     if (!list.empty())
     {
-        for (const std::wstring &str : list)
+        for (const std::wstring& str : list)
         {
             if (first)
             {
                 name = str;
                 if (obj != nullptr && !obj->NPC)
                 {
-                    obj->SetName(ToString(str));
+                    obj->SetName(Core::ToString(str));
                     obj->GenerateObjectHandlesTexture(str);
                 }
 
@@ -4200,31 +4199,31 @@ PACKET_HANDLER(MegaCliloc)
     //LOG("message=%s\n", ToString(message).c_str());
     if (inBuyList && (container->Serial != 0u))
     {
-        CGumpShop *gump = (CGumpShop *)g_GumpManager.GetGump(container->Serial, 0, GT_SHOP);
+        CGumpShop* gump = (CGumpShop*)g_GumpManager.GetGump(container->Serial, 0, GT_SHOP);
         if (gump != nullptr)
         {
-            CGUIHTMLGump *htmlGump = gump->m_ItemList[0];
-            QFOR(shopItem, htmlGump->m_Items, CBaseGUI *)
+            CGUIHTMLGump* htmlGump = gump->m_ItemList[0];
+            QFOR(shopItem, htmlGump->m_Items, CBaseGUI*)
             {
                 if (shopItem->Type == GOT_SHOPITEM && shopItem->Serial == serial &&
-                    ((CGUIShopItem *)shopItem)->NameFromCliloc)
+                    ((CGUIShopItem*)shopItem)->NameFromCliloc)
                 {
-                    CGUIShopItem *si = (CGUIShopItem *)shopItem;
-                    int oldHeight = si->GetSize().Height;
+                    CGUIShopItem* si = (CGUIShopItem*)shopItem;
+                    int oldHeight    = si->GetSize().y;
 
-                    si->Name = ToString(name);
+                    si->Name = Core::ToString(name);
                     si->CreateNameText();
                     si->UpdateOffsets();
 
-                    int delta = si->GetSize().Height - oldHeight;
+                    int delta = si->GetSize().y - oldHeight;
                     if ((delta != 0) && shopItem->m_Next != nullptr)
                     {
-                        QFOR(shopItem2, shopItem->m_Next, CBaseGUI *)
+                        QFOR(shopItem2, shopItem->m_Next, CBaseGUI*)
                         {
                             if (shopItem2->Type == GOT_SHOPITEM)
                             {
-                                ((CGUIShopItem *)shopItem2)
-                                    ->SetY(((CGUIShopItem *)shopItem2)->GetY() + delta);
+                                ((CGUIShopItem*)shopItem2)
+                                    ->SetY(((CGUIShopItem*)shopItem2)->GetY() + delta);
                             }
                         }
                     }
@@ -4245,25 +4244,25 @@ PACKET_HANDLER(Damage)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGameCharacter *character = g_World->FindWorldCharacter(serial);
+    u32 serial                = ReadBE<u32>();
+    CGameCharacter* character = g_World->FindWorldCharacter(serial);
 
     if (character != nullptr)
     {
-        int damage = ReadUInt16BE();
+        int damage = ReadBE<u16>();
 
-        CTextData *text = new CTextData();
-        text->Unicode = false;
-        text->Font = 3;
-        text->Serial = serial;
-        text->Color = (serial == g_PlayerSerial ? 0x0034 : 0x0021);
-        text->Type = TT_OBJECT;
-        text->Text = std::to_string(damage);
+        CTextData* text = new CTextData();
+        text->Unicode   = false;
+        text->Font      = 3;
+        text->Serial    = serial;
+        text->Color     = (serial == g_PlayerSerial ? 0x0034 : 0x0021);
+        text->Type      = TT_OBJECT;
+        text->Text      = std::to_string(damage);
         text->GenerateTexture(0);
         text->SetX(text->m_Texture.Width / 2);
         int height = text->m_Texture.Height;
 
-        CTextData *head = (CTextData *)character->m_DamageTextControl.Last();
+        CTextData* head = (CTextData*)character->m_DamageTextControl.Last();
 
         if (head != nullptr)
         {
@@ -4394,35 +4393,35 @@ PACKET_HANDLER(BuffDebuff)
 
     const u16 buffIconStart = 0x03E9; //0x03EA ???
 
-    u32 serial = ReadUInt32BE();
-    u16 iconID = ReadUInt16BE() - buffIconStart;
+    u32 serial = ReadBE<u32>();
+    u16 iconID = ReadBE<u16>() - buffIconStart;
     if (iconID < tableCount) //buff
     {
-        CGumpBuff *gump = (CGumpBuff *)g_GumpManager.UpdateGump(0, 0, GT_BUFF);
+        CGumpBuff* gump = (CGumpBuff*)g_GumpManager.UpdateGump(0, 0, GT_BUFF);
 
         if (gump != nullptr)
         {
-            u16 mode = ReadUInt16BE();
+            u16 mode = ReadBE<u16>();
             if (mode != 0u)
             {
                 Move(12);
 
-                u16 timer = ReadUInt16BE();
+                u16 timer = ReadBE<u16>();
                 Move(3);
 
-                u32 titleCliloc = ReadUInt32BE();
-                u32 descriptionCliloc = ReadUInt32BE();
-                u32 wtfCliloc = ReadUInt32BE();
+                u32 titleCliloc       = ReadBE<u32>();
+                u32 descriptionCliloc = ReadBE<u32>();
+                u32 wtfCliloc         = ReadBE<u32>();
                 Move(4);
 
                 std::wstring title = g_ClilocManager.GetCliloc(g_Language)->GetW(titleCliloc, true);
                 std::wstring description = {};
-                std::wstring wtf = {};
+                std::wstring wtf         = {};
 
                 if (descriptionCliloc != 0u)
                 {
                     std::wstring arguments = ReadWStringLE();
-                    description = L'\n' + g_ClilocManager.ParseArgumentsToClilocString(
+                    description            = L'\n' + g_ClilocManager.ParseArgumentsToClilocString(
                                               descriptionCliloc, true, arguments);
 
                     if (description.length() < 2)
@@ -4454,18 +4453,18 @@ PACKET_HANDLER(SecureTrading)
         return;
     }
 
-    u8 type = ReadUInt8();
-    u32 serial = ReadUInt32BE();
+    u8 type    = ReadBE<u8>();
+    u32 serial = ReadBE<u32>();
 
     if (type == 0) //Новое трэйд окно
     {
-        u32 id1 = ReadUInt32BE();
-        u32 id2 = ReadUInt32BE();
-        u8 hasName = ReadUInt8();
+        u32 id1    = ReadBE<u32>();
+        u32 id2    = ReadBE<u32>();
+        u8 hasName = ReadBE<u8>();
 
-        CGumpSecureTrading *gump = new CGumpSecureTrading(id1, 0, 0, id1, id2);
+        CGumpSecureTrading* gump = new CGumpSecureTrading(id1, 0, 0, id1, id2);
 
-        CGameObject *obj = g_World->FindWorldObject(id1);
+        CGameObject* obj = g_World->FindWorldObject(id1);
 
         if (obj != nullptr)
         {
@@ -4489,7 +4488,7 @@ PACKET_HANDLER(SecureTrading)
             }
         }
 
-        if ((hasName != 0u) && (*Ptr != 0u))
+        if ((hasName != 0u) && (*m_ptr != 0u))
         {
             gump->Text = ReadString();
         }
@@ -4502,15 +4501,15 @@ PACKET_HANDLER(SecureTrading)
     }
     else if (type == 2) //Обновление
     {
-        CGumpSecureTrading *gump =
-            (CGumpSecureTrading *)g_GumpManager.UpdateGump(serial, 0, GT_TRADE);
+        CGumpSecureTrading* gump =
+            (CGumpSecureTrading*)g_GumpManager.UpdateGump(serial, 0, GT_TRADE);
 
         if (gump != nullptr)
         {
-            u32 id1 = ReadUInt32BE();
-            u32 id2 = ReadUInt32BE();
+            u32 id1 = ReadBE<u32>();
+            u32 id2 = ReadBE<u32>();
 
-            gump->StateMy = (id1 != 0);
+            gump->StateMy       = (id1 != 0);
             gump->StateOpponent = (id2 != 0);
         }
     }
@@ -4523,23 +4522,23 @@ PACKET_HANDLER(TextEntryDialog)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u8 parentID = ReadUInt8();
-    u8 buttonID = ReadUInt8();
+    u32 serial  = ReadBE<u32>();
+    u8 parentID = ReadBE<u8>();
+    u8 buttonID = ReadBE<u8>();
 
-    short textLen = ReadInt16BE();
-    string text = ReadString(textLen);
+    short textLen    = ReadBE<i16>();
+    std::string text = ReadString(textLen);
 
-    bool haveCancel = ReadUInt8() == 0u;
-    u8 variant = ReadUInt8();
-    int maxLength = ReadUInt32BE();
+    bool haveCancel = ReadBE<u8>() == 0u;
+    u8 variant      = ReadBE<u8>();
+    int maxLength   = ReadBE<u32>();
 
-    short descLen = ReadInt16BE();
-    string desc = ReadString(descLen);
+    short descLen    = ReadBE<i16>();
+    std::string desc = ReadString(descLen);
 
-    CGumpTextEntryDialog *gump =
+    CGumpTextEntryDialog* gump =
         new CGumpTextEntryDialog(serial, 143, 172, variant, maxLength, text, desc);
-    gump->NoClose = haveCancel;
+    gump->NoClose  = haveCancel;
     gump->ParentID = parentID;
     gump->ButtonID = buttonID;
 
@@ -4553,26 +4552,26 @@ PACKET_HANDLER(OpenMenu)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u32 id = ReadUInt16BE();
+    u32 serial = ReadBE<u32>();
+    u32 id     = ReadBE<u16>();
 
-    u8 nameLen = ReadUInt8();
-    string name = ReadString(nameLen);
+    u8 nameLen       = ReadBE<u8>();
+    std::string name = ReadString(nameLen);
 
-    u8 count = ReadUInt8();
+    u8 count = ReadBE<u8>();
 
-    if (unpack16(Ptr) != 0u) //menu
+    if (unpack16(m_ptr) != 0u) //menu
     {
-        CGumpMenu *gump = new CGumpMenu(serial, id, 0, 0);
+        CGumpMenu* gump = new CGumpMenu(serial, id, 0, 0);
 
         gump->Add(new CGUIGumppic(0x0910, 0, 0));
 
         gump->Add(new CGUIColoredPolygone(0, 0, 40, 42, 217, 49, 0xFF000001));
 
-        CGUIText *text = (CGUIText *)gump->Add(new CGUIText(0x0386, 39, 18));
+        CGUIText* text = (CGUIText*)gump->Add(new CGUIText(0x0386, 39, 18));
         text->CreateTextureA(1, name, 200, TS_LEFT, UOFONT_FIXED);
 
-        CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)gump->Add(
+        CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)gump->Add(
             new CGUIHTMLGump(CGumpMenu::ID_GM_HTMLGUMP, 0, 40, 42, 217, 49, false, true));
         htmlGump->Initalize(true);
 
@@ -4582,17 +4581,17 @@ PACKET_HANDLER(OpenMenu)
 
         for (int i = 0; i < count; i++)
         {
-            u16 graphic = ReadUInt16BE();
-            u16 color = ReadUInt16BE();
+            u16 graphic = ReadBE<u16>();
+            u16 color   = ReadBE<u16>();
 
-            nameLen = ReadUInt8();
-            name = ReadString(nameLen);
+            nameLen = ReadBE<u8>();
+            name    = ReadString(nameLen);
 
             Core::Vec2<i32> size = g_Orion.GetStaticArtDimension(graphic);
 
-            if ((size.Width != 0) && (size.Height != 0))
+            if ((size.x != 0) && (size.y != 0))
             {
-                int posY = size.Height;
+                int posY = size.y;
 
                 if (posY >= 47)
                 {
@@ -4603,10 +4602,10 @@ PACKET_HANDLER(OpenMenu)
                     posY = ((47 - posY) / 2);
                 }
 
-                CGUIMenuObject *menuObject = (CGUIMenuObject *)htmlGump->Add(
+                CGUIMenuObject* menuObject = (CGUIMenuObject*)htmlGump->Add(
                     new CGUIMenuObject((int)i + 1, graphic, color, posX, posY, name));
 
-                posX += size.Width;
+                posX += size.x;
             }
         }
 
@@ -4614,39 +4613,39 @@ PACKET_HANDLER(OpenMenu)
 
         htmlGump->CalculateDataSize();
 
-        gump->m_TextObject = (CGUIText *)gump->Add(new CGUIText(0x0386, 42, 105));
+        gump->m_TextObject = (CGUIText*)gump->Add(new CGUIText(0x0386, 42, 105));
         //gump->m_TextObject->CreateTextureA(1, name, 200, TS_LEFT, UOFONT_FIXED); //На данный момнт создавать нечего
 
         g_GumpManager.AddGump(gump);
     }
     else //gray menu
     {
-        int x = (g_OrionWindow.GetSize().Width / 2) - 200;
-        int y = (g_OrionWindow.GetSize().Height / 2) - ((121 + (count * 21)) / 2);
+        int x = (g_OrionWindow.GetSize().x / 2) - 200;
+        int y = (g_OrionWindow.GetSize().y / 2) - ((121 + (count * 21)) / 2);
 
-        CGumpGrayMenu *gump = new CGumpGrayMenu(serial, id, x, y);
+        CGumpGrayMenu* gump = new CGumpGrayMenu(serial, id, x, y);
 
-        CGUIResizepic *background =
-            (CGUIResizepic *)gump->Add(new CGUIResizepic(0, 0x13EC, 0, 0, 400, 11111));
+        CGUIResizepic* background =
+            (CGUIResizepic*)gump->Add(new CGUIResizepic(0, 0x13EC, 0, 0, 400, 11111));
 
-        CGUIText *text = (CGUIText *)gump->Add(new CGUIText(0x0386, 20, 16));
+        CGUIText* text = (CGUIText*)gump->Add(new CGUIText(0x0386, 20, 16));
         text->CreateTextureA(1, name, 370);
 
-        int offsetY = 35 + text->m_Texture.Height;
+        int offsetY    = 35 + text->m_Texture.Height;
         int gumpHeight = 70 + offsetY;
 
         for (int i = 0; i < count; i++)
         {
             Move(4);
 
-            nameLen = ReadUInt8();
-            name = ReadString(nameLen);
+            nameLen = ReadBE<u8>();
+            name    = ReadString(nameLen);
 
             gump->Add(new CGUIRadio((int)i + 1, 0x138A, 0x138B, 0x138A, 20, offsetY)); //Button
 
             offsetY += 2;
 
-            text = (CGUIText *)gump->Add(new CGUIText(0x0386, 50, offsetY));
+            text = (CGUIText*)gump->Add(new CGUIText(0x0386, 50, offsetY));
             text->CreateTextureA(1, name, 340);
 
             int addHeight = text->m_Texture.Height;
@@ -4673,13 +4672,13 @@ PACKET_HANDLER(OpenMenu)
     }
 }
 
-void CPacketManager::AddHTMLGumps(CGump *gump, std::vector<HTMLGumpDataInfo> &list)
+void CPacketManager::AddHTMLGumps(CGump* gump, std::vector<HTMLGumpDataInfo>& list)
 {
     for (int i = 0; i < (int)list.size(); i++)
     {
-        HTMLGumpDataInfo &data = list[i];
+        HTMLGumpDataInfo& data = list[i];
 
-        CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)gump->Add(new CGUIHTMLGump(
+        CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)gump->Add(new CGUIHTMLGump(
             data.TextID + 1,
             0x0BB8,
             data.sGumpCoords->X,
@@ -4688,7 +4687,7 @@ void CPacketManager::AddHTMLGumps(CGump *gump, std::vector<HTMLGumpDataInfo> &li
             data.Height,
             data.HaveBackground != 0,
             data.HaveScrollbar != 0));
-        htmlGump->DrawOnly = (data.HaveScrollbar == 0);
+        htmlGump->DrawOnly     = (data.HaveScrollbar == 0);
 
         int width = htmlGump->Width;
 
@@ -4698,7 +4697,7 @@ void CPacketManager::AddHTMLGumps(CGump *gump, std::vector<HTMLGumpDataInfo> &li
         }
 
         u32 htmlColor = 0xFFFFFFFF;
-        u16 color = 0;
+        u16 color     = 0;
 
         if (data.Color != 0)
         {
@@ -4726,9 +4725,9 @@ void CPacketManager::AddHTMLGumps(CGump *gump, std::vector<HTMLGumpDataInfo> &li
             htmlColor = 0x010101FF;
         }
 
-        CGUIHTMLText *htmlText = (CGUIHTMLText *)htmlGump->Add(new CGUIHTMLText(
+        CGUIHTMLText* htmlText = (CGUIHTMLText*)htmlGump->Add(new CGUIHTMLText(
             data.TextID,
-            (u8)(g_Config.ClientVersion >= CV_305D),
+            (u8)(GameVars::GetClientVersion() >= CV_305D),
             color,
             0,
             0,
@@ -4760,10 +4759,10 @@ PACKET_HANDLER(OpenGump)
     //TPRINT("Gump dump::\n");
     //TDUMP(buf, size);
 
-    u32 serial = ReadUInt32BE();
-    u32 id = ReadUInt32BE();
-    int x = ReadInt32BE();
-    int y = ReadInt32BE();
+    u32 serial = ReadBE<u32>();
+    u32 id     = ReadBE<u32>();
+    int x      = ReadBE<i32>();
+    int y      = ReadBE<i32>();
 
     auto found = m_GumpsCoordsCache.find(id);
     if (found != m_GumpsCoordsCache.end())
@@ -4776,26 +4775,26 @@ PACKET_HANDLER(OpenGump)
         SetCachedGumpCoords(id, x, y);
     }
 
-    CGumpGeneric *gump = new CGumpGeneric(serial, x, y, id);
+    CGumpGeneric* gump = new CGumpGeneric(serial, x, y, id);
 
-    u16 commandsLength = ReadUInt16BE();
-    string commands = ReadString(commandsLength);
+    u16 commandsLength   = ReadBE<u16>();
+    std::string commands = ReadString(commandsLength);
 
     Core::TextFileParser parser({}, " ", "", "{}");
     Core::TextFileParser cmdParser({}, " ", "", "");
     Core::TextFileParser tilepicGraphicParser({}, ",", "", "");
 
-    std::vector<string> commandList = parser.GetTokens(commands.c_str());
-    CBaseGUI *lastGumpObject = nullptr;
+    std::vector<std::string> commandList = parser.GetTokens(commands.c_str());
+    CBaseGUI* lastGumpObject             = nullptr;
 
     bool EntryChanged = false;
-    int FirstPage = 0;
-    int CurrentPage = 0;
-    CEntryText *ChangeEntry;
+    int FirstPage     = 0;
+    int CurrentPage   = 0;
+    CEntryText* ChangeEntry;
 
-    for (const std::string &str : commandList)
+    for (const std::string& str : commandList)
     {
-        std::vector<string> list = cmdParser.GetTokens(str.c_str());
+        std::vector<std::string> list = cmdParser.GetTokens(str.c_str());
 
         int listSize = (int)list.size();
 
@@ -4804,9 +4803,9 @@ PACKET_HANDLER(OpenGump)
             continue;
         }
 
-        string cmd = ToLowerA(list[0]);
+        std::string cmd = Core::ToLowerA(list[0]);
 
-        CBaseGUI *go = nullptr;
+        CBaseGUI* go = nullptr;
 
         if (cmd == "nodispose")
         {
@@ -4825,8 +4824,8 @@ PACKET_HANDLER(OpenGump)
             {
                 AddHTMLGumps(gump, htmlGumlList);
 
-                int page = ToInt(list[1]);
-                go = new CGUIPage(page);
+                int page = Core::ToInt(list[1]);
+                go       = new CGUIPage(page);
                 if (FirstPage == 0)
                 {
                     FirstPage = page;
@@ -4838,8 +4837,8 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 2)
             {
-                int group = ToInt(list[1]);
-                go = new CGUIGroup(group);
+                int group = Core::ToInt(list[1]);
+                go        = new CGUIGroup(group);
             }
         }
         else if (cmd == "endgroup")
@@ -4850,13 +4849,13 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 6)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int graphic = ToInt(list[3]);
-                int width = ToInt(list[4]);
-                int height = ToInt(list[5]);
+                int x       = Core::ToInt(list[1]);
+                int y       = Core::ToInt(list[2]);
+                int graphic = Core::ToInt(list[3]);
+                int width   = Core::ToInt(list[4]);
+                int height  = Core::ToInt(list[5]);
 
-                go = new CGUIResizepic(0, graphic, x, y, width, height);
+                go           = new CGUIResizepic(0, graphic, x, y, width, height);
                 go->DrawOnly = true;
             }
         }
@@ -4864,10 +4863,10 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 5)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int width = ToInt(list[3]);
-                int height = ToInt(list[4]);
+                int x      = Core::ToInt(list[1]);
+                int y      = Core::ToInt(list[2]);
+                int width  = Core::ToInt(list[3]);
+                int height = Core::ToInt(list[4]);
 
                 go = new CGUIChecktrans(x, y, width, height);
             }
@@ -4876,25 +4875,25 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 5)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int up = ToInt(list[3]);
-                int down = ToInt(list[4]);
+                int x      = Core::ToInt(list[1]);
+                int y      = Core::ToInt(list[2]);
+                int up     = Core::ToInt(list[3]);
+                int down   = Core::ToInt(list[4]);
                 int action = 0;
                 int toPage = 0;
-                int index = 0;
+                int index  = 0;
 
                 if (listSize >= 6)
                 {
-                    action = ToInt(list[5]);
+                    action = Core::ToInt(list[5]);
                 }
                 if (listSize >= 7)
                 {
-                    toPage = ToInt(list[6]);
+                    toPage = Core::ToInt(list[6]);
                 }
                 if (listSize >= 8)
                 {
-                    index = ToInt(list[7]);
+                    index = Core::ToInt(list[7]);
                 }
 
                 if (action != 0)
@@ -4902,27 +4901,27 @@ PACKET_HANDLER(OpenGump)
                     toPage = -1;
                 }
 
-                go = new CGUIButton(index, up, up, down, x, y);
+                go                = new CGUIButton(index, up, up, down, x, y);
                 go->CheckPolygone = true;
 
-                ((CGUIButton *)go)->ToPage = toPage;
+                ((CGUIButton*)go)->ToPage = toPage;
             }
         }
         else if (cmd == "buttontileart")
         {
             if (listSize >= 12)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int up = ToInt(list[3]);
-                int down = ToInt(list[4]);
-                int action = ToInt(list[5]);
-                int toPage = ToInt(list[6]);
-                int index = ToInt(list[7]);
-                int tileGraphic = ToInt(list[8]);
-                int tileColor = ToInt(list[9]);
-                int tileX = ToInt(list[10]);
-                int tileY = ToInt(list[11]);
+                int x           = Core::ToInt(list[1]);
+                int y           = Core::ToInt(list[2]);
+                int up          = Core::ToInt(list[3]);
+                int down        = Core::ToInt(list[4]);
+                int action      = Core::ToInt(list[5]);
+                int toPage      = Core::ToInt(list[6]);
+                int index       = Core::ToInt(list[7]);
+                int tileGraphic = Core::ToInt(list[8]);
+                int tileColor   = Core::ToInt(list[9]);
+                int tileX       = Core::ToInt(list[10]);
+                int tileY       = Core::ToInt(list[11]);
 
                 if (action != 0)
                 {
@@ -4932,74 +4931,74 @@ PACKET_HANDLER(OpenGump)
                 go = new CGUIButtonTileart(
                     index, up, up, down, x, y, tileGraphic, tileColor, tileX, tileY);
 
-                ((CGUIButton *)go)->ToPage = toPage;
+                ((CGUIButton*)go)->ToPage = toPage;
             }
         }
         else if (cmd == "checkbox")
         {
             if (listSize >= 5)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int up = ToInt(list[3]);
-                int down = ToInt(list[4]);
+                int x     = Core::ToInt(list[1]);
+                int y     = Core::ToInt(list[2]);
+                int up    = Core::ToInt(list[3]);
+                int down  = Core::ToInt(list[4]);
                 int state = 0;
                 int index = 0;
 
                 if (listSize >= 6)
                 {
-                    state = ToInt(list[5]);
+                    state = Core::ToInt(list[5]);
                 }
                 if (listSize >= 7)
                 {
-                    index = ToInt(list[6]);
+                    index = Core::ToInt(list[6]);
                 }
 
                 go = new CGUICheckbox(index, up, down, up, x, y);
 
-                ((CGUICheckbox *)go)->Checked = (state != 0);
+                ((CGUICheckbox*)go)->Checked = (state != 0);
             }
         }
         else if (cmd == "radio")
         {
             if (listSize >= 5)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int up = ToInt(list[3]);
-                int down = ToInt(list[4]);
+                int x     = Core::ToInt(list[1]);
+                int y     = Core::ToInt(list[2]);
+                int up    = Core::ToInt(list[3]);
+                int down  = Core::ToInt(list[4]);
                 int state = 0;
                 int index = 0;
 
                 if (listSize >= 6)
                 {
-                    state = ToInt(list[5]);
+                    state = Core::ToInt(list[5]);
                 }
                 if (listSize >= 7)
                 {
-                    index = ToInt(list[6]);
+                    index = Core::ToInt(list[6]);
                 }
 
                 go = new CGUIRadio(index, up, down, up, x, y);
 
-                ((CGUIRadio *)go)->Checked = (state != 0);
+                ((CGUIRadio*)go)->Checked = (state != 0);
             }
         }
         else if (cmd == "text")
         {
             if (listSize >= 5)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int color = ToInt(list[3]);
-                int index = ToInt(list[4]);
+                int x     = Core::ToInt(list[1]);
+                int y     = Core::ToInt(list[2]);
+                int color = Core::ToInt(list[3]);
+                int index = Core::ToInt(list[4]);
 
                 if (color != 0)
                 {
                     color++;
                 }
 
-                go = new CGUIGenericText(index, color, x, y);
+                go           = new CGUIGenericText(index, color, x, y);
                 go->DrawOnly = true;
             }
         }
@@ -5007,19 +5006,19 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 7)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int width = ToInt(list[3]);
-                int height = ToInt(list[4]);
-                int color = ToInt(list[5]);
-                int index = ToInt(list[6]);
+                int x      = Core::ToInt(list[1]);
+                int y      = Core::ToInt(list[2]);
+                int width  = Core::ToInt(list[3]);
+                int height = Core::ToInt(list[4]);
+                int color  = Core::ToInt(list[5]);
+                int index  = Core::ToInt(list[6]);
 
                 if (color != 0)
                 {
                     color++;
                 }
 
-                go = new CGUIGenericText(index, color, x, y, width);
+                go           = new CGUIGenericText(index, color, x, y, width);
                 go->DrawOnly = true;
             }
         }
@@ -5027,13 +5026,13 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 8)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int width = ToInt(list[3]);
-                int height = ToInt(list[4]);
-                int color = ToInt(list[5]);
-                int index = ToInt(list[6]);
-                int textIndex = ToInt(list[7]);
+                int x         = Core::ToInt(list[1]);
+                int y         = Core::ToInt(list[2]);
+                int width     = Core::ToInt(list[3]);
+                int height    = Core::ToInt(list[4]);
+                int color     = Core::ToInt(list[5]);
+                int index     = Core::ToInt(list[6]);
+                int textIndex = Core::ToInt(list[7]);
 
                 //if (color)
                 //	color++;
@@ -5041,13 +5040,13 @@ PACKET_HANDLER(OpenGump)
                 gump->Add(new CGUIHitBox(index + 1, x, y, width, height));
                 gump->Add(new CGUIScissor(true, x, y, 0, 0, width, height));
                 go = new CGUIGenericTextEntry(index + 1, textIndex, color, x, y);
-                ((CGUIGenericTextEntry *)go)->CheckOnSerial = true;
-                ((CGUITextEntry *)go)->m_Entry.Width = width;
+                ((CGUIGenericTextEntry*)go)->CheckOnSerial = true;
+                ((CGUITextEntry*)go)->m_Entry.Width        = width;
                 if (!EntryChanged)
                 {
                     if (CurrentPage == 0 || CurrentPage == FirstPage)
                     {
-                        ChangeEntry = &((CGUITextEntry *)go)->m_Entry;
+                        ChangeEntry  = &((CGUITextEntry*)go)->m_Entry;
                         EntryChanged = true;
                     }
                 }
@@ -5057,14 +5056,14 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 9)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int width = ToInt(list[3]);
-                int height = ToInt(list[4]);
-                int color = ToInt(list[5]);
-                int index = ToInt(list[6]);
-                int textIndex = ToInt(list[7]);
-                int length = ToInt(list[8]);
+                int x         = Core::ToInt(list[1]);
+                int y         = Core::ToInt(list[2]);
+                int width     = Core::ToInt(list[3]);
+                int height    = Core::ToInt(list[4]);
+                int color     = Core::ToInt(list[5]);
+                int index     = Core::ToInt(list[6]);
+                int textIndex = Core::ToInt(list[7]);
+                int length    = Core::ToInt(list[8]);
 
                 //if (color)
                 //	color++;
@@ -5072,13 +5071,13 @@ PACKET_HANDLER(OpenGump)
                 gump->Add(new CGUIHitBox(index + 1, x, y, width, height));
                 gump->Add(new CGUIScissor(true, x, y, 0, 0, width, height));
                 go = new CGUIGenericTextEntry(index + 1, textIndex, color, x, y, width, length);
-                ((CGUIGenericTextEntry *)go)->CheckOnSerial = true;
-                ((CGUITextEntry *)go)->m_Entry.Width = width;
+                ((CGUIGenericTextEntry*)go)->CheckOnSerial = true;
+                ((CGUITextEntry*)go)->m_Entry.Width        = width;
                 if (!EntryChanged)
                 {
                     if (CurrentPage == 0 || CurrentPage == FirstPage)
                     {
-                        ChangeEntry = &((CGUITextEntry *)go)->m_Entry;
+                        ChangeEntry  = &((CGUITextEntry*)go)->m_Entry;
                         EntryChanged = true;
                     }
                 }
@@ -5088,33 +5087,34 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 4)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int color = 0;
+                int x       = Core::ToInt(list[1]);
+                int y       = Core::ToInt(list[2]);
+                int color   = 0;
                 int graphic = 0;
 
                 if (cmd == "tilepic")
                 {
-                    std::vector<string> graphicList = tilepicGraphicParser.GetTokens(list[3].c_str());
+                    std::vector<std::string> graphicList =
+                        tilepicGraphicParser.GetTokens(list[3].c_str());
 
                     if (!graphicList.empty())
                     {
-                        graphic = ToInt(graphicList[0]);
+                        graphic = Core::ToInt(graphicList[0]);
 
                         if (graphicList.size() >= 2)
                         {
-                            color = ToInt(graphicList[1]);
+                            color = Core::ToInt(graphicList[1]);
                         }
                     }
                 }
                 else
                 {
-                    graphic = ToInt(list[3]);
+                    graphic = Core::ToInt(list[3]);
                 }
 
                 if (listSize >= 5)
                 {
-                    color = ToInt(list[4]);
+                    color = Core::ToInt(list[4]);
                 }
 
                 if (color != 0)
@@ -5122,7 +5122,7 @@ PACKET_HANDLER(OpenGump)
                     gump->Add(new CGUIShader(&g_ColorizerShader, true));
                 }
 
-                go = new CGUITilepic(graphic, color, x, y);
+                go           = new CGUITilepic(graphic, color, x, y);
                 go->DrawOnly = true;
             }
         }
@@ -5130,33 +5130,34 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 4)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int graphic = ToInt(list[3]);
-                int color = 0;
+                int x       = Core::ToInt(list[1]);
+                int y       = Core::ToInt(list[2]);
+                int graphic = Core::ToInt(list[3]);
+                int color   = 0;
 
-                if (listSize >= 5 && g_Config.ClientVersion >= CV_305D)
+                if (listSize >= 5 && GameVars::GetClientVersion() >= CV_305D)
                 {
                     Core::TextFileParser gumppicParser({}, "=", "", "");
                     std::vector<std::string> hueList = gumppicParser.GetTokens(list[4].c_str());
 
                     if (hueList.size() > 1)
                     {
-                        color = ToInt(hueList[1]);
+                        color = Core::ToInt(hueList[1]);
                     }
                     else
                     {
-                        color = ToInt(hueList[0]);
+                        color = Core::ToInt(hueList[0]);
                     }
 
                     if (listSize >= 6)
                     {
-                        std::vector<std::string> classList = gumppicParser.GetTokens(list[5].c_str());
+                        std::vector<std::string> classList =
+                            gumppicParser.GetTokens(list[5].c_str());
 
                         if (hueList.size() > 1)
                         {
-                            if (ToLowerA(classList[0]) == "class" &&
-                                ToLowerA(Trim(classList[1])) == "virtuegumpitem")
+                            if (Core::ToLowerA(classList[0]) == "class" &&
+                                Core::ToLowerA(Core::Trim(classList[1])) == "virtuegumpitem")
                             {
                                 go = new CGUIVirtueGump(graphic, x, y);
                             }
@@ -5171,8 +5172,8 @@ PACKET_HANDLER(OpenGump)
                         gump->Add(new CGUIShader(&g_ColorizerShader, true));
                     }
 
-                    go = new CGUIGumppic(graphic, x, y);
-                    go->Color = color;
+                    go           = new CGUIGumppic(graphic, x, y);
+                    go->Color    = color;
                     go->DrawOnly = true;
                 }
             }
@@ -5181,13 +5182,13 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 6)
             {
-                int x = ToInt(list[1]);
-                int y = ToInt(list[2]);
-                int width = ToInt(list[3]);
-                int height = ToInt(list[4]);
-                int graphic = ToInt(list[5]);
+                int x       = Core::ToInt(list[1]);
+                int y       = Core::ToInt(list[2]);
+                int width   = Core::ToInt(list[3]);
+                int height  = Core::ToInt(list[4]);
+                int graphic = Core::ToInt(list[5]);
 
-                go = new CGUIGumppicTiled(graphic, x, y, width, height);
+                go           = new CGUIGumppicTiled(graphic, x, y, width, height);
                 go->DrawOnly = true;
             }
         }
@@ -5196,19 +5197,20 @@ PACKET_HANDLER(OpenGump)
             if (listSize >= 8)
             {
                 HTMLGumpDataInfo htmlInfo = {};
-                htmlInfo.IsXMF = (cmd != "htmlgump");
-                GumpCoords *gumpCoords = new GumpCoords{ ToInt(list[1]), ToInt(list[2]) };
-                htmlInfo.sGumpCoords = gumpCoords;
-                htmlInfo.Width = ToInt(list[3]);
-                htmlInfo.Height = ToInt(list[4]);
-                htmlInfo.TextID = ToInt(list[5]);
-                htmlInfo.HaveBackground = ToInt(list[6]);
-                htmlInfo.HaveScrollbar = ToInt(list[7]);
-                htmlInfo.Color = 0;
+                htmlInfo.IsXMF            = (cmd != "htmlgump");
+                GumpCoords* gumpCoords =
+                    new GumpCoords{ Core::ToInt(list[1]), Core::ToInt(list[2]) };
+                htmlInfo.sGumpCoords    = gumpCoords;
+                htmlInfo.Width          = Core::ToInt(list[3]);
+                htmlInfo.Height         = Core::ToInt(list[4]);
+                htmlInfo.TextID         = Core::ToInt(list[5]);
+                htmlInfo.HaveBackground = Core::ToInt(list[6]);
+                htmlInfo.HaveScrollbar  = Core::ToInt(list[7]);
+                htmlInfo.Color          = 0;
 
                 if (cmd == "xmfhtmlgumpcolor" && listSize >= 9)
                 {
-                    htmlInfo.Color = ToInt(list[8]);
+                    htmlInfo.Color = Core::ToInt(list[8]);
 
                     if (htmlInfo.Color == 0x7FFF)
                     {
@@ -5224,21 +5226,22 @@ PACKET_HANDLER(OpenGump)
             if (listSize >= 9)
             {
                 HTMLGumpDataInfo htmlInfo = {};
-                htmlInfo.IsXMF = true;
-                GumpCoords *gumpCoords = new GumpCoords{ ToInt(list[1]), ToInt(list[2]) };
-                htmlInfo.sGumpCoords = gumpCoords;
-                htmlInfo.Width = ToInt(list[3]);
-                htmlInfo.Height = ToInt(list[4]);
-                htmlInfo.HaveBackground = ToInt(list[5]);
-                htmlInfo.HaveScrollbar = ToInt(list[6]);
-                htmlInfo.Color = ToInt(list[7]);
+                htmlInfo.IsXMF            = true;
+                GumpCoords* gumpCoords =
+                    new GumpCoords{ Core::ToInt(list[1]), Core::ToInt(list[2]) };
+                htmlInfo.sGumpCoords    = gumpCoords;
+                htmlInfo.Width          = Core::ToInt(list[3]);
+                htmlInfo.Height         = Core::ToInt(list[4]);
+                htmlInfo.HaveBackground = Core::ToInt(list[5]);
+                htmlInfo.HaveScrollbar  = Core::ToInt(list[6]);
+                htmlInfo.Color          = Core::ToInt(list[7]);
 
                 if (htmlInfo.Color == 0x7FFF)
                 {
                     htmlInfo.Color = 0x00FFFFFF;
                 }
 
-                htmlInfo.TextID = ToInt(list[8]);
+                htmlInfo.TextID = Core::ToInt(list[8]);
 
                 if (listSize >= 10)
                 {
@@ -5251,14 +5254,14 @@ PACKET_HANDLER(OpenGump)
         {
             if (listSize >= 2 && lastGumpObject != nullptr)
             {
-                lastGumpObject->ClilocID = ToInt(list[1]);
+                lastGumpObject->ClilocID = Core::ToInt(list[1]);
             }
         }
         else if (cmd == "mastergump")
         {
             if (listSize >= 2)
             {
-                gump->MasterGump = ToInt(list[1]);
+                gump->MasterGump = Core::ToInt(list[1]);
             }
         }
 
@@ -5280,11 +5283,11 @@ PACKET_HANDLER(OpenGump)
 
     AddHTMLGumps(gump, htmlGumlList);
 
-    int textLinesCount = ReadInt16BE();
+    int textLinesCount = ReadBE<i16>();
 
     for (int i = 0; i < textLinesCount; i++)
     {
-        int linelen = ReadInt16BE();
+        int linelen = ReadBE<i16>();
 
         if (linelen != 0)
         {
@@ -5311,67 +5314,71 @@ PACKET_HANDLER(OpenCompressedGump)
         return;
     }
 
-    u32 senderID = ReadUInt32BE();
-    u32 gumpID = ReadUInt32BE();
-    u32 x = ReadUInt32BE();
-    u32 y = ReadUInt32BE();
-    uLongf cLen = ReadUInt32BE() - 4; //Compressed Length (4 == sizeof(DecompressedLen)
-    uLongf dLen = ReadUInt32BE();     //Decompressed Length
+    u32 senderID = ReadBE<u32>();
+    u32 gumpID   = ReadBE<u32>();
+    u32 x        = ReadBE<u32>();
+    u32 y        = ReadBE<u32>();
+    uLongf cLen  = ReadBE<u32>() - 4; //Compressed Length (4 == sizeof(DecompressedLen)
+    uLongf dLen  = ReadBE<u32>();     //Decompressed Length
 
     if (cLen < 1)
     {
-        LOG("CLen=%d\nServer Sends bad Compressed Gumpdata!\n", cLen);
+        LOG_ERROR("PacketManager", "CLen=%d\nServer Sends bad Compressed Gumpdata!", cLen);
 
         return;
     }
-    if ((int)(28 + cLen) > Size)
+    if ((int)(28 + cLen) > m_size)
     {
-        LOG("Server Sends bad Compressed Gumpdata!\n");
+        LOG_ERROR("PacketManager", "Server Sends bad Compressed Gumpdata!");
 
         return;
     }
 
     // Layout data.....
     std::vector<u8> decLayoutData(dLen);
-    LOG("Gump layout:\n\tSenderID=0x%08X\n\tGumpID=0x%08X\n\tCLen=%d\n\tDLen=%d\nDecompressing layout gump data...\n",
+    LOG_INFO(
+        "PacketManager",
+        "Gump layout:\n\tSenderID=0x%08X\n\tGumpID=0x%08X\n\tCLen=%d\n\tDLen=%d\nDecompressing layout gump data...",
         senderID,
         gumpID,
         cLen,
         dLen);
 
-    int z_err = mz_uncompress(&decLayoutData[0], &dLen, Ptr, cLen);
+    int z_err = mz_uncompress(&decLayoutData[0], &dLen, m_ptr, cLen);
     if (z_err != Z_OK)
     {
-        LOG("Decompress layout gump error %d\n", z_err);
+        LOG_ERROR("PacketManager", "Decompress layout gump error %d", z_err);
         return;
     }
 
-    LOG("Layout gump data decompressed!\n");
+    LOG_INFO("PacketManager", "Layout gump data decompressed!");
     // Text data.....
 
     Move(cLen);
 
-    u32 linesCount = ReadUInt32BE(); //Text lines count
-    u32 cTLen = 0;
-    uLongf dTLen = 0;
+    u32 linesCount = ReadBE<u32>(); //Text lines count
+    u32 cTLen      = 0;
+    uLongf dTLen   = 0;
     std::vector<u8> gumpDecText;
 
     if (linesCount > 0)
     {
-        cTLen = ReadUInt32BE(); //Compressed lines length
-        dTLen = ReadUInt32BE(); //Decompressed lines length
+        cTLen = ReadBE<u32>(); //Compressed lines length
+        dTLen = ReadBE<u32>(); //Decompressed lines length
 
         gumpDecText.resize(dTLen);
-        LOG("Decompressing text gump data...\n");
+        LOG_INFO("PacketManager", "Decompressing text gump data...");
 
-        z_err = mz_uncompress(&gumpDecText[0], &dTLen, Ptr, cTLen);
+        z_err = mz_uncompress(&gumpDecText[0], &dTLen, m_ptr, cTLen);
         if (z_err != Z_OK)
         {
-            LOG("Decompress text gump error %d\n", z_err);
+            LOG_ERROR("PacketManager", "Decompress text gump error %d", z_err);
             return;
         }
 
-        LOG("Text gump data decompressed!\nGump text lines:\n\tLinesCount=%d\n\tCTLen=%d\n\tDTLen=%d\n",
+        LOG_INFO(
+            "PacketManager",
+            "Text gump data decompressed!\nGump text lines:\n\tLinesCount=%d\n\tCTLen=%d\n\tDTLen=%d",
             linesCount,
             cTLen,
             dTLen);
@@ -5380,8 +5387,8 @@ PACKET_HANDLER(OpenCompressedGump)
     int newsize = 21 + dLen + 2 + dTLen;
 
     std::vector<u8> newbufData(newsize);
-    u8 *newbuf = &newbufData[0];
-    newbuf[0] = 0xb0;
+    u8* newbuf = &newbufData[0];
+    newbuf[0]  = 0xb0;
     pack16(newbuf + 1, newsize);
     pack32(newbuf + 3, senderID);
     pack32(newbuf + 7, gumpID);
@@ -5400,26 +5407,26 @@ PACKET_HANDLER(OpenCompressedGump)
         newbuf[newsize - 1] = 0x00;
     }
 
-    LOG("Gump decompressed! newsize=%d\n", newsize);
+    LOG_INFO("PacketManager", "Gump decompressed! newsize=%d", newsize);
 
-    Size = newsize;
-    Start = newbuf;
-    End = Start + Size;
+    m_size  = newsize;
+    m_buffer = newbuf;
+    m_end   = m_buffer + m_size;
 
     OnPacket();
 }
 
 PACKET_HANDLER(DyeData)
 {
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
     Move(2);
-    u16 graphic = ReadUInt16BE();
+    u16 graphic = ReadBE<u16>();
 
     Core::Vec2<i32> gumpSize = g_Orion.GetGumpDimension(0x0906);
 
-    auto x = i16((g_OrionWindow.GetSize().Width / 2) - (gumpSize.Width / 2));
-    auto y = i16((g_OrionWindow.GetSize().Height / 2) - (gumpSize.Height / 2));
-    CGumpDye *gump = new CGumpDye(serial, x, y, graphic);
+    auto x         = i16((g_OrionWindow.GetSize().x / 2) - (gumpSize.x / 2));
+    auto y         = i16((g_OrionWindow.GetSize().y / 2) - (gumpSize.y / 2));
+    CGumpDye* gump = new CGumpDye(serial, x, y, graphic);
 
     g_GumpManager.AddGump(gump);
 }
@@ -5431,27 +5438,27 @@ PACKET_HANDLER(DisplayMap)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u16 gumpid = ReadUInt16BE();
+    u32 serial = ReadBE<u32>();
+    u16 gumpid = ReadBE<u16>();
 
     //TPRINT("gumpid = 0x%04X\n", gumpid);
 
-    u16 startX = ReadUInt16BE();
-    u16 startY = ReadUInt16BE();
-    u16 endX = ReadUInt16BE();
-    u16 endY = ReadUInt16BE();
-    u16 width = ReadUInt16BE();
-    u16 height = ReadUInt16BE();
+    u16 startX = ReadBE<u16>();
+    u16 startY = ReadBE<u16>();
+    u16 endX   = ReadBE<u16>();
+    u16 endY   = ReadBE<u16>();
+    u16 width  = ReadBE<u16>();
+    u16 height = ReadBE<u16>();
 
-    CGumpMap *gump = new CGumpMap(serial, gumpid, startX, startY, endX, endY, width, height);
+    CGumpMap* gump = new CGumpMap(serial, gumpid, startX, startY, endX, endY, width, height);
 
-    if (*Start == 0xF5 || g_Config.ClientVersion >= CV_308Z) //308z или выше?
+    if (*m_buffer == 0xF5 || GameVars::GetClientVersion() >= CV_308Z) //308z или выше?
     {
         u16 facet = 0;
 
-        if (*Start == 0xF5)
+        if (*m_buffer == 0xF5)
         {
-            facet = ReadUInt16BE();
+            facet = ReadBE<u16>();
         }
 
         g_MultiMap.LoadFacet(gump, gump->m_Texture, facet);
@@ -5467,7 +5474,7 @@ PACKET_HANDLER(DisplayMap)
 
     g_GumpManager.AddGump(gump);
 
-    CGameItem *obj = g_World->FindWorldItem(serial);
+    CGameItem* obj = g_World->FindWorldItem(serial);
 
     if (obj != nullptr)
     {
@@ -5482,19 +5489,19 @@ PACKET_HANDLER(MapData)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    CGumpMap *gump = (CGumpMap *)g_GumpManager.UpdateGump(serial, 0, GT_MAP);
+    u32 serial     = ReadBE<u32>();
+    CGumpMap* gump = (CGumpMap*)g_GumpManager.UpdateGump(serial, 0, GT_MAP);
 
     if (gump != nullptr && gump->m_DataBox != nullptr)
     {
-        switch ((MAP_MESSAGE)ReadUInt8()) //Action
+        switch ((MAP_MESSAGE)ReadBE<u8>()) //Action
         {
             case MM_ADD: //Add Pin
             {
                 Move(1);
 
-                short x = ReadUInt16BE();
-                short y = ReadUInt16BE();
+                short x = ReadBE<u16>();
+                short y = ReadBE<u16>();
 
                 gump->m_DataBox->Add(new CGUIGumppic(0x139B, x, y));
                 gump->WantRedraw = true;
@@ -5522,26 +5529,25 @@ PACKET_HANDLER(MapData)
             }
             case MM_EDIT_RESPONSE: //Reply From Server to Action 6 (Plotting request)
             {
-                gump->SetPlotState(ReadUInt8());
+                gump->SetPlotState(ReadBE<u8>());
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
 }
 
 PACKET_HANDLER(TipWindow)
 {
-    u8 flag = ReadUInt8();
+    u8 flag = ReadBE<u8>();
 
     if (flag != 1) //1 - ignore
     {
-        u32 serial = ReadUInt32BE();
-        short len = ReadInt16BE();
+        u32 serial = ReadBE<u32>();
+        short len  = ReadBE<i16>();
 
-        string str = ReadString(len);
+        std::string str = ReadString(len);
 
         int x = 20;
         int y = 20;
@@ -5552,7 +5558,7 @@ PACKET_HANDLER(TipWindow)
             y = 100;
         }
 
-        CGumpTip *gump = new CGumpTip(serial, x, y, str, flag != 0);
+        CGumpTip* gump = new CGumpTip(serial, x, y, str, flag != 0);
 
         g_GumpManager.AddGump(gump);
     }
@@ -5565,11 +5571,11 @@ PACKET_HANDLER(CharacterProfile)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    std::wstring topText = ToWString(ReadString());
+    u32 serial              = ReadBE<u32>();
+    std::wstring topText    = Core::ToWString(ReadString());
     std::wstring bottomText = ReadWStringBE();
-    std::wstring dataText = ReadWStringBE();
-    CGumpProfile *gump = new CGumpProfile(serial, 170, 90, topText, bottomText, dataText);
+    std::wstring dataText   = ReadWStringBE();
+    CGumpProfile* gump      = new CGumpProfile(serial, 170, 90, topText, bottomText, dataText);
     g_GumpManager.AddGump(gump);
 }
 
@@ -5580,26 +5586,26 @@ PACKET_HANDLER(BulletinBoardData)
         return;
     }
 
-    switch (ReadUInt8())
+    switch (ReadBE<u8>())
     {
         case 0: //Open board
         {
-            u32 serial = ReadUInt32BE();
+            u32 serial = ReadBE<u32>();
 
-            CGameItem *item = g_World->FindWorldItem(serial);
+            CGameItem* item = g_World->FindWorldItem(serial);
 
             if (item != nullptr)
             {
-                CGumpBulletinBoard *bbGump =
-                    (CGumpBulletinBoard *)g_GumpManager.UpdateGump(serial, 0, GT_BULLETIN_BOARD);
+                CGumpBulletinBoard* bbGump =
+                    (CGumpBulletinBoard*)g_GumpManager.UpdateGump(serial, 0, GT_BULLETIN_BOARD);
 
                 if (bbGump != nullptr)
                 {
-                    CBaseGUI *bbItem = (CBaseGUI *)bbGump->m_HTMLGump->m_Items;
+                    CBaseGUI* bbItem = (CBaseGUI*)bbGump->m_HTMLGump->m_Items;
 
                     while (bbItem != nullptr)
                     {
-                        CBaseGUI *bbNext = (CBaseGUI *)bbItem->m_Next;
+                        CBaseGUI* bbNext = (CBaseGUI*)bbItem->m_Next;
 
                         if (bbItem->Type == GOT_BB_OBJECT)
                         {
@@ -5615,12 +5621,12 @@ PACKET_HANDLER(BulletinBoardData)
                 item->Opened = true;
             }
 
-            string str((char *)Ptr);
+            std::string str((char*)m_ptr);
 
-            int x = (g_OrionWindow.GetSize().Width / 2) - 245;
-            int y = (g_OrionWindow.GetSize().Height / 2) - 205;
+            int x = (g_OrionWindow.GetSize().x / 2) - 245;
+            int y = (g_OrionWindow.GetSize().y / 2) - 205;
 
-            CGumpBulletinBoard *gump = new CGumpBulletinBoard(serial, x, y, str);
+            CGumpBulletinBoard* gump = new CGumpBulletinBoard(serial, x, y, str);
 
             g_GumpManager.AddGump(gump);
 
@@ -5628,27 +5634,27 @@ PACKET_HANDLER(BulletinBoardData)
         }
         case 1: //Summary message
         {
-            u32 boardSerial = ReadUInt32BE();
+            u32 boardSerial = ReadBE<u32>();
 
-            CGumpBulletinBoard *gump =
-                (CGumpBulletinBoard *)g_GumpManager.GetGump(boardSerial, 0, GT_BULLETIN_BOARD);
+            CGumpBulletinBoard* gump =
+                (CGumpBulletinBoard*)g_GumpManager.GetGump(boardSerial, 0, GT_BULLETIN_BOARD);
 
             if (gump != nullptr)
             {
-                u32 serial = ReadUInt32BE();
-                u32 parentID = ReadUInt32BE();
+                u32 serial   = ReadBE<u32>();
+                u32 parentID = ReadBE<u32>();
 
                 //poster
-                int len = ReadUInt8();
-                std::wstring text = (len > 0 ? DecodeUTF8(ReadString(len)) : L"") + L" - ";
+                int len           = ReadBE<u8>();
+                std::wstring text = (len > 0 ? Core::DecodeUTF8(ReadString(len)) : L"") + L" - ";
 
                 //subject
-                len = ReadUInt8();
-                text += (len > 0 ? DecodeUTF8(ReadString(len)) : L"") + L" - ";
+                len = ReadBE<u8>();
+                text += (len > 0 ? Core::DecodeUTF8(ReadString(len)) : L"") + L" - ";
 
                 //data time
-                len = ReadUInt8();
-                text += (len > 0 ? DecodeUTF8(ReadString(len)) : L"");
+                len = ReadBE<u8>();
+                text += (len > 0 ? Core::DecodeUTF8(ReadString(len)) : L"");
 
                 int posY = (gump->m_HTMLGump->GetItemsCount() - 5) * 18;
 
@@ -5665,31 +5671,31 @@ PACKET_HANDLER(BulletinBoardData)
         }
         case 2: //Message
         {
-            u32 boardSerial = ReadUInt32BE();
+            u32 boardSerial = ReadBE<u32>();
 
-            CGumpBulletinBoard *gump =
-                (CGumpBulletinBoard *)g_GumpManager.GetGump(boardSerial, 0, GT_BULLETIN_BOARD);
+            CGumpBulletinBoard* gump =
+                (CGumpBulletinBoard*)g_GumpManager.GetGump(boardSerial, 0, GT_BULLETIN_BOARD);
 
             if (gump != nullptr)
             {
-                u32 serial = ReadUInt32BE();
+                u32 serial = ReadBE<u32>();
 
                 //poster
-                int len = ReadUInt8();
-                std::wstring poster = (len > 0 ? DecodeUTF8(ReadString(len)) : L"");
+                int len             = ReadBE<u8>();
+                std::wstring poster = (len > 0 ? Core::DecodeUTF8(ReadString(len)) : L"");
 
                 //subject
-                len = ReadUInt8();
-                std::wstring subject = (len > 0 ? DecodeUTF8(ReadString(len)) : L"");
+                len                  = ReadBE<u8>();
+                std::wstring subject = (len > 0 ? Core::DecodeUTF8(ReadString(len)) : L"");
 
                 //data time
-                len = ReadUInt8();
-                std::wstring dataTime = (len > 0 ? DecodeUTF8(ReadString(len)) : L"");
+                len                   = ReadBE<u8>();
+                std::wstring dataTime = (len > 0 ? Core::DecodeUTF8(ReadString(len)) : L"");
 
                 //unused, in old clients: user's graphic, color
                 Move(4);
 
-                u8 unknown = ReadUInt8();
+                u8 unknown = ReadBE<u8>();
 
                 if (unknown > 0)
                 {
@@ -5697,12 +5703,12 @@ PACKET_HANDLER(BulletinBoardData)
                     Move(unknown * 4);
                 }
 
-                u8 lines = ReadUInt8();
+                u8 lines          = ReadBE<u8>();
                 std::wstring data = {};
 
                 for (int i = 0; i < lines; i++)
                 {
-                    u8 linelen = ReadUInt8();
+                    u8 linelen = ReadBE<u8>();
 
                     if (data.length() != 0u)
                     {
@@ -5711,19 +5717,18 @@ PACKET_HANDLER(BulletinBoardData)
 
                     if (linelen > 0)
                     {
-                        data += DecodeUTF8(ReadString(linelen));
+                        data += Core::DecodeUTF8(ReadString(linelen));
                     }
                 }
 
-                u8 variant = 1 + (int)(poster == ToWString(g_Player->GetName()));
+                u8 variant = 1 + (int)(poster == Core::ToWString(g_Player->GetName()));
                 g_GumpManager.AddGump(new CGumpBulletinBoardItem(
                     serial, 0, 0, variant, boardSerial, poster, subject, dataTime, data));
             }
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -5734,15 +5739,15 @@ PACKET_HANDLER(OpenBook) // 0x93
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u8 flags = ReadUInt8();
+    u32 serial = ReadBE<u32>();
+    u8 flags   = ReadBE<u8>();
     Move(1);
-    auto pageCount = ReadUInt16BE();
-    CGumpBook *gump =
-        new CGumpBook(serial, 0, 0, pageCount, flags != 0, (g_Config.ClientVersion >= CV_308Z));
+    auto pageCount = ReadBE<u16>();
+    CGumpBook* gump =
+        new CGumpBook(serial, 0, 0, pageCount, flags != 0, (GameVars::GetClientVersion() >= CV_308Z));
 
-    gump->m_EntryTitle->m_Entry.SetTextW(DecodeUTF8(ReadString(60)));
-    gump->m_EntryAuthor->m_Entry.SetTextW(DecodeUTF8(ReadString(30)));
+    gump->m_EntryTitle->m_Entry.SetTextW(Core::DecodeUTF8(ReadString(60)));
+    gump->m_EntryAuthor->m_Entry.SetTextW(Core::DecodeUTF8(ReadString(30)));
 
     g_GumpManager.AddGump(gump);
 }
@@ -5754,25 +5759,25 @@ PACKET_HANDLER(OpenBookNew) // 0xD4
         return;
     }
 
-    u32 serial = ReadUInt32BE();
-    u8 flag1 = ReadUInt8();
-    u8 flag2 = ReadUInt8();
-    u16 pageCount = ReadUInt16BE();
+    u32 serial    = ReadBE<u32>();
+    u8 flag1      = ReadBE<u8>();
+    u8 flag2      = ReadBE<u8>();
+    u16 pageCount = ReadBE<u16>();
 
-    CGumpBook *gump = new CGumpBook(serial, 0, 0, pageCount, (flag1 + flag2) != 0, true);
+    CGumpBook* gump = new CGumpBook(serial, 0, 0, pageCount, (flag1 + flag2) != 0, true);
 
-    int titleLen = ReadUInt16BE();
+    int titleLen = ReadBE<u16>();
 
     if (titleLen > 0)
     {
-        gump->m_EntryTitle->m_Entry.SetTextW(DecodeUTF8(ReadString(titleLen)));
+        gump->m_EntryTitle->m_Entry.SetTextW(Core::DecodeUTF8(ReadString(titleLen)));
     }
 
-    int authorLen = ReadUInt16BE();
+    int authorLen = ReadBE<u16>();
 
     if (authorLen > 0)
     {
-        gump->m_EntryAuthor->m_Entry.SetTextW(DecodeUTF8(ReadString(authorLen)));
+        gump->m_EntryAuthor->m_Entry.SetTextW(Core::DecodeUTF8(ReadString(authorLen)));
     }
 
     g_GumpManager.AddGump(gump);
@@ -5785,24 +5790,24 @@ PACKET_HANDLER(BookData)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGumpBook *gump = (CGumpBook *)g_GumpManager.GetGump(serial, 0, GT_BOOK);
+    CGumpBook* gump = (CGumpBook*)g_GumpManager.GetGump(serial, 0, GT_BOOK);
 
     if (gump != nullptr)
     {
-        u16 pageCount = ReadUInt16BE();
+        u16 pageCount = ReadBE<u16>();
 
         for (int i = 0; i < pageCount; i++)
         {
-            u16 page = ReadUInt16BE();
+            u16 page = ReadBE<u16>();
 
             if (page > gump->PageCount)
             {
                 continue;
             }
 
-            u16 lineCount = ReadUInt16BE();
+            u16 lineCount = ReadBE<u16>();
 
             std::wstring str = {};
 
@@ -5813,7 +5818,7 @@ PACKET_HANDLER(BookData)
                     str += L'\n';
                 }
 
-                std::wstring temp = DecodeUTF8(ReadString());
+                std::wstring temp = Core::DecodeUTF8(ReadString());
 
                 while ((temp.length() != 0u) && (temp.back() == L'\n' || temp.back() == L'\r'))
                 {
@@ -5835,27 +5840,27 @@ PACKET_HANDLER(BuyList)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameItem *container = g_World->FindWorldItem(serial);
+    CGameItem* container = g_World->FindWorldItem(serial);
 
     if (container == nullptr)
     {
-        LOG("Error!!! Buy container is not found!!!\n");
+        LOG_ERROR("PacketManager", "Error!!! Buy container is not found!!!");
         return;
     }
 
     u32 vendorSerial = container->Container;
 
-    CGameCharacter *vendor = g_World->FindWorldCharacter(vendorSerial);
+    CGameCharacter* vendor = g_World->FindWorldCharacter(vendorSerial);
 
     if (vendor == nullptr)
     {
-        LOG("Error!!! Buy vendor is not found!!!\n");
+        LOG_ERROR("PacketManager", "Error!!! Buy vendor is not found!!!");
         return;
     }
 
-    CGumpShop *gump = (CGumpShop *)g_GumpManager.GetGump(vendorSerial, 0, GT_SHOP);
+    CGumpShop* gump = (CGumpShop*)g_GumpManager.GetGump(vendorSerial, 0, GT_SHOP);
 
     if (gump != nullptr && (gump->Serial != vendorSerial || !gump->IsBuyGump))
     {
@@ -5873,9 +5878,9 @@ PACKET_HANDLER(BuyList)
 
     if (container->Layer == OL_BUY_RESTOCK || container->Layer == OL_BUY)
     {
-        u8 count = ReadUInt8();
+        u8 count = ReadBE<u8>();
 
-        CGameItem *item = (CGameItem *)container->m_Items;
+        CGameItem* item = (CGameItem*)container->m_Items;
         //oldp spams this packet twice in a row on NPC verndors. nullptr check is needed t
         if (item == nullptr)
         {
@@ -5888,19 +5893,19 @@ PACKET_HANDLER(BuyList)
         {
             while (item != nullptr && item->m_Next != nullptr)
             {
-                item = (CGameItem *)item->m_Next;
+                item = (CGameItem*)item->m_Next;
             }
         }
 
-        CGUIHTMLGump *htmlGump = gump->m_ItemList[0];
+        CGUIHTMLGump* htmlGump = gump->m_ItemList[0];
 
         int currentY = 0;
 
-        QFOR(shopItem, htmlGump->m_Items, CBaseGUI *)
+        QFOR(shopItem, htmlGump->m_Items, CBaseGUI*)
         {
             if (shopItem->Type == GOT_SHOPITEM)
             {
-                currentY += shopItem->GetSize().Height;
+                currentY += shopItem->GetSize().y;
             }
         }
 
@@ -5908,14 +5913,14 @@ PACKET_HANDLER(BuyList)
         {
             if (item == nullptr)
             {
-                LOG("Error!!! Buy item is not found!!!\n");
+                LOG_ERROR("PacketManager", "Error!!! Buy item is not found!!!");
                 break;
             }
 
-            item->Price = ReadUInt32BE();
+            item->Price = ReadBE<u32>();
 
-            u8 nameLen = ReadUInt8();
-            string name = ReadString(nameLen);
+            u8 nameLen       = ReadBE<u8>();
+            std::string name = ReadString(nameLen);
 
             //try int.parse and read cliloc.
             int clilocNum = 0;
@@ -5933,11 +5938,11 @@ PACKET_HANDLER(BuyList)
 
             if (reverse)
             {
-                item = (CGameItem *)item->m_Prev;
+                item = (CGameItem*)item->m_Prev;
             }
             else
             {
-                item = (CGameItem *)item->m_Next;
+                item = (CGameItem*)item->m_Next;
             }
         }
 
@@ -5945,7 +5950,7 @@ PACKET_HANDLER(BuyList)
     }
     else
     {
-        LOG("Unknown layer for buy container!!!\n");
+        LOG_ERROR("PacketManager", "Unknown layer for buy container!!!");
     }
 }
 
@@ -5956,51 +5961,51 @@ PACKET_HANDLER(SellList)
         return;
     }
 
-    u32 serial = ReadUInt32BE();
+    u32 serial = ReadBE<u32>();
 
-    CGameCharacter *vendor = g_World->FindWorldCharacter(serial);
+    CGameCharacter* vendor = g_World->FindWorldCharacter(serial);
 
     if (vendor == nullptr)
     {
-        LOG("Error!!! Sell vendor is not found!!!\n");
+        LOG_ERROR("PacketManager", "Error!!! Sell vendor is not found!!!");
         return;
     }
 
-    u16 itemsCount = ReadUInt16BE();
+    u16 itemsCount = ReadBE<u16>();
 
     if (itemsCount == 0u)
     {
-        LOG("Error!!! Sell list is empty.\n");
+        LOG_ERROR("PacketManager", "Error!!! Sell list is empty.");
         return;
     }
 
     g_GumpManager.CloseGump(0, 0, GT_SHOP);
 
-    CGumpShop *gump = new CGumpShop(serial, false, 100, 0);
-    CGUIHTMLGump *htmlGump = gump->m_ItemList[0];
+    CGumpShop* gump        = new CGumpShop(serial, false, 100, 0);
+    CGUIHTMLGump* htmlGump = gump->m_ItemList[0];
 
     int currentY = 0;
 
     for (int i = 0; i < itemsCount; i++)
     {
-        u32 itemSerial = ReadUInt32BE();
-        u16 graphic = ReadUInt16BE();
-        u16 color = ReadUInt16BE();
-        u16 count = ReadUInt16BE();
-        u16 price = ReadUInt16BE();
-        int nameLen = ReadInt16BE();
-        string name = ReadString(nameLen);
+        u32 itemSerial   = ReadBE<u32>();
+        u16 graphic      = ReadBE<u16>();
+        u16 color        = ReadBE<u16>();
+        u16 count        = ReadBE<u16>();
+        u16 price        = ReadBE<u16>();
+        int nameLen      = ReadBE<i16>();
+        std::string name = ReadString(nameLen);
 
-        int clilocNum = 0;
+        int clilocNum       = 0;
         bool nameFromCliloc = false;
 
         if (Int32TryParse(name, clilocNum))
         {
-            name = g_ClilocManager.GetCliloc(g_Language)->GetA(clilocNum, true);
+            name           = g_ClilocManager.GetCliloc(g_Language)->GetA(clilocNum, true);
             nameFromCliloc = true;
         }
 
-        CGUIShopItem *shopItem = (CGUIShopItem *)htmlGump->Add(
+        CGUIShopItem* shopItem = (CGUIShopItem*)htmlGump->Add(
             new CGUIShopItem(itemSerial, graphic, color, count, price, name, 0, currentY));
         shopItem->NameFromCliloc = nameFromCliloc;
 
@@ -6011,7 +6016,7 @@ PACKET_HANDLER(SellList)
             shopItem->UpdateOffsets();
         }
 
-        currentY += shopItem->GetSize().Height;
+        currentY += shopItem->GetSize().y;
     }
 
     htmlGump->CalculateDataSize();
@@ -6021,8 +6026,8 @@ PACKET_HANDLER(SellList)
 
 PACKET_HANDLER(BuyReply)
 {
-    u32 serial = ReadUInt32BE();
-    u8 flag = ReadUInt8();
+    u32 serial = ReadBE<u32>();
+    u8 flag    = ReadBE<u8>();
 
     if (flag == 0u)
     { //Close shop gump
@@ -6039,8 +6044,8 @@ PACKET_HANDLER(OPLInfo)
 {
     if (g_TooltipsEnabled)
     {
-        u32 serial = ReadUInt32BE();
-        u32 revision = ReadUInt32BE();
+        u32 serial   = ReadBE<u32>();
+        u32 revision = ReadBE<u32>();
 
         if (!g_ObjectPropertiesManager.RevisionCheck(serial, revision))
         {
@@ -6051,28 +6056,28 @@ PACKET_HANDLER(OPLInfo)
 
 PACKET_HANDLER(CustomHouse)
 {
-    bool compressed = ReadUInt8() == 0x03;
-    bool enableResponse = ReadUInt8() == 0x01;
-    u32 serial = ReadUInt32BE();
-    u32 revision = ReadUInt32BE();
-    CGameItem *foundationItem = g_World->FindWorldItem(serial);
+    bool compressed           = ReadBE<u8>() == 0x03;
+    bool enableResponse       = ReadBE<u8>() == 0x01;
+    u32 serial                = ReadBE<u32>();
+    u32 revision              = ReadBE<u32>();
+    CGameItem* foundationItem = g_World->FindWorldItem(serial);
 
     if (foundationItem == nullptr)
     {
         return;
     }
 
-    CMulti *multi = foundationItem->GetMulti();
+    CMulti* multi = foundationItem->GetMulti();
 
     if (multi == nullptr)
     {
         return;
     }
 
-    ReadUInt16BE();
-    ReadUInt16BE();
+    ReadBE<u16>();
+    ReadBE<u16>();
 
-    CCustomHouse *house = g_CustomHousesManager.Get(serial);
+    CCustomHouse* house = g_CustomHousesManager.Get(serial);
 
     if (house == nullptr)
     {
@@ -6084,7 +6089,7 @@ PACKET_HANDLER(CustomHouse)
         house->Revision = revision;
     }
 
-    LOG("House update in cache: 0x%08X 0x%08X\n", serial, revision);
+    LOG_INFO("PacketManager", "House update in cache: 0x%08X 0x%08X", serial, revision);
 
     house->m_Items.clear();
 
@@ -6092,14 +6097,14 @@ PACKET_HANDLER(CustomHouse)
     short minY = multi->MinY;
     short maxY = multi->MaxY;
 
-    u8 planes = ReadUInt8();
+    u8 planes = ReadBE<u8>();
 
     for (int plane = 0; plane < planes; plane++)
     {
-        u32 header = ReadUInt32BE();
-        uLongf dLen = ((header & 0xFF0000) >> 16) | ((header & 0xF0) << 4);
-        int cLen = ((header & 0xFF00) >> 8) | ((header & 0x0F) << 8);
-        int planeZ = (header & 0x0F000000) >> 24;
+        u32 header    = ReadBE<u32>();
+        uLongf dLen   = ((header & 0xFF0000) >> 16) | ((header & 0xF0) << 4);
+        int cLen      = ((header & 0xFF00) >> 8) | ((header & 0x0F) << 8);
+        int planeZ    = (header & 0x0F000000) >> 24;
         int planeMode = (header & 0xF0000000) >> 28;
 
         if (cLen <= 0)
@@ -6108,10 +6113,10 @@ PACKET_HANDLER(CustomHouse)
         }
 
         std::vector<u8> decompressedBytes(dLen);
-        int z_err = mz_uncompress(&decompressedBytes[0], &dLen, Ptr, cLen);
+        int z_err = mz_uncompress(&decompressedBytes[0], &dLen, m_ptr, cLen);
         if (z_err != Z_OK)
         {
-            LOG("Bad CustomHouseStruct compressed data received from server, house serial:%i\n",
+            LOG_ERROR("PacketManager", "Bad CustomHouseStruct compressed data received from server, house serial:%i",
                 serial);
             //LOG("House plane idx:%i\n", idx);
             continue;
@@ -6132,9 +6137,9 @@ PACKET_HANDLER(CustomHouse)
                 for (u32 i = 0; i < decompressedBytes.size() / 5; i++)
                 {
                     id = tempReader.ReadBE<u16>();
-                    x = tempReader.ReadLE<u8>();
-                    y = tempReader.ReadLE<u8>();
-                    z = tempReader.ReadLE<u8>();
+                    x  = tempReader.ReadLE<u8>();
+                    y  = tempReader.ReadLE<u8>();
+                    z  = tempReader.ReadLE<u8>();
 
                     if (id != 0)
                     {
@@ -6158,8 +6163,8 @@ PACKET_HANDLER(CustomHouse)
                 for (u32 i = 0; i < decompressedBytes.size() / 4; i++)
                 {
                     id = tempReader.ReadBE<u16>();
-                    x = tempReader.ReadLE<u8>();
-                    y = tempReader.ReadLE<u8>();
+                    x  = tempReader.ReadLE<u8>();
+                    y  = tempReader.ReadLE<u8>();
 
                     if (id != 0)
                     {
@@ -6171,8 +6176,8 @@ PACKET_HANDLER(CustomHouse)
             }
             case 2:
             {
-                short xOffs = 0;
-                short yOffs = 0;
+                short xOffs       = 0;
+                short yOffs       = 0;
                 short multiHeight = 0;
 
                 if (planeZ > 0)
@@ -6186,28 +6191,28 @@ PACKET_HANDLER(CustomHouse)
 
                 if (planeZ <= 0)
                 {
-                    xOffs = minX;
-                    yOffs = minY;
+                    xOffs       = minX;
+                    yOffs       = minY;
                     multiHeight = (maxY - minY) + 2;
                 }
                 else if (planeZ <= 4)
                 {
-                    xOffs = minX + 1;
-                    yOffs = minY + 1;
+                    xOffs       = minX + 1;
+                    yOffs       = minY + 1;
                     multiHeight = (maxY - minY);
                 }
                 else
                 {
-                    xOffs = minX;
-                    yOffs = minY;
+                    xOffs       = minX;
+                    yOffs       = minY;
                     multiHeight = (maxY - minY) + 1;
                 }
 
                 for (u32 i = 0; i < decompressedBytes.size() / 2; i++)
                 {
                     id = tempReader.ReadBE<u16>();
-                    x = i / multiHeight + xOffs;
-                    y = i % multiHeight + yOffs;
+                    x  = i / multiHeight + xOffs;
+                    y  = i % multiHeight + yOffs;
 
                     if (id != 0)
                     {
@@ -6217,8 +6222,7 @@ PACKET_HANDLER(CustomHouse)
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
 
@@ -6232,8 +6236,8 @@ PACKET_HANDLER(CustomHouse)
 
 PACKET_HANDLER(OrionMessages)
 {
-    u16 command = ReadUInt16BE();
-    u8 type = command >> 12;
+    u16 command = ReadBE<u16>();
+    u8 type     = command >> 12;
     command &= 0x0FFF;
 
     if (type != 0u)
@@ -6245,27 +6249,25 @@ PACKET_HANDLER(OrionMessages)
     {
         case OCT_ORION_FEATURES:
         {
-            g_OrionFeaturesFlags = ReadUInt32BE();
+            g_OrionFeaturesFlags = ReadBE<u32>();
             g_ConfigManager.UpdateFeatures();
             break;
         }
         case OCT_ORION_IGNORE_TILES_IN_FILTER:
         {
             g_Orion.m_IgnoreInFilterTiles.clear();
-            u16 count = ReadUInt16BE();
+            u16 count = ReadBE<u16>();
             for (int i = 0; i < count; i++)
             {
-                g_Orion.m_IgnoreInFilterTiles.push_back(
-                    std::pair<u16, u16>(ReadUInt16BE(), 0));
+                g_Orion.m_IgnoreInFilterTiles.push_back(std::pair<u16, u16>(ReadBE<u16>(), 0));
             }
 
-            u16 countRange = ReadUInt16BE();
+            u16 countRange = ReadBE<u16>();
             for (int i = 0; i < countRange; i++)
             {
-                u16 rangeStart = ReadUInt16BE();
-                u16 rangeEnd = ReadUInt16BE();
-                g_Orion.m_IgnoreInFilterTiles.push_back(
-                    std::pair<u16, u16>(rangeStart, rangeEnd));
+                u16 rangeStart = ReadBE<u16>();
+                u16 rangeEnd   = ReadBE<u16>();
+                g_Orion.m_IgnoreInFilterTiles.push_back(std::pair<u16, u16>(rangeStart, rangeEnd));
             }
             break;
         }
@@ -6277,10 +6279,10 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_CLOSE_GENERIC_GUMP_WITHOUT_RESPONSE:
         {
-            u32 serial = ReadUInt32BE();
-            u32 id = ReadUInt32BE();
-            u8 all = ReadUInt8();
-            QFOR(gump, g_GumpManager.m_Items, CGump *)
+            u32 serial = ReadBE<u32>();
+            u32 id     = ReadBE<u32>();
+            u8 all     = ReadBE<u8>();
+            QFOR(gump, g_GumpManager.m_Items, CGump*)
             {
                 if (gump->GumpType == GT_GENERIC && gump->Serial == serial && gump->ID == id)
                 {
@@ -6296,14 +6298,14 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_SELECT_MENU:
         {
-            u32 serial = ReadUInt32BE();
-            u32 id = ReadUInt32BE();
-            u32 code = ReadUInt32BE();
+            u32 serial = ReadBE<u32>();
+            u32 id     = ReadBE<u32>();
+            u32 code   = ReadBE<u32>();
             if ((serial == 0u) && (id == 0u))
             {
-                for (CGump *gump = (CGump *)g_GumpManager.m_Items; gump != nullptr;)
+                for (CGump* gump = (CGump*)g_GumpManager.m_Items; gump != nullptr;)
                 {
-                    CGump *next = (CGump *)gump->m_Next;
+                    CGump* next = (CGump*)gump->m_Next;
                     if (gump->GumpType == GT_MENU || gump->GumpType == GT_GRAY_MENU)
                     {
                         CPacketMenuResponse(gump, code).Send();
@@ -6315,7 +6317,7 @@ PACKET_HANDLER(OrionMessages)
                 break;
             }
 
-            CGump *gump = g_GumpManager.GetGump(serial, id, GT_MENU);
+            CGump* gump = g_GumpManager.GetGump(serial, id, GT_MENU);
             if (gump == nullptr)
             {
                 gump = g_GumpManager.GetGump(serial, id, GT_GRAY_MENU);
@@ -6334,7 +6336,7 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_CAST_SPELL_REQUEST:
         {
-            int id = ReadUInt32BE();
+            int id = ReadBE<u32>();
             if (id >= 0)
             {
                 g_LastSpellIndex = id;
@@ -6344,7 +6346,7 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_USE_SKILL_REQUEST:
         {
-            int id = ReadUInt32BE();
+            int id = ReadBE<u32>();
             if (id >= 0)
             {
                 g_LastSkillIndex = id;
@@ -6354,16 +6356,16 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_DRAW_STATUSBAR:
         {
-            u32 serial = ReadUInt32BE();
-            int x = ReadInt32BE();
-            int y = ReadInt32BE();
-            bool minimized = (ReadUInt8() != 0);
+            u32 serial     = ReadBE<u32>();
+            int x          = ReadBE<i32>();
+            int y          = ReadBE<i32>();
+            bool minimized = (ReadBE<u8>() != 0);
             if (serial != g_PlayerSerial)
             {
                 minimized = true;
             }
 
-            CGump *gump = g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
+            CGump* gump = g_GumpManager.UpdateContent(serial, 0, GT_STATUSBAR);
             if (gump != nullptr)
             {
                 gump->Minimized = minimized;
@@ -6388,26 +6390,26 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_CLOSE_STATUSBAR:
         {
-            u32 serial = ReadUInt32BE();
+            u32 serial = ReadBE<u32>();
             g_GumpManager.CloseGump(serial, 0, GT_STATUSBAR);
             break;
         }
         case OCT_SECURE_TRADE_CHECK:
         {
-            u32 id1 = ReadUInt32BE();
-            CGumpSecureTrading *gump =
-                (CGumpSecureTrading *)g_GumpManager.UpdateGump(id1, 0, GT_TRADE);
+            u32 id1 = ReadBE<u32>();
+            CGumpSecureTrading* gump =
+                (CGumpSecureTrading*)g_GumpManager.UpdateGump(id1, 0, GT_TRADE);
             if (gump != nullptr)
             {
-                gump->StateMy = (ReadUInt8() != 0);
+                gump->StateMy = (ReadBE<u8>() != 0);
                 CPacketTradeResponse(gump, 2).Send();
             }
             break;
         }
         case OCT_SECURE_TRADE_CLOSE:
         {
-            u32 id1 = ReadUInt32BE();
-            auto gump = (CGumpSecureTrading *)g_GumpManager.GetGump(id1, 0, GT_TRADE);
+            u32 id1   = ReadBE<u32>();
+            auto gump = (CGumpSecureTrading*)g_GumpManager.GetGump(id1, 0, GT_TRADE);
             if (gump != nullptr)
             {
                 gump->RemoveMark = true;
@@ -6417,15 +6419,15 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_UNICODE_SPEECH_REQUEST:
         {
-            u16 color = ReadUInt16BE();
+            u16 color         = ReadBE<u16>();
             std::wstring text = ReadWStringBE();
             CGameConsole::Send(text, color);
             break;
         }
         case OCT_RENAME_MOUNT_REQUEST:
         {
-            u32 serial = ReadUInt32BE();
-            string text = ReadString();
+            u32 serial       = ReadBE<u32>();
+            std::string text = ReadString();
             CPacketRenameRequest(serial, text).Send();
             break;
         }
@@ -6436,20 +6438,20 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_PLAY_MACRO:
         {
-            int count = ReadUInt16BE();
+            int count = ReadBE<u16>();
             static Macro existsMacros(0, false, false, false);
             existsMacros.Clear();
 
-            g_MacroPointer = nullptr;
+            g_MacroPointer                          = nullptr;
             g_MacroManager.SendNotificationToPlugin = true;
             for (int m = 0; m < count; m++)
             {
-                string name = ReadString();
-                string param = ReadString();
+                std::string name     = ReadString();
+                std::string param    = ReadString();
                 MACRO_CODE macroCode = MC_NONE;
-                for (int i = 0; i < Macro::MACRO_ACTION_NAME_COUNT; i++)
+                for (int i = 0; i < Macro::kMacroActionNamesCount; i++)
                 {
-                    string macroName = Macro::m_MacroActionName[i];
+                    std::string macroName = Macro::GetActionName(i);
                     if (strcmp(name.c_str(), macroName.c_str()) == 0)
                     {
                         macroCode = (MACRO_CODE)i;
@@ -6459,24 +6461,24 @@ PACKET_HANDLER(OrionMessages)
 
                 if (macroCode == MC_NONE)
                 {
-                    LOG("Invalid macro name: %s\n", name.c_str());
+                    LOG_ERROR("PacketManager", "Invalid macro name: %s", name.c_str());
                     continue;
                 }
 
-                MacroObject *macro = Macro::CreateMacro(macroCode);
+                MacroObject* macro = Macro::CreateMacro(macroCode);
                 if (param.length() != 0u)
                 {
-                    if (macro->HaveString())
+                    if (macro->HasString())
                     {
-                        ((MacroObjectString *)macro)->m_String = param;
+                        ((MacroObjectString*)macro)->SetString(param);
                     }
                     else
                     {
-                        for (int i = 0; i < Macro::MACRO_ACTION_COUNT; i++)
+                        for (int i = 0; i < Macro::kMacroActionsCount; i++)
                         {
-                            if (param == Macro::m_MacroAction[i])
+                            if (param == Macro::GetAction(i))
                             {
-                                macro->SubCode = (MACRO_SUB_CODE)i;
+                                macro->SetSubCode((MACRO_SUB_CODE)i);
                                 break;
                             }
                         }
@@ -6485,18 +6487,18 @@ PACKET_HANDLER(OrionMessages)
                 existsMacros.Add(macro);
             }
 
-            g_MacroPointer = (MacroObject *)existsMacros.m_Items;
+            g_MacroPointer                      = (MacroObject*)existsMacros.m_Items;
             g_MacroManager.WaitingBandageTarget = false;
-            g_MacroManager.WaitForTargetTimer = 0;
+            g_MacroManager.WaitForTargetTimer   = 0;
             g_MacroManager.Execute();
             break;
         }
         case OCT_MOVE_PAPERDOLL:
         {
-            u32 serial = ReadUInt32BE();
-            int x = ReadInt32BE();
-            int y = ReadInt32BE();
-            CGump *gump = g_GumpManager.UpdateContent(serial, 0, GT_PAPERDOLL);
+            u32 serial  = ReadBE<u32>();
+            int x       = ReadBE<i32>();
+            int y       = ReadBE<i32>();
+            CGump* gump = g_GumpManager.UpdateContent(serial, 0, GT_PAPERDOLL);
             if (gump != nullptr)
             {
                 if (gump->Minimized)
@@ -6514,7 +6516,7 @@ PACKET_HANDLER(OrionMessages)
         }
         case OCT_USE_ABILITY:
         {
-            CGumpAbility::OnAbilityUse(ReadUInt8() % 2);
+            CGumpAbility::OnAbilityUse(ReadBE<u8>() % 2);
             break;
         }
         case OCT_OPEN_DOOR:
@@ -6522,8 +6524,7 @@ PACKET_HANDLER(OrionMessages)
             g_Orion.OpenDoor();
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -6534,17 +6535,17 @@ PACKET_HANDLER(PacketsList)
         return;
     }
 
-    int count = ReadUInt16BE();
+    int count = ReadBE<u16>();
     for (int i = 0; i < count; i++)
     {
-        u8 id = ReadUInt8();
+        u8 id = ReadBE<u8>();
         if (id == 0xF3)
         {
             HandleUpdateItemSA();
         }
         else
         {
-            LOG("Unknown packet ID=0x%02X in packet 0xF7!!!\n", id);
+            LOG_ERROR("PacketManager", "Unknown packet ID=0x%02X in packet 0xF7!!!", id);
             break;
         }
     }
@@ -6557,7 +6558,7 @@ PACKET_HANDLER(MovePlayer)
         return;
     }
 
-    u8 direction = ReadUInt8();
+    u8 direction = ReadBE<u8>();
     g_PathFinder.Walk((direction & 0x80) != 0, direction & 7);
 }
 
@@ -6568,9 +6569,9 @@ PACKET_HANDLER(Pathfinding)
         return;
     }
 
-    u16 x = ReadInt16BE();
-    u16 y = ReadInt16BE();
-    u16 z = ReadInt16BE();
+    u16 x = ReadBE<i16>();
+    u16 y = ReadBE<i16>();
+    u16 z = ReadBE<i16>();
     g_PathFinder.WalkTo(x, y, z, 0);
 }
 
@@ -6590,24 +6591,23 @@ void CPacketManager::SetCachedGumpCoords(u32 id, int x, int y)
 
 PACKET_HANDLER(BoatMoving)
 {
-
     // FIXME: disable BoatMoving for the 0.1.9.6 patch
     return;
-    u32 boatSerial = ReadUInt32BE();
+    u32 boatSerial = ReadBE<u32>();
 
-    CGameObject *boat = g_World->FindWorldObject(boatSerial);
+    CGameObject* boat = g_World->FindWorldObject(boatSerial);
     if (boat == nullptr)
     {
         return;
     }
 
-    u8 boatSpeed = ReadUInt8();
-    u8 movingDirection = ReadUInt8();
-    u8 facingDirection = ReadUInt8();
-    u16 boatX = ReadUInt16BE();
-    u16 boatY = ReadUInt16BE();
-    u16 boatZ = ReadUInt16BE();
-    u16 boatObjectsCount = ReadUInt16BE();
+    u8 boatSpeed         = ReadBE<u8>();
+    u8 movingDirection   = ReadBE<u8>();
+    u8 facingDirection   = ReadBE<u8>();
+    u16 boatX            = ReadBE<u16>();
+    u16 boatY            = ReadBE<u16>();
+    u16 boatZ            = ReadBE<u16>();
+    u16 boatObjectsCount = ReadBE<u16>();
 
     g_World->UpdateGameObject(
         boatSerial,
@@ -6626,18 +6626,18 @@ PACKET_HANDLER(BoatMoving)
 
     for (u16 i = 0; i < boatObjectsCount; i++)
     {
-        u32 boatObjectSerial = ReadUInt32BE();
-        u16 boatObjectX = ReadUInt16BE();
-        u16 boatObjectY = ReadUInt16BE();
-        u16 boatObjectZ = ReadUInt16BE();
+        u32 boatObjectSerial = ReadBE<u32>();
+        u16 boatObjectX      = ReadBE<u16>();
+        u16 boatObjectY      = ReadBE<u16>();
+        u16 boatObjectZ      = ReadBE<u16>();
 
-        CGameObject *boatObject = g_World->FindWorldObject(boatObjectSerial);
+        CGameObject* boatObject = g_World->FindWorldObject(boatObjectSerial);
         if (boatObject == nullptr)
         {
             continue;
         }
 
-        u8 direction = boatObject->NPC ? ((CGameCharacter *)boatObject)->Direction : 0;
+        u8 direction = boatObject->NPC ? ((CGameCharacter*)boatObject)->Direction : 0;
         g_World->UpdateGameObject(
             boatObjectSerial,
             boatObject->Graphic,

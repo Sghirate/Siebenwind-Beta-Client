@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) September 2016 Hotride
-
 #include "GumpSpellbook.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GumpSpell.h"
 #include "../Config.h"
 #include "../ToolTip.h"
@@ -30,7 +29,7 @@ enum
     ID_GSB_SPELL_ICON_RIGHT = 1000,
 };
 
-static string s_SpellCircleName[] = { "First Circle",   "Second Circle", "Third Circle",
+static std::string s_SpellCircleName[] = { "First Circle",   "Second Circle", "Third Circle",
                                       "Fourth Circle",  "Fifth Circle",  "Sixth Circle",
                                       "Seventh Circle", "Eighth Circle" };
 
@@ -246,7 +245,7 @@ void CGumpSpellbook::PrepareContent()
     if (g_PressedObject.LeftGump == this && Page >= dictionaryPagesCount &&
         g_PressedObject.LeftSerial >= (u32)ID_GSB_SPELL_ICON_LEFT)
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if ((abs(offset.x) >= DRAG_PIXEL_RANGE || abs(offset.y) >= DRAG_PIXEL_RANGE) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
@@ -269,12 +268,12 @@ void CGumpSpellbook::PrepareContent()
 
             g_GumpManager.AddGump(new CGumpSpell(
                 index + spellIndexOffset + 1,
-                g_MouseManager.Position.X - 20,
-                g_MouseManager.Position.Y - 20,
+                g_MouseManager.GetPosition().x - 20,
+                g_MouseManager.GetPosition().y - 20,
                 iconStartGraphic + index,
                 BookType));
 
-            g_OrionWindow.EmulateOnLeftMouseButtonDown();
+            g_MouseManager.EmulateOnLeftMouseButtonDown();
         }
     }
 
@@ -533,7 +532,7 @@ void CGumpSpellbook::GetSummaryBookInfo(
             break;
     }
 
-    spellsOnPage = std::min(maxSpellsCount / 2, 8);
+    spellsOnPage = Core::Min(maxSpellsCount / 2, 8);
 
     dictionaryPagesCount = (int)ceilf(maxSpellsCount / 8.0f);
 
@@ -734,7 +733,7 @@ void CGumpSpellbook::UpdateContent()
         if ((page == 0) && BookType == ST_PALADIN)
         {
             m_TithingPointsText = (CGUIText *)Add(new CGUIText(0x0288, 62, 162));
-            string textData =
+            std::string textData =
                 "Tithing points\nAvailable: " + std::to_string(g_Player->TithingPoints);
             m_TithingPointsText->CreateTextureA(6, textData);
         }
@@ -770,8 +769,8 @@ void CGumpSpellbook::UpdateContent()
 
                 CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
                     spellSerial + offs, 0x0288, 0, 0, dataX, 52 + y, 0, false, 9));
-                string abbreviature;
-                string reagents;
+                std::string abbreviature;
+                std::string reagents;
                 entry->m_Entry.SetTextA(GetSpellName(offs, abbreviature, reagents));
                 entry->CheckOnSerial = true;
                 entry->ReadOnly = true;
@@ -812,9 +811,9 @@ void CGumpSpellbook::UpdateContent()
         Add(new CGUIPage(page));
         page++;
 
-        string spellAbbreviature{};
-        string reagents{};
-        string spellName = GetSpellName((int)i, spellAbbreviature, reagents);
+        std::string spellAbbreviature{};
+        std::string reagents{};
+        std::string spellName = GetSpellName((int)i, spellAbbreviature, reagents);
 
         CGUIText *text = (CGUIText *)Add(new CGUIText(0x0288, topTextX, topTextY));
 
@@ -866,7 +865,7 @@ void CGumpSpellbook::UpdateContent()
         if (!isMageSpellbook)
         {
             int requriesY = 0;
-            string requries = GetSpellRequries((int)i, requriesY);
+            std::string requries = GetSpellRequries((int)i, requriesY);
 
             text = (CGUIText *)Add(new CGUIText(0x0288, iconX, requriesY));
             text->CreateTextureA(6, requries);
@@ -1069,7 +1068,7 @@ bool CGumpSpellbook::OnLeftMouseButtonDoubleClick()
 
                 spellIndex += ((int)BookType * 100);
 
-                if (g_Config.ClientVersion < CV_308Z)
+                if (GameVars::GetClientVersion() < CV_308Z)
                 {
                     g_Orion.CastSpellFromBook(spellIndex, Serial);
                 }

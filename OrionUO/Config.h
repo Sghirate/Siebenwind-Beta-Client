@@ -7,7 +7,6 @@ struct Config
 {
     std::string Login;
     std::string Password;
-    std::string ClientVersionString = "7.0.33.1";
     std::string CustomPath;
     std::string ServerAddress;
     u16 ServerPort = 2593;
@@ -24,11 +23,9 @@ struct Config
     u32 Key1 = 0;
     u32 Key2 = 0;
     u32 Key3 = 0;
-    u32 ClientVersion = CV_LATEST;
     u32 EncryptionType = 0;
 };
 
-void GetClientVersion(u32 *major, u32 *minor, u32 *rev, u32 *proto = nullptr);
 void LoadGlobalConfig();
 void SaveGlobalConfig();
 

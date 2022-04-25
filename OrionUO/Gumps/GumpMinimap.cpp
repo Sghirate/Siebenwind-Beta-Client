@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpMinimap.h"
+#include "Globals.h"
 #include "../OrionUO.h"
 #include "../Managers/ConfigManager.h"
 #include "../Managers/ColorManager.h"
@@ -143,7 +141,7 @@ void CGumpMinimap::GenerateMap()
 
     int map = g_MapManager.GetActualMap();
     u32 maxBlockIndex = g_MapManager.MaxBlockIndex;
-    int mapBlockHeight = g_MapBlockSize[map].Height;
+    int mapBlockHeight = g_MapBlockSize[map].y;
 
     for (int i = minBlockX; i <= maxBlockX; i++)
     {
@@ -237,8 +235,8 @@ void CGumpMinimap::CreatePixels(
 
     for (int i = 0; i < count; i++)
     {
-        px += table[i].X;
-        py += table[i].Y;
+        px += table[i].x;
+        py += table[i].y;
         int gx = px;
 
         if (gx < 0 || gx >= width)

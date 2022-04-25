@@ -1,14 +1,8 @@
-﻿// MIT License
-
-#include "Misc.h"
+﻿#include "Misc.h"
 #include <locale>
 #include <codecvt>
 
 SDL_threadID g_MainThread;
-
-#if USE_DEBUG_FUNCTION_NAMES == 1
-std::deque<std::string> g_DebugFuncStack;
-#endif
 
 int CalculatePercents(int max, int current, int maxValue)
 {
@@ -56,11 +50,7 @@ void DebugMsg(const wchar_t *format, ...)
     wchar_t buf[512] = { 0 };
     vswprintf_s(buf, format, arg);
 
-#if USE_WISP
-    OutputDebugStringW(buf);
-#else
     fprintf(stdout, "%ws", buf);
-#endif
 
     va_end(arg);
 }

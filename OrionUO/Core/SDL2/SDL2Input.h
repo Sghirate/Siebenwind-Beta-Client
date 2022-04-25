@@ -2,6 +2,7 @@
 
 #include "Core/BitSet.h"
 #include "Core/Input.h"
+#include <algorithm>
 #include <vector>
 
 union SDL_Event;

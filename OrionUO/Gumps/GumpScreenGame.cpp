@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenGame.h"
+#include "GameVars.h"
 #include "GumpConsoleType.h"
 #include "GumpOptions.h"
 #include "../Config.h"
@@ -40,7 +38,7 @@ void CGumpScreenGame::UpdateContent()
 
     if (g_PressedObject.LeftGump == this)
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if (g_PressedObject.LeftObject == m_Items) //resizer
         {
@@ -93,17 +91,17 @@ void CGumpScreenGame::UpdateContent()
             }
 
             if (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth >
-                g_OrionWindow.GetSize().Width)
+                g_OrionWindow.GetSize().x)
             {
                 g_RenderBounds.GameWindowPosX =
-                    g_OrionWindow.GetSize().Width - g_RenderBounds.GameWindowWidth;
+                    g_OrionWindow.GetSize().x - g_RenderBounds.GameWindowWidth;
             }
 
             if (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight >
-                g_OrionWindow.GetSize().Height)
+                g_OrionWindow.GetSize().y)
             {
                 g_RenderBounds.GameWindowPosY =
-                    g_OrionWindow.GetSize().Height - g_RenderBounds.GameWindowHeight;
+                    g_OrionWindow.GetSize().y - g_RenderBounds.GameWindowHeight;
             }
         }
     }
@@ -249,7 +247,7 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
     screenX -= 20;
     screenY -= 60;
 
-    Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+    Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
     if (g_PressedObject.LeftObject == m_Items) //resizer
     {
@@ -276,7 +274,7 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
             g_ConfigManager.GameWindowHeight = screenY;
         }
 
-        if (g_Config.ClientVersion >= CV_200)
+        if (GameVars::GetClientVersion() >= CV_200)
         {
             CPacketGameWindowSize().Send();
         }
@@ -297,17 +295,17 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
         }
 
         if (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth >
-            g_OrionWindow.GetSize().Width)
+            g_OrionWindow.GetSize().x)
         {
             g_ConfigManager.GameWindowX =
-                g_OrionWindow.GetSize().Width - g_ConfigManager.GameWindowWidth;
+                g_OrionWindow.GetSize().x - g_ConfigManager.GameWindowWidth;
         }
 
         if (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight >
-            g_OrionWindow.GetSize().Height)
+            g_OrionWindow.GetSize().y)
         {
             g_ConfigManager.GameWindowY =
-                g_OrionWindow.GetSize().Height - g_ConfigManager.GameWindowHeight;
+                g_OrionWindow.GetSize().y - g_ConfigManager.GameWindowHeight;
         }
     }
 }

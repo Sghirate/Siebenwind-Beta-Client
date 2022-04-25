@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpBulletinBoard.h"
+#include "Core/StringUtils.h"
 #include "GumpBulletinBoardItem.h"
 #include "../PressedObject.h"
 #include "../Managers/GumpManager.h"
@@ -88,7 +86,7 @@ void CGumpBulletinBoard::GUMP_BUTTON_EVENT_C
     if (serial == ID_GBB_POST_MESSAGE)
     {
         CGumpBulletinBoardItem *gump = new CGumpBulletinBoardItem(
-            0, 0, 0, 0, Serial, ToWString(g_Player->GetName()), {}, L"Date/Time", {});
+            0, 0, 0, 0, Serial, Core::ToWString(g_Player->GetName()), {}, L"Date/Time", {});
 
         g_GumpManager.AddGump(gump);
     }

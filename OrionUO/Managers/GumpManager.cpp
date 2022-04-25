@@ -1,13 +1,14 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GumpManager.h"
+﻿#include "GumpManager.h"
+#include "Core/File.h"
 #include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
 #include "ConfigManager.h"
+#include "Globals.h"
 #include "SkillsManager.h"
 #include "MacroManager.h"
 #include "OptionsMacroManager.h"
 #include "MouseManager.h"
+#include "Platform.h"
 #include "../OrionUO.h"
 #include "../Party.h"
 #include "../PressedObject.h"
@@ -44,6 +45,7 @@
 #include "../Gumps/GumpMenu.h"
 #include "../Gumps/GumpGeneric.h"
 #include "../Network/Packets.h"
+#include <assert.h>
 
 CGumpManager g_GumpManager;
 
@@ -694,7 +696,7 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
 
             if (canMove && gump->CanBeMoved() && !gump->NoMove && !g_ObjectInHand.Enabled)
             {
-                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+                Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
                 if (gump->GumpType == GT_STATUSBAR)
                 {
@@ -721,8 +723,8 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
                         }
                         else
                         {
-                            int testX = g_MouseManager.Position.X;
-                            int testY = g_MouseManager.Position.Y;
+                            int testX = g_MouseManager.GetPosition().x;
+                            int testY = g_MouseManager.GetPosition().y;
 
                             CGumpStatusbar *nearBar = sb->GetNearStatusbar(testX, testY);
 
@@ -751,8 +753,8 @@ bool CGumpManager::OnLeftMouseButtonUp(bool blocked)
                     }
                     else
                     {
-                        int testX = g_MouseManager.Position.X;
-                        int testY = g_MouseManager.Position.Y;
+                        int testX = g_MouseManager.GetPosition().x;
+                        int testY = g_MouseManager.GetPosition().y;
 
                         CGumpSpell *nearSpell = spell->GetNearSpell(testX, testY);
 
@@ -1247,15 +1249,15 @@ void CGumpManager::Load(const std::filesystem::path& a_path)
 					else
 						wmg->Page = 2;
 
-					wmg->Map = file.ReadUInt8();
-					wmg->Scale = file.ReadUInt8();
-					wmg->LinkWithPlayer = file.ReadUInt8();
+					wmg->Map = file.ReadBE<u8>();
+					wmg->Scale = file.ReadBE<u8>();
+					wmg->LinkWithPlayer = file.ReadBE<u8>();
 
-					wmg->Width = file.ReadInt16LE();
-					wmg->Height = file.ReadInt16LE();
+					wmg->Width = file.ReadLE<i16>();
+					wmg->Height = file.ReadLE<i16>();
 
-					wmg->OffsetX = file.ReadInt16LE();
-					wmg->OffsetY = file.ReadInt16LE();
+					wmg->OffsetX = file.ReadLE<i16>();
+					wmg->OffsetY = file.ReadLE<i16>();
 
 					wmg->UpdateSize();*/
 
@@ -1439,29 +1441,21 @@ void CGumpManager::Load(const std::filesystem::path& a_path)
         int x = g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth;
         int y = g_ConfigManager.GameWindowY;
 
-        if (x + 260 >= windowSize.Width)
-        {
-            x = windowSize.Width - 260;
-        }
+        if (x + 260 >= windowSize.x)
+            x = windowSize.x - 260;
 
-        if (y + 320 >= windowSize.Height)
-        {
-            y = windowSize.Height - 320;
-        }
+        if (y + 320 >= windowSize.y)
+            y = windowSize.y - 320;
 
         AddGump(new CGumpPaperdoll(g_PlayerSerial, x, y, false));
         x = g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth;
         y = g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight - 50;
 
-        if (x + 150 >= windowSize.Width)
-        {
-            x = windowSize.Width - 150;
-        }
+        if (x + 150 >= windowSize.x)
+            x = windowSize.x - 150;
 
-        if (y + 60 >= windowSize.Height)
-        {
-            y = windowSize.Height - 60;
-        }
+        if (y + 60 >= windowSize.y)
+            y = windowSize.y - 60;
 
         AddGump(new CGumpStatusbar(g_PlayerSerial, x, y, false));
         AddGump(new CGumpMinimap(g_ConfigManager.GameWindowX, g_ConfigManager.GameWindowY, true));
@@ -1498,23 +1492,17 @@ void CGumpManager::Load(const std::filesystem::path& a_path)
 
         int x = g_ConfigManager.GameWindowX + (int)(g_ConfigManager.GameWindowWidth * 0.7f);
         int y = g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight;
-        if (x + 100 >= windowSize.Width)
-        {
-            x = windowSize.Width - 100;
-        }
+        if (x + 100 >= windowSize.x)
+            x = windowSize.x - 100;
 
-        if (y + 60 >= windowSize.Height)
-        {
-            y = windowSize.Height - 60;
-        }
+        if (y + 60 >= windowSize.y)
+            y = windowSize.y - 60;
 
         AddGump(new CGumpBuff(x, y));
     }
 
     if (!paperdollRequested)
-    {
         g_Orion.PaperdollReq(g_PlayerSerial);
-    }
 
     AddGump(new CGumpConsoleType(minimizedConsoleType, showFullTextConsoleType));
 }
@@ -1706,7 +1694,7 @@ void CGumpManager::Save(const std::filesystem::path& a_path)
         u32 containerSerial = playerContainers.front();
         playerContainers.erase(playerContainers.begin());
 
-        for (vector<CGump *>::iterator it = containerList.begin(); it != containerList.end();)
+        for (std::vector<CGump *>::iterator it = containerList.begin(); it != containerList.end();)
         {
             CGump *gump = *it;
 
@@ -1757,7 +1745,7 @@ void CGumpManager::Save(const std::filesystem::path& a_path)
 
             for (spell = topSpell; spell != nullptr; spell = spell->m_GroupNext)
             {
-                for (vector<CGump *>::iterator it = spellInGroupList.begin();
+                for (std::vector<CGump *>::iterator it = spellInGroupList.begin();
                      it != spellInGroupList.end();
                      ++it)
                 {

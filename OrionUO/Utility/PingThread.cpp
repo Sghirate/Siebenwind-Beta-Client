@@ -1,11 +1,10 @@
-﻿// MIT License
-// Copyright (C) December 2017 Hotride
-
+﻿#include "PingThread.h"
+#include "Core/Log.h"
+#include "Sockets.h"
 #include <SDL_events.h>
 #include <SDL_timer.h>
 #include <atomic>
 
-#include "PingThread.h"
 
 static std::atomic<i32> s_pingCnt;
 
@@ -16,7 +15,7 @@ CPingThread::CPingThread(int serverID, const std::string &serverIP, int requests
 {
     //assert(s_pingCnt == 0 && "Multiple ping threads running at the same time");
     s_pingCnt++;
-    LOG("CPingThread => %s\n", serverIP.c_str());
+    LOG_INFO("PingThread", "Initialize: %s", serverIP.c_str());
 }
 
 CPingThread::~CPingThread()
@@ -66,8 +65,8 @@ void CPingThread::OnExecute(u32 nowTime)
             continue;
         }
 
-        info->Min = std::min(info->Min, ping);
-        info->Max = std::max(info->Max, ping);
+        info->Min = Core::Min(info->Min, ping);
+        info->Max = Core::Max(info->Max, ping);
         info->Average += (info->Max - info->Min);
     }
 

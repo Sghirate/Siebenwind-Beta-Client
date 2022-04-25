@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIRadio.h"
+﻿#include "GUIRadio.h"
 
 CGUIRadio::CGUIRadio(
     int serial, u16 graphic, u16 graphicChecked, u16 graphicDisabled, int x, int y)

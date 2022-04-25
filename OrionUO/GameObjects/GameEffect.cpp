@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GameEffect.h"
+﻿#include "GameEffect.h"
 #include "GameEffectMoving.h"
 #include "Globals.h"
 #include "../OrionUO.h"

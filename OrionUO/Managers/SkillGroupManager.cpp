@@ -1,7 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "SkillGroupManager.h"
+﻿#include "SkillGroupManager.h"
+#include "Core/File.h"
+#include "Core/MappedFile.h"
 #include "GumpManager.h"
 #include "SkillsManager.h"
 #include "ConfigManager.h"

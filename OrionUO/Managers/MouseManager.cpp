@@ -1,8 +1,11 @@
 ﻿#include "MouseManager.h"
 #include "ColorManager.h"
+#include "Globals.h"
 #include "MapManager.h"
 #include "ConfigManager.h"
 #include "CustomHousesManager.h"
+#include "ScreenEffectManager.h"
+#include "ScreenStages/BaseScreen.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
 #include "../Target.h"
@@ -149,10 +152,10 @@ void MouseManager::ProcessWalking()
         int gameWindowCenterY =
             g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2);
 
-        int facing = GetFacing(gameWindowCenterX, gameWindowCenterY, Position.X, Position.Y, 1);
+        int facing = GetFacing(gameWindowCenterX, gameWindowCenterY, GetPosition().x, GetPosition().y, 1);
 
         float mouse_range = std::hypotf(
-            (float)(gameWindowCenterX - Position.X), (float)(gameWindowCenterY - Position.Y));
+            (float)(gameWindowCenterX - GetPosition().x), (float)(gameWindowCenterY - GetPosition().y));
 
         int dir = facing;
 
@@ -209,8 +212,8 @@ void MouseManager::Draw(u16 id)
             {
                 for (const CBuildObject& item : list)
                 {
-                    int x = g_MouseManager.Position.X + (item.X - item.Y) * 22;
-                    int y = g_MouseManager.Position.Y + (item.X + item.Y) * 22 - (item.Z * 4);
+                    int x = g_MouseManager.GetPosition().x + (item.X - item.Y) * 22;
+                    int y = g_MouseManager.GetPosition().y + (item.X + item.Y) * 22 - (item.Z * 4);
 
                     g_Orion.DrawStaticArt(item.Graphic, color, x, y, false);
                 }
@@ -220,8 +223,8 @@ void MouseManager::Draw(u16 id)
                 g_Orion.DrawStaticArtInContainer(
                     g_CustomHouseGump->SelectedGraphic,
                     color,
-                    g_MouseManager.Position.X,
-                    g_MouseManager.Position.Y,
+                    g_MouseManager.GetPosition().x,
+                    g_MouseManager.GetPosition().y,
                     false,
                     true);
             }
@@ -257,8 +260,8 @@ void MouseManager::Draw(u16 id)
                     g_Orion.DrawGump(
                         ohGraphic,
                         ohColor,
-                        g_MouseManager.Position.X - (to->Width / 2),
-                        g_MouseManager.Position.Y - (to->Height / 2));
+                        g_MouseManager.GetPosition().x - (to->Width / 2),
+                        g_MouseManager.GetPosition().y - (to->Height / 2));
                 }
             }
             else
@@ -266,8 +269,8 @@ void MouseManager::Draw(u16 id)
                 g_Orion.DrawStaticArtInContainer(
                     ohGraphic,
                     ohColor,
-                    g_MouseManager.Position.X,
-                    g_MouseManager.Position.Y,
+                    g_MouseManager.GetPosition().x,
+                    g_MouseManager.GetPosition().y,
                     false,
                     true);
 
@@ -276,8 +279,8 @@ void MouseManager::Draw(u16 id)
                     g_Orion.DrawStaticArtInContainer(
                         ohGraphic,
                         ohColor,
-                        g_MouseManager.Position.X + 5,
-                        g_MouseManager.Position.Y + 5,
+                        g_MouseManager.GetPosition().x + 5,
+                        g_MouseManager.GetPosition().y + 5,
                         false,
                         true);
                 }
@@ -314,8 +317,8 @@ void MouseManager::Draw(u16 id)
         {
             g_ToolTip.Draw(th->Width, th->Height);
 
-            int x = Position.X + m_CursorOffset[0][id];
-            int y = Position.Y + m_CursorOffset[1][id];
+            int x = GetPosition().x + m_CursorOffset[0][id];
+            int y = GetPosition().y + m_CursorOffset[1][id];
 
             if (color != 0u)
             {
@@ -372,6 +375,20 @@ void MouseManager::Draw(u16 id)
                     glDisable(GL_BLEND);
                 }
             }
+        }
+    }
+}
+
+void MouseManager::EmulateOnLeftMouseButtonDown()
+{
+    if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
+    {
+        g_CurrentScreen->SelectObject();
+        g_PressedObject.InitLeft(g_SelectedObject);
+        if (g_SelectedObject.Object != nullptr || g_GameState == GS_GAME)
+        {
+            LeftDropPosition = GetPosition();
+            g_CurrentScreen->OnLeftMouseButtonDown();
         }
     }
 }

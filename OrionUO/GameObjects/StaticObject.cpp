@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "StaticObject.h"
 #include "GameCharacter.h"
 #include "../OrionUO.h"

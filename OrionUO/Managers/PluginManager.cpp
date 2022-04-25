@@ -1,7 +1,5 @@
-﻿// MIT License
-// Copyright (C) September 2016 Hotride
-
-#include "PluginManager.h"
+﻿#include "PluginManager.h"
+#include "GameVars.h"
 #include "../Platform.h"
 #include "plugin/commoninterfaces.h"
 
@@ -29,7 +27,7 @@ bool CDECL PluginSendFunction(u8 *buf, size_t size)
     u32 ticks = g_Ticks;
     g_TotalSendSize += checked_cast<int>(size);
     CPacketInfo &type = g_PacketManager.GetInfo(*buf);
-    LOG("--- ^(%d) s(+%zd => %d) Plugin->Server:: %s\n",
+    LOG_INFO("PluginManager", "--- ^(%d) s(+%zd => %d) Plugin->Server:: %s\n",
         ticks - g_LastPacketTime,
         size,
         g_TotalSendSize,
@@ -39,13 +37,13 @@ bool CDECL PluginSendFunction(u8 *buf, size_t size)
     g_LastSendTime = ticks;
     if (*buf == 0x80 || *buf == 0x91)
     {
-        LOG_DUMP(buf, 1);
-        SAFE_LOG_DUMP(buf, int(size));
-        LOG("**** ACCOUNT AND PASSWORD CENSORED ****\n");
+        // LOG_DUMP(buf, 1);
+        // SAFE_LOG_DUMP(buf, int(size));
+        LOG_INFO("PluginManager", "**** ACCOUNT AND PASSWORD CENSORED ****\n");
     }
     else
     {
-        LOG_DUMP(buf, int(size));
+        //LOG_DUMP(buf, int(size));
     }
 
     g_ConnectionManager.Send(buf, checked_cast<int>(size));
@@ -58,7 +56,7 @@ CPlugin::CPlugin(u32 flags)
     m_PPS = new PLUGIN_INTERFACE();
     memset(m_PPS, 0, sizeof(PLUGIN_INTERFACE));
     m_PPS->Handle = g_OrionWindow.Handle;
-    m_PPS->ClientVersion = g_Config.ClientVersion;
+    m_PPS->ClientVersion = GameVars::GetClientVersion();
     m_PPS->ClientFlags = (g_Config.UseVerdata ? 0x01 : 0);
 }
 

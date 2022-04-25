@@ -1,9 +1,8 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "CityManager.h"
+﻿#include "CityManager.h"
 #include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
 #include "ClilocManager.h"
+#include "Globals.h"
 #include "../OrionApplication.h"
 
 CCityManager g_CityManager;

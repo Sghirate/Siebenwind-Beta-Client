@@ -11,7 +11,6 @@ namespace Core
 void Init(int a_argc, char** a_argv)
 {
     CommandLine::Set(a_argc, a_argv);
-    Time::Init();
     Log::Init("game.log");
     Console::Init();
     Input::Init();
@@ -19,12 +18,12 @@ void Init(int a_argc, char** a_argv)
 
 void BeginFrame()
 {
-    Time::BeginFrame();
+    FrameTimer::Get().BeginFrame();
 }
 
 void EndFrame()
 {
-    Time::EndFrame();
+    FrameTimer::Get().EndFrame();
 }
 
 void Shutdown()
@@ -32,7 +31,6 @@ void Shutdown()
     Core::Input::Shutdown();
     Console::Shutdown();
     Log::Shutdown();
-    Time::Shutdown();
 }
 
 } // namespace Core

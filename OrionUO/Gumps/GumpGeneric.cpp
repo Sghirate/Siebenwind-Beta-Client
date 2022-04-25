@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpGeneric.h"
 #include "../ToolTip.h"
 #include "../PressedObject.h"

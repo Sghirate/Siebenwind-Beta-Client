@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2017 Hotride
-
 #pragma once
 
 #if defined(__GNUC__) && __GNUC__ <= 5 && !__clang__
@@ -150,7 +147,6 @@ typedef SoundInfo *SoundHandle;
 #include "Weather.h"
 
 #if defined(ORION_WINDOWS)
-#include "ExceptionFilter.h"
 #include "VMQuery.h"
 #endif
 

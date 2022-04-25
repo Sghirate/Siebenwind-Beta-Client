@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) October 2016 Hotride
-
 #pragma once
 
 static const int g_StumpHatchedID = 0;

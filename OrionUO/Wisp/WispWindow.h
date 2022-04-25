@@ -1,5 +1,3 @@
-// MIT License
-
 #ifndef WISP_WIN_H
 #define WISP_WIN_H
 
@@ -17,22 +15,13 @@ namespace Wisp
 {
 class CWindow
 {
-#if USE_TIMERTHREAD
-    std::deque<Wisp::CThreadedTimer *> m_ThreadedTimersStack;
-#endif // USE_TIMERTHREAD
-
 public:
     bool NoResize = false;
 
     // FIXME: Last API specific public surface on windowing stuff
     static WindowHandle Handle;
-#if USE_WISP
-    HINSTANCE hInstance = 0;
-    LRESULT OnWindowProc(WindowHandle &hWnd, UINT &message, WPARAM &wParam, LPARAM &lParam);
-#else
     SDL_Window *m_window = nullptr;
     bool OnWindowProc(SDL_Event &ev);
-#endif
 
     Core::Vec2<i32> GetSize() { return m_Size; };
     void SetSize(const Core::Vec2<i32> &size);
@@ -72,17 +61,6 @@ public:
     void RemoveTimer(u32 id);
     void Raise();
 
-#if USE_TIMERTHREAD
-    CThreadedTimer *CreateThreadedTimer(
-        u32 id,
-        int delay,
-        bool oneShot = false,
-        bool waitForProcessMessage = true,
-        bool synchronizedDelay = false);
-    void RemoveThreadedTimer(u32 id);
-    Wisp::CThreadedTimer *GetThreadedTimer(u32 id);
-#endif // USE_TIMERTHREAD
-
 protected:
     Core::Vec2<i32> m_Size = Core::Vec2<i32>(640, 480);
     Core::Vec2<i32> m_MinSize = Core::Vec2<i32>(640, 480);
@@ -107,9 +85,6 @@ protected:
     virtual void OnDeactivate() {}
     virtual void OnShow(bool show) {}
     virtual void OnTimer(u32 id) {}
-#if USE_TIMERTHREAD
-    virtual void OnThreadedTimer(u32 nowTime, Wisp::CThreadedTimer *timer) {}
-#endif // USE_TIMERTHREAD
     virtual void OnSetText(const char *text) {}
     virtual bool OnRepaint(const PaintEvent &ev);
     virtual bool OnUserMessages(const UserEvent &ev) { return true; }

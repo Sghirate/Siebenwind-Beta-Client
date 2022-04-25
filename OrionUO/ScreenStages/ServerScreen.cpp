@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ServerScreen.h"
 #include "MainScreen.h"
 #include "GameWindow.h"
@@ -23,7 +20,7 @@ CServerScreen::~CServerScreen()
 
 void CServerScreen::Init()
 {
-    g_gameWindow.SetTitle(SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str());
+    g_gameWindow.SetTitle((SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str()).c_str());
     g_ScreenEffectManager.UseSunrise();
     SmoothScreenAction = 0;
 

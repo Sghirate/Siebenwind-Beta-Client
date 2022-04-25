@@ -1,7 +1,7 @@
-﻿// MIT License
-// Copyright (C) December 2017 Hotride
+﻿#pragma once
 
-#pragma once
+#include "Core/Minimal.h"
+#include <string>
 
 struct PING_INFO_DATA
 {
@@ -15,7 +15,7 @@ struct PING_INFO_DATA
 class CPingThread : public Wisp::CThread
 {
     u32 ServerID = 0xFFFFFFFF;
-    string ServerIP = "";
+    std::string ServerIP = "";
     int RequestsCount = 10;
 
 private:

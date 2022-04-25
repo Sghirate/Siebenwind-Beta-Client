@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpShop.h"
+#include "Globals.h"
 #include "../Target.h"
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
@@ -186,7 +184,7 @@ void CGumpShop::PrepareContent()
 {
     if (NoProcess && g_Player != nullptr)
     {
-        string name = g_Player->GetName();
+        std::string name = g_Player->GetName();
         int len = (int)name.length();
 
         if (m_ContinueCounter > len)
@@ -278,7 +276,7 @@ void CGumpShop::GUMP_SCROLL_BUTTON_EVENT_C
                 else
                 {
                     item->SetY(y);
-                    y += item->GetSize().Height;
+                    y += item->GetSize().y;
                 }
             }
 
@@ -324,7 +322,7 @@ bool CGumpShop::OnLeftMouseButtonDoubleClick()
                         break;
                     }
 
-                    posY += ((CGUIShopResult *)item)->GetSize().Height;
+                    posY += ((CGUIShopResult *)item)->GetSize().y;
                 }
             }
 

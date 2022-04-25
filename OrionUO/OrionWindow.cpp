@@ -1,9 +1,9 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include <SDL_timer.h>
+﻿#include <SDL_timer.h>
+#include "Core/Log.h"
+#include "Globals.h"
 #include "OrionWindow.h"
 #include "OrionUO.h"
+#include "Platform.h"
 #include "ServerList.h"
 #include "PressedObject.h"
 #include "SelectedObject.h"
@@ -49,22 +49,14 @@ COrionWindow::~COrionWindow()
 
 void COrionWindow::SetRenderTimerDelay(int delay)
 {
-#if USE_TIMERTHREAD
-    auto timer = GetThreadedTimer(RENDER_TIMER_ID);
-    if (timer != nullptr)
-    {
-        timer->ChangeDelay(delay);
-    }
-#else
     m_iRenderDelay = delay;
-#endif // USE_TIMERTHREAD
 }
 
 bool COrionWindow::OnCreate()
 {
     if (!g_GL.Install())
     {
-        LOG("Error install OpenGL\n");
+        LOG_ERROR("Window", "Error install OpenGL\n");
         ShowMessage("Error install OpenGL", "Error install OpenGL!");
         return false;
     }
@@ -76,51 +68,20 @@ bool COrionWindow::OnCreate()
 
     g_GL.UpdateRect();
 
-#if USE_TIMERTHREAD
-    m_TimerThread =
-        CreateThreadedTimer(RENDER_TIMER_ID, FRAME_DELAY_ACTIVE_WINDOW, false, true, true);
-    //CreateThreadedTimer(UPDATE_TIMER_ID, 10);
-    CreateTimer(UPDATE_TIMER_ID, 10);
-#endif // USE_TIMERTHREAD
-
     return true;
 }
 
 void COrionWindow::OnDestroy()
 {
-
-#if USE_TIMERTHREAD
-    m_TimerThread->Stop();
-    m_TimerThread = nullptr;
-#endif // USE_TIMERTHREAD
-
     g_SoundManager.Free();
 
     PLUGIN_EVENT(UOMSG_WIN_CLOSE, nullptr);
     g_Orion.Uninstall();
-    g_CrashLogger.Close();
-#if USE_WISP
-    ::remove(CStringFromPath(g_CrashLogger.FileName));
-#endif
 }
 
 void COrionWindow::OnResize()
 {
     g_GL.UpdateRect();
-}
-
-void COrionWindow::EmulateOnLeftMouseButtonDown()
-{
-    if (g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
-    {
-        g_CurrentScreen->SelectObject();
-        g_PressedObject.InitLeft(g_SelectedObject);
-        if (g_SelectedObject.Object != nullptr || g_GameState == GS_GAME)
-        {
-            Wisp::g_WispMouse->LeftDropPosition = Wisp::g_WispMouse->Position;
-            g_CurrentScreen->OnLeftMouseButtonDown();
-        }
-    }
 }
 
 int COrionWindow::GetRenderDelay()
@@ -200,11 +161,11 @@ void COrionWindow::OnRightMouseButtonDown()
         g_PressedObject.InitRight(g_SelectedObject);
         g_CurrentScreen->OnRightMouseButtonDown();
         if (g_SelectedObject.Gump == nullptr &&
-            !(g_MouseManager.Position.x < g_ConfigManager.GameWindowX ||
-              g_MouseManager.Position.y < g_ConfigManager.GameWindowY ||
-              g_MouseManager.Position.x >
+            !(g_MouseManager.GetPosition().x < g_ConfigManager.GameWindowX ||
+              g_MouseManager.GetPosition().y < g_ConfigManager.GameWindowY ||
+              g_MouseManager.GetPosition().x >
                   (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
-              g_MouseManager.Position.y >
+              g_MouseManager.GetPosition().y >
                   (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight)))
         {
             g_MovingFromMouse = true;
@@ -358,13 +319,6 @@ void COrionWindow::OnTextInput(const TextEvent &ev)
     {
         g_CurrentScreen->OnTextInput(ev);
     }
-#if USE_WISP
-    else if (ch == KEY_RETURN && g_CurrentScreen != nullptr)
-    {
-        const auto kev = AsKeyEvent(ev);
-        g_CurrentScreen->OnKeyDown(kev);
-    }
-#endif
     else if (ch == 0x16 && g_EntryPointer != nullptr)
     {
         if (g_GameState == GS_MAIN)
@@ -387,12 +341,7 @@ void COrionWindow::OnKeyDown(const KeyEvent &ev)
     }
 
     const auto key = EvKey(ev);
-#if USE_WISP
-    // FIXME: quirks of wm_char? see OnTextInput
-    const bool acceptKey = key != KEY_RETURN;
-#else
     const bool acceptKey = true;
-#endif
     if (acceptKey && g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE)
     {
         g_CurrentScreen->OnKeyDown(ev);
@@ -422,16 +371,11 @@ void COrionWindow::OnKeyUp(const KeyEvent &ev)
 
 bool COrionWindow::OnRepaint(const PaintEvent &ev)
 {
-
     if (!g_PluginManager.Empty())
     {
         return PLUGIN_EVENT(UOMSG_WIN_PAINT, &ev);
     }
-#if USE_WISP
-    return DefWindowProc(Handle, WM_NCPAINT, (WPARAM)ev.wParam, (LPARAM)ev.lParam) != 0;
-#else
     return false;
-#endif
 }
 
 void COrionWindow::OnShow(bool show)
@@ -454,36 +398,12 @@ void COrionWindow::OnSetText(const char *str)
 
 void COrionWindow::OnTimer(u32 id)
 {
-
-#if USE_TIMERTHREAD
-    if (id == UPDATE_TIMER_ID)
-    {
-        g_Ticks = SDL_GetTicks();
-        g_Orion.Process(false);
-    }
-#endif // USE_TIMERTHREAD
     if (id == FASTLOGIN_TIMER_ID)
     {
         RemoveTimer(FASTLOGIN_TIMER_ID);
         g_Orion.Connect();
     }
 }
-
-#if USE_TIMERTHREAD
-void COrionWindow::OnThreadedTimer(u32 nowTime, Wisp::CThreadedTimer *timer)
-{
-
-    g_Ticks = nowTime;
-    if (timer->TimerID == RENDER_TIMER_ID)
-    {
-        g_Orion.Process(true);
-    }
-    else if (timer->TimerID == UPDATE_TIMER_ID)
-    {
-        g_Orion.Process(false);
-    }
-}
-#endif // USE_TIMERTHREAD
 
 bool COrionWindow::OnUserMessages(const UserEvent &ev)
 {
@@ -512,7 +432,7 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
 
             CPacketInfo &type = g_PacketManager.GetInfo(*buf);
 
-            LOG("--- ^(%d) s(+%d => %d) Plugin->Server:: %s\n",
+            LOG_INFO("OrionWindow", "--- ^(%d) s(+%d => %d) Plugin->Server:: %s",
                 ticks - g_LastPacketTime,
                 size,
                 g_TotalSendSize,
@@ -529,13 +449,13 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
 
             if (*buf == 0x80 || *buf == 0x91)
             {
-                LOG_DUMP(buf, 1);
-                SAFE_LOG_DUMP(buf, size);
-                LOG("**** ACCOUNT AND PASSWORD CENSORED ****\n");
+                // LOG_DUMP(buf, 1);
+                // SAFE_LOG_DUMP(buf, size);
+                LOG_INFO("OrionWindow", "**** ACCOUNT AND PASSWORD CENSORED ****\n");
             }
             else
             {
-                LOG_DUMP(buf, size);
+                //LOG_DUMP(buf, size);
             }
             g_ConnectionManager.Send((u8 *)ev.data1, checked_cast<int>(ev.data2));
             return true;
@@ -627,7 +547,7 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
                     }
                 }
 
-                LOG("Ping info: id:%i min:%i max:%i average:%i lost:%i\n",
+                LOG_INFO("OrionWindow", "Ping info: id:%i min:%i max:%i average:%i lost:%i",
                     info->ServerID,
                     info->Min,
                     info->Max,
@@ -637,17 +557,6 @@ bool COrionWindow::OnUserMessages(const UserEvent &ev)
             }
         }
         break;
-
-#if USE_TIMERTHREAD
-        case Wisp::CThreadedTimer::MessageID:
-        {
-            auto nowTime = checked_cast<u32>(ev.data1);
-            auto timer = (Wisp::CThreadedTimer *)ev.data2;
-            OnThreadedTimer(nowTime, timer);
-            //DebugMsg("OnThreadedTimer %i, 0x%08X\n", nowTime, timer);
-        }
-        break;
-#endif // USE_TIMERTHREAD
 
         case COrionWindow::MessageID:
         {

@@ -1,8 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#pragma once
 
-#pragma once
-
+#include "Core/Minimal.h"
 #include "GUITextEntry.h"
 
 class CGUIGenericTextEntry : public CGUITextEntry

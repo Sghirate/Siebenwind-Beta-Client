@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) September 2016 Hotride
-
 #include "GumpBook.h"
 #include "../OrionUO.h"
 #include "../PressedObject.h"

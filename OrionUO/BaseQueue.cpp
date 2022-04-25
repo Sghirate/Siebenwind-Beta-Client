@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "BaseQueue.h"
+﻿#include "BaseQueue.h"
 
 CBaseQueueItem::CBaseQueueItem()
     : m_Next(nullptr)

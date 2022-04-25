@@ -1,7 +1,5 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIGenericText.h"
+﻿#include "GUIGenericText.h"
+#include "GameVars.h"
 #include "../Config.h"
 #include "../DefinitionMacro.h"
 
@@ -16,7 +14,7 @@ CGUIGenericText::~CGUIGenericText()
 {
 }
 
-void CGUIGenericText::CreateTexture(const std::wstring &str)
+void CGUIGenericText::CreateTexture(const std::wstring& str)
 {
     u16 flags = UOFONT_BLACK_BORDER;
 
@@ -25,5 +23,6 @@ void CGUIGenericText::CreateTexture(const std::wstring &str)
         flags |= UOFONT_CROPPED;
     }
 
-    CreateTextureW((u8)(g_Config.ClientVersion >= CV_305D), str, 30, MaxWidth, TS_LEFT, flags);
+    CreateTextureW(
+        (u8)(GameVars::GetClientVersion() >= CV_305D), str, 30, MaxWidth, TS_LEFT, flags);
 }

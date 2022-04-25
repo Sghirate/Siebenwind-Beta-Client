@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIComboboxText.h"
+﻿#include "GUIComboboxText.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"
 

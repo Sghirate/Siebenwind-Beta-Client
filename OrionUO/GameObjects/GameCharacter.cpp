@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include <SDL_timer.h>
+﻿#include <SDL_timer.h>
 #include "GameItem.h"
 #include "Globals.h"
 #include "../OrionUO.h"

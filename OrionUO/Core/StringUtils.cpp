@@ -1,6 +1,7 @@
 #include "StringUtils.h"
 #include "Core/Minimal.h"
 #include <algorithm>
+#include <charconv>
 #include <codecvt>
 #include <locale>
 #if defined(ORION_WINDOWS)
@@ -343,5 +344,138 @@ bool ToBool(const std::string& a_str)
     }
     return false;
 }
+
+bool ToString(i8 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, i8& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(u8 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, u8& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(i16 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, i16& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(u16 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, u16& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(i32 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, i32& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(u32 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, u32& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(i64 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, i64& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(u64 a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, u64& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(float a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, float& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(double a_value, std::string& out_string)
+{
+    out_string = std::to_string(a_value);
+    return true;
+}
+
+bool FromString(const std::string& a_string, double& out_value)
+{
+    auto [ptr, ec] { std::from_chars(a_string.data(), a_string.data() + a_string.size(), out_value) };
+    return ec == std::errc();
+}
+
+bool ToString(const std::string& a_value, std::string& out_string)
+{
+    out_string = a_value;
+    return true;
+}
+
+bool FromString(const std::string& a_value, std::string& out_value)
+{
+    out_value = a_value;
+    return true;
+}
+
 
 } // namespace Core

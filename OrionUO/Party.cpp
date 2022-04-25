@@ -80,8 +80,8 @@ void CParty::ParsePacketData(Core::StreamReader& a_reader)
                 break;
             }
             Clear();
-            Core::Vec2<i32> oldPos = g_MouseManager.GetPosition();
-            Core::Vec2<i32> mousePos(76, 30);
+            Core::TMousePos oldPos = g_MouseManager.GetPosition();
+            Core::TMousePos mousePos(76, 30);
             g_MouseManager.SetPosition(mousePos);
             CGumpStatusbar* prevGump = nullptr;
 

@@ -4,11 +4,15 @@
 
 #include "GitRevision.h"
 #include "Config.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "Misc.h"
 
 #include "Core/CommandLine.h"
 #include "Core/File.h"
 #include "Core/Input.h"
+#include "Core/Log.h"
+#include "Core/Minimal.h"
 #include "Core/MappedFile.h"
 #include "Core/Platform.h"
 #include "Core/StringUtils.h"
@@ -365,13 +369,10 @@ void COrion::ParseCommandLine() // FIXME: move this out
 bool COrion::Install()
 {
 
-    LOG("COrion::Install()\n");
-#if USE_WISP
-    SetUnhandledExceptionFilter(OrionUnhandledExceptionFilter);
-#endif
+    LOG_INFO("Client", "COrion::Install()\n");
     auto buildStamp = GetBuildDateTimeStamp();
-    LOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
-    CRASHLOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
+    LOG_INFO("Client", "Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
+    //CRASHLOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
 
     for (int i = 0; i < 256; i++)
     {
@@ -393,8 +394,8 @@ bool COrion::Install()
     Platform::SetLanguageFromSystemLocale();
     std::filesystem::create_directory(g_App.GetExeDir() / "screenshots");
 
-    LOG("Client config loaded!\n");
-    if (g_Config.ClientVersion >= CV_305D)
+    LOG_INFO("Client", "Client config loaded!\n");
+    if (GameVars::GetClientVersion() >= CV_305D)
     {
         CGumpSpellbook::m_SpellReagents1[4]  = "Sulfurous ash";                //Magic Arrow
         CGumpSpellbook::m_SpellReagents1[17] = "Black pearl";                  //Fireball
@@ -404,9 +405,9 @@ bool COrion::Install()
 
     LoadAutoLoginNames();
 
-    LOG("Load files\n");
+    LOG_INFO("Client", "Load files\n");
 
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
         g_FileManager.TryReadUOPAnimations();
     }
@@ -433,11 +434,11 @@ bool COrion::Install()
 
     g_ColorManager.Init();
 
-    LOG("Load tiledata\n");
+    LOG_INFO("Client", "Load tiledata\n");
 
     int staticsCount = 512;
 
-    if (g_Config.ClientVersion >= CV_7090)
+    if (GameVars::GetClientVersion() >= CV_7090)
         staticsCount =
             (int)(g_FileManager.m_TiledataMul.GetSize() - (512 * sizeof(LAND_GROUP_NEW))) /
             sizeof(STATIC_GROUP_NEW);
@@ -449,36 +450,36 @@ bool COrion::Install()
     if (staticsCount > 2048)
         staticsCount = 2048;
 
-    LOG("staticsCount=%i\n", staticsCount);
+    LOG_INFO("Client", "staticsCount=%i\n", staticsCount);
     LoadTiledata(512, staticsCount);
-    LOG("Load indexes\n");
+    LOG_INFO("Client", "Load indexes\n");
     LoadIndexFiles();
     InitStaticAnimList();
 
-    LOG("Load fonts.\n");
+    LOG_INFO("Client", "Load fonts.\n");
     if (!g_FontManager.LoadFonts())
     {
-        LOG("Error loading fonts\n");
+        LOG_ERROR("Client", "Error loading fonts\n");
         g_OrionWindow.ShowMessage("Error loading fonts", "Error loading fonts!");
 
         return false;
     }
 
-    LOG("Load skills.\n");
+    LOG_INFO("Client", "Load skills.\n");
     if (!g_SkillsManager.Load())
     {
-        LOG("Error loading skills\n");
+        LOG_ERROR("Client", "Error loading skills\n");
         g_OrionWindow.ShowMessage("Error loading skills", "Error loading skills!");
 
         return false;
     }
 
-    LOG("Create map blocksTable\n");
+    LOG_INFO("Client", "Create map blocksTable\n");
     g_MapManager.CreateBlocksTable();
 
-    LOG("Patch files\n");
+    LOG_INFO("Client", "Patch files\n");
     PatchFiles();
-    LOG("Replaces...\n");
+    LOG_INFO("Client", "Replaces...\n");
     IndexReplaces();
 
     CheckStaticTileFilterFiles();
@@ -488,13 +489,13 @@ bool COrion::Install()
     CGumpStatusbar::m_StatusbarDefaultWidth  = statusbarDims.x;
     CGumpStatusbar::m_StatusbarDefaultHeight = statusbarDims.y;
 
-    LOG("Sort skills...\n");
+    LOG_INFO("Client", "Sort skills...\n");
     g_SkillsManager.Sort();
 
-    LOG("Load cursors.\n");
+    LOG_INFO("Client", "Load cursors.\n");
     if (!g_MouseManager.LoadCursorTextures())
     {
-        LOG("Error loading cursors\n");
+        LOG_ERROR("Client", "Error loading cursors\n");
         g_OrionWindow.ShowMessage("Error loading cursors", "Error loading cursors!");
 
         return false;
@@ -511,7 +512,7 @@ bool COrion::Install()
 
     g_EntryPointer = nullptr;
 
-    LOG("Load prof.\n");
+    LOG_INFO("Client", "Load prof.\n");
     g_ProfessionManager.Load();
     g_ProfessionManager.Selected = (CBaseProfession*)g_ProfessionManager.m_Items;
 
@@ -530,7 +531,7 @@ bool COrion::Install()
     }
     g_AnimationManager.InitIndexReplaces((u32*)g_FileManager.m_VerdataMul.GetBuffer());
 
-    LOG("Load client startup.\n");
+    LOG_INFO("Client", "Load client startup.\n");
     LoadClientStartupConfig();
 
     u16 b = 0x0000;
@@ -589,40 +590,40 @@ bool COrion::Install()
     m_WinterTile[1539] = 0x011C;
     m_WinterTile[1540] = 0x011D;
 
-    LOG("Init light buffer.\n");
+    LOG_INFO("Client", "Init light buffer.\n");
     g_LightBuffer.Init(640, 480);
 
-    LOG("Create object handles.\n");
+    LOG_INFO("Client", "Create object handles.\n");
     CreateObjectHandlesBackground();
 
-    LOG("Create aura.\n");
+    LOG_INFO("Client", "Create aura.\n");
     CreateAuraTexture();
 
-    LOG("Load shaders.\n");
+    LOG_INFO("Client", "Load shaders.\n");
     LoadShaders();
 
-    LOG("Update main screen content\n");
+    LOG_INFO("Client", "Update main screen content\n");
     g_MainScreen.UpdateContent();
 
-    LOG("Init screen...\n");
+    LOG_INFO("Client", "Init screen...\n");
 
     InitScreen(GS_MAIN);
 
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
-        LOG("Waiting for FileManager to try & load AnimationFrame files\n");
+        LOG_INFO("Client", "Waiting for FileManager to try & load AnimationFrame files\n");
         g_FileManager.m_AutoResetEvent.WaitOne();
-        LOG("FileManager.TryReadUOPAnimations() done!\n");
+        LOG_INFO("Client", "FileManager.TryReadUOPAnimations() done!\n");
     }
 
-    LOG("Installation completed!\n");
+    LOG_INFO("Client", "Installation completed!\n");
 
     return true;
 }
 
 void COrion::Uninstall()
 {
-    LOG("COrion::Uninstall()\n");
+    LOG_INFO("Client", "COrion::Uninstall()\n");
     SaveLocalConfig(g_PacketManager.ConfigSerial);
     g_MainScreen.Save();
     SaveGlobalConfig();
@@ -918,7 +919,7 @@ void COrion::LoadContainerOffsets()
     std::filesystem::create_directory(path);
 
     std::filesystem::path filePath = path / "containers.txt";
-    LOG("Containers: %s", filePath.string().c_str());
+    LOG_INFO("Client", "Containers: %s", filePath.string().c_str());
     if (!std::filesystem::exists(filePath))
     {
         //												Gump   OpenSnd  CloseSnd					minX minY maxX maxY
@@ -1042,7 +1043,7 @@ void COrion::LoadContainerOffsets()
         }
     }
 
-    LOG("g_ContainerOffset.size()=%zd\n", g_ContainerOffset.size());
+    LOG_INFO("Client", "g_ContainerOffset.size()=%zd\n", g_ContainerOffset.size());
 }
 
 void COrion::LoadAutoLoginNames()
@@ -1119,16 +1120,10 @@ void COrion::Process(bool rendering)
     const bool oldCtrl  = g_CtrlPressed;
     const bool oldShift = g_ShiftPressed;
 
-#if USE_WISP
-    g_AltPressed   = GetAsyncKeyState(KEY_MENU) & 0x80000000;
-    g_CtrlPressed  = GetAsyncKeyState(KEY_CONTROL) & 0x80000000;
-    g_ShiftPressed = GetAsyncKeyState(KEY_SHIFT) & 0x80000000;
-#else
     auto mod       = SDL_GetModState();
     g_AltPressed   = ((mod & KMOD_ALT) != 0);
     g_CtrlPressed  = ((mod & KMOD_CTRL) != 0);
     g_ShiftPressed = ((mod & KMOD_SHIFT) != 0);
-#endif
 
     if (g_GameState >= GS_GAME) // || g_GameState == GS_GAME_BLOCKED)
     {
@@ -1351,19 +1346,19 @@ void COrion::LoadPlugin(
     const std::filesystem::path& a_path, const std::string& a_function, int a_flags)
 {
     PROFILER_EVENT();
-    LOG("Loading plugin: %s\n", a_path.c_str());
+    LOG_INFO("Client", "Loading plugin: %s\n", a_path.c_str());
     void* dll = Core::Platform::LoadOject(a_path);
     if (dll != nullptr)
     {
         PluginEntry* initFunc = (PluginEntry*)Core::Platform::LoadFunction(dll, a_function.c_str());
         if (!InstallPlugin(initFunc, a_flags))
             Core::Platform::UnloadObject(dll);
-        CRASHLOG("Plugin['%s'] loaded at: 0x%08X\n", a_path.c_str(), dll);
+        LOG_INFO("Client", "Plugin['%s'] loaded at: 0x%08X\n", a_path.c_str(), dll);
         // FIXME: dll leaks, pass handle into CPlugin to be closed
     }
     else
     {
-        LOG("Failed to load plugin!");
+        LOG_ERROR("Client", "Failed to load plugin!");
     }
 }
 
@@ -1568,13 +1563,13 @@ void COrion::SaveLocalConfig(int serial)
     std::filesystem::path path = g_App.GetExeDir() / "Desktop";
     if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.", path.string().c_str());
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
         std::filesystem::create_directory(path);
     }
     path /= g_MainScreen.m_Account->c_str();
     if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.", path.string().c_str());
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
         std::filesystem::create_directory(path);
     }
     CServer* server = g_ServerList.GetSelectedServer();
@@ -1582,7 +1577,7 @@ void COrion::SaveLocalConfig(int serial)
         path /= FixServerName(server->Name);
     if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.", path.string().c_str());
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
         std::filesystem::create_directory(path);
     }
     char serbuf[20] = { 0 };
@@ -1590,38 +1585,38 @@ void COrion::SaveLocalConfig(int serial)
     path /= serbuf;
     if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.", path.string().c_str());
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
         std::filesystem::create_directory(path);
     }
     else
     {
-        LOG("SaveLocalConfig using path: %s", path.string().c_str());
+        LOG_INFO("Client", "SaveLocalConfig using path: %s", path.string().c_str());
     }
 
-    LOG("managers:saving");
+    LOG_INFO("Client", "managers:saving");
     g_ConfigManager.Save(path / "sot_options.cfg");
     g_SkillGroupManager.Save(path / "skills_debug.cuo");
     g_MacroManager.Save(path / "macros_debug.cuo");
     g_GumpManager.Save(path / "gumps_debug.cuo");
     g_CustomHousesManager.Save(path / "customhouses_debug.cuo");
 
-    LOG("managers:saving in to root");
+    LOG_INFO("Client", "managers:saving in to root");
     g_ConfigManager.Save(g_App.GetGameDir() / "sot_options.cfg");
     g_MacroManager.Save(g_App.GetGameDir() / "macros_debug.cuo");
 
     if (g_Player != nullptr)
     {
-        LOG("player exists");
-        LOG("name len: %zd", g_Player->GetName().length());
+        LOG_INFO("Client", "player exists");
+        LOG_INFO("Client", "name len: %zd", g_Player->GetName().length());
         path /= ("_" + g_Player->GetName() + ".cuo");
         if (!std::filesystem::exists(path))
         {
-            LOG("file saving");
+            LOG_INFO("Client", "file saving");
             Core::File file(path, "wb");
-            LOG("file closing");
+            LOG_INFO("Client", "file closing");
         }
     }
-    LOG("SaveLocalConfig end");
+    LOG_INFO("Client", "SaveLocalConfig end");
 }
 
 void COrion::ClearUnusedTextures()
@@ -1650,7 +1645,7 @@ void COrion::ClearUnusedTextures()
     for (int i = 0; i < 5; i++)
     {
         int count     = 0;
-        auto* list    = (deque<CIndexObject*>*)lists[i];
+        auto* list    = (std::deque<CIndexObject*>*)lists[i];
         int& maxCount = counts[i];
 
         for (auto it = list->begin(); it != list->end();)
@@ -1755,7 +1750,7 @@ int COrion::Send(u8* buf, int size)
         time(&rawtime);
         localtime_s(&timeinfo, &rawtime);
         strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", &timeinfo);
-        LOG("--- ^(%d) s(+%d => %d) %s Client:: %s\n",
+        LOG_INFO("Client", "--- ^(%d) s(+%d => %d) %s Client:: %s\n",
             ticks - g_LastPacketTime,
             size,
             g_TotalSendSize,
@@ -1765,13 +1760,13 @@ int COrion::Send(u8* buf, int size)
 
         if (*buf == 0x80 || *buf == 0x91)
         {
-            LOG_DUMP(buf, 1);
-            SAFE_LOG_DUMP(buf, size);
-            LOG("**** ACCOUNT AND PASSWORD CENSORED ****\n");
+            //LOG_DUMP(buf, 1);
+            //SAFE_LOG_DUMP(buf, size);
+            LOG_INFO("Client", "**** ACCOUNT AND PASSWORD CENSORED ****\n");
         }
         else
         {
-            LOG_DUMP(buf, size);
+            //LOG_DUMP(buf, size);
         }
     }
 
@@ -1779,7 +1774,7 @@ int COrion::Send(u8* buf, int size)
 
     if (type.Direction != DIR_SEND && type.Direction != DIR_BOTH)
     {
-        LOG("Warning!!! Message direction invalid: 0x%02X\n", *buf);
+        LOG_ERROR("Client", "Warning!!! Message direction invalid: 0x%02X\n", *buf);
     }
     else
     {
@@ -1871,12 +1866,12 @@ void COrion::LoginComplete(bool reload)
 
         //CPacketOpenChat({}).Send();
         //CPacketRazorAnswer().Send();
-        if (g_Config.ClientVersion >= CV_306E)
+        if (GameVars::GetClientVersion() >= CV_306E)
         {
             CPacketClientType().Send();
         }
 
-        if (g_Config.ClientVersion >= CV_305D)
+        if (GameVars::GetClientVersion() >= CV_305D)
         {
             CPacketClientViewRange(g_ConfigManager.UpdateRange).Send();
         }
@@ -3312,7 +3307,7 @@ void COrion::LoadTiledata(int landSize, int staticsSize)
     Core::MappedFile& file = g_FileManager.m_TiledataMul;
     if (file.GetSize() != 0u)
     {
-        bool isOldVersion = (g_Config.ClientVersion < CV_7090);
+        bool isOldVersion = (GameVars::GetClientVersion() < CV_7090);
         file.ResetPtr();
         m_LandData.resize(landSize * 32);
         m_StaticData.resize(staticsSize * 32);
@@ -4277,7 +4272,7 @@ void COrion::PatchFiles()
                 for (int j = 0; j < 32; j++)
                 {
                     LAND_TILES& tile = m_LandData[offset + j];
-                    if (g_Config.ClientVersion < CV_7090)
+                    if (GameVars::GetClientVersion() < CV_7090)
                         tile.Flags = file.ReadLE<u32>();
                     else
                         tile.Flags = file.ReadLE<i64>();
@@ -4298,7 +4293,7 @@ void COrion::PatchFiles()
                 for (int j = 0; j < 32; j++)
                 {
                     STATIC_TILES& tile = m_StaticData[offset + j];
-                    if (g_Config.ClientVersion < CV_7090)
+                    if (GameVars::GetClientVersion() < CV_7090)
                         tile.Flags = file.ReadLE<u32>();
                     else
                         tile.Flags = file.ReadLE<i64>();
@@ -4323,7 +4318,7 @@ void COrion::PatchFiles()
         }
         else if (vh->FileID != 5 && vh->FileID != 6) //no Anim / Animidx
         {
-            LOG("Unused verdata block (fileID) = %i (BlockID+ %i\n", vh->FileID, vh->BlockID);
+            LOG_WARNING("Client", "Unused verdata block (fileID) = %i (BlockID+ %i\n", vh->FileID, vh->BlockID);
         }
     }
 
@@ -4332,7 +4327,7 @@ void COrion::PatchFiles()
 
 void COrion::IndexReplaces()
 {
-    if (g_Config.ClientVersion < CV_305D)
+    if (GameVars::GetClientVersion() < CV_305D)
     { //CV_204C
         return;
     }
@@ -4347,7 +4342,7 @@ void COrion::IndexReplaces()
     Core::TextFileParser soundParser(g_App.GetGameDir() / "Sound.def", " \t", "#;//", "{}");
     Core::TextFileParser mp3Parser(g_App.GetGameDir() / "Music/Digital/Config.txt", " ,", "#;", "");
 
-    LOG("Replace arts\n");
+    LOG_INFO("Client", "Replace arts\n");
     while (!artParser.IsEOF())
     {
         std::vector<std::string> strings = artParser.ReadTokens();
@@ -4393,7 +4388,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    LOG("Replace textures");
+    LOG_INFO("Client", "Replace textures");
     while (!textureParser.IsEOF())
     {
         std::vector<std::string> strings = textureParser.ReadTokens();
@@ -4424,7 +4419,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    LOG("Replace gumps");
+    LOG_INFO("Client", "Replace gumps");
     while (!gumpParser.IsEOF())
     {
         std::vector<std::string> strings = gumpParser.ReadTokens();
@@ -4452,7 +4447,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    LOG("Replace multi");
+    LOG_INFO("Client", "Replace multi");
     while (!multiParser.IsEOF())
     {
         std::vector<std::string> strings = multiParser.ReadTokens();
@@ -4477,7 +4472,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    LOG("Replace sounds");
+    LOG_INFO("Client", "Replace sounds");
     while (!soundParser.IsEOF())
     {
         std::vector<std::string> strings = soundParser.ReadTokens();
@@ -4538,7 +4533,7 @@ void COrion::IndexReplaces()
         }
     }
 
-    LOG("Loading mp3 config");
+    LOG_INFO("Client", "Loading mp3 config");
     while (!mp3Parser.IsEOF())
     {
         std::vector<std::string> strings = mp3Parser.ReadTokens();
@@ -4598,7 +4593,7 @@ void COrion::CreateObjectHandlesBackground()
 
         if (pth == nullptr)
         {
-            LOG("Error!!! Failed to create Object Handles background data!\n");
+            LOG_ERROR("Client", "Error!!! Failed to create Object Handles background data!\n");
             return;
         }
 
@@ -4805,9 +4800,9 @@ void COrion::LoadClientStartupConfig()
     g_SoundManager.SetMusicVolume(g_ConfigManager.GetMusicVolume());
     if (g_ConfigManager.GetMusic())
     {
-        if (g_Config.ClientVersion >= CV_7000)
+        if (GameVars::GetClientVersion() >= CV_7000)
             PlayMusic(78);
-        else if (g_Config.ClientVersion > CV_308Z)
+        else if (GameVars::GetClientVersion() > CV_308Z)
             PlayMusic(0); //from 4.x the music played is 0, the first one
         else
             PlayMusic(8);
@@ -4826,7 +4821,7 @@ void COrion::PlayMusic(int index, bool warmode)
         return;
     }
 
-    if (g_Config.ClientVersion >= CV_306E)
+    if (GameVars::GetClientVersion() >= CV_306E)
     {
         CIndexMusic& mp3Info = m_MP3Data[index];
         g_SoundManager.PlayMP3(mp3Info.FilePath, index, mp3Info.Loop, warmode);
@@ -5517,10 +5512,10 @@ bool COrion::ResizepicPixelsInXY(u16 a_id, int a_x, int a_y, int a_width, int a_
         }
     }
 
-    int offsetTop    = std::max(th[0]->Height, th[2]->Height) - th[1]->Height;
-    int offsetBottom = std::max(th[5]->Height, th[7]->Height) - th[6]->Height;
-    int offsetLeft   = std::max(th[0]->Width, th[5]->Width) - th[3]->Width;
-    int offsetRight  = std::max(th[2]->Width, th[7]->Width) - th[4]->Width;
+    int offsetTop    = Core::Max(th[0]->Height, th[2]->Height) - th[1]->Height;
+    int offsetBottom = Core::Max(th[5]->Height, th[7]->Height) - th[6]->Height;
+    int offsetLeft   = Core::Max(th[0]->Width, th[5]->Width) - th[3]->Width;
+    int offsetRight  = Core::Max(th[2]->Width, th[7]->Width) - th[4]->Width;
 
     for (int i = 0; i < 9; i++)
     {
@@ -6086,7 +6081,7 @@ void COrion::DropItem(int container, u16 x, u16 y, char z)
 {
     if (g_ObjectInHand.Enabled && g_ObjectInHand.Serial != container)
     {
-        if (g_Config.ClientVersion >= CV_6017)
+        if (GameVars::GetClientVersion() >= CV_6017)
         {
             CPacketDropRequestNew(g_ObjectInHand.Serial, x, y, z, 0, container).Send();
         }
@@ -6344,15 +6339,15 @@ void COrion::ClearWorld()
     g_SkillsManager.SkillsRequested = false;
 
     RELEASE_POINTER(g_World)
-    LOG("\tWorld removed?\n");
+    LOG_INFO("Client", "\tWorld removed?\n");
 
     g_PopupMenu = nullptr;
 
     g_GumpManager.Clear();
-    LOG("\tGump Manager cleared?\n");
+    LOG_INFO("Client", "\tGump Manager cleared?\n");
 
     g_EffectManager.Clear();
-    LOG("\tEffect List cleared?\n");
+    LOG_INFO("Client", "\tEffect List cleared?\n");
 
     g_GameConsole.Clear();
 
@@ -6362,13 +6357,13 @@ void COrion::ClearWorld()
     g_Target.Reset();
 
     g_SystemChat.Clear();
-    LOG("\tSystem chat cleared?\n");
+    LOG_INFO("Client", "\tSystem chat cleared?\n");
 
     g_Journal.Clear();
-    LOG("\tJournal cleared?\n");
+    LOG_INFO("Client", "\tJournal cleared?\n");
 
     g_MapManager.Clear();
-    LOG("\tMap cleared?\n");
+    LOG_INFO("Client", "\tMap cleared?\n");
 
     g_CurrentMap = 0;
 
@@ -6386,7 +6381,7 @@ void COrion::ClearWorld()
 
 void COrion::LogOut()
 {
-    LOG("COrion::LogOut->Start\n");
+    LOG_INFO("Client", "COrion::LogOut->Start\n");
     SaveLocalConfig(g_PacketManager.ConfigSerial);
 
     if (g_SendLogoutNotification)
@@ -6395,11 +6390,11 @@ void COrion::LogOut()
     }
 
     Disconnect();
-    LOG("\tDisconnected?\n");
+    LOG_INFO("Client", "\tDisconnected?\n");
 
     ClearWorld();
 
-    LOG("COrion::LogOut->End\n");
+    LOG_INFO("Client", "COrion::LogOut->End\n");
     InitScreen(GS_MAIN);
 }
 
@@ -6457,7 +6452,7 @@ void COrion::OpenStatus(u32 a_serial)
 void COrion::DisplayStatusbarGump(int a_serial, int a_x, int a_y)
 {
     CPacketStatusRequest packet(a_serial);
-    UOMsg_Send(packet.Data().data(), packet.Data().size());
+    UOMsg_Send(packet.GetData().data(), packet.GetData().size());
 
     CGump* gump = g_GumpManager.GetGump(a_serial, 0, GT_STATUSBAR);
 
@@ -6574,7 +6569,7 @@ void COrion::OpenProfile(u32 serial)
 void COrion::DisconnectGump()
 {
     CServer* server = g_ServerList.GetSelectedServer();
-    string str      = "Disconnected from " + (server != nullptr ? server->Name : "server name...");
+    std::string str      = "Disconnected from " + (server != nullptr ? server->Name : "server name...");
     g_Orion.CreateTextMessage(TT_SYSTEM, 0, 3, 0x21, str);
 
     int x = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2) - 100;

@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include <SDL_rect.h>
+#include "Globals.h"
 #include "GumpMap.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
@@ -115,8 +113,8 @@ int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
     int endX2 = x1 + offsX;
     int endY2 = y1 + offsY;
 
-    tempX = g_MouseManager.Position.X - x1;
-    tempY = g_MouseManager.Position.Y - y1;
+    tempX = g_MouseManager.GetPosition().x - x1;
+    tempY = g_MouseManager.GetPosition().y - y1;
 
     offsX = (int)((tempX * cosA) - (tempY * sinA));
     offsY = (int)((tempX * sinA) + (tempY * cosA));
@@ -178,9 +176,9 @@ void CGumpMap::PrepareContent()
         {
             if (m_PinOnCursor == nullptr)
             {
-                Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+                Core::TMousePos offset = g_MouseManager.GetLeftDroppedOffset();
 
-                if (((offset.X != 0) || (offset.y != 0)) &&
+                if (((offset.x != 0) || (offset.y != 0)) &&
                     g_PressedObject.LeftSerial > ID_GM_PIN_LIST &&
                     g_PressedObject.LeftSerial < ID_GM_PIN_LIST_INSERT && m_PinTimer > g_Ticks)
                 {
@@ -190,13 +188,10 @@ void CGumpMap::PrepareContent()
 
             if (m_PinOnCursor != nullptr)
             {
-                int newX = g_MouseManager.Position.X - (m_X + 20);
-                int newY = g_MouseManager.Position.Y - (m_Y + 30);
-
-                WantRedraw = (m_PinOnCursor->GetX() != newX || m_PinOnCursor->GetY() != newY);
-
-                m_PinOnCursor->SetX(newX);
-                m_PinOnCursor->SetY(newY);
+                Core::TMousePos newPos = g_MouseManager.GetPosition() - Core::TMousePos(m_X + 20, m_Y + 30);
+                WantRedraw = (m_PinOnCursor->GetX() != newPos.x || m_PinOnCursor->GetY() != newPos.y);
+                m_PinOnCursor->SetX(newPos.x);
+                m_PinOnCursor->SetY(newPos.y);
             }
         }
 
@@ -304,10 +299,8 @@ CRenderObject *CGumpMap::Select()
 
     if (m_DataBox != nullptr)
     {
-        Core::Vec2<i32> oldPos = g_MouseManager.Position;
-        g_MouseManager.Position =
-            Core::Vec2<i32>(oldPos.x - (int)g_GumpTranslate.x, oldPos.y - (int)g_GumpTranslate.y);
-
+        Core::TMousePos oldPos = g_MouseManager.GetPosition();
+        g_MouseManager.SetPosition(oldPos - Core::TMousePos(g_GumpTranslate.x, g_GumpTranslate.y));
         QFOR(item, m_DataBox->m_Items, CBaseGUI *)
         {
             int drawX = item->GetX() + 18;
@@ -336,10 +329,8 @@ CRenderObject *CGumpMap::Select()
                 g_SelectedObject.Serial = item->Serial + ID_GM_PIN_LIST;
             }
         }
-
-        g_MouseManager.Position = oldPos;
+        g_MouseManager.SetPosition(oldPos);
     }
-
     return selected;
 }
 
@@ -421,8 +412,8 @@ void CGumpMap::OnLeftMouseButtonUp()
 
                 if (g_Orion.PolygonePixelsInXY(x, y, Width, Height))
                 {
-                    x = g_MouseManager.Position.X - x - 4;
-                    y = g_MouseManager.Position.Y - y - 2;
+                    x = g_MouseManager.GetPosition().x - x - 4;
+                    y = g_MouseManager.GetPosition().y - y - 2;
 
                     CPacketMapMessage(Serial, MM_ADD, 0, x, y).Send();
 
@@ -442,8 +433,8 @@ void CGumpMap::OnLeftMouseButtonUp()
 
         if (g_Orion.PolygonePixelsInXY(x, y, Width, Height))
         {
-            x = g_MouseManager.Position.X - (x - 4);
-            y = g_MouseManager.Position.Y - (y - 2);
+            x = g_MouseManager.GetPosition().x - (x - 4);
+            y = g_MouseManager.GetPosition().y - (y - 2);
 
             m_PinOnCursor->SetX(x);
             m_PinOnCursor->SetY(y);

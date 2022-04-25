@@ -1,19 +1,10 @@
 #include "Main.h"
-
+#include "Core/Core.h"
+#include "OrionApplication.h"
 
 int Main(int argc, char** argv)
 {
     Core::ScopedCore core(argc, argv);
-    
-    loguru::init(argc, argv);
-    loguru::add_file("game.log", loguru::Truncate, loguru::Verbosity_INFO);
-
-    if (SDL_Init(SDL_INIT_TIMER) < 0)
-    {
-        LOG_F(ERROR, "Unable to initialize SDL: %s\n", SDL_GetError());
-        return EXIT_FAILURE;
-    }
-
     g_app.Init(argc, argv);
     g_ConfigManager.Init();
 

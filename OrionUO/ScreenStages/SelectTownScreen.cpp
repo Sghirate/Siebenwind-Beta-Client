@@ -1,8 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "SelectTownScreen.h"
+﻿#include "SelectTownScreen.h"
 #include "CreateCharacterScreen.h"
+#include "GameVars.h"
 #include "GameWindow.h"
 #include "../Config.h"
 #include "../OrionUO.h"
@@ -24,7 +22,7 @@ CSelectTownScreen::~CSelectTownScreen()
 
 void CSelectTownScreen::Init()
 {
-    if (g_Config.ClientVersion >= CV_70130)
+    if (GameVars::GetClientVersion() >= CV_70130)
     {
         m_City = g_CityList.GetCity(0);
     }

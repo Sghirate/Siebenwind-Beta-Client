@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 const int MAX_MOBILE_DIRECTIONS = 5;

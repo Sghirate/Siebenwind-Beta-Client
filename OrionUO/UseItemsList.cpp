@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
-#include "OrionUO.h"
+﻿#include "OrionUO.h"
 #include "UseItemsList.h"
 #include "GameObjects/GameWorld.h"
 

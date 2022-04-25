@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIResizeButton.h"
+﻿#include "GUIResizeButton.h"
 
 CGUIResizeButton::CGUIResizeButton(
     int serial, u16 graphic, u16 graphicSelected, u16 graphicPressed, int x, int y)

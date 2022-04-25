@@ -1,8 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "IndexObject.h"
+﻿#include "IndexObject.h"
 #include "Config.h"
+#include "GameVars.h"
+#include "plugin/enumlist.h"
 
 CIndexObject::CIndexObject()
 {
@@ -108,7 +107,7 @@ void CIndexObject::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 
 void CIndexMulti::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id)
 {
     CIndexObject::ReadIndexFile(address, ptr, id);
-    if (g_Config.ClientVersion >= CV_7090)
+    if (GameVars::GetClientVersion()  >= CV_7090)
     {
         Count = (u16)(DataSize / sizeof(MULTI_BLOCK_NEW));
     }

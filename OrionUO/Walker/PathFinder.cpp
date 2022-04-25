@@ -1,8 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include <SDL_rect.h>
+#include "Globals.h"
 #include "PathFinder.h"
+#include "RenderStaticObject.h"
 #include "Walker.h"
 #include "../OrionUO.h"
 #include "../Profiler.h"
@@ -31,7 +30,7 @@ bool CPathFinder::CreateItemsList(std::vector<CPathObject> &list, int x, int y, 
     int blockX = x / 8;
     int blockY = y / 8;
 
-    const u32 blockIndex = (blockX * g_MapBlockSize[g_CurrentMap].Height) + blockY;
+    const u32 blockIndex = (blockX * g_MapBlockSize[g_CurrentMap].y) + blockY;
     if (blockIndex >= g_MapManager.MaxBlockIndex)
     {
         return false;

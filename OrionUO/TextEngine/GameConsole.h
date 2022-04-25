@@ -1,9 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "EntryText.h"
+#include <string>
 
 class CGameConsole : public CEntryText
 {
@@ -18,7 +16,7 @@ public:
     CGameConsole();
     virtual ~CGameConsole();
 
-    static void Send(wstring text, u16 defaultColor = 0);
+    static void Send(std::wstring text, u16 defaultColor = 0);
     static std::wstring
     IsSystemCommand(const wchar_t *text, size_t &len, int &member, GAME_CONSOLE_TEXT_TYPE &type);
 

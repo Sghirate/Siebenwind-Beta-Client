@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUICheckbox.h"
+﻿#include "GUICheckbox.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 #include "../Managers/FontsManager.h"

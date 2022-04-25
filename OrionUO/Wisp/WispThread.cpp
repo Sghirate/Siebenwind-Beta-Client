@@ -1,17 +1,10 @@
-﻿// MIT License
-
-#include <thread>
+﻿#include <thread>
 #include <SDL_timer.h>
 #include <SDL_thread.h>
 #define THREAD_USE_CLOCK 0
 
-#if USE_WISP
-#define THREADCALL __stdcall
-typedef unsigned thread_int;
-#else
 #define THREADCALL SDLCALL
 typedef int thread_int;
-#endif
 
 namespace Wisp
 {
@@ -47,10 +40,6 @@ thread_int THREADCALL CThreadLoop(void *arg)
 
     parent->OnDestroy();
     delete parent;
-
-#if USE_WISP
-    _endthreadex(0);
-#endif
 
     return 0;
 };
@@ -90,10 +79,6 @@ thread_int THREADCALL CThreadLoopSynchronizedDelay(void *arg)
     parent->OnDestroy();
     delete parent;
 
-#if USE_WISP
-    _endthreadex(0);
-#endif
-
     return 0;
 };
 
@@ -109,17 +94,11 @@ CThread::~CThread()
 void CThread::OnDestroy()
 {
     RELEASE_MUTEX(m_Mutex);
-#if USE_WISP
-    if (m_Handle != 0)
-        ::CloseHandle(m_Handle);
-    m_Handle = 0;
-#else
     if (m_Handle != nullptr)
     {
         SDL_DetachThread(m_Handle);
     }
     m_Handle = nullptr;
-#endif
     m_ID = 0;
 }
 
@@ -131,13 +110,6 @@ void CThread::Run(bool cycled, int delay, bool synchronizedDelay)
         m_Delay = delay;
         m_Active = true;
 
-#if USE_WISP
-        if (synchronizedDelay)
-            m_Handle =
-                (HANDLE)_beginthreadex(nullptr, 0, CThreadLoopSynchronizedDelay, this, 0, &m_ID);
-        else
-            m_Handle = (HANDLE)_beginthreadex(nullptr, 0, CThreadLoop, this, 0, &m_ID);
-#else
         if (synchronizedDelay)
         {
             m_Handle = SDL_CreateThread(
@@ -147,7 +119,6 @@ void CThread::Run(bool cycled, int delay, bool synchronizedDelay)
         {
             m_Handle = SDL_CreateThread(CThreadLoop, "CThreadLoop", (void *)this);
         }
-#endif
     }
 }
 

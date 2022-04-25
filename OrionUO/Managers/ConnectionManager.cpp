@@ -1,7 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "ConnectionManager.h"
+﻿#include "ConnectionManager.h"
+#include "Core/Log.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "PacketManager.h"
 #include <SDL_stdinc.h>
 #include "../Config.h"
@@ -19,12 +19,12 @@ CConnectionManager::CConnectionManager()
 
 CConnectionManager::~CConnectionManager()
 {
-    if (m_LoginSocket.Connected)
+    if (m_LoginSocket.IsConnected())
     {
         m_LoginSocket.Disconnect();
     }
 
-    if (m_GameSocket.Connected)
+    if (m_GameSocket.IsConnected())
     {
         m_GameSocket.Disconnect();
     }
@@ -74,7 +74,7 @@ void CConnectionManager::SetProxyPassword(const std::string &val)
 
 void CConnectionManager::Init()
 {
-    if (m_LoginSocket.Connected)
+    if (m_LoginSocket.IsConnected())
     {
         return;
     }
@@ -94,7 +94,7 @@ void CConnectionManager::Init()
 
 void CConnectionManager::Init(u8 *gameSeed)
 {
-    if (m_GameSocket.Connected)
+    if (m_GameSocket.IsConnected())
     {
         return;
     }
@@ -114,10 +114,10 @@ void CConnectionManager::SendIP(CSocket &socket, u8 *ip)
 
 bool CConnectionManager::Connect(const std::string &address, int port, u8 *gameSeed)
 {
-    LOG("Connecting %s:%d\n", address.c_str(), port);
+    LOG_INFO("ConnectionManager", "Connecting %s:%d", address.c_str(), port);
     if (m_IsLoginSocket)
     {
-        if (m_LoginSocket.Connected)
+        if (m_LoginSocket.IsConnected())
         {
             return true;
         }
@@ -125,11 +125,11 @@ bool CConnectionManager::Connect(const std::string &address, int port, u8 *gameS
         bool result = m_LoginSocket.Connect(address, port);
         if (result)
         {
-            LOG("connected\n");
+            LOG_INFO("ConnectionManager", "connected");
             g_TotalSendSize = 4;
             g_LastPacketTime = g_Ticks;
             g_LastSendTime = g_LastPacketTime;
-            if (g_Config.ClientVersion < CV_6060)
+            if (GameVars::GetClientVersion() < CV_6060)
             {
                 SendIP(m_LoginSocket, m_Seed);
             }
@@ -140,18 +140,18 @@ bool CConnectionManager::Connect(const std::string &address, int port, u8 *gameS
                 SendIP(m_LoginSocket, m_Seed);
                 Core::StreamWriter writer;
                 u32 major = 0, minor = 0, rev = 0, prot = 0;
-                GetClientVersion(&major, &minor, &rev, &prot);
-                stream.WriteBE<u32>(major);
-                stream.WriteBE<u32>(minor);
-                stream.WriteBE<u32>(rev);
+                GameVars::GetClientVersion(&major, &minor, &rev, &prot);
+                writer.WriteBE<u32>(major);
+                writer.WriteBE<u32>(minor);
+                writer.WriteBE<u32>(rev);
                 if (prot >= 'a')
                 {
                     prot = 0;
                 }
-                stream.WriteBE<u32>(prot);
+                writer.WriteBE<u32>(prot);
 
                 g_TotalSendSize = 21;
-                m_LoginSocket.Send(stream.Data()); // Client version, 16 bytes
+                m_LoginSocket.Send(writer.GetData()); // Client version, 16 bytes
             }
         }
         else
@@ -161,7 +161,7 @@ bool CConnectionManager::Connect(const std::string &address, int port, u8 *gameS
         return result;
     }
 
-    if (m_GameSocket.Connected)
+    if (m_GameSocket.IsConnected())
     {
         return true;
     }
@@ -184,12 +184,12 @@ bool CConnectionManager::Connect(const std::string &address, int port, u8 *gameS
 
 void CConnectionManager::Disconnect()
 {
-    if (m_LoginSocket.Connected)
+    if (m_LoginSocket.IsConnected())
     {
         m_LoginSocket.Disconnect();
     }
 
-    if (m_GameSocket.Connected)
+    if (m_GameSocket.IsConnected())
     {
         m_GameSocket.Disconnect();
     }
@@ -200,16 +200,16 @@ void CConnectionManager::Recv()
     PROFILER_EVENT();
     if (m_IsLoginSocket)
     {
-        if (!m_LoginSocket.Connected)
+        if (!m_LoginSocket.IsConnected())
         {
             return;
         }
 
         if (!m_LoginSocket.ReadyRead())
         {
-            if (m_LoginSocket.DataReady == -1)
+            if (m_LoginSocket.GetDataReady() == -1)
             {
-                LOG("Failed to Recv()...Disconnecting...\n");
+                LOG_ERROR("ConnectionManager", "Failed to Recv()...Disconnecting...");
                 g_Orion.InitScreen(GS_MAIN_CONNECT);
                 g_ConnectionScreen.SetType(CST_CONLOST);
             }
@@ -220,16 +220,16 @@ void CConnectionManager::Recv()
     }
     else
     {
-        if (!m_GameSocket.Connected)
+        if (!m_GameSocket.IsConnected())
         {
             return;
         }
 
         if (!m_GameSocket.ReadyRead())
         {
-            if (m_GameSocket.DataReady == -1)
+            if (m_GameSocket.GetDataReady() == -1)
             {
-                LOG("Failed to Recv()...Disconnecting...\n");
+                LOG_ERROR("ConnectionManager", "Failed to Recv()...Disconnecting...");
                 if (g_GameState == GS_GAME ||
                     (g_GameState == GS_GAME_BLOCKED && (g_GameBlockedScreen.Code != 0u)))
                 {
@@ -291,7 +291,7 @@ int CConnectionManager::Send(u8 *buf, int size)
 
     if (m_IsLoginSocket)
     {
-        if (!m_LoginSocket.Connected)
+        if (!m_LoginSocket.IsConnected())
         {
             return 0;
         }
@@ -301,7 +301,7 @@ int CConnectionManager::Send(u8 *buf, int size)
         return m_LoginSocket.Send(cbuf);
     }
 
-    if (!m_GameSocket.Connected)
+    if (!m_GameSocket.IsConnected())
     {
         return 0;
     }

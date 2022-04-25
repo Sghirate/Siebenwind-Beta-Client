@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "CharacterListScreen.h"
 #include "ConnectionScreen.h"
 #include "MainScreen.h"
@@ -9,6 +6,7 @@
 #include "../OrionWindow.h"
 #include "../CharacterList.h"
 #include "../Managers/ScreenEffectManager.h"
+#include "SiebenwindClient.h"
 
 CCharacterListScreen g_CharacterListScreen;
 
@@ -24,7 +22,7 @@ CCharacterListScreen::~CCharacterListScreen()
 void CCharacterListScreen::Init()
 {
 
-    string title = SiebenwindClient::WindowTitle + " - " + g_MainScreen.m_Account->c_str();
+    std::string title = SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str();
 
     CServer *server = g_ServerList.GetSelectedServer();
 

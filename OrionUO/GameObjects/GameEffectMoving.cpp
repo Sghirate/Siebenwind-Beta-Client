@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GameEffectMoving.h"
+﻿#include "GameEffectMoving.h"
 #include "GameWorld.h"
 #include "../ScreenStages/GameScreen.h"
 #include "../Managers/EffectManager.h"

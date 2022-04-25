@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIScrollBackground.h"
+﻿#include "GUIScrollBackground.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"
 

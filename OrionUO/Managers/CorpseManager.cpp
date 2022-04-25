@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2017 Hotride
-
 #include "CorpseManager.h"
 #include "../GameObjects/GameItem.h"
 #include "../GameObjects/GameWorld.h"

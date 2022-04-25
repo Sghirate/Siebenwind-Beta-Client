@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Connection.h"
+#include "Core/Log.h"
 #include "../Sockets.h"
 #include "../Crypt/CryptEntry.h"
 
@@ -16,22 +14,22 @@ CSocket::~CSocket()
 
 bool CSocket::Connect(const std::string &address, u16 port)
 {
-    LOG("Connecting...%s:%i\n", address.c_str(), port);
+    LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
 
     if (UseProxy)
     {
-        if (Connected)
+        if (IsConnected())
         {
             return false;
         }
-        LOG("Connecting using proxy %s:%d\n", ProxyAddress.c_str(), ProxyPort);
-        if (!CConnection::Connect(ProxyAddress, ProxyPort))
+        LOG_INFO("Socket", "Connecting using proxy %s:%d", ProxyAddress.c_str(), ProxyPort);
+        if (!Core::Connection::Connect(ProxyAddress, ProxyPort))
         {
-            LOG("Can't connect to proxy\n");
-            m_Socket = nullptr;
+            LOG_WARNING("Socket", "Can't connect to proxy");
+            m_socket = nullptr;
             Connected = false;
-            LOG("Connecting...%s:%i\n", address.c_str(), port);
-            return Wisp::CConnection::Connect(address, port);
+            LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
+            return Core::Connection::Connect(address, port);
         }
 
         u16 serverPort = htons(port);
@@ -55,55 +53,55 @@ bool CSocket::Connect(const std::string &address, u16 port)
 
         if (serverIP == 0xFFFFFFFF)
         {
-            LOG("Unknowm server address\n");
-            tcp_close(m_Socket);
-            m_Socket = nullptr;
-            Connected = false;
-            LOG("Connecting...%s:%i\n", address.c_str(), port);
-            return Wisp::CConnection::Connect(address, port);
+            LOG_WARNING("Socket", "Unknowm server address");
+            tcp_close(m_socket);
+            m_socket = nullptr;
+            m_connected = false;
+            LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
+            return Core::Connection::Connect(address, port);
         }
 
         if (ProxySocks5)
         {
-            LOG("Proxy Server Version 5 Selected\n");
+            LOG_INFO("Socket", "Proxy Server Version 5 Selected");
             unsigned char str[255] = { 0 };
             str[0] = 5; //Proxy Version
             str[1] = 2; //Number of authentication method
             str[2] = 0; //No auth required
             str[3] = 2; //Username/Password auth
-            tcp_send(m_Socket, str, 4);
-            int num = tcp_recv(m_Socket, str, 255);
+            tcp_send(m_socket, str, 4);
+            int num = tcp_recv(m_socket, str, 255);
             if ((str[0] != 5) || (num != 2))
             {
-                LOG("Proxy Server Version Missmatch\n");
-                tcp_close(m_Socket);
-                m_Socket = nullptr;
-                Connected = false;
-                LOG("Connecting...%s:%i\n", address.c_str(), port);
-                return Wisp::CConnection::Connect(address, port);
+                LOG_WARNING("Socket", "Proxy Server Version Missmatch");
+                tcp_close(m_socket);
+                m_socket = nullptr;
+                m_connected = false;
+                LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
+                return Core::Connection::Connect(address, port);
             }
 
             if ((str[1] == 0) || (str[1] == 2))
             {
                 if (str[1] == 2)
                 {
-                    LOG("Proxy wants Username/Password\n");
+                    LOG_INFO("Socket", "Proxy wants Username/Password");
                     int totalSize = 3 + (int)ProxyAccount.length() + (int)ProxyPassword.length();
                     std::vector<char> buffer(totalSize, 0);
                     sprintf(&buffer[0], "  %s %s", ProxyAccount.c_str(), ProxyPassword.c_str());
                     buffer[0] = 1;
                     buffer[1] = (char)ProxyAccount.length();
                     buffer[2 + (int)ProxyAccount.length()] = (char)ProxyPassword.length();
-                    tcp_send(m_Socket, (unsigned char *)&buffer[0], totalSize);
-                    tcp_recv(m_Socket, str, 255);
+                    tcp_send(m_socket, (unsigned char *)&buffer[0], totalSize);
+                    tcp_recv(m_socket, str, 255);
                     if (str[1] != 0)
                     {
-                        LOG("Wrong Username/Password\n");
-                        tcp_close(m_Socket);
-                        m_Socket = nullptr;
-                        Connected = false;
-                        LOG("Connecting...%s:%i\n", address.c_str(), port);
-                        return Wisp::CConnection::Connect(address, port);
+                        LOG_WARNING("Socket", "Wrong Username/Password");
+                        tcp_close(m_socket);
+                        m_socket = nullptr;
+                        m_connected = false;
+                        LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
+                        return Core::Connection::Connect(address, port);
                     }
                 }
                 memset(str, 0, 10);
@@ -113,59 +111,59 @@ bool CSocket::Connect(const std::string &address, u16 port)
                 str[3] = 1;
                 memcpy(&str[4], &serverIP, 4);
                 memcpy(&str[8], &serverPort, 2);
-                tcp_send(m_Socket, str, 10);
-                num = tcp_recv(m_Socket, str, 255);
+                tcp_send(m_socket, str, 10);
+                num = tcp_recv(m_socket, str, 255);
                 if (str[1] != 0)
                 {
                     switch (str[1])
                     {
                         case 1:
-                            LOG("general SOCKS server failure\n");
+                            LOG_ERROR("Socket", "general SOCKS server failure");
                             break;
                         case 2:
-                            LOG("connection not allowed by ruleset\n");
+                            LOG_ERROR("Socket", "connection not allowed by ruleset");
                             break;
                         case 3:
-                            LOG("Network unreachable\n");
+                            LOG_ERROR("Socket", "Network unreachable");
                             break;
                         case 4:
-                            LOG("Host unreachable\n");
+                            LOG_ERROR("Socket", "Host unreachable");
                             break;
                         case 5:
-                            LOG("Connection refused\n");
+                            LOG_ERROR("Socket", "Connection refused");
                             break;
                         case 6:
-                            LOG("TTL expired\n");
+                            LOG_ERROR("Socket", "TTL expired");
                             break;
                         case 7:
-                            LOG("Command not supported\n");
+                            LOG_ERROR("Socket", "Command not supported");
                             break;
                         case 8:
-                            LOG("Address type not supported\n");
+                            LOG_ERROR("Socket", "Address type not supported");
                             break;
                         case 9:
-                            LOG("to X'FF' unassigned\n");
+                            LOG_ERROR("Socket", "to X'FF' unassigned");
                             break;
                         default:
-                            LOG("Unknown Error <%d> recieved\n", str[1]);
+                            LOG_ERROR("Socket", "Unknown Error <%d> recieved", str[1]);
                     }
 
-                    tcp_close(m_Socket);
-                    m_Socket = nullptr;
+                    tcp_close(m_socket);
+                    m_socket = nullptr;
                     Connected = false;
                     LOG("Connecting...%s:%i\n", address.c_str(), port);
-                    return Wisp::CConnection::Connect(address, port);
+                    return Core::Connection::Connect(address, port);
                 }
                 LOG("Connected to server via proxy\n");
             }
             else
             {
                 LOG("No acceptable methods\n");
-                tcp_close(m_Socket);
-                m_Socket = nullptr;
+                tcp_close(m_socket);
+                m_socket = nullptr;
                 Connected = false;
                 LOG("Connecting...%s:%i\n", address.c_str(), port);
-                return Wisp::CConnection::Connect(address, port);
+                return Core::Connection::Connect(address, port);
             }
         }
         else
@@ -176,16 +174,16 @@ bool CSocket::Connect(const std::string &address, u16 port)
             str[1] = 1;
             memcpy(&str[2], &serverPort, 2);
             memcpy(&str[4], &serverIP, 4);
-            tcp_send(m_Socket, str, 9);
-            int recvSize = tcp_recv(m_Socket, str, 8);
+            tcp_send(m_socket, str, 9);
+            int recvSize = tcp_recv(m_socket, str, 8);
             if ((recvSize != 8) || (str[0] != 0) || (str[1] != 90))
             {
                 if (str[0] == 5)
                 {
                     LOG("Proxy Server Version is 5\n");
                     LOG("Trying  SOCKS5\n");
-                    tcp_close(m_Socket);
-                    m_Socket = nullptr;
+                    tcp_close(m_socket);
+                    m_socket = nullptr;
                     Connected = false;
                     ProxySocks5 = true;
                     return Connect(address, port);
@@ -208,18 +206,18 @@ bool CSocket::Connect(const std::string &address, u16 port)
                         LOG("Unknown Error <%d> recieved\n", str[1]);
                         break;
                 }
-                tcp_close(m_Socket);
-                m_Socket = nullptr;
+                tcp_close(m_socket);
+                m_socket = nullptr;
                 Connected = false;
                 LOG("Connecting...%s:%i\n", address.c_str(), port);
-                return Wisp::CConnection::Connect(address, port);
+                return Core::Connection::Connect(address, port);
             }
             LOG("Connected to server via proxy\n");
         }
     }
     else
     {
-        return Wisp::CConnection::Connect(address, port);
+        return Core::Connection::Connect(address, port);
     }
 
     return true;

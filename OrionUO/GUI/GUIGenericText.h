@@ -1,9 +1,8 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#pragma once
 
-#pragma once
-
+#include "Core/Minimal.h"
 #include "GUIText.h"
+#include <string>
 
 class CGUIGenericText : public CGUIText
 {
@@ -17,5 +16,5 @@ public:
     CGUIGenericText(int index, u16 color, int x, int y, int maxWidth = 0);
     virtual ~CGUIGenericText();
 
-    void CreateTexture(const std::wstring &str);
+    void CreateTexture(const std::wstring& str);
 };

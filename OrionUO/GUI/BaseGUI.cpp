@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "BaseGUI.h"
+﻿#include "BaseGUI.h"
 
 CBaseGUI::CBaseGUI(
     GUMP_OBJECT_TYPE type, int serial, u16 graphic, u16 color, int x, int y)

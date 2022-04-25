@@ -1,10 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpOptions.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GumpSelectColor.h"
 #include "GumpSelectFont.h"
 #include "GumpMenubar.h"
+#include "Platform.h"
 #include "../Config.h"
 #include "../Macro.h"
 #include "../DefinitionMacro.h"
@@ -21,269 +21,7 @@
 #include "../Managers/ColorManager.h"
 #include "../Network/Packets.h"
 
-#if USE_WISP
-#define KeyName(x) s_HotkeyText[x & 0xFF]
-const char *s_HotkeyText[0x100] = {
-    "",               //0x00
-    "Left Mouse",     //0x01
-    "Right Mouse",    //0x02
-    "Ctrl-Break",     //0x03
-    "Middle Mouse",   //0x04
-    "0x05",           //0x05
-    "0x06",           //0x06
-    "0x07",           //0x07
-    "Backspace",      //0x08
-    "Tab",            //0x09
-    "0x0a",           //0x0a
-    "0x0b",           //0x0b
-    "Clear",          //0x0c
-    "Enter",          //0x0d
-    "0x0e",           //0x0e
-    "0x0f",           //0x0f
-    "Shift",          //0x10
-    "Ctrl",           //0x11
-    "Alt",            //0x12
-    "Pause",          //0x13
-    "Caps Lock",      //0x14
-    "0x15",           //0x15
-    "0x16",           //0x16
-    "0x17",           //0x17
-    "0x18",           //0x18
-    "0x19",           //0x19
-    "0x1a",           //0x1a
-    "Esc",            //0x1b
-    "0x1c",           //0x1c
-    "0x1d",           //0x1d
-    "0x1e",           //0x1e
-    "0x1f",           //0x1f
-    "Space",          //0x20
-    "Page Up",        //0x21
-    "Page Down",      //0x22
-    "End",            //0x23
-    "Home",           //0x24
-    "Left Arrow",     //0x25
-    "Up Arrow",       //0x26
-    "Right Arrow",    //0x27
-    "Down Arrow",     //0x28
-    "Select",         //0x29
-    "OEM 2A",         //0x2a
-    "Execute",        //0x2b
-    "Print Screen",   //0x2c
-    "Ins",            //0x2d
-    "Del",            //0x2e
-    "Help",           //0x2f
-    "0",              //0x30
-    "1",              //0x31
-    "2",              //0x32
-    "3",              //0x33
-    "4",              //0x34
-    "5",              //0x35
-    "6",              //0x36
-    "7",              //0x37
-    "8",              //0x38
-    "9",              //0x39
-    "0x3a",           //0x3a
-    "0x3b",           //0x3b
-    "0x3c",           //0x3c
-    "0x3d",           //0x3d
-    "0x3e",           //0x3e
-    "0x3f",           //0x3f
-    "0x40",           //0x40
-    "A",              //0x41
-    "B",              //0x42
-    "C",              //0x43
-    "D",              //0x44
-    "E",              //0x45
-    "F",              //0x46
-    "G",              //0x47
-    "H",              //0x48
-    "I",              //0x49
-    "J",              //0x4a
-    "K",              //0x4b
-    "L",              //0x4c
-    "M",              //0x4d
-    "N",              //0x4e
-    "O",              //0x4f
-    "P",              //0x50
-    "Q",              //0x51
-    "R",              //0x52
-    "S",              //0x53
-    "T",              //0x54
-    "U",              //0x55
-    "V",              //0x56
-    "W",              //0x57
-    "X",              //0x58
-    "Y",              //0x59
-    "Z",              //0x5a
-    "Left Win",       //0x5b
-    "Right Win",      //0x5c
-    "Apps",           //0x5d
-    "0x5e",           //0x5e
-    "0x5f",           //0x5f
-    "Num 0",          //0x60
-    "Num 1",          //0x61
-    "Num 2",          //0x62
-    "Num 3",          //0x63
-    "Num 4",          //0x64
-    "Num 5",          //0x65
-    "Num 6",          //0x66
-    "Num 7",          //0x67
-    "Num 8",          //0x68
-    "Num 9",          //0x69
-    "Num *",          //0x6a
-    "Num +",          //0x6b
-    "Separator",      //0x6c
-    "Num -",          //0x6d
-    "Num .",          //0x6e
-    "Num /",          //0x6f
-    "F1",             //0x70
-    "F2",             //0x71
-    "F3",             //0x72
-    "F4",             //0x73
-    "F5",             //0x74
-    "F6",             //0x75
-    "F7",             //0x76
-    "F8",             //0x77
-    "F9",             //0x78
-    "F10",            //0x79
-    "F11",            //0x7a
-    "F12",            //0x7b
-    "Wheel Click",    //"F13",	//0x7c
-    "Wheel Up",       //"F14",	//0x7d
-    "Wheel Down",     //"F15",	//0x7e
-    "Mouse+ Forward", //"F16",	//0x7f
-    "Mouse+ Back",    //"F17",	//0x80
-    "F18",            //0x81
-    "F19",            //0x82
-    "F20",            //0x83
-    "F21",            //0x84
-    "F22",            //0x85
-    "F23",            //0x86
-    "F24",            //0x87
-    "0x88",           //0x88
-    "0x89",           //0x89
-    "0x8a",           //0x8a
-    "0x8b",           //0x8b
-    "0x8c",           //0x8c
-    "0x8d",           //0x8d
-    "0x8e",           //0x8e
-    "0x8f",           //0x8f
-    "Num Lock",       //0x90
-    "Scroll Lock",    //0x91
-    "0x92",           //0x92
-    "0x93",           //0x93
-    "0x94",           //0x94
-    "0x95",           //0x95
-    "0x96",           //0x96
-    "0x97",           //0x97
-    "0x98",           //0x98
-    "0x99",           //0x99
-    "0x9a",           //0x9a
-    "0x9b",           //0x9b
-    "0x9c",           //0x9c
-    "0x9d",           //0x9d
-    "0x9e",           //0x9e
-    "0x9f",           //0x9f
-    "0xa0",           //0xa0
-    "0xa1",           //0xa1
-    "0xa2",           //0xa2
-    "0xa3",           //0xa3
-    "0xa4",           //0xa4
-    "0xa5",           //0xa5
-    "0xa6",           //0xa6
-    "0xa7",           //0xa7
-    "0xa8",           //0xa8
-    "0xa9",           //0xa9
-    "0xaa",           //0xaa
-    "0xab",           //0xab
-    "0xac",           //0xac
-    "0xad",           //0xad
-    "0xae",           //0xae
-    "0xaf",           //0xaf
-    "0xb0",           //0xb0
-    "0xb1",           //0xb1
-    "0xb2",           //0xb2
-    "0xb3",           //0xb3
-    "0xb4",           //0xb4
-    "0xb5",           //0xb5
-    "0xb6",           //0xb6
-    "0xb7",           //0xb7
-    "0xb8",           //0xb8
-    "0xb9",           //0xb9
-    ";",              //0xba
-    "=",              //0xbb
-    ",",              //0xbc
-    "-",              //0xbd
-    ".",              //0xbe
-    "/",              //0xbf
-    "`",              //0xc0
-    "0xc1",           //0xc1
-    "0xc2",           //0xc2
-    "0xc3",           //0xc3
-    "0xc4",           //0xc4
-    "0xc5",           //0xc5
-    "0xc6",           //0xc6
-    "0xc7",           //0xc7
-    "0xc8",           //0xc8
-    "0xc9",           //0xc9
-    "0xca",           //0xca
-    "0xcb",           //0xcb
-    "0xcc",           //0xcc
-    "0xcd",           //0xcd
-    "0xce",           //0xce
-    "0xcf",           //0xcf
-    "0xd0",           //0xd0
-    "0xd1",           //0xd1
-    "0xd2",           //0xd2
-    "0xd3",           //0xd3
-    "0xd4",           //0xd4
-    "0xd5",           //0xd5
-    "0xd6",           //0xd6
-    "0xd7",           //0xd7
-    "0xd8",           //0xd8
-    "0xd9",           //0xd9
-    "0xda",           //0xda
-    "[",              //0xdb
-    "\\",             //0xdc
-    "]",              //0xdd
-    "'",              //0xde
-    "OEM DF",         //0xdf
-    "OEM E0",         //0xe0
-    "OEM E1",         //0xe1
-    "OEM E2",         //0x32
-    "OEM E3",         //0xe3
-    "OEM E4",         //0xe4
-    "0xe5",           //0xe5
-    "OEM E6",         //0xe6
-    "0xe7",           //0xe7
-    "0xe8",           //0xe8
-    "OEM E9",         //0xe9
-    "OEM EA",         //0xea
-    "OEM EB",         //0xeb
-    "OEM EC",         //0xec
-    "OEM ED",         //0xed
-    "OEM EE",         //0xee
-    "OEM EF",         //0xef
-    "OEM F0",         //0xf0
-    "OEM F1",         //0xf1
-    "OEM F2",         //0xf2
-    "OEM F3",         //0xf3
-    "OEM F4",         //0xf4
-    "OEM F5",         //0xf5
-    "Attn",           //0xf6
-    "Crsel",          //0xf7
-    "Exsel",          //0xf8
-    "Erase EOF",      //0xf9
-    "Play",           //0xfa
-    "Zoom",           //0xfb
-    "0xfc",           //0xfc
-    "PA1",            //0xfd
-    "Clear",          //0xfe
-    "0xff"            //0xff
-};
-#else
 #define KeyName(x) SDL_GetKeyName(x)
-#endif
 
 const u16 g_OptionsTextColor = 0;
 const int g_OptionsPolygoneColorOffset = 12;
@@ -485,7 +223,7 @@ void CGumpOptions::CalculateGumpState()
         if (g_PressedObject.LeftObject != nullptr &&
             ((CBaseGUI *)g_PressedObject.LeftObject)->Type == GOT_COMBOBOX)
         {
-            g_GumpMovingOffset.Reset();
+            g_GumpMovingOffset.set(0, 0);
 
             if (Minimized)
             {
@@ -2637,7 +2375,7 @@ void CGumpOptions::DrawPage7()
     checkbox->Checked = g_OptionsConfig.ColoredLighting;
     checkbox->SetTextParameters(0, L"Colored Lighting", g_OptionsTextColor);
 
-    if (g_Config.ClientVersion >= CV_6000)
+    if (GameVars::GetClientVersion() >= CV_6000)
     {
         Add(new CGUIButton(ID_GO_P7_GUILD_MESSAGE_COLOR, 0x00D4, 0x00D4, 0x00D4, 354, 204));
 
@@ -3258,7 +2996,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                     m_MacroPointer = Macro::CreateBlankMacro();
                     m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
                     g_OptionsMacroManager.Add(m_MacroPointer);
-                    m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->Key));
+                    m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->GetKey()));
                     RedrawMacroData();
                 }
                 else if (serial == ID_GO_P5_BUTTON_DELETE) //Delete button
@@ -3281,7 +3019,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
 
                         m_MacroPointer = newpointer;
                         m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
-                        m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->Key));
+                        m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->GetKey()));
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
                     }
@@ -3567,15 +3305,15 @@ void CGumpOptions::GUMP_CHECKBOX_EVENT_C
         {
             if (serial == ID_GO_P5_BUTTON_SHIFT)
             { //Shift checkbox
-                m_MacroPointer->Shift = state;
+                m_MacroPointer->SetShift(state);
             }
             else if (serial == ID_GO_P5_BUTTON_ALT)
             { //Alt checkbox
-                m_MacroPointer->Alt = state;
+                m_MacroPointer->SetAlt(state);
             }
             else if (serial == ID_GO_P5_BUTTON_CTRL)
             { //Ctrl checkbox
-                m_MacroPointer->Ctrl = state;
+                m_MacroPointer->SetCtrl(state);
             }
 
             break;
@@ -4009,7 +3747,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
         {
             MACRO_CODE code = (MACRO_CODE)index;
 
-            if (obj->Code != code)
+            if (obj->GetCode() != code)
             {
                 MacroObject *newobj = Macro::CreateMacro(code);
 
@@ -4031,7 +3769,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
             }
             else if (
                 obj->m_Next != nullptr && obj->m_Next->m_Next == nullptr &&
-                ((MacroObject *)obj->m_Next)->Code == MC_NONE)
+                ((MacroObject *)obj->m_Next)->GetCode() == MC_NONE)
             {
                 if (obj == m_MacroObjectPointer)
                 {
@@ -4045,9 +3783,9 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
         {
             int macroListOffset = 0;
             int macroListCount = 0;
-            Macro::GetBoundByCode(obj->Code, macroListCount, macroListOffset);
+            Macro::GetBoundByCode(obj->GetCode(), macroListCount, macroListOffset);
 
-            obj->SubCode = (MACRO_SUB_CODE)(macroListOffset + index);
+            obj->SetSubCode((MACRO_SUB_CODE)(macroListOffset + index));
         }
 
         m_WantRedrawMacroData = true;
@@ -4100,7 +3838,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
                 int macroCount = 0;
                 while (obj != nullptr && macroCount < maxMacroDraw)
                 {
-                    if (obj->HasSubMenu == 2 &&
+                    if (obj->HasSubMenu() == 2 &&
                         entry->Serial ==
                             ID_GO_P5_ACTION_SELECTION + (macroCount * ID_GO_P5_MACRO_START))
                     {
@@ -4116,7 +3854,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
         if (obj != nullptr)
         {
             bool canAdd = false;
-            switch (obj->Code)
+            switch (obj->GetCode())
             {
                 case MC_DELAY:
                 case MC_SET_UPDATE_RANGE:
@@ -4143,7 +3881,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
             if (canAdd)
             {
                 g_EntryPointer->Insert(ch);
-                ((MacroObjectString *)obj)->m_String = g_EntryPointer->c_str();
+                ((MacroObjectString *)obj)->SetString(g_EntryPointer->c_str());
                 WantRedraw = true;
             }
         }
@@ -4156,7 +3894,7 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
     const auto key = EvKey(ev);
     if (g_EntryPointer == &m_MacroKey->m_Entry)
     {
-        m_MacroPointer->Key = key;
+        m_MacroPointer->SetKey(key);
         m_MacroKey->m_Entry.SetTextA(KeyName(key));
         WantRedraw = true;
     }
@@ -4206,7 +3944,7 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
 
                         while (obj != nullptr && macroCount < maxMacroDraw)
                         {
-                            if (obj->HasSubMenu == 2 &&
+                            if (obj->HasSubMenu() == 2 &&
                                 entry->Serial ==
                                     ID_GO_P5_ACTION_SELECTION + (macroCount * ID_GO_P5_MACRO_START))
                             {
@@ -4221,7 +3959,7 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
 
                 if (obj != nullptr)
                 {
-                    ((MacroObjectString *)obj)->m_String = g_EntryPointer->c_str();
+                    ((MacroObjectString *)obj)->SetString(g_EntryPointer->c_str());
                 }
             }
         }
@@ -4414,9 +4152,9 @@ void CGumpOptions::ApplyPageChanges()
             {
                 curX = 640;
             }
-            else if (curX > (g_OrionWindow.GetSize().Width - 20))
+            else if (curX > (g_OrionWindow.GetSize().x - 20))
             {
-                curX = g_OrionWindow.GetSize().Width - 20;
+                curX = g_OrionWindow.GetSize().x - 20;
             }
 
             g_OptionsConfig.GameWindowWidth = curX;
@@ -4433,15 +4171,15 @@ void CGumpOptions::ApplyPageChanges()
             {
                 curY = 480;
             }
-            else if (curY > (g_OrionWindow.GetSize().Height - 40))
+            else if (curY > (g_OrionWindow.GetSize().y - 40))
             {
-                curY = (g_OrionWindow.GetSize().Height - 40);
+                curY = (g_OrionWindow.GetSize().y - 40);
             }
 
             g_OptionsConfig.GameWindowHeight = curY;
             g_ConfigManager.GameWindowHeight = curY;
 
-            if (g_Config.ClientVersion >= CV_200)
+            if (GameVars::GetClientVersion() >= CV_200)
             {
                 CPacketGameWindowSize().Send();
             }

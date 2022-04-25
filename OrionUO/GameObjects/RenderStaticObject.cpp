@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "RenderStaticObject.h"
 #include "GamePlayer.h"
 #include "../OrionUO.h"

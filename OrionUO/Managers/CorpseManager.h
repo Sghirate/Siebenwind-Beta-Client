@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2017 Hotride
-
 #pragma once
 
 class CCorpse

@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) May 2017 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "GUIDrawObject.h"
 

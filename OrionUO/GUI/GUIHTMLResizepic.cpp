@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIHTMLResizepic.h"
+﻿#include "GUIHTMLResizepic.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLResizepic::CGUIHTMLResizepic(

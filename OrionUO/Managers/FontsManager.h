@@ -1,9 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "../plugin/mulstruct.h"
+#include "Core/Minimal.h"
 
 typedef struct MULTILINES_FONT_DATA
 {
@@ -43,7 +41,7 @@ typedef struct MULTILINES_FONT_INFO
 struct WEB_LINK
 {
     bool Visited;
-    string WebLink;
+    std::string WebLink;
 };
 
 struct HTML_char
@@ -109,8 +107,8 @@ private:
     HTML_DATA_INFO GetCurrentHTMLInfo(const HTMLINFO_LIST &list);
 
     void GetHTMLInfoFromContent(HTML_DATA_INFO &info, const std::string &content);
-    void TrimHTMLString(string &str);
-    u32 GetHTMLColorFromText(string &str);
+    void TrimHTMLString(std::string &str);
+    u32 GetHTMLColorFromText(std::string &str);
 
     HTML_TAG_TYPE
     ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, HTML_DATA_INFO &info);
@@ -191,7 +189,7 @@ public:
 
     int GetHeightA(PMULTILINES_FONT_INFO info);
 
-    string GetTextByWidthA(u8 font, const std::string &str, int width, bool isCropped);
+    std::string GetTextByWidthA(u8 font, const std::string &str, int width, bool isCropped);
 
     PMULTILINES_FONT_INFO
     GetInfoA(

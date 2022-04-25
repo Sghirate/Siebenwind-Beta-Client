@@ -5,92 +5,92 @@
 
 namespace Core
 {
+typedef std::chrono::high_resolution_clock TClock;
+typedef TClock::time_point TTimePoint;
+typedef std::chrono::duration<double> TSeconds;
+typedef std::chrono::duration<double, std::milli> TMilliseconds;
 
-static struct CoreClock
+Timer::Timer()
+    : m_handle(new TTimePoint())
 {
-    typedef std::chrono::high_resolution_clock TClock;
-    typedef TClock::time_point TTimePoint;
-    typedef std::chrono::duration<double> TSeconds;
-    typedef std::chrono::duration<double, std::milli> TMilliseconds;
+    Reset();
+}
 
-    TTimePoint gameStart  = TClock::now();
-    TTimePoint frameStart = TClock::now();
-    TSeconds lastFrameDuration;
-    double deltaSeconds = 0;
-    int targetFps = 0;
-
-    void Reset()
+Timer::~Timer()
+{
+    if (m_handle)
     {
-        gameStart = frameStart = TClock::now();
-        lastFrameDuration      = TSeconds::zero();
-        targetFps              = 0;
+        delete (m_handle);
+        m_handle = nullptr;
     }
-    TTimePoint Now() const { return TClock::now(); }
-} g_coreClock;
-
-void Time::Init()
-{
-    g_coreClock.Reset();
 }
 
-void Time::BeginFrame()
+void Timer::Reset()
 {
-    g_coreClock.frameStart = g_coreClock.Now();
+    if (m_handle)
+        *static_cast<TTimePoint*>(m_handle) = TClock::now();
 }
 
-void Time::EndFrame()
+double Timer::GetElapsedSeconds() const
 {
-    if (g_coreClock.targetFps > 0)
+    return m_handle ? TSeconds(TClock::now() - *static_cast<TTimePoint*>(m_handle)).count() : 0.0;
+}
+
+double Timer::GetElapsedMilliseconds() const
+{
+    return m_handle ? TMilliseconds(TClock::now() - *static_cast<TTimePoint*>(m_handle)).count() :
+                      0.0;
+}
+
+GameTimer& GameTimer::Get()
+{
+    static GameTimer s_instance;
+    return s_instance;
+}
+
+GameTimer::GameTimer()
+{
+}
+
+GameTimer::~GameTimer()
+{
+}
+
+FrameTimer& FrameTimer::Get()
+{
+    static FrameTimer s_instance;
+    return s_instance;
+}
+
+FrameTimer::FrameTimer()
+    : m_targetFPS(0)
+    , m_lastFrameSeconds(0.0)
+{
+}
+
+FrameTimer::~FrameTimer()
+{
+}
+
+void FrameTimer::BeginFrame()
+{
+    Reset();
+}
+
+void FrameTimer::EndFrame()
+{
+    if (m_targetFPS > 0)
     {
-        const double targetMs       = 1000.0 / static_cast<double>(g_coreClock.targetFps);
-        CoreClock::TTimePoint end   = g_coreClock.Now();
-        auto frameEnd               = g_coreClock.Now();
-        CoreClock::TMilliseconds ms = end - g_coreClock.frameStart;
-        if (ms.count() < targetMs)
+        const double elapsedMs = GetElapsedMilliseconds();
+        const double targetMs  = 1000.0 / static_cast<double>(m_targetFPS);
+        if (elapsedMs < targetMs)
         {
-            CoreClock::TMilliseconds deltaMs(targetMs - ms.count());
+            TMilliseconds deltaMs(targetMs - elapsedMs);
             auto sleepDuration = std::chrono::duration_cast<std::chrono::milliseconds>(deltaMs);
             std::this_thread::sleep_for(std::chrono::milliseconds(sleepDuration.count()));
         }
     }
-    g_coreClock.lastFrameDuration = CoreClock::TSeconds(g_coreClock.Now() - g_coreClock.frameStart);
-    g_coreClock.deltaSeconds      = GetLastFrameSeconds();
-}
-
-void Time::Shutdown()
-{
-}
-
-double Time::GetDeltaSeconds()
-{
-    return g_coreClock.deltaSeconds;
-}
-
-double Time::GetCurrentFrameSeconds(double a_max /* = 0.03333*/)
-{
-    CoreClock::TSeconds cur(g_coreClock.Now() - g_coreClock.frameStart);
-    return Core::Min(a_max, cur.count());
-}
-
-double Time::GetLastFrameSeconds(double a_max /* = 0.03333*/)
-{
-    return Core::Min(a_max, g_coreClock.lastFrameDuration.count());
-}
-
-double Time::GetTotalSeconds()
-{
-    CoreClock::TSeconds cur(g_coreClock.Now() - g_coreClock.gameStart);
-    return cur.count();
-}
-
-int Time::GetTargetFps()
-{
-    return g_coreClock.targetFps;
-}
-
-void Time::SetTargetFps(int a_targetFps)
-{
-    g_coreClock.targetFps = a_targetFps;
+    m_lastFrameSeconds = GetElapsedSeconds();
 }
 
 } // namespace Core

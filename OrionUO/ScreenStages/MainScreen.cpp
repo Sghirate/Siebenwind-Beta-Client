@@ -1,9 +1,9 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "MainScreen.h"
+#include "Globals.h"
 #include "BaseScreen.h"
+#include "GameVars.h"
 #include "GameWindow.h"
+#include "Platform.h"
 #include "SiebenwindClient.h"
 #include "../Config.h"
 #include "../Definitions.h"
@@ -40,12 +40,7 @@ void CMainScreen::Init()
 
     Load();
 
-#if USE_WISP
-    g_gameWindow.SetSize(Core::Vec2<i32>(640, 480));
-    g_gameWindow.NoResize = true;
-#else
     Reset();
-#endif
     g_gameWindow.SetTitle(SiebenwindClient::GetWindowTitle().c_str());
     g_GL.UpdateRect();
 
@@ -232,11 +227,16 @@ void CMainScreen::Save()
     g_Config.SavePassword = m_SavePassword->Checked;
     g_Config.Password = m_Password->GetTextA();
     g_Config.Login = m_Account->GetTextA();
+
+    uo_auto_login.SetValue(m_AutoLogin->Checked ? 1 : 0);
+    uo_save_password.SetValue(m_SavePassword->Checked ? 1 : 0);
+    uo_password.SetValue(uo_save_password.GetValue() > 0 ? m_Password->GetTextA() : "");
+    uo_login.SetValue(m_Account->GetTextA());
 }
 
 void CMainScreen::Reset() const
 {
-    g_gameWindow.RestoreWindow();
+    g_gameWindow.Restore();
     g_gameWindow.SetSize(Core::Vec2<i32>(640, 480));
-    g_gameWindow.SetWindowResizable(false);
+    g_gameWindow.SetIsResizeable(false);
 }

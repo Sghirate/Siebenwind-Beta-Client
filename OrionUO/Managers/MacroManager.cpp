@@ -2,6 +2,7 @@
 #include "Macro.h"
 #include "Core/DataStream.h"
 #include "Core/File.h"
+#include "Core/Log.h"
 #include "Core/MappedFile.h"
 #include "Core/StringUtils.h"
 #include "Core/TextFileParser.h"
@@ -9,6 +10,8 @@
 #include "GameObjects/GamePlayer.h"
 #include "GameObjects/GameWorld.h"
 #include "GameObjects/ObjectOnCursor.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "Gumps/GumpAbility.h"
 #include "Gumps/GumpSpellbook.h"
 #include "Gumps/GumpTargetSystem.h"
@@ -233,7 +236,7 @@ bool MacroManager::Convert(const std::filesystem::path& a_path)
 
         if (size < 4 || size > 5)
         {
-            LOG("Error! Macros converter: unexpected start args count = %zi", size);
+            LOG_ERROR("MacroManager", "Macros converter: unexpected start args count = %zi", size);
             continue;
         }
 
@@ -274,7 +277,7 @@ bool MacroManager::Convert(const std::filesystem::path& a_path)
                 data[0]         = raw;
             }
 
-            std::string upData = ToUpperA(data[0]);
+            std::string upData = Core::ToUpperA(data[0]);
             MACRO_CODE code    = MC_NONE;
 
             for (int i = 0; i < Macro::kMacroActionNamesCount; i++)
@@ -314,7 +317,7 @@ bool MacroManager::Convert(const std::filesystem::path& a_path)
                         upData += " " + data[i];
                     }
 
-                    upData = ToUpperA(upData);
+                    upData = Core::ToUpperA(upData);
 
                     for (int i = 0; i < Macro::kMacroActionsCount; i++)
                     {
@@ -404,7 +407,10 @@ void MacroManager::LoadFromOptions()
 {
     Clear();
     ChangePointer(nullptr);
-    QFOR(obj, g_OptionsMacroManager.m_Items, Macro*) { Add(obj->GetCopy()); }
+    QFOR(obj, g_OptionsMacroManager.m_Items, Macro*)
+    {
+        Add(obj->GetCopy());
+    }
 }
 
 void MacroManager::ChangePointer(MacroObject* macro)
@@ -815,7 +821,7 @@ MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
 
                 // Always send unicode speech requests to the Siebenwind Server.
                 CPacketUnicodeSpeechRequest(
-                    ToWString(mos->GetString()).c_str(),
+                    Core::ToWString(mos->GetString()).c_str(),
                     st,
                     3,
                     g_ConfigManager.SpeechColor,
@@ -858,7 +864,7 @@ MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
             {
 #if defined(ORION_WINDOWS)
                 // FIXME: move clipboard access to wisp window
-                if (OpenClipboard(g_OrionWindow.Handle))
+                if (OpenClipboard((HWND)g_OrionWindow.Handle))
                 {
                     HANDLE cb = GetClipboardData(CF_TEXT);
 
@@ -868,7 +874,7 @@ MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
 
                         if (chBuffer != nullptr && (strlen(chBuffer) != 0u))
                         {
-                            std::wstring str = g_EntryPointer->Data() + ToWString(chBuffer);
+                            std::wstring str = g_EntryPointer->Data() + Core::ToWString(chBuffer);
                             g_EntryPointer->SetTextW(str);
                         }
 
@@ -1236,7 +1242,7 @@ MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
         case MC_BANDAGE_TARGET:
         {
             //На самом деле с 5.0.4a
-            if (g_PacketManager.GetClientVersion() < CV_5020)
+            if (GameVars::GetClientVersion() < CV_5020)
             {
                 if (WaitingBandageTarget)
                 {

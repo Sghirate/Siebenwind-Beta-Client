@@ -1,7 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "Packets.h"
+﻿#include "Packets.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../CityList.h"
@@ -85,7 +85,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const std::string &name)
     int skillsCount = 3;
     u32 packetID = 0x00;
 
-    if (g_Config.ClientVersion >= CV_70160)
+    if (GameVars::GetClientVersion() >= CV_70160)
     {
         skillsCount++;
         Resize(106, true);
@@ -117,7 +117,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const std::string &name)
     WriteLE<u8>(val); //profession
     Move(15);        //?
 
-    if (g_Config.ClientVersion < CV_4011D)
+    if (GameVars::GetClientVersion() < CV_4011D)
     {
         val = (u8)g_CreateCharacterManager.GetFemale();
     }
@@ -125,7 +125,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const std::string &name)
     {
         val = (u8)g_CreateCharacterManager.GetRace();
 
-        if (g_Config.ClientVersion < CV_7000)
+        if (GameVars::GetClientVersion() < CV_7000)
         {
             val--;
         }
@@ -162,7 +162,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const std::string &name)
     WriteBE<u16>(g_CreateCharacterManager.GetBeard(g_CreateCharacterManager.BeardStyle).GraphicID);
     WriteBE<u16>(g_CreateCharacterManager.BeardColor);
 
-    if (g_Config.ClientVersion >= CV_70160)
+    if (GameVars::GetClientVersion() >= CV_70160)
     {
         u16 location = g_SelectTownScreen.m_City->LocationIndex;
 
@@ -194,7 +194,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const std::string &name)
         WriteLE<u8>(serverIndex); //server index
 
         u8 location = g_SelectTownScreen.m_City->LocationIndex;
-        if (g_Config.ClientVersion < CV_70130)
+        if (GameVars::GetClientVersion() < CV_70130)
         {
             location--;
         }
@@ -212,7 +212,7 @@ CPacketCreateCharacter::CPacketCreateCharacter(const std::string &name)
 
         WriteBE<u32>(slot);
     }
-    WriteDataBE(g_ConnectionManager.GetClientIP(), 4);
+    WriteBE(g_ConnectionManager.GetClientIP(), 4);
     WriteBE<u16>(g_CreateCharacterManager.ShirtColor);
     WriteBE<u16>(g_CreateCharacterManager.PantsColor);
 }
@@ -223,7 +223,7 @@ CPacketDeleteCharacter::CPacketDeleteCharacter(int charIndex)
     WriteLE<u8>(0x83);
     Move(30); //character password
     WriteBE<u32>(charIndex);
-    WriteDataBE(g_ConnectionManager.GetClientIP(), 4);
+    WriteBE(g_ConnectionManager.GetClientIP(), 4);
 }
 
 CPacketSelectCharacter::CPacketSelectCharacter(int index, const std::string &name)
@@ -254,7 +254,7 @@ CPacketSelectCharacter::CPacketSelectCharacter(int index, const std::string &nam
 
     Move(24);
     WriteBE<u32>(index);
-    WriteDataBE(g_ConnectionManager.GetClientIP(), 4);
+    WriteBE(g_ConnectionManager.GetClientIP(), 4);
 }
 
 CPacketPickupRequest::CPacketPickupRequest(u32 serial, u16 count)
@@ -399,12 +399,12 @@ CPacketUnicodeSpeechRequest::CPacketUnicodeSpeechRequest(
 
     //encoded
     bool encoded = !codes.empty();
-    string utf8string{};
+    std::string utf8string{};
     std::vector<u8> codeBytes;
     if (encoded)
     {
         typeValue |= ST_ENCODED_COMMAND;
-        utf8string = EncodeUTF8(wstring(text));
+        utf8string = Core::EncodeUTF8(std::wstring(text));
         len = (int)utf8string.length();
         size += len;
         size += 1; //null terminator
@@ -474,7 +474,7 @@ CPacketUnicodeSpeechRequest::CPacketUnicodeSpeechRequest(
 CPacketCastSpell::CPacketCastSpell(int index)
     : CPacket(1)
 {
-    if (g_Config.ClientVersion >= CV_60142)
+    if (GameVars::GetClientVersion() >= CV_60142)
     {
         Resize(9, true);
 
@@ -1227,8 +1227,8 @@ CPacketChangeStatLockStateRequest::CPacketChangeStatLockStateRequest(u8 stat, u8
 CPacketBookHeaderChangeOld::CPacketBookHeaderChangeOld(CGumpBook *gump)
     : CPacket(99)
 {
-    string title = EncodeUTF8(gump->m_EntryTitle->m_Entry.Data());
-    string author = EncodeUTF8(gump->m_EntryAuthor->m_Entry.Data());
+    std::string title = Core::EncodeUTF8(gump->m_EntryTitle->m_Entry.Data());
+    std::string author = Core::EncodeUTF8(gump->m_EntryAuthor->m_Entry.Data());
 
     WriteLE<u8>(0xD4);
     WriteBE<u32>(gump->Serial);
@@ -1241,8 +1241,8 @@ CPacketBookHeaderChangeOld::CPacketBookHeaderChangeOld(CGumpBook *gump)
 CPacketBookHeaderChange::CPacketBookHeaderChange(CGumpBook *gump)
     : CPacket(1)
 {
-    string title = EncodeUTF8(gump->m_EntryTitle->m_Entry.Data());
-    string author = EncodeUTF8(gump->m_EntryAuthor->m_Entry.Data());
+    std::string title = Core::EncodeUTF8(gump->m_EntryTitle->m_Entry.Data());
+    std::string author = Core::EncodeUTF8(gump->m_EntryAuthor->m_Entry.Data());
     auto titlelen = (u16)title.length();
     auto authorlen = (u16)author.length();
     size_t size = 16 + title.length() + author.length();
@@ -1261,9 +1261,9 @@ CPacketBookHeaderChange::CPacketBookHeaderChange(CGumpBook *gump)
         for (int i = 0; i < titlelen; i++)
         {
             char ch = *(str + i);
-            *Ptr++ = ch;
+            *m_ptr++ = ch;
         }
-        *Ptr = 0;
+        *m_ptr = 0;
     }
     WriteBE<u16>(authorlen);
     if (authorlen != 0u)
@@ -1273,9 +1273,9 @@ CPacketBookHeaderChange::CPacketBookHeaderChange(CGumpBook *gump)
         for (int i = 0; i < authorlen; i++)
         {
             char ch = *(str + i);
-            *Ptr++ = ch;
+            *m_ptr++ = ch;
         }
-        *Ptr = 0;
+        *m_ptr = 0;
     }
 }
 
@@ -1289,7 +1289,7 @@ CPacketBookPageData::CPacketBookPageData(CGumpBook *gump, int page)
     if (entry != nullptr)
     {
         CEntryText &textEntry = entry->m_Entry;
-        string data = EncodeUTF8(textEntry.Data());
+        std::string data = Core::EncodeUTF8(textEntry.Data());
         size_t len = data.length();
         size_t size = 9 + 4 + 1;
 
@@ -1335,10 +1335,10 @@ CPacketBookPageData::CPacketBookPageData(CGumpBook *gump, int page)
                     ch = 0;
                 }
 
-                *Ptr++ = ch;
+                *m_ptr++ = ch;
             }
 
-            *Ptr = 0;
+            *m_ptr = 0;
         }
     }
 }

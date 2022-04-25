@@ -1,17 +1,15 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "UOFileReader.h"
+﻿#include "UOFileReader.h"
 #include "ColorManager.h"
+#include "Core/Log.h"
 #include "../OrionUO.h"
 #include "../StumpsData.h"
 
 UOFileReader g_UOFileReader;
 
-std::vector<u16> UOFileReader::GetGumpPixels(CIndexObject &io)
+std::vector<u16> UOFileReader::GetGumpPixels(CIndexObject& io)
 {
     size_t dataStart = io.Address;
-    u32 *lookupList = (u32 *)dataStart;
+    u32* lookupList  = (u32*)dataStart;
 
     int blocksize = io.Width * io.Height;
 
@@ -19,7 +17,7 @@ std::vector<u16> UOFileReader::GetGumpPixels(CIndexObject &io)
 
     if (blocksize == 0)
     {
-        LOG("UOFileReader::GetGumpPixels bad size:%i, %i\n", io.Width, io.Height);
+        LOG_ERROR("UOFileReader", "GetGumpPixels: bad size:%i, %i", io.Width, io.Height);
         return pixels;
     }
 
@@ -27,7 +25,10 @@ std::vector<u16> UOFileReader::GetGumpPixels(CIndexObject &io)
 
     if (pixels.size() != blocksize)
     {
-        LOG("Allocation pixels memory for GetGumpPixels failed (want size: %i)\n", blocksize);
+        LOG_ERROR(
+            "UOFileReader",
+            "Allocation pixels memory for GetGumpPixels failed (want size: %i)",
+            blocksize);
         return pixels;
     }
 
@@ -46,8 +47,8 @@ std::vector<u16> UOFileReader::GetGumpPixels(CIndexObject &io)
             gSize = (io.DataSize / 4) - lookupList[y];
         }
 
-        GUMP_BLOCK *gmul = (GUMP_BLOCK *)(dataStart + lookupList[y] * 4);
-        int pos = (int)y * io.Width;
+        GUMP_BLOCK* gmul = (GUMP_BLOCK*)(dataStart + lookupList[y] * 4);
+        int pos          = (int)y * io.Width;
 
         for (int i = 0; i < gSize; i++)
         {
@@ -72,9 +73,9 @@ std::vector<u16> UOFileReader::GetGumpPixels(CIndexObject &io)
     return pixels;
 }
 
-CGLTexture *UOFileReader::ReadGump(CIndexObject &io)
+CGLTexture* UOFileReader::ReadGump(CIndexObject& io)
 {
-    CGLTexture *th = nullptr;
+    CGLTexture* th = nullptr;
 
     std::vector<u16> pixels = GetGumpPixels(io);
 
@@ -88,26 +89,25 @@ CGLTexture *UOFileReader::ReadGump(CIndexObject &io)
 }
 
 std::vector<u16>
-UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, short &height)
+UOFileReader::GetArtPixels(u16 id, CIndexObject& io, bool run, short& width, short& height)
 {
-
-    u32 flag = *(u32 *)io.Address;
-    u16 *P = (u16 *)io.Address;
+    u32 flag  = *(u32*)io.Address;
+    u16* P    = (u16*)io.Address;
     u16 color = io.Color;
 
     std::vector<u16> pixels;
 
     if (!run) //raw tile
     {
-        width = 44;
+        width  = 44;
         height = 44;
         pixels.resize(44 * 44, 0);
 
         for (int i = 0; i < 22; i++)
         {
             int start = (22 - ((int)i + 1));
-            int pos = (int)i * 44 + start;
-            int end = start + ((int)i + 1) * 2;
+            int pos   = (int)i * 44 + start;
+            int end   = start + ((int)i + 1) * 2;
 
             for (int j = start; j < end; j++)
             {
@@ -156,19 +156,19 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
 
         if (g_Orion.IsTreeTile(id, stumpIndex))
         {
-            u16 *ptr = nullptr;
+            u16* ptr = nullptr;
 
             if (stumpIndex == g_StumpHatchedID)
             {
-                width = g_StumpHatchedWidth;
+                width  = g_StumpHatchedWidth;
                 height = g_StumpHatchedHeight;
-                ptr = (u16 *)g_StumpHatched;
+                ptr    = (u16*)g_StumpHatched;
             }
             else
             {
-                width = g_StumpWidth;
+                width  = g_StumpWidth;
                 height = g_StumpHeight;
-                ptr = (u16 *)g_Stump;
+                ptr    = (u16*)g_Stump;
             }
 
             int blocksize = width * height;
@@ -177,7 +177,9 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
 
             if (pixels.size() != blocksize)
             {
-                LOG("Allocation pixels memory for ReadArt::LandTile failed (want size: %i)\n",
+                LOG_ERROR(
+                    "UOFileReader",
+                    "Allocation pixels memory for ReadArt::LandTile failed (want size: %i)",
                     blocksize);
                 pixels.clear();
                 return pixels;
@@ -190,12 +192,12 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
         }
         else
         {
-            u16 *ptr = (u16 *)(io.Address + 4);
+            u16* ptr = (u16*)(io.Address + 4);
 
             width = *ptr;
             if ((width == 0) || width >= 1024)
             {
-                LOG("UOFileReader::ReadArt bad width:%i\n", width);
+                LOG_ERROR("UOFileReader", "ReadArt: bad width:%i", width);
                 return pixels;
             }
 
@@ -205,19 +207,19 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
 
             if ((height == 0) || (height * 2) > 5120)
             {
-                LOG("UOFileReader::ReadArt bad height:%i\n", height);
+                LOG_ERROR("UOFileReader", "ReadArt: bad height:%i", height);
                 return pixels;
             }
 
             ptr++;
 
-            u16 *lineOffsets = ptr;
-            u8 *dataStart = (u8 *)ptr + (height * 2);
+            u16* lineOffsets = ptr;
+            u8* dataStart    = (u8*)ptr + (height * 2);
 
-            int X = 0;
-            int Y = 0;
+            int X     = 0;
+            int Y     = 0;
             u16 XOffs = 0;
-            u16 Run = 0;
+            u16 Run   = 0;
 
             int blocksize = width * height;
 
@@ -225,13 +227,14 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
 
             if (pixels.size() != blocksize)
             {
-                LOG("Allocation pixels memory for ReadArt::StaticTile failed (want size: %i)\n",
+                LOG_ERROR(
+                    "UOFileReader","Allocation pixels memory for ReadArt::StaticTile failed (want size: %i)",
                     blocksize);
                 pixels.clear();
                 return pixels;
             }
 
-            ptr = (u16 *)(dataStart + (lineOffsets[0] * 2));
+            ptr = (u16*)(dataStart + (lineOffsets[0] * 2));
 
             while (Y < height)
             {
@@ -241,7 +244,8 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
                 ptr++;
                 if (XOffs + Run >= 2048)
                 {
-                    LOG("UOFileReader::ReadArt bad offset:%i, %i\n", XOffs, Run);
+                LOG_ERROR(
+                    "UOFileReader","UOFileReader::ReadArt bad offset:%i, %i", XOffs, Run);
                     pixels.clear();
                     return pixels;
                 }
@@ -273,7 +277,7 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
                 {
                     X = 0;
                     Y++;
-                    ptr = (u16 *)(dataStart + (lineOffsets[Y] * 2));
+                    ptr = (u16*)(dataStart + (lineOffsets[Y] * 2));
                 }
             }
             if (g_Orion.IsCaveTile(id))
@@ -281,16 +285,16 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
                 for (int y = 0; y < height; y++)
                 {
                     int startY = (y != 0 ? -1 : 0);
-                    int endY = (y + 1 < height ? 2 : 1);
+                    int endY   = (y + 1 < height ? 2 : 1);
 
                     for (int x = 0; x < width; x++)
                     {
-                        u16 &pixel = pixels[y * width + x];
+                        u16& pixel = pixels[y * width + x];
 
                         if (pixel != 0u)
                         {
                             int startX = (x != 0 ? -1 : 0);
-                            int endX = (x + 1 < width ? 2 : 1);
+                            int endX   = (x + 1 < width ? 2 : 1);
 
                             for (int i = startY; i < endY; i++)
                             {
@@ -300,7 +304,7 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
                                 {
                                     int currentX = (int)x + (int)j;
 
-                                    u16 &currentPixel = pixels[currentY * width + currentX];
+                                    u16& currentPixel = pixels[currentY * width + currentX];
 
                                     if (currentPixel == 0u)
                                     {
@@ -318,11 +322,11 @@ UOFileReader::GetArtPixels(u16 id, CIndexObject &io, bool run, short &width, sho
     return pixels;
 }
 
-CGLTexture *UOFileReader::ReadArt(u16 id, CIndexObject &io, bool run)
+CGLTexture* UOFileReader::ReadArt(u16 id, CIndexObject& io, bool run)
 {
-    CGLTexture *texture = nullptr;
-    short width = 0;
-    short height = 0;
+    CGLTexture* texture = nullptr;
+    short width         = 0;
+    short height        = 0;
 
     std::vector<u16> pixels = GetArtPixels(id, io, run, width, height);
 
@@ -335,10 +339,10 @@ CGLTexture *UOFileReader::ReadArt(u16 id, CIndexObject &io, bool run)
 
         if (!run)
         {
-            maxX = 44;
-            maxY = 44;
+            maxX          = 44;
+            maxY          = 44;
             bool allBlack = true;
-            int pos = 0;
+            int pos       = 0;
 
             for (int i = 0; i < 44; i++)
             {
@@ -346,22 +350,22 @@ CGLTexture *UOFileReader::ReadArt(u16 id, CIndexObject &io, bool run)
                 {
                     if (pixels[pos++] != 0u)
                     {
-                        i = 44;
+                        i        = 44;
                         allBlack = false;
                         break;
                     }
                 }
             }
 
-            ((CIndexObjectLand *)&io)->AllBlack = allBlack;
+            ((CIndexObjectLand*)&io)->AllBlack = allBlack;
 
             if (allBlack)
             {
                 for (int i = 0; i < 22; i++)
                 {
                     int start = (22 - ((int)i + 1));
-                    int pos = (int)i * 44 + start;
-                    int end = start + ((int)i + 1) * 2;
+                    int pos   = (int)i * 44 + start;
+                    int end   = start + ((int)i + 1) * 2;
 
                     for (int j = start; j < end; j++)
                     {
@@ -391,10 +395,10 @@ CGLTexture *UOFileReader::ReadArt(u16 id, CIndexObject &io, bool run)
                 {
                     if (pixels[pos++] != 0u)
                     {
-                        minX = std::min(minX, int(x));
-                        maxX = std::max(maxX, int(x));
-                        minY = std::min(minY, int(y));
-                        maxY = std::max(maxY, int(y));
+                        minX = Core::Min(minX, int(x));
+                        maxX = Core::Max(maxX, int(x));
+                        minY = Core::Min(minY, int(y));
+                        maxY = Core::Max(maxY, int(y));
                     }
                 }
             }
@@ -406,18 +410,18 @@ CGLTexture *UOFileReader::ReadArt(u16 id, CIndexObject &io, bool run)
         texture->ImageOffsetX = minX;
         texture->ImageOffsetY = minY;
 
-        texture->ImageWidth = maxX - minX;
+        texture->ImageWidth  = maxX - minX;
         texture->ImageHeight = maxY - minY;
     }
 
     return texture;
 }
 
-CGLTexture *UOFileReader::ReadTexture(CIndexObject &io)
+CGLTexture* UOFileReader::ReadTexture(CIndexObject& io)
 {
-    CGLTexture *th = new CGLTexture();
-    th->Texture = 0;
-    u16 color = io.Color;
+    CGLTexture* th = new CGLTexture();
+    th->Texture    = 0;
+    u16 color      = io.Color;
 
     u16 w = 64;
     u16 h = 64;
@@ -434,14 +438,15 @@ CGLTexture *UOFileReader::ReadTexture(CIndexObject &io)
     }
     else
     {
-        LOG("UOFileReader::ReadTexture bad data size: %d\n", io.DataSize);
+                LOG_ERROR(
+                    "UOFileReader", "ReadTexture: bad data size: %d", io.DataSize);
         delete th;
         return nullptr;
     }
 
     std::vector<u16> pixels(w * h);
 
-    u16 *P = (u16 *)io.Address;
+    u16* P = (u16*)io.Address;
 
     for (int i = 0; i < h; i++)
     {
@@ -467,14 +472,14 @@ CGLTexture *UOFileReader::ReadTexture(CIndexObject &io)
     return th;
 }
 
-CGLTexture *UOFileReader::ReadLight(CIndexObject &io)
+CGLTexture* UOFileReader::ReadLight(CIndexObject& io)
 {
-    CGLTexture *th = new CGLTexture();
-    th->Texture = 0;
+    CGLTexture* th = new CGLTexture();
+    th->Texture    = 0;
 
     std::vector<u16> pixels(io.Width * io.Height);
 
-    u8 *p = (u8 *)io.Address;
+    u8* p = (u8*)io.Address;
 
     for (int i = 0; i < io.Height; i++)
     {
@@ -495,11 +500,12 @@ CGLTexture *UOFileReader::ReadLight(CIndexObject &io)
     return th;
 }
 
-std::pair<CGLTexture*, Core::Vec2<i16>> UOFileReader::ReadCursor(u16 a_id, CIndexObject& a_io, bool a_run)
+std::pair<CGLTexture*, Core::Vec2<i16>>
+UOFileReader::ReadCursor(u16 a_id, CIndexObject& a_io, bool a_run)
 {
-    CGLTexture *texture = nullptr;
-    short width = 0;
-    short height = 0;
+    CGLTexture* texture = nullptr;
+    short width         = 0;
+    short height        = 0;
     Core::Vec2<i16> hotspot;
     std::vector<u16> pixels = GetArtPixels(a_id, a_io, a_run, width, height);
     if (!pixels.empty())
@@ -510,7 +516,7 @@ std::pair<CGLTexture*, Core::Vec2<i16>> UOFileReader::ReadCursor(u16 a_id, CInde
             if (g > 0)
                 hotspot.x = i;
 
-            pixels[i] = 0;
+            pixels[i]                        = 0;
             pixels[(height - 1) * width + i] = 0;
         }
 
@@ -520,7 +526,7 @@ std::pair<CGLTexture*, Core::Vec2<i16>> UOFileReader::ReadCursor(u16 a_id, CInde
             if (g > 0)
                 hotspot.y = i;
 
-            pixels[i * width] = 0;
+            pixels[i * width]             = 0;
             pixels[i * width + width - 1] = 0;
         }
 
@@ -528,17 +534,17 @@ std::pair<CGLTexture*, Core::Vec2<i16>> UOFileReader::ReadCursor(u16 a_id, CInde
         int minY = height;
         int maxX = 0;
         int maxY = 0;
-        int pos = 0;
+        int pos  = 0;
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 if (pixels[pos++] != 0u)
                 {
-                    minX = std::min(minX, int(x));
-                    maxX = std::max(maxX, int(x));
-                    minY = std::min(minY, int(y));
-                    maxY = std::max(maxY, int(y));
+                    minX = Core::Min(minX, int(x));
+                    maxX = Core::Max(maxX, int(x));
+                    minY = Core::Min(minY, int(y));
+                    maxY = Core::Max(maxY, int(y));
                 }
             }
         }
@@ -549,7 +555,7 @@ std::pair<CGLTexture*, Core::Vec2<i16>> UOFileReader::ReadCursor(u16 a_id, CInde
         texture->ImageOffsetX = minX;
         texture->ImageOffsetY = minY;
 
-        texture->ImageWidth = maxX - minX;
+        texture->ImageWidth  = maxX - minX;
         texture->ImageHeight = maxY - minY;
     }
     return { texture, hotspot };

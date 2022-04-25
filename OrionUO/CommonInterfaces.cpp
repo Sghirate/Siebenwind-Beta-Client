@@ -1,7 +1,5 @@
-﻿// MIT License
-// Copyright (C) September 2016 Hotride
-
-#include "plugin/commoninterfaces.h"
+﻿#include "plugin/commoninterfaces.h"
+#include "Globals.h"
 #include "Core/MappedFile.h"
 #include "OrionUO.h"
 #include "IndexObject.h"

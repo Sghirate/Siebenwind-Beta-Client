@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIPolygonal.h"
+﻿#include "GUIPolygonal.h"
 #include "../Managers/MouseManager.h"
 
 CGUIPolygonal::CGUIPolygonal(

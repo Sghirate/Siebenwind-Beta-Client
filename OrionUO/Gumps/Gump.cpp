@@ -1,4 +1,5 @@
 ﻿#include "Gump.h"
+#include "Globals.h"
 #include "../OrionUO.h"
 #include "../Profiler.h"
 #include "../PressedObject.h"
@@ -12,8 +13,8 @@
 #include "../ScreenStages/BaseScreen.h"
 #include "../ScreenStages/GameScreen.h"
 
-CGump *g_ResizedGump = nullptr;
-CGump *g_CurrentCheckGump = nullptr;
+CGump* g_ResizedGump      = nullptr;
+CGump* g_CurrentCheckGump = nullptr;
 
 CGump::CGump()
     : CGump(GT_NONE, 0, 0, 0)
@@ -28,14 +29,13 @@ CGump::CGump(GUMP_TYPE type, u32 serial, int x, int y)
 
 CGump::~CGump()
 {
-
     if (Blocked)
     {
         g_GrayMenuCount--;
         if (g_GrayMenuCount <= 0)
         {
             g_GrayMenuCount = 0;
-            g_GameState = GS_GAME;
+            g_GameState     = GS_GAME;
             g_CurrentScreen = &g_GameScreen;
         }
     }
@@ -79,63 +79,61 @@ void CGump::FixCoordinates()
 {
     const int gumpOffsetX = 40;
     const int gumpOffsetY = 40;
-    int maxX = g_OrionWindow.GetSize().Width - gumpOffsetX;
-    int maxY = g_OrionWindow.GetSize().Height - gumpOffsetY;
+    int maxX              = g_OrionWindow.GetSize().x - gumpOffsetX;
+    int maxY              = g_OrionWindow.GetSize().y - gumpOffsetY;
 
     if (Minimized && GumpType != GT_MINIMAP)
     {
-        if (MinimizedX + GumpRect.Position.X > maxX)
+        if (MinimizedX + GumpRect.pos.x > maxX)
         {
             WantRedraw = true;
             MinimizedX = maxX;
         }
 
-        if (MinimizedX < GumpRect.Position.X &&
-            MinimizedX + GumpRect.Position.X + GumpRect.Size.Width - gumpOffsetX < 0)
+        if (MinimizedX < GumpRect.pos.x &&
+            MinimizedX + GumpRect.pos.x + GumpRect.size.x - gumpOffsetX < 0)
         {
             WantRedraw = true;
-            MinimizedX = gumpOffsetX - (GumpRect.Position.X + GumpRect.Size.Width);
+            MinimizedX = gumpOffsetX - (GumpRect.pos.x + GumpRect.size.x);
         }
 
-        if (MinimizedY + GumpRect.Position.Y > maxY)
+        if (MinimizedY + GumpRect.pos.y > maxY)
         {
             WantRedraw = true;
             MinimizedY = maxY;
         }
 
-        if (MinimizedY < GumpRect.Position.Y &&
-            MinimizedY + GumpRect.Position.Y + GumpRect.Size.Height - gumpOffsetY < 0)
+        if (MinimizedY < GumpRect.pos.y &&
+            MinimizedY + GumpRect.pos.y + GumpRect.size.y - gumpOffsetY < 0)
         {
             WantRedraw = true;
-            MinimizedY = gumpOffsetY - (GumpRect.Position.Y + GumpRect.Size.Height);
+            MinimizedY = gumpOffsetY - (GumpRect.pos.y + GumpRect.size.y);
         }
     }
     else
     {
-        if (m_X + GumpRect.Position.X > maxX)
+        if (m_X + GumpRect.pos.x > maxX)
         {
             WantRedraw = true;
-            m_X = maxX;
+            m_X        = maxX;
         }
 
-        if (m_X < GumpRect.Position.X &&
-            m_X + GumpRect.Position.X + GumpRect.Size.Width - gumpOffsetX < 0)
+        if (m_X < GumpRect.pos.x && m_X + GumpRect.pos.x + GumpRect.size.x - gumpOffsetX < 0)
         {
             WantRedraw = true;
-            m_X = gumpOffsetX - (GumpRect.Position.X + GumpRect.Size.Width);
+            m_X        = gumpOffsetX - (GumpRect.pos.x + GumpRect.size.x);
         }
 
-        if (m_Y + GumpRect.Position.Y > maxY)
+        if (m_Y + GumpRect.pos.y > maxY)
         {
             WantRedraw = true;
-            m_Y = maxY;
+            m_Y        = maxY;
         }
 
-        if (m_Y < GumpRect.Position.Y &&
-            m_Y + GumpRect.Position.Y + GumpRect.Size.Height - gumpOffsetY < 0)
+        if (m_Y < GumpRect.pos.y && m_Y + GumpRect.pos.y + GumpRect.size.y - gumpOffsetY < 0)
         {
             WantRedraw = true;
-            m_Y = gumpOffsetY - (GumpRect.Position.Y + GumpRect.Size.Height);
+            m_Y        = gumpOffsetY - (GumpRect.pos.y + GumpRect.size.y);
         }
     }
 }
@@ -191,9 +189,9 @@ void CGump::CalculateGumpState()
         (!g_ObjectInHand.Enabled &&
          g_PressedObject.LeftGump == this /*&& g_SelectedObject.Gump() == this*/);
     g_GumpSelectedElement = ((g_SelectedObject.Gump == this) ? g_SelectedObject.Object : nullptr);
-    g_GumpPressedElement = nullptr;
+    g_GumpPressedElement  = nullptr;
 
-    CRenderObject *leftObj = g_PressedObject.LeftObject;
+    CRenderObject* leftObj = g_PressedObject.LeftObject;
 
     if (g_GumpPressed && leftObj != nullptr)
     {
@@ -201,7 +199,7 @@ void CGump::CalculateGumpState()
         {
             g_GumpPressedElement = leftObj;
         }
-        else if (leftObj->IsGUI() && ((CBaseGUI *)leftObj)->IsPressedOuthit())
+        else if (leftObj->IsGUI() && ((CBaseGUI*)leftObj)->IsPressedOuthit())
         {
             g_GumpPressedElement = leftObj;
         }
@@ -211,11 +209,11 @@ void CGump::CalculateGumpState()
         ((g_PressedObject.LeftSerial == 0u) || g_GumpPressedElement == nullptr ||
          g_PressedObject.TestMoveOnDrag()))
     {
-        g_GumpMovingOffset = g_MouseManager.LeftDroppedOffset();
+        g_GumpMovingOffset = g_MouseManager.GetLeftDroppedOffset();
     }
     else
     {
-        g_GumpMovingOffset.Reset();
+        g_GumpMovingOffset.set(0, 0);
     }
 
     if (Minimized)
@@ -236,41 +234,41 @@ void CGump::ProcessListing()
     if (g_PressedObject.LeftGump != nullptr && !g_PressedObject.LeftGump->NoProcess &&
         g_PressedObject.LeftObject != nullptr && g_PressedObject.LeftObject->IsGUI())
     {
-        CBaseGUI *item = (CBaseGUI *)g_PressedObject.LeftObject;
+        CBaseGUI* item = (CBaseGUI*)g_PressedObject.LeftObject;
 
         if (item->IsControlHTML())
         {
             if (item->Type == GOT_BUTTON)
             {
-                ((CGUIHTMLButton *)item)->Scroll(item->Color != 0, SCROLL_LISTING_DELAY / 7);
+                ((CGUIHTMLButton*)item)->Scroll(item->Color != 0, SCROLL_LISTING_DELAY / 7);
                 g_PressedObject.LeftGump->WantRedraw = true;
                 g_PressedObject.LeftGump->OnScrollButton();
             }
             else if (item->Type == GOT_HITBOX)
             {
-                ((CGUIHTMLHitBox *)item)->Scroll(item->Color != 0, SCROLL_LISTING_DELAY / 7);
+                ((CGUIHTMLHitBox*)item)->Scroll(item->Color != 0, SCROLL_LISTING_DELAY / 7);
                 g_PressedObject.LeftGump->WantRedraw = true;
                 g_PressedObject.LeftGump->OnScrollButton();
             }
         }
-        else if (item->Type == GOT_BUTTON && ((CGUIButton *)item)->ProcessPressedState)
+        else if (item->Type == GOT_BUTTON && ((CGUIButton*)item)->ProcessPressedState)
         {
             g_PressedObject.LeftGump->WantRedraw = true;
             g_PressedObject.LeftGump->OnButton(item->Serial);
         }
         else if (item->Type == GOT_MINMAXBUTTONS)
         {
-            ((CGUIMinMaxButtons *)item)->Scroll(SCROLL_LISTING_DELAY / 2);
+            ((CGUIMinMaxButtons*)item)->Scroll(SCROLL_LISTING_DELAY / 2);
             g_PressedObject.LeftGump->OnScrollButton();
             g_PressedObject.LeftGump->WantRedraw = true;
         }
         else if (item->Type == GOT_COMBOBOX)
         {
-            CGUIComboBox *combo = (CGUIComboBox *)item;
+            CGUIComboBox* combo = (CGUIComboBox*)item;
 
             if (combo->ListingTimer < g_Ticks)
             {
-                int index = combo->StartIndex;
+                int index     = combo->StartIndex;
                 int direction = combo->ListingDirection;
 
                 if (direction == 1 && index > 0)
@@ -289,7 +287,7 @@ void CGump::ProcessListing()
                         index = 0;
                     }
 
-                    combo->StartIndex = index;
+                    combo->StartIndex                    = index;
                     g_PressedObject.LeftGump->WantRedraw = true;
                 }
 
@@ -299,7 +297,7 @@ void CGump::ProcessListing()
     }
 }
 
-bool CGump::ApplyTransparent(CBaseGUI *item, int page, int currentPage, const int draw2Page)
+bool CGump::ApplyTransparent(CBaseGUI* item, int page, int currentPage, const int draw2Page)
 {
     bool transparent = false;
 
@@ -310,11 +308,11 @@ bool CGump::ApplyTransparent(CBaseGUI *item, int page, int currentPage, const in
         ((page == -1) || ((page >= currentPage && page <= currentPage + draw2Page) ||
                           ((page == 0) && (draw2Page == 0))));
 
-    for (; item != nullptr; item = (CBaseGUI *)item->m_Next)
+    for (; item != nullptr; item = (CBaseGUI*)item->m_Next)
     {
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -336,23 +334,23 @@ bool CGump::ApplyTransparent(CBaseGUI *item, int page, int currentPage, const in
     return transparent;
 }
 
-void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
+void CGump::DrawItems(CBaseGUI* start, int currentPage, int draw2Page)
 {
     PROFILER_EVENT();
-    float alpha[2] = { 1.0f, 0.7f };
-    CGUIComboBox *combo = nullptr;
+    float alpha[2]      = { 1.0f, 0.7f };
+    CGUIComboBox* combo = nullptr;
 
     bool transparent = ApplyTransparent(start, 0, currentPage, draw2Page);
     glColor4f(1.0f, 1.0f, 1.0f, alpha[transparent]);
 
-    int page = 0;
+    int page     = 0;
     bool canDraw = ((draw2Page == 0) || (page >= currentPage && page <= currentPage + draw2Page));
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -367,21 +365,21 @@ void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
             {
                 case GOT_DATABOX:
                 {
-                    CGump::DrawItems((CBaseGUI *)item->m_Items, currentPage, draw2Page);
+                    CGump::DrawItems((CBaseGUI*)item->m_Items, currentPage, draw2Page);
                     break;
                 }
                 case GOT_HTMLGUMP:
                 case GOT_XFMHTMLGUMP:
                 case GOT_XFMHTMLTOKEN:
                 {
-                    CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
+                    CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)item;
 
                     GLfloat x = (GLfloat)htmlGump->GetX();
                     GLfloat y = (GLfloat)htmlGump->GetY();
 
                     glTranslatef(x, y, 0.0f);
 
-                    CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
+                    CBaseGUI* item = (CBaseGUI*)htmlGump->m_Items;
 
                     for (int j = 0; j < 5; j++)
                     {
@@ -390,11 +388,11 @@ void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
                             item->Draw(false);
                         }
 
-                        item = (CBaseGUI *)item->m_Next;
+                        item = (CBaseGUI*)item->m_Next;
                     }
 
                     GLfloat offsetX = (GLfloat)(htmlGump->DataOffset.x - htmlGump->CurrentOffset.x);
-                    GLfloat offsetY = (GLfloat)(htmlGump->DataOffset.Y - htmlGump->CurrentOffset.Y);
+                    GLfloat offsetY = (GLfloat)(htmlGump->DataOffset.y - htmlGump->CurrentOffset.y);
 
                     glTranslatef(offsetX, offsetY, 0.0f);
 
@@ -408,7 +406,7 @@ void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
                 case GOT_CHECKTRANS:
                 {
                     transparent = ApplyTransparent(
-                        (CBaseGUI *)item->m_Next, page /*Page*/, currentPage, draw2Page);
+                        (CBaseGUI*)item->m_Next, page /*Page*/, currentPage, draw2Page);
 
                     glColor4f(1.0f, 1.0f, 1.0f, alpha[transparent]);
 
@@ -418,7 +416,7 @@ void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
                 {
                     if (g_PressedObject.LeftObject == item)
                     {
-                        combo = (CGUIComboBox *)item;
+                        combo = (CGUIComboBox*)item;
                         break;
                     }
                 }
@@ -440,24 +438,24 @@ void CGump::DrawItems(CBaseGUI *start, int currentPage, int draw2Page)
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Page)
+CRenderObject* CGump::SelectItems(CBaseGUI* start, int currentPage, int draw2Page)
 {
     PROFILER_EVENT();
-    CRenderObject *selected = nullptr;
+    CRenderObject* selected = nullptr;
 
-    int page = 0;
+    int page     = 0;
     bool canDraw = ((draw2Page == 0) || (page >= currentPage && page <= currentPage + draw2Page));
     std::vector<bool> scissorList;
     bool currentScissorState = true;
-    CGUIComboBox *combo = nullptr;
+    CGUIComboBox* combo      = nullptr;
 
-    Core::Vec2<i32> oldPos = g_MouseManager.Position;
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -503,14 +501,14 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                 case GOT_XFMHTMLGUMP:
                 case GOT_XFMHTMLTOKEN:
                 {
-                    CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
+                    CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)item;
 
-                    g_MouseManager.Position =
-                        Core::Vec2<i32>(oldPos.x - htmlGump->GetX(), oldPos.y - htmlGump->GetY());
+                    g_MouseManager.SetPosition(
+                        Core::Vec2<i32>(oldPos.x - htmlGump->GetX(), oldPos.y - htmlGump->GetY()));
 
-                    CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
+                    CBaseGUI* item = (CBaseGUI*)htmlGump->m_Items;
 
-                    CRenderObject *selectedHTML = nullptr;
+                    CRenderObject* selectedHTML = nullptr;
 
                     for (int j = 0; j < 4; j++)
                     {
@@ -519,7 +517,7 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                             selectedHTML = item;
                         }
 
-                        item = (CBaseGUI *)item->m_Next;
+                        item = (CBaseGUI*)item->m_Next;
                     }
 
                     //Scissor
@@ -528,12 +526,12 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                         int offsetX = htmlGump->DataOffset.x - htmlGump->CurrentOffset.x;
                         int offsetY = htmlGump->DataOffset.y - htmlGump->CurrentOffset.y;
 
-                        g_MouseManager.Position = Core::Vec2<i32>(
-                            g_MouseManager.Position.X - offsetX,
-                            g_MouseManager.Position.Y - offsetY);
+                        Core::TMousePos pos = g_MouseManager.GetPosition();
+                        g_MouseManager.SetPosition(
+                            Core::Vec2<i32>(pos.x - offsetX, pos.y - offsetY));
 
                         selected =
-                            CGump::SelectItems((CBaseGUI *)item->m_Next, currentPage, draw2Page);
+                            CGump::SelectItems((CBaseGUI*)item->m_Next, currentPage, draw2Page);
                     }
                     else
                     {
@@ -550,14 +548,14 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                         }
                     }
 
-                    g_MouseManager.Position = oldPos;
+                    g_MouseManager.SetPosition(oldPos);
 
                     break;
                 }
                 case GOT_DATABOX:
                 {
-                    CRenderObject *selectedBox =
-                        CGump::SelectItems((CBaseGUI *)item->m_Items, currentPage, draw2Page);
+                    CRenderObject* selectedBox =
+                        CGump::SelectItems((CBaseGUI*)item->m_Items, currentPage, draw2Page);
 
                     if (selectedBox != nullptr)
                     {
@@ -572,7 +570,7 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
 
                     if (g_PressedObject.LeftObject == item)
                     {
-                        combo = (CGUIComboBox *)item;
+                        combo = (CGUIComboBox*)item;
                     }
                     else
                     {
@@ -583,19 +581,19 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
                 }
                 case GOT_SHOPRESULT:
                 {
-                    selected = ((CGUIShopResult *)item)->SelectedItem();
+                    selected = ((CGUIShopResult*)item)->SelectedItem();
 
                     break;
                 }
                 case GOT_SKILLITEM:
                 {
-                    selected = ((CGUISkillItem *)item)->SelectedItem();
+                    selected = ((CGUISkillItem*)item)->SelectedItem();
 
                     break;
                 }
                 case GOT_SKILLGROUP:
                 {
-                    selected = ((CGUISkillGroup *)item)->SelectedItem();
+                    selected = ((CGUISkillGroup*)item)->SelectedItem();
 
                     break;
                 }
@@ -618,10 +616,10 @@ CRenderObject *CGump::SelectItems(CBaseGUI *start, int currentPage, int draw2Pag
 }
 
 void CGump::TestItemsLeftMouseDown(
-    CGump *gump, CBaseGUI *start, int currentPage, int draw2Page, int count)
+    CGump* gump, CBaseGUI* start, int currentPage, int draw2Page, int count)
 {
-    int group = 0;
-    int page = 0;
+    int group    = 0;
+    int page     = 0;
     bool canDraw = ((draw2Page == 0) || (page >= currentPage && page <= currentPage + draw2Page));
 
     static bool htmlTextBackgroundCanBeColored = false;
@@ -631,7 +629,7 @@ void CGump::TestItemsLeftMouseDown(
         htmlTextBackgroundCanBeColored = false;
     }
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (count == 0)
         {
@@ -642,7 +640,7 @@ void CGump::TestItemsLeftMouseDown(
 
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -655,23 +653,18 @@ void CGump::TestItemsLeftMouseDown(
         {
             if (item->Type == GOT_GROUP)
             {
-                group = ((CGUIGroup *)item)->Index;
+                group = ((CGUIGroup*)item)->Index;
                 continue;
             }
             if (g_SelectedObject.Object != item && !item->IsHTMLGump())
             {
                 if (item->Type == GOT_SHOPRESULT)
                 {
-                    if (g_SelectedObject.Object == ((CGUIShopResult *)item)->m_MinMaxButtons)
+                    if (g_SelectedObject.Object == ((CGUIShopResult*)item)->m_MinMaxButtons)
                     {
-                        Core::Vec2<i32> oldPos = g_MouseManager.Position;
-                        g_MouseManager.Position = Core::Vec2<i32>(
-                            g_MouseManager.Position.X - item->GetX(),
-                            g_MouseManager.Position.Y - item->GetY());
-
-                        ((CGUIShopResult *)item)->m_MinMaxButtons->OnClick();
-
-                        g_MouseManager.Position = oldPos;
+                        Core::TMousePos clickPos = g_MouseManager.GetPosition() -
+                                                   Core::TMousePos(item->GetX(), item->GetY());
+                        ((CGUIShopResult*)item)->m_MinMaxButtons->OnClick(clickPos);
                     }
 
                     continue;
@@ -687,12 +680,12 @@ void CGump::TestItemsLeftMouseDown(
             {
                 case GOT_HITBOX:
                 {
-                    if (((CGUIPolygonal *)item)->CallOnMouseUp)
+                    if (((CGUIPolygonal*)item)->CallOnMouseUp)
                     {
                         break;
                     }
 
-                    CGUIHitBox *box = (CGUIHitBox *)item;
+                    CGUIHitBox* box = (CGUIHitBox*)item;
 
                     if (box->ToPage != -1)
                     {
@@ -704,7 +697,7 @@ void CGump::TestItemsLeftMouseDown(
                 }
                 case GOT_COLOREDPOLYGONE:
                 {
-                    if (((CGUIPolygonal *)item)->CallOnMouseUp)
+                    if (((CGUIPolygonal*)item)->CallOnMouseUp)
                     {
                         break;
                     }
@@ -718,14 +711,14 @@ void CGump::TestItemsLeftMouseDown(
                         break;
                     }
 
-                    int tempPage = -1;
+                    int tempPage     = -1;
                     bool tempCanDraw = true;
 
-                    QFOR(testItem, start, CBaseGUI *)
+                    QFOR(testItem, start, CBaseGUI*)
                     {
                         if (testItem->Type == GOT_PAGE)
                         {
-                            tempPage = ((CGUIPage *)testItem)->Index;
+                            tempPage = ((CGUIPage*)testItem)->Index;
 
                             tempCanDraw =
                                 ((tempPage == -1) ||
@@ -736,12 +729,13 @@ void CGump::TestItemsLeftMouseDown(
                             tempCanDraw && testItem->Type == GOT_TEXTENTRY &&
                             testItem->Serial == serial && testItem->Enabled && testItem->Visible)
                         {
-                            CGUITextEntry *entry = (CGUITextEntry *)testItem;
+                            CGUITextEntry* entry = (CGUITextEntry*)testItem;
 
                             if (!entry->ReadOnly)
                             {
-                                int x = g_MouseManager.Position.X - item->GetX();
-                                int y = g_MouseManager.Position.Y - item->GetY();
+                                Core::TMousePos pos = g_MouseManager.GetPosition();
+                                int x               = pos.x - item->GetX();
+                                int y               = pos.y - item->GetY();
 
                                 entry->OnClick(gump, x, y);
                             }
@@ -757,7 +751,7 @@ void CGump::TestItemsLeftMouseDown(
                 }
                 case GOT_SKILLGROUP:
                 {
-                    CGUISkillGroup *skillGroup = (CGUISkillGroup *)item;
+                    CGUISkillGroup* skillGroup = (CGUISkillGroup*)item;
 
                     if (g_SelectedObject.Object == skillGroup->m_Name)
                     {
@@ -777,16 +771,15 @@ void CGump::TestItemsLeftMouseDown(
                 }
                 case GOT_SHOPITEM:
                 {
-                    ((CGUIShopItem *)item)->OnClick();
+                    ((CGUIShopItem*)item)->OnClick();
                     gump->WantRedraw = true;
                     break;
                 }
                 case GOT_HTMLTEXT:
                 {
-                    CGUIHTMLText *htmlText = (CGUIHTMLText *)item;
+                    CGUIHTMLText* htmlText = (CGUIHTMLText*)item;
 
-                    u16 link =
-                        htmlText->m_Texture.WebLinkUnderMouse(item->GetX(), item->GetY());
+                    u16 link = htmlText->m_Texture.WebLinkUnderMouse(item->GetX(), item->GetY());
 
                     if ((link != 0u) && link != 0xFFFF)
                     {
@@ -802,7 +795,7 @@ void CGump::TestItemsLeftMouseDown(
                 case GOT_DATABOX:
                 {
                     CGump::TestItemsLeftMouseDown(
-                        gump, (CBaseGUI *)item->m_Items, currentPage, draw2Page);
+                        gump, (CBaseGUI*)item->m_Items, currentPage, draw2Page);
                     break;
                 }
                 case GOT_BUTTON:
@@ -813,12 +806,13 @@ void CGump::TestItemsLeftMouseDown(
                 }
                 case GOT_TEXTENTRY:
                 {
-                    CGUITextEntry *entry = (CGUITextEntry *)item;
+                    CGUITextEntry* entry = (CGUITextEntry*)item;
 
                     if (!entry->ReadOnly)
                     {
-                        int x = g_MouseManager.Position.X - item->GetX();
-                        int y = g_MouseManager.Position.Y - item->GetY();
+                        Core::TMousePos mousePos = g_MouseManager.GetPosition();
+                        int x                    = mousePos.x - item->GetX();
+                        int y                    = mousePos.y - item->GetY();
 
                         entry->OnClick(gump, x, y);
                     }
@@ -830,10 +824,11 @@ void CGump::TestItemsLeftMouseDown(
                 }
                 case GOT_SLIDER:
                 {
-                    int x = g_MouseManager.Position.X - item->GetX();
-                    int y = g_MouseManager.Position.Y - item->GetY();
+                    Core::TMousePos mousePos = g_MouseManager.GetPosition();
+                    int x                    = mousePos.x - item->GetX();
+                    int y                    = mousePos.y - item->GetY();
 
-                    ((CGUISlider *)item)->OnClick(x, y);
+                    ((CGUISlider*)item)->OnClick(x, y);
 
                     gump->OnSliderClick(item->Serial);
                     gump->WantRedraw = true;
@@ -842,8 +837,7 @@ void CGump::TestItemsLeftMouseDown(
                 }
                 case GOT_MINMAXBUTTONS:
                 {
-                    ((CGUIMinMaxButtons *)item)->OnClick();
-
+                    ((CGUIMinMaxButtons*)item)->OnClick();
                     gump->WantRedraw = true;
 
                     return;
@@ -858,53 +852,50 @@ void CGump::TestItemsLeftMouseDown(
                 case GOT_XFMHTMLGUMP:
                 case GOT_XFMHTMLTOKEN:
                 {
-                    CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
+                    CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)item;
 
                     htmlTextBackgroundCanBeColored = !htmlGump->HaveBackground;
 
-                    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-                    g_MouseManager.Position =
-                        Core::Vec2<i32>(oldPos.x - htmlGump->GetX(), oldPos.y - htmlGump->GetY());
-
-                    CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
+                    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+                    g_MouseManager.SetPosition(
+                        oldPos - Core::TMousePos(htmlGump->GetX(), htmlGump->GetY()));
+                    CBaseGUI* item = (CBaseGUI*)htmlGump->m_Items;
 
                     TestItemsLeftMouseDown(gump, item, currentPage, draw2Page, 5);
 
                     for (int j = 0; j < 5; j++)
                     {
-                        item = (CBaseGUI *)item->m_Next;
+                        item = (CBaseGUI*)item->m_Next;
                     }
 
                     int offsetX = htmlGump->DataOffset.x - htmlGump->CurrentOffset.x;
                     int offsetY = htmlGump->DataOffset.y - htmlGump->CurrentOffset.y;
 
-                    g_MouseManager.Position = Core::Vec2<i32>(
-                        g_MouseManager.Position.X - offsetX, g_MouseManager.Position.Y - offsetY);
-
+                    Core::TMousePos mousePos = g_MouseManager.GetPosition();
+                    g_MouseManager.SetPosition(mousePos - Core::TMousePos(offsetX, offsetY));
                     TestItemsLeftMouseDown(gump, item, currentPage, draw2Page);
 
-                    g_MouseManager.Position = oldPos;
+                    g_MouseManager.SetPosition(oldPos);
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
         }
     }
 }
 
-void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, int draw2Page)
+void CGump::TestItemsLeftMouseUp(CGump* gump, CBaseGUI* start, int currentPage, int draw2Page)
 {
-    int group = 0;
-    int page = 0;
+    int group    = 0;
+    int page     = 0;
     bool canDraw = ((draw2Page == 0) || (page >= currentPage && page <= currentPage + draw2Page));
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -917,7 +908,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
         {
             if (item->Type == GOT_GROUP)
             {
-                group = ((CGUIGroup *)item)->Index;
+                group = ((CGUIGroup*)item)->Index;
                 continue;
             }
             if (!item->IsHTMLGump())
@@ -944,12 +935,12 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
             {
                 case GOT_HITBOX:
                 {
-                    if (!((CGUIPolygonal *)item)->CallOnMouseUp)
+                    if (!((CGUIPolygonal*)item)->CallOnMouseUp)
                     {
                         break;
                     }
 
-                    CGUIHitBox *box = (CGUIHitBox *)item;
+                    CGUIHitBox* box = (CGUIHitBox*)item;
 
                     if (box->ToPage != -1)
                     {
@@ -966,7 +957,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_COLOREDPOLYGONE:
                 {
-                    if (!((CGUIPolygonal *)item)->CallOnMouseUp)
+                    if (!((CGUIPolygonal*)item)->CallOnMouseUp)
                     {
                         break;
                     }
@@ -989,7 +980,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_DATABOX:
                 {
-                    CGump::TestItemsLeftMouseUp(gump, (CBaseGUI *)item->m_Items, 0);
+                    CGump::TestItemsLeftMouseUp(gump, (CBaseGUI*)item->m_Items, 0);
                     break;
                 }
                 case GOT_BUTTON:
@@ -1000,7 +991,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                         break;
                     }
 
-                    CGUIButton *button = (CGUIButton *)item;
+                    CGUIButton* button = (CGUIButton*)item;
 
                     if (button->ToPage != -1)
                     {
@@ -1033,8 +1024,8 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_CHECKBOX:
                 {
-                    CGUICheckbox *checkbox = (CGUICheckbox *)item;
-                    checkbox->Checked = !checkbox->Checked;
+                    CGUICheckbox* checkbox = (CGUICheckbox*)item;
+                    checkbox->Checked      = !checkbox->Checked;
 
                     gump->OnCheckbox(item->Serial, checkbox->Checked);
                     gump->WantRedraw = true;
@@ -1043,20 +1034,20 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_RADIO:
                 {
-                    CGUIRadio *radio = (CGUIRadio *)item;
+                    CGUIRadio* radio = (CGUIRadio*)item;
 
-                    int radioPage = 0;
+                    int radioPage  = 0;
                     int radioGroup = 0;
 
-                    QFOR(testRadio, start, CBaseGUI *)
+                    QFOR(testRadio, start, CBaseGUI*)
                     {
                         if (testRadio->Type == GOT_PAGE)
                         {
-                            radioPage = ((CGUIPage *)testRadio)->Index;
+                            radioPage = ((CGUIPage*)testRadio)->Index;
                         }
                         else if (testRadio->Type == GOT_GROUP)
                         {
-                            radioGroup = ((CGUIGroup *)testRadio)->Index;
+                            radioGroup = ((CGUIGroup*)testRadio)->Index;
                         }
                         else if (testRadio->Type == GOT_RADIO)
                         {
@@ -1064,24 +1055,24 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                             {
                                 if (group == radioGroup)
                                 {
-                                    if (((CGUIRadio *)testRadio)->Checked && testRadio != radio)
+                                    if (((CGUIRadio*)testRadio)->Checked && testRadio != radio)
                                     {
                                         gump->OnRadio(testRadio->Serial, false);
                                     }
 
-                                    ((CGUIRadio *)testRadio)->Checked = false;
+                                    ((CGUIRadio*)testRadio)->Checked = false;
                                 }
                             }
                             else if (page == radioPage)
                             {
                                 if (group == radioGroup)
                                 {
-                                    if (((CGUIRadio *)testRadio)->Checked && testRadio != radio)
+                                    if (((CGUIRadio*)testRadio)->Checked && testRadio != radio)
                                     {
                                         gump->OnRadio(testRadio->Serial, false);
                                     }
 
-                                    ((CGUIRadio *)testRadio)->Checked = false;
+                                    ((CGUIRadio*)testRadio)->Checked = false;
                                 }
                             }
                         }
@@ -1096,7 +1087,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_COMBOBOX:
                 {
-                    CGUIComboBox *combo = (CGUIComboBox *)item;
+                    CGUIComboBox* combo = (CGUIComboBox*)item;
 
                     int selectedCombo = combo->IsSelectedItem();
 
@@ -1111,7 +1102,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_SKILLITEM:
                 {
-                    CGUISkillItem *skillItem = (CGUISkillItem *)item;
+                    CGUISkillItem* skillItem = (CGUISkillItem*)item;
 
                     if ((g_PressedObject.LeftObject == skillItem->m_ButtonUse &&
                          skillItem->m_ButtonUse != nullptr) ||
@@ -1125,7 +1116,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 }
                 case GOT_SKILLGROUP:
                 {
-                    CGUISkillGroup *skillGroup = (CGUISkillGroup *)item;
+                    CGUISkillGroup* skillGroup = (CGUISkillGroup*)item;
 
                     if (g_PressedObject.LeftObject == skillGroup->m_Minimizer)
                     {
@@ -1135,7 +1126,7 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                     else
                     {
                         TestItemsLeftMouseUp(
-                            gump, (CBaseGUI *)skillGroup->m_Items, currentPage, draw2Page);
+                            gump, (CBaseGUI*)skillGroup->m_Items, currentPage, draw2Page);
                     }
 
                     break;
@@ -1144,31 +1135,30 @@ void CGump::TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, 
                 case GOT_XFMHTMLGUMP:
                 case GOT_XFMHTMLTOKEN:
                 {
-                    TestItemsLeftMouseUp(gump, (CBaseGUI *)item->m_Items, currentPage, draw2Page);
+                    TestItemsLeftMouseUp(gump, (CBaseGUI*)item->m_Items, currentPage, draw2Page);
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
         }
     }
 }
 
 void CGump::TestItemsScrolling(
-    CGump *gump, CBaseGUI *start, bool up, int currentPage, int draw2Page)
+    CGump* gump, CBaseGUI* start, bool up, int currentPage, int draw2Page)
 {
     const int delay = SCROLL_LISTING_DELAY / 7;
 
-    int group = 0;
-    int page = 0;
+    int group    = 0;
+    int page     = 0;
     bool canDraw = ((draw2Page == 0) || (page >= currentPage && page <= currentPage + draw2Page));
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -1181,7 +1171,7 @@ void CGump::TestItemsScrolling(
         {
             if (item->Type == GOT_GROUP)
             {
-                group = ((CGUIGroup *)item)->Index;
+                group = ((CGUIGroup*)item)->Index;
                 continue;
             }
             if (g_SelectedObject.Object != item && !item->IsHTMLGump())
@@ -1198,7 +1188,7 @@ void CGump::TestItemsScrolling(
                         break;
                     }
 
-                    CGUIHTMLResizepic *resizepic = (CGUIHTMLResizepic *)item;
+                    CGUIHTMLResizepic* resizepic = (CGUIHTMLResizepic*)item;
                     resizepic->Scroll(up, delay);
 
                     gump->OnSliderMove(item->Serial);
@@ -1208,7 +1198,7 @@ void CGump::TestItemsScrolling(
                 }
                 case GOT_SLIDER:
                 {
-                    ((CGUISlider *)item)->OnScroll(up, delay);
+                    ((CGUISlider*)item)->OnScroll(up, delay);
 
                     gump->OnSliderMove(item->Serial);
                     gump->WantRedraw = true;
@@ -1218,7 +1208,7 @@ void CGump::TestItemsScrolling(
                 case GOT_DATABOX:
                 {
                     CGump::TestItemsScrolling(
-                        gump, (CBaseGUI *)item->m_Items, up, currentPage, draw2Page);
+                        gump, (CBaseGUI*)item->m_Items, up, currentPage, draw2Page);
                     break;
                 }
                 case GOT_HTMLGUMP:
@@ -1227,59 +1217,56 @@ void CGump::TestItemsScrolling(
                 {
                     if (item->Select())
                     {
-                        CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
+                        CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)item;
 
-                        Core::Vec2<i32> oldPos = g_MouseManager.Position;
-                        g_MouseManager.Position =
-                            Core::Vec2<i32>(oldPos.x - htmlGump->GetX(), oldPos.y - htmlGump->GetY());
+                        Core::TMousePos oldPos = g_MouseManager.GetPosition();
+                        g_MouseManager.SetPosition(
+                            oldPos - Core::TMousePos(htmlGump->GetX(), htmlGump->GetY()));
 
-                        CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
+                        CBaseGUI* item = (CBaseGUI*)htmlGump->m_Items;
 
                         for (int j = 0; j < 5; j++)
                         {
                             if (item->Type == GOT_SLIDER)
                             {
-                                ((CGUISlider *)item)->OnScroll(up, delay);
+                                ((CGUISlider*)item)->OnScroll(up, delay);
 
                                 gump->OnSliderMove(item->Serial);
                             }
 
-                            item = (CBaseGUI *)item->m_Next;
+                            item = (CBaseGUI*)item->m_Next;
                         }
 
                         int offsetX = htmlGump->DataOffset.x - htmlGump->CurrentOffset.x;
                         int offsetY = htmlGump->DataOffset.y - htmlGump->CurrentOffset.y;
 
-                        g_MouseManager.Position = Core::Vec2<i32>(
-                            g_MouseManager.Position.X - offsetX,
-                            g_MouseManager.Position.Y - offsetY);
+                        Core::TMousePos mousePos = g_MouseManager.GetPosition();
+                        g_MouseManager.SetPosition(mousePos - Core::TMousePos(offsetX, offsetY));
+                        TestItemsScrolling(gump, (CBaseGUI*)item, up, currentPage, draw2Page);
 
-                        TestItemsScrolling(gump, (CBaseGUI *)item, up, currentPage, draw2Page);
-
-                        g_MouseManager.Position = oldPos;
+                        g_MouseManager.SetPosition(oldPos);
 
                         gump->WantRedraw = true;
                     }
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
         }
     }
 }
 
 void CGump::TestItemsDragging(
-    CGump *gump, CBaseGUI *start, int currentPage, int draw2Page, int count)
+    CGump* gump, CBaseGUI* start, int currentPage, int draw2Page, int count)
 {
     int group = 0;
-    int page = 0;
+    int page  = 0;
     bool canDraw =
         ((page == -1) || ((page == 0) && (draw2Page == 0)) ||
          (page >= currentPage && page <= currentPage + draw2Page));
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (count == 0)
         {
@@ -1290,7 +1277,7 @@ void CGump::TestItemsDragging(
 
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -1303,7 +1290,7 @@ void CGump::TestItemsDragging(
         {
             if (item->Type == GOT_GROUP)
             {
-                group = ((CGUIGroup *)item)->Index;
+                group = ((CGUIGroup*)item)->Index;
                 continue;
             }
             if (g_PressedObject.LeftObject != item && !item->IsHTMLGump())
@@ -1315,10 +1302,10 @@ void CGump::TestItemsDragging(
             {
                 case GOT_SLIDER:
                 {
-                    int x = g_MouseManager.Position.X - item->GetX();
-                    int y = g_MouseManager.Position.Y - item->GetY();
-
-                    ((CGUISlider *)item)->OnClick(x, y);
+                    Core::TMousePos mousePos = g_MouseManager.GetPosition();
+                    int x                    = mousePos.x - item->GetX();
+                    int y                    = mousePos.y - item->GetY();
+                    ((CGUISlider*)item)->OnClick(x, y);
 
                     gump->OnSliderMove(item->Serial);
                     gump->WantRedraw = true;
@@ -1328,7 +1315,7 @@ void CGump::TestItemsDragging(
                 case GOT_DATABOX:
                 {
                     CGump::TestItemsDragging(
-                        gump, (CBaseGUI *)item->m_Items, currentPage, draw2Page);
+                        gump, (CBaseGUI*)item->m_Items, currentPage, draw2Page);
                     break;
                 }
                 case GOT_RESIZEBUTTON:
@@ -1342,36 +1329,34 @@ void CGump::TestItemsDragging(
                 case GOT_XFMHTMLGUMP:
                 case GOT_XFMHTMLTOKEN:
                 {
-                    CGUIHTMLGump *htmlGump = (CGUIHTMLGump *)item;
+                    CGUIHTMLGump* htmlGump = (CGUIHTMLGump*)item;
 
-                    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-                    g_MouseManager.Position =
-                        Core::Vec2<i32>(oldPos.x - htmlGump->GetX(), oldPos.y - htmlGump->GetY());
+                    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+                    g_MouseManager.SetPosition(
+                        oldPos - Core::TMousePos(htmlGump->GetX(), htmlGump->GetY()));
 
-                    CBaseGUI *item = (CBaseGUI *)htmlGump->m_Items;
+                    CBaseGUI* item = (CBaseGUI*)htmlGump->m_Items;
 
                     TestItemsDragging(gump, item, currentPage, draw2Page, 5);
 
                     for (int j = 0; j < 5; j++)
                     {
-                        item = (CBaseGUI *)item->m_Next;
+                        item = (CBaseGUI*)item->m_Next;
                     }
 
                     int offsetX = htmlGump->DataOffset.x - htmlGump->CurrentOffset.x;
                     int offsetY = htmlGump->DataOffset.y - htmlGump->CurrentOffset.y;
 
-                    g_MouseManager.Position = Core::Vec2<i32>(
-                        g_MouseManager.Position.X - offsetX, g_MouseManager.Position.Y - offsetY);
-
+                    Core::TMousePos mousePos = g_MouseManager.GetPosition();
+                    g_MouseManager.SetPosition(mousePos - Core::TMousePos(offsetX, offsetY));
                     TestItemsDragging(gump, item, currentPage, draw2Page);
 
-                    g_MouseManager.Position = oldPos;
+                    g_MouseManager.SetPosition(oldPos);
 
                     gump->WantRedraw = true;
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
         }
     }
@@ -1379,13 +1364,13 @@ void CGump::TestItemsDragging(
 
 void CGump::PrepareTextures()
 {
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     item->PrepareTextures();
 }
 
 bool CGump::EntryPointerHere()
 {
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Visible && item->EntryPointerHere())
         {
@@ -1401,7 +1386,7 @@ void CGump::GenerateFrame(bool stop)
     if (!g_GL.Drawing)
     {
         FrameCreated = false;
-        WantRedraw = true;
+        WantRedraw   = true;
 
         return;
     }
@@ -1410,9 +1395,9 @@ void CGump::GenerateFrame(bool stop)
 
     PrepareTextures();
 
-    DrawItems((CBaseGUI *)m_Items, Page, Draw2Page);
+    DrawItems((CBaseGUI*)m_Items, Page, Draw2Page);
 
-    WantRedraw = true;
+    WantRedraw   = true;
     FrameCreated = true;
 }
 
@@ -1426,16 +1411,16 @@ void CGump::Draw()
         UpdateContent();
         RecalculateSize();
         WantUpdateContent = false;
-        FrameCreated = false;
+        FrameCreated      = false;
     }
 
     if (!FrameCreated)
     {
     loc_create_frame:
 
-        if (!m_FrameBuffer.Ready(GumpRect.Size))
+        if (!m_FrameBuffer.Ready(GumpRect.size))
         {
-            m_FrameBuffer.Init(GumpRect.Size);
+            m_FrameBuffer.Init(GumpRect.size);
         }
 
         if (m_FrameBuffer.Use())
@@ -1444,7 +1429,7 @@ void CGump::Draw()
             glClear(GL_COLOR_BUFFER_BIT);
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-            glTranslatef(-(GLfloat)GumpRect.Position.X, -(GLfloat)GumpRect.Position.Y, 0.0f);
+            glTranslatef(-(GLfloat)GumpRect.pos.x, -(GLfloat)GumpRect.pos.y, 0.0f);
 
             GenerateFrame(true);
 
@@ -1460,30 +1445,30 @@ void CGump::Draw()
                 }
 
                 g_GL.DrawLine(
-                    GumpRect.Position.X + 1,
-                    GumpRect.Position.Y + 1,
-                    GumpRect.Position.X + GumpRect.Size.Width,
-                    GumpRect.Position.Y + 1);
+                    GumpRect.pos.x + 1,
+                    GumpRect.pos.y + 1,
+                    GumpRect.pos.x + GumpRect.size.x,
+                    GumpRect.pos.y + 1);
                 g_GL.DrawLine(
-                    GumpRect.Position.X + GumpRect.Size.Width,
-                    GumpRect.Position.Y + 1,
-                    GumpRect.Position.X + GumpRect.Size.Width,
-                    GumpRect.Position.Y + GumpRect.Size.Height);
+                    GumpRect.pos.x + GumpRect.size.x,
+                    GumpRect.pos.y + 1,
+                    GumpRect.pos.x + GumpRect.size.x,
+                    GumpRect.pos.y + GumpRect.size.y);
                 g_GL.DrawLine(
-                    GumpRect.Position.X + GumpRect.Size.Width,
-                    GumpRect.Position.Y + GumpRect.Size.Height,
-                    GumpRect.Position.X + 1,
-                    GumpRect.Position.Y + GumpRect.Size.Height);
+                    GumpRect.pos.x + GumpRect.size.x,
+                    GumpRect.pos.y + GumpRect.size.y,
+                    GumpRect.pos.x + 1,
+                    GumpRect.pos.y + GumpRect.size.y);
                 g_GL.DrawLine(
-                    GumpRect.Position.X + 1,
-                    GumpRect.Position.Y + GumpRect.Size.Height,
-                    GumpRect.Position.X + 1,
-                    GumpRect.Position.Y + 1);
+                    GumpRect.pos.x + 1,
+                    GumpRect.pos.y + GumpRect.size.y,
+                    GumpRect.pos.x + 1,
+                    GumpRect.pos.y + 1);
 
                 glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
             }
 
-            glTranslatef((GLfloat)GumpRect.Position.X, (GLfloat)GumpRect.Position.Y, 0.0f);
+            glTranslatef((GLfloat)GumpRect.pos.x, (GLfloat)GumpRect.pos.y, 0.0f);
 
             m_FrameBuffer.Release();
         }
@@ -1497,8 +1482,8 @@ void CGump::Draw()
     GLfloat posX = g_GumpTranslate.x;
     GLfloat posY = g_GumpTranslate.y;
 
-    posX += (GLfloat)GumpRect.Position.X;
-    posY += (GLfloat)GumpRect.Position.Y;
+    posX += (GLfloat)GumpRect.pos.x;
+    posY += (GLfloat)GumpRect.pos.y;
 
     glTranslatef(posX, posY, 0.0f);
 
@@ -1517,7 +1502,7 @@ void CGump::Draw()
     glTranslatef(-posX, -posY, 0.0f);
 }
 
-CRenderObject *CGump::Select()
+CRenderObject* CGump::Select()
 {
     PROFILER_EVENT();
     g_CurrentCheckGump = this;
@@ -1528,35 +1513,34 @@ CRenderObject *CGump::Select()
         UpdateContent();
         RecalculateSize();
         WantUpdateContent = false;
-        FrameCreated = false;
+        FrameCreated      = false;
     }
 
-    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-    g_MouseManager.Position =
-        Core::Vec2<i32>(oldPos.x - (int)g_GumpTranslate.x, oldPos.y - (int)g_GumpTranslate.y);
-
-    CRenderObject *selected = nullptr;
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(
+        oldPos - Core::TMousePos((i32)g_GumpTranslate.x, (i32)g_GumpTranslate.y));
+    CRenderObject* selected = nullptr;
 
     if (SelectLocker())
     {
         selected = &m_Locker;
     }
     else if (
-        g_MouseManager.Position.X >= GumpRect.Position.X &&
-        g_MouseManager.Position.X < GumpRect.Position.X + GumpRect.Size.Width &&
-        g_MouseManager.Position.Y >= GumpRect.Position.Y &&
-        g_MouseManager.Position.Y < GumpRect.Position.Y + GumpRect.Size.Height)
+        g_MouseManager.GetPosition().x >= GumpRect.pos.x &&
+        g_MouseManager.GetPosition().x < GumpRect.pos.x + GumpRect.size.x &&
+        g_MouseManager.GetPosition().y >= GumpRect.pos.y &&
+        g_MouseManager.GetPosition().y < GumpRect.pos.y + GumpRect.size.y)
     {
-        selected = SelectItems((CBaseGUI *)m_Items, Page, Draw2Page);
+        selected = SelectItems((CBaseGUI*)m_Items, Page, Draw2Page);
     }
 
     if (selected != nullptr)
     {
-        CBaseGUI *sel = (CBaseGUI *)selected;
+        CBaseGUI* sel = (CBaseGUI*)selected;
         g_SelectedObject.Init(selected, this);
     }
 
-    g_MouseManager.Position = oldPos;
+    g_MouseManager.SetPosition(oldPos);
     g_CurrentCheckGump = nullptr;
 
     return selected;
@@ -1570,7 +1554,7 @@ void CGump::RecalculateSize()
     Core::Vec2<i32> maxPosition;
     Core::Vec2<i32> offset;
 
-    GetItemsSize(this, (CBaseGUI *)m_Items, minPosition, maxPosition, offset, -1, Page, Draw2Page);
+    GetItemsSize(this, (CBaseGUI*)m_Items, minPosition, maxPosition, offset, -1, Page, Draw2Page);
 
     Core::Vec2<i32> size(maxPosition.x - minPosition.x, maxPosition.y - minPosition.y);
 
@@ -1578,20 +1562,19 @@ void CGump::RecalculateSize()
 }
 
 void CGump::GetItemsSize(
-    CGump *gump,
-    CBaseGUI *start,
-    Core::Vec2<i32> &minPosition,
-    Core::Vec2<i32> &maxPosition,
-    Core::Vec2<i32> &offset,
+    CGump* gump,
+    CBaseGUI* start,
+    Core::Vec2<i32>& minPosition,
+    Core::Vec2<i32>& maxPosition,
+    Core::Vec2<i32>& offset,
     int count,
     int currentPage,
     int draw2Page)
 {
-
-    int page = 0;
+    int page     = 0;
     bool canDraw = ((draw2Page == 0) || (page >= currentPage && page <= currentPage + draw2Page));
 
-    QFOR(item, start, CBaseGUI *)
+    QFOR(item, start, CBaseGUI*)
     {
         if (count == 0)
         {
@@ -1602,7 +1585,7 @@ void CGump::GetItemsSize(
 
         if (item->Type == GOT_PAGE)
         {
-            page = ((CGUIPage *)item)->Index;
+            page = ((CGUIPage*)item)->Index;
 
             //if (page >= 2 && page > currentPage + draw2Page)
             //	break;
@@ -1629,13 +1612,12 @@ void CGump::GetItemsSize(
             case GOT_SHADER:
             case GOT_BLENDING:
             case GOT_GLOBAL_COLOR:
-            case GOT_TOOLTIP:
-                break;
+            case GOT_TOOLTIP: break;
             case GOT_DATABOX:
             {
                 CGump::GetItemsSize(
                     gump,
-                    (CBaseGUI *)item->m_Items,
+                    (CBaseGUI*)item->m_Items,
                     minPosition,
                     maxPosition,
                     offset,
@@ -1651,7 +1633,7 @@ void CGump::GetItemsSize(
                 Core::Vec2<i32> htmlOffset(offset.x + item->GetX(), offset.x + item->GetY());
                 CGump::GetItemsSize(
                     gump,
-                    (CBaseGUI *)item->m_Items,
+                    (CBaseGUI*)item->m_Items,
                     minPosition,
                     maxPosition,
                     htmlOffset,
@@ -1660,8 +1642,7 @@ void CGump::GetItemsSize(
                     draw2Page);
                 break;
             }
-            case GOT_SCISSOR:
-                ((CGUIScissor *)item)->GumpParent = gump;
+            case GOT_SCISSOR: ((CGUIScissor*)item)->GumpParent = gump;
             default:
             {
                 int x = item->GetX() + offset.x;
@@ -1679,8 +1660,8 @@ void CGump::GetItemsSize(
 
                 Core::Vec2<i32> itemSize = item->GetSize();
 
-                x += itemSize.Width;
-                y += itemSize.Height;
+                x += itemSize.x;
+                y += itemSize.y;
 
                 if (x > maxPosition.x)
                 {
@@ -1700,48 +1681,42 @@ void CGump::GetItemsSize(
 
 void CGump::OnLeftMouseButtonDown()
 {
-    g_CurrentCheckGump = this;
-    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = Core::Vec2<i32>(oldPos.x - m_X, oldPos.y - m_Y);
-
-    TestItemsLeftMouseDown(this, (CBaseGUI *)m_Items, Page, Draw2Page);
-
-    g_MouseManager.Position = oldPos;
+    g_CurrentCheckGump     = this;
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(oldPos - Core::TMousePos(m_X, m_Y));
+    TestItemsLeftMouseDown(this, (CBaseGUI*)m_Items, Page, Draw2Page);
+    g_MouseManager.SetPosition(oldPos);
     g_CurrentCheckGump = nullptr;
 }
 
 void CGump::OnLeftMouseButtonUp()
 {
     g_CurrentCheckGump = this;
-    TestItemsLeftMouseUp(this, (CBaseGUI *)m_Items, Page, Draw2Page);
+    TestItemsLeftMouseUp(this, (CBaseGUI*)m_Items, Page, Draw2Page);
     TestLockerClick();
     g_CurrentCheckGump = nullptr;
 }
 
 void CGump::OnMidMouseButtonScroll(bool up)
 {
-    g_CurrentCheckGump = this;
-    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = Core::Vec2<i32>(oldPos.x - m_X, oldPos.y - m_Y);
-
-    TestItemsScrolling(this, (CBaseGUI *)m_Items, up, Page, Draw2Page);
-
-    g_MouseManager.Position = oldPos;
-    g_CurrentCheckGump = nullptr;
+    g_CurrentCheckGump      = this;
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(oldPos - Core::TMousePos(m_X, m_Y));
+    TestItemsScrolling(this, (CBaseGUI*)m_Items, up, Page, Draw2Page);
+    g_MouseManager.SetPosition(oldPos);
+    g_CurrentCheckGump      = nullptr;
 }
 
 void CGump::OnDragging()
 {
-    g_CurrentCheckGump = this;
-    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-    g_MouseManager.Position = Core::Vec2<i32>(oldPos.x - m_X, oldPos.y - m_Y);
-
-    TestItemsDragging(this, (CBaseGUI *)m_Items, Page, Draw2Page);
-
-    g_MouseManager.Position = oldPos;
-    g_CurrentCheckGump = nullptr;
+    g_CurrentCheckGump      = this;
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(oldPos - Core::TMousePos(m_X, m_Y));
+    TestItemsDragging(this, (CBaseGUI*)m_Items, Page, Draw2Page);
+    g_MouseManager.SetPosition(oldPos);
+    g_CurrentCheckGump      = nullptr;
 }
 
-void CGump::PasteClipboardData(wstring &data)
+void CGump::PasteClipboardData(std::wstring& data)
 {
 }

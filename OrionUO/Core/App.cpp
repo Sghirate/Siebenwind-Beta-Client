@@ -1,5 +1,6 @@
 #include "App.h"
 #include "Core/CommandLine.h"
+#include "Core/Core.h"
 #include "Core/Log.h"
 #include "Core/Platform.h"
 #if defined(ORION_WITH_SDL2)
@@ -15,6 +16,20 @@ App::App()
 
 App::~App()
 {
+}
+
+int App::Run()
+{
+    bool quit = false;
+    while(!quit)
+    {
+        Core::BeginFrame();
+        BeginFrame();
+        TickFrame();
+        EndFrame();
+        Core::EndFrame();
+    }
+    return EXIT_SUCCESS;
 }
 
 bool App::Init()
@@ -46,6 +61,10 @@ void App::BeginFrame()
 #if defined(ORION_WITH_SDL2)
     SDL2App::BeginFrame();
 #endif // defined(ORION_WITH_SDL2)
+}
+
+void App::TickFrame()
+{
 }
 
 void App::EndFrame()

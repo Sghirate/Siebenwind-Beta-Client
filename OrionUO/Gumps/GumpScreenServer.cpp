@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenServer.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
 #include "Globals.h"
 #include "../Config.h"
 #include "../ToolTip.h"
@@ -53,14 +52,14 @@ void CGumpScreenServer::UpdateContent()
     Cliloc *cliloc = g_ClilocManager.GetCliloc(g_Language);
 
     u16 textColor = 0x0481;
-    if (g_Config.ClientVersion >= CV_500A)
+    if (GameVars::GetClientVersion() >= CV_500A)
     {
         textColor = 0xFFFF;
     }
 
     CGUIText *text = new CGUIText(textColor, 155, 70);
 
-    if (g_Config.ClientVersion >= CV_500A)
+    if (GameVars::GetClientVersion() >= CV_500A)
     {
         text->CreateTextureW(0, cliloc->GetW(1044579, false, "Select which shard to play on:"));
     }
@@ -73,7 +72,7 @@ void CGumpScreenServer::UpdateContent()
 
     text = new CGUIText(textColor, 400, 70);
 
-    if (g_Config.ClientVersion >= CV_500A)
+    if (GameVars::GetClientVersion() >= CV_500A)
     {
         text->CreateTextureW(0, cliloc->GetW(1044577, false, "Latency:"));
     }
@@ -86,7 +85,7 @@ void CGumpScreenServer::UpdateContent()
 
     text = new CGUIText(textColor, 470, 70);
 
-    if (g_Config.ClientVersion >= CV_500A)
+    if (GameVars::GetClientVersion() >= CV_500A)
     {
         text->CreateTextureW(0, cliloc->GetW(1044578, false, "Packet Loss:"));
     }
@@ -105,7 +104,7 @@ void CGumpScreenServer::UpdateContent()
 
     text = new CGUIText(textColor, 153, 368);
 
-    if (g_Config.ClientVersion >= CV_500A)
+    if (GameVars::GetClientVersion() >= CV_500A)
     {
         text->CreateTextureW(0, cliloc->GetW(1044580, false, "Sort by:"));
     }
@@ -224,10 +223,10 @@ void CGumpScreenServer::InitToolTip()
 
     if (id >= ID_SS_SERVER_LIST)
     {
-        string cstr(
+        std::string cstr(
             "Connect to '" + g_ServerList.GetServer(id - ID_SS_SERVER_LIST)->Name + "' server");
 
-        g_ToolTip.Set(ToWString(cstr), 100);
+        g_ToolTip.Set(Core::ToWString(cstr), 100);
     }
 }
 

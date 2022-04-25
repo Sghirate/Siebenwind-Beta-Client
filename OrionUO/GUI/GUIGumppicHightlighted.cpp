@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIGumppicHightlighted.h"
+﻿#include "GUIGumppicHightlighted.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"
 #include "../Managers/ColorManager.h"

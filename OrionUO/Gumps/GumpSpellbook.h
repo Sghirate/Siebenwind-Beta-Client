@@ -1,9 +1,8 @@
-// MIT License
-// Copyright (C) September 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
+#include "Core/Minimal.h"
+#include <string>
 
 struct SPELL_REQURIES
 {
@@ -32,7 +31,7 @@ public:
     static const int SPELLBOOK_6_SPELLS_COUNT = 16;
     static const int SPELLBOOK_7_SPELLS_COUNT = 30;
 
-    static string m_SpellName1[SPELLBOOK_1_SPELLS_COUNT][2];
+    static std::string m_SpellName1[SPELLBOOK_1_SPELLS_COUNT][2];
     static const std::string m_SpellName2[SPELLBOOK_2_SPELLS_COUNT][2];
     static const std::string m_SpellName3[SPELLBOOK_3_SPELLS_COUNT][2];
     static const std::string m_SpellName4[SPELLBOOK_4_SPELLS_COUNT];
@@ -40,7 +39,7 @@ public:
     static const std::string m_SpellName6[SPELLBOOK_6_SPELLS_COUNT][2];
     static const std::string m_SpellName7[SPELLBOOK_7_SPELLS_COUNT][2];
 
-    static string m_SpellReagents1[SPELLBOOK_1_SPELLS_COUNT];
+    static std::string m_SpellReagents1[SPELLBOOK_1_SPELLS_COUNT];
 
 private:
     static const std::string m_SpellReagents2[SPELLBOOK_2_SPELLS_COUNT];
@@ -74,8 +73,8 @@ private:
         u16 &minimizedGraphic,
         u16 &iconStartGraphic);
 
-    string GetSpellName(int offset,std::string&abbreviature,std::string&reagents);
-    string GetSpellRequries(int offset, int &y);
+    std::string GetSpellName(int offset,std::string&abbreviature,std::string&reagents);
+    std::string GetSpellRequries(int offset, int &y);
 
 public:
     CGumpSpellbook(u32 serial, int x, int y);

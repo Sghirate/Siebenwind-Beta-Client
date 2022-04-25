@@ -1,10 +1,11 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include <SDL_rect.h>
 
 #include "GameScreen.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GameBlockedScreen.h"
+#include "Platform.h"
 #include "../Config.h"
 #include "../Macro.h"
 #include "../Target.h"
@@ -67,17 +68,12 @@ CGameScreen::~CGameScreen()
 
 void CGameScreen::Init()
 {
-
-#if USE_WISP
-    g_OrionWindow.NoResize = false;
-#else
     g_OrionWindow.SetWindowResizable(true);
 
     if (m_zoom)
     {
         g_OrionWindow.MaximizeWindow();
     }
-#endif
 
     g_ScreenEffectManager.UseSunrise();
     SmoothScreenAction = 0;
@@ -191,7 +187,7 @@ void CGameScreen::UpdateMaxDrawZ()
     int bx = playerX / 8;
     int by = playerY / 8;
 
-    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
+    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
     CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
 
     if (mb != nullptr)
@@ -250,7 +246,7 @@ void CGameScreen::UpdateMaxDrawZ()
         bx = playerX / 8;
         by = playerY / 8;
 
-        blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
+        blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
         CMapBlock *mb11 = g_MapManager.GetBlock(blockIndex);
 
         if (mb11 != nullptr)
@@ -306,7 +302,7 @@ void CGameScreen::ApplyTransparentFoliageToUnion(u16 graphic, int x, int y, int 
     int bx = x / 8;
     int by = y / 8;
 
-    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
+    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
     CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
 
     if (mb != nullptr)
@@ -450,7 +446,7 @@ void CGameScreen::CalculateRenderList()
     int maxX = g_RenderBounds.RealMaxRangeX;
     int maxY = g_RenderBounds.RealMaxRangeY;
 
-    int mapBlockHeight = g_MapBlockSize[g_MapManager.GetActualMap()].Height;
+    int mapBlockHeight = g_MapBlockSize[g_MapManager.GetActualMap()].y;
     u32 maxBlockIndex = g_MapManager.MaxBlockIndex;
 
     for (int i = 0; i < 2; i++)
@@ -770,7 +766,7 @@ void CGameScreen::AddTileToRenderList(
 
                     int textDrawX = drawX + character->OffsetX;
                     int textDrawY = drawY + character->OffsetY -
-                                    (character->OffsetZ + dims.y + dims.CenterY);
+                                    (character->OffsetZ + dims.Height + dims.CenterY);
 
                     for (CTextData *text = (CTextData *)textContainer.m_Items; text != nullptr;)
                     {
@@ -907,13 +903,13 @@ void CGameScreen::AddTileToRenderList(
 
             if (m_RenderList.size() != newSize)
             {
-                LOG("Allocation pixels memory for Render List failed (want size: %zi)\n", newSize);
+                LOG_ERROR("GameScreen", "Allocation pixels memory for Render List failed (want size: %zi)", newSize);
 
                 m_RenderList.resize(newSize - 1000);
 
                 if (m_RenderList.size() != newSize - 1000)
                 {
-                    LOG("Allocation pixels memory for Render List failed SECOND STEP!!! (want size: %zi)\n",
+                    LOG_ERROR("GameScreen", "Allocation pixels memory for Render List failed SECOND STEP!!! (want size: %zi)",
                         newSize - 1000);
                     m_RenderListCount = 0;
                     return;
@@ -977,22 +973,22 @@ void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject *obj, bool useO
     DRAW_FRAME_INFORMATION &dfInfo = obj->m_FrameInfo;
     int offsetY = dfInfo.Height - dfInfo.OffsetY;
 
-    std::vector<pair<int, int>> coordinates;
+    std::vector<std::pair<int, int>> coordinates;
 
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY - 1));
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY - 2));
-    coordinates.push_back(pair<int, int>(characterX + 2, characterY - 2));
-    coordinates.push_back(pair<int, int>(characterX - 1, characterY + 2));
-    coordinates.push_back(pair<int, int>(characterX, characterY + 1));
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY));
-    coordinates.push_back(pair<int, int>(characterX + 2, characterY - 1));
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY + 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY - 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY - 2));
+    coordinates.push_back(std::pair<int, int>(characterX + 2, characterY - 2));
+    coordinates.push_back(std::pair<int, int>(characterX - 1, characterY + 2));
+    coordinates.push_back(std::pair<int, int>(characterX, characterY + 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY));
+    coordinates.push_back(std::pair<int, int>(characterX + 2, characterY - 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY + 1));
 
     const auto size = (int)coordinates.size();
 
     int maxZ = obj->PriorityZ;
 
-    int mapBlockHeight = g_MapBlockSize[g_CurrentMap].Height;
+    int mapBlockHeight = g_MapBlockSize[g_CurrentMap].y;
     u32 maxBlockIndex = g_MapManager.MaxBlockIndex;
 
     for (int i = 0; i < size; i++)
@@ -1140,9 +1136,9 @@ void CGameScreen::CalculateGameWindowBounds()
 
     g_RenderBounds.RealMaxRangeX = g_Player->GetX() + rangeX;
 
-    if (g_RenderBounds.RealMaxRangeX >= g_MapSize[g_CurrentMap].Width)
+    if (g_RenderBounds.RealMaxRangeX >= g_MapSize[g_CurrentMap].x)
     {
-        g_RenderBounds.RealMaxRangeX = g_MapSize[g_CurrentMap].Width;
+        g_RenderBounds.RealMaxRangeX = g_MapSize[g_CurrentMap].x;
     }
 
     g_RenderBounds.RealMinRangeY = g_Player->GetY() - rangeY;
@@ -1154,9 +1150,9 @@ void CGameScreen::CalculateGameWindowBounds()
 
     g_RenderBounds.RealMaxRangeY = g_Player->GetY() + rangeY;
 
-    if (g_RenderBounds.RealMaxRangeY >= g_MapSize[g_CurrentMap].Height)
+    if (g_RenderBounds.RealMaxRangeY >= g_MapSize[g_CurrentMap].y)
     {
-        g_RenderBounds.RealMaxRangeY = g_MapSize[g_CurrentMap].Height;
+        g_RenderBounds.RealMaxRangeY = g_MapSize[g_CurrentMap].y;
     }
 
     g_RenderBounds.MinBlockX = (g_RenderBounds.RealMinRangeX / 8) - 1;
@@ -1174,14 +1170,14 @@ void CGameScreen::CalculateGameWindowBounds()
         g_RenderBounds.MinBlockY = 0;
     }
 
-    if (g_RenderBounds.MaxBlockX >= g_MapBlockSize[g_CurrentMap].Width)
+    if (g_RenderBounds.MaxBlockX >= g_MapBlockSize[g_CurrentMap].x)
     {
-        g_RenderBounds.MaxBlockX = g_MapBlockSize[g_CurrentMap].Width - 1;
+        g_RenderBounds.MaxBlockX = g_MapBlockSize[g_CurrentMap].x - 1;
     }
 
-    if (g_RenderBounds.MaxBlockY >= g_MapBlockSize[g_CurrentMap].Height)
+    if (g_RenderBounds.MaxBlockY >= g_MapBlockSize[g_CurrentMap].y)
     {
-        g_RenderBounds.MaxBlockY = g_MapBlockSize[g_CurrentMap].Height - 1;
+        g_RenderBounds.MaxBlockY = g_MapBlockSize[g_CurrentMap].y - 1;
     }
 
     int drawOffset = (int)(g_GlobalScale * 40.0);
@@ -1241,7 +1237,7 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
         int bx = testX / 8;
         int by = testY / 8;
 
-        int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
+        int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
         CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
 
         if (mb != nullptr)
@@ -1386,7 +1382,7 @@ void CGameScreen::DrawGameWindow(bool render)
                         {
                             ANIMATION_DIMENSIONS dims =
                                 g_AnimationManager.GetAnimationDimensions(gc, 0);
-                            y -= (dims.y + dims.CenterY) + 24;
+                            y -= (dims.Height + dims.CenterY) + 24;
                             gc->UpdateHitsTexture(width);
                             x -= (gc->m_HitsTexture.Width / 2) - 3;
                         }
@@ -1664,7 +1660,7 @@ void CGameScreen::PrepareContent()
     if (g_PressedObject.LeftObject != nullptr && g_PressedObject.LeftObject->IsGameObject() &&
         g_MouseManager.LastLeftButtonClickTimer < g_Ticks)
     {
-        Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if (CanBeDraggedByOffset(offset) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
@@ -1680,11 +1676,11 @@ void CGameScreen::PrepareContent()
                     {
                         CGumpDrag *newgump = new CGumpDrag(
                             g_PressedObject.LeftSerial,
-                            g_MouseManager.Position.X - 80,
-                            g_MouseManager.Position.Y - 34);
+                            g_MouseManager.GetPosition().x - 80,
+                            g_MouseManager.GetPosition().y - 34);
 
                         g_GumpManager.AddGump(newgump);
-                        g_OrionWindow.EmulateOnLeftMouseButtonDown();
+                        g_MouseManager.EmulateOnLeftMouseButtonDown();
                         selobj->Dragged = true;
                     }
                     else if (!g_Target.IsTargeting())
@@ -1702,7 +1698,7 @@ void CGameScreen::PrepareContent()
                 {
                     g_Orion.OpenStatus(selchar->Serial);
                     g_GeneratedMouseDown = true;
-                    g_OrionWindow.EmulateOnLeftMouseButtonDown();
+                    g_MouseManager.EmulateOnLeftMouseButtonDown();
                     PLUGIN_EVENT(UOMSG_STATUS_REQUEST, selchar->Serial);
                 }
             }
@@ -1744,7 +1740,7 @@ void CGameScreen::Render()
 
     if (lastRender < g_Ticks)
     {
-        LOG("FPS=%i\n", FPScount);
+        LOG_DEBUG("GameScreen", "FPS=%i", FPScount);
         FPScount = currentFPS;
         currentFPS = 1;
         lastRender = g_Ticks + 1000;
@@ -1997,16 +1993,16 @@ void CGameScreen::Render()
                                          "Animated",   "NoDiagonal", "Unknown2",    "Armor",
                                          "Roof",       "Door",       "StairBack",   "StairRight" };
 
-            string flagsData{};
+            std::string flagsData{};
             for (int f = 0; f < 32; f++)
             {
                 if ((tiledataFlags & (1 << f)) != 0u)
                 {
-                    flagsData += string("\n") + flagNames[f];
+                    flagsData += std::string("\n") + flagNames[f];
                 }
             }
 
-            flagsData = string(dbf) + flagsData;
+            flagsData = std::string(dbf) + flagsData;
 
             g_FontManager.DrawA(3, flagsData, 0x0035, 20, 102);
         }
@@ -2067,11 +2063,11 @@ void CGameScreen::SelectObject()
         if (g_SelectedObject.Object == nullptr) //Если ничего не выбралось - пройдемся по объектам
         {
             //Если курсор мыши в игровом окне - просканируем его
-            if (g_MouseManager.Position.X < g_RenderBounds.GameWindowPosX ||
-                g_MouseManager.Position.Y < g_RenderBounds.GameWindowPosY ||
-                g_MouseManager.Position.X >
+            if (g_MouseManager.GetPosition().x < g_RenderBounds.GameWindowPosX ||
+                g_MouseManager.GetPosition().y < g_RenderBounds.GameWindowPosY ||
+                g_MouseManager.GetPosition().x >
                     (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth) ||
-                g_MouseManager.Position.Y >
+                g_MouseManager.GetPosition().y >
                     (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight))
             {
                 // do nothing
@@ -2079,7 +2075,7 @@ void CGameScreen::SelectObject()
             else
             {
                 g_GlobalScale = oldScale;
-                Core::Vec2<i32> oldMouse = g_MouseManager.Position;
+                Core::TMousePos oldMouse = g_MouseManager.GetPosition();
 
                 //g_MouseManager.Position = Core::Vec2<i32>((int)((oldMouse.X - (g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale)) * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX, (int)((oldMouse.Y - (g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)) * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY);
 
@@ -2114,7 +2110,7 @@ void CGameScreen::SelectObject()
                 g_RenderBounds.GameWindowScaledHeight = (int)(newBottom - g_RenderBounds.GameWindowScaledOffsetY);*/
 
                 DrawGameWindow(false);
-                g_MouseManager.Position = oldMouse;
+                g_MouseManager.SetPosition(oldMouse);
             }
         }
     }
@@ -2181,9 +2177,9 @@ void CGameScreen::OnLeftMouseButtonUp()
 
     int gameWindowPosX = g_ConfigManager.GameWindowX - 4;
     int gameWindowPosY = g_ConfigManager.GameWindowY - 4;
-    if (g_MouseManager.Position.X < gameWindowPosX || g_MouseManager.Position.Y < gameWindowPosY ||
-        g_MouseManager.Position.X > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
-        g_MouseManager.Position.Y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
+    if (g_MouseManager.GetPosition().x < gameWindowPosX || g_MouseManager.GetPosition().y < gameWindowPosY ||
+        g_MouseManager.GetPosition().x > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
+        g_MouseManager.GetPosition().y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
     {
         return;
     }
@@ -2233,7 +2229,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                 else if (rwo->IsStaticObject() || rwo->IsMultiObject())
                 {
                     STATIC_TILES *st = nullptr;
-                    if (g_Config.ClientVersion >= CV_7090 && rwo->IsSurface())
+                    if (GameVars::GetClientVersion() >= CV_7090 && rwo->IsSurface())
                     {
                         st = ((CRenderStaticObject *)rwo)->GetStaticData();
                     }
@@ -2344,7 +2340,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                                     ->GetW(1020000 + id, true, g_Orion.m_StaticData[id].Name);
                             if (str.length() != 0u)
                             {
-                                if (g_Config.ClientVersion >= CV_6000)
+                                if (GameVars::GetClientVersion() >= CV_6000)
                                 {
                                     g_Orion.CreateUnicodeTextMessage(
                                         TT_CLIENT, 0, 1, 0x03B2, str, rwo);
@@ -2352,7 +2348,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                                 else
                                 {
                                     g_Orion.CreateTextMessage(
-                                        TT_CLIENT, 0, 3, 0x03B2, ToString(str), rwo);
+                                        TT_CLIENT, 0, 3, 0x03B2, Core::ToString(str), rwo);
                                 }
                             }
                         }
@@ -2526,10 +2522,10 @@ void CGameScreen::OnMidMouseButtonScroll(bool up)
         int gameWindowPosX = g_ConfigManager.GameWindowX - 4;
         int gameWindowPosY = g_ConfigManager.GameWindowY - 4;
 
-        if (g_MouseManager.Position.X < gameWindowPosX ||
-            g_MouseManager.Position.Y < gameWindowPosY ||
-            g_MouseManager.Position.X > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
-            g_MouseManager.Position.Y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
+        if (g_MouseManager.GetPosition().x < gameWindowPosX ||
+            g_MouseManager.GetPosition().y < gameWindowPosY ||
+            g_MouseManager.GetPosition().x > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
+            g_MouseManager.GetPosition().y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
         {
             return;
         }
@@ -2579,17 +2575,10 @@ void CGameScreen::OnTextInput(const TextEvent &ev)
         }
     }
 
-#if USE_WISP
-    bool altGR = (GetAsyncKeyState(KEY_RMENU) & 0x80000000);
-    bool altPressed = (GetAsyncKeyState(KEY_MENU) & 0x80000000);
-    bool ctrlPressed = (GetAsyncKeyState(KEY_CONTROL) & 0x80000000);
-    //bool shiftPressed = GetAsyncKeyState(KEY_SHIFT) & 0x80000000;
-#else
     const auto mod = SDL_GetModState();
     const bool altGR = (mod & KMOD_RALT) != 0;
     const bool altPressed = (mod & KMOD_ALT) != 0;
     const bool ctrlPressed = (mod & KMOD_CTRL) != 0;
-#endif
 
     if (g_EntryPointer == &g_GameConsole && (ch == 0x11 || ch == 0x17) && ctrlPressed)
     {
@@ -2597,7 +2586,7 @@ void CGameScreen::OnTextInput(const TextEvent &ev)
     }
     else if (
         (altGR || (!altPressed && !ctrlPressed)) &&
-        (int)g_EntryPointer->Length() < std::max(g_EntryPointer->MaxLength, 60))
+        (int)g_EntryPointer->Length() < Core::Max(g_EntryPointer->MaxLength, 60))
     {
         g_EntryPointer->Insert(ch);
     }
@@ -2607,13 +2596,8 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
 {
 
     const auto key = EvKey(ev);
-#if USE_WISP
-    if (key == KEY_TAB && ((LPARAM)ev.lParam & 0x40000000))
-        return;
-#else
     if (key == KEY_TAB && ev.repeat)
         return;
-#endif
 
     if (g_GumpManager.OnKeyDown(ev, false))
     {
@@ -2777,16 +2761,10 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
         }
     }
 
-#if USE_WISP
-    bool altPressed = GetAsyncKeyState(KEY_MENU) & 0x80000000;
-    bool ctrlPressed = GetAsyncKeyState(KEY_CONTROL) & 0x80000000;
-    bool shiftPressed = GetAsyncKeyState(KEY_SHIFT) & 0x80000000;
-#else
     const auto mod = SDL_GetModState();
     const bool altPressed = (mod & KMOD_ALT) != 0;
     const bool ctrlPressed = (mod & KMOD_CTRL) != 0;
     const bool shiftPressed = (mod & KMOD_SHIFT) != 0;
-#endif
 
     // Disable macros to avoid mixing with a chat input.
     // If you activate the chat, you want to write a message not run a macro.

@@ -1,7 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GameConsole.h"
+﻿#include "GameConsole.h"
+#include "Core/StringUtils.h"
+#include "Globals.h"
 #include "../OrionUO.h"
 #include "../Party.h"
 #include "../DefinitionMacro.h"
@@ -9,6 +8,7 @@
 #include "../Managers/ConfigManager.h"
 #include "../Network/Packets.h"
 #include "../GameObjects/GamePlayer.h"
+#include "plugin/enumlist.h"
 
 CGameConsole g_GameConsole;
 
@@ -31,7 +31,7 @@ void CGameConsole::Send()
     m_Type = GCTT_NORMAL;
 }
 
-void CGameConsole::Send(wstring text, u16 defaultColor)
+void CGameConsole::Send(std::wstring text, u16 defaultColor)
 {
     size_t len = text.length();
     if (len != 0u)
@@ -91,7 +91,7 @@ void CGameConsole::Send(wstring text, u16 defaultColor)
                     }
                     else
                     {
-                        string str = "Note to self: " + ToString(text.c_str() + offset);
+                        std::string str = "Note to self: " + Core::ToString(text.c_str() + offset);
                         g_Orion.CreateTextMessage(TT_SYSTEM, 0, 3, 0, str);
                     }
                     return;
@@ -179,7 +179,7 @@ std::wstring CGameConsole::IsSystemCommand(
 
     if (*text == g_ConsolePrefix[GCTT_PARTY][0]) //Party
     {
-        string lStr = ToString(text);
+        std::string lStr = Core::ToString(text);
         const char *cText = lStr.c_str();
 
         char *ptr = (char *)cText + 1;
@@ -208,7 +208,7 @@ std::wstring CGameConsole::IsSystemCommand(
                     sprintf_s(pmBuf, "Tell []:");
                 }
 
-                result = ToWString(pmBuf);
+                result = Core::ToWString(pmBuf);
 
                 type = GCTT_PARTY;
                 member = i - 1;

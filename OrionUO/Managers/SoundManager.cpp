@@ -1,10 +1,11 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "SoundManager.h"
+#include "Core/Log.h"
+#include "Globals.h"
 #include "ConfigManager.h"
 #include "../OrionUO.h"
 #include "../OrionWindow.h"
+#include <unordered_map>
+#include <assert.h>
 
 #if 0
 #define SOUND_DEBUG_TRACE DEBUG_TRACE_FUNCTION
@@ -141,7 +142,6 @@ CSoundManager g_SoundManager;
 
 static u8 *CreateWaveFile(CIndexSound &is)
 {
-    SOUND_DEBUG_TRACE;
     size_t dataSize = is.DataSize - sizeof(SOUND_BLOCK);
     auto waveSound = (u8 *)malloc(dataSize + sizeof(WaveHeader));
     auto waveHeader = reinterpret_cast<WaveHeader *>(waveSound);
@@ -178,33 +178,29 @@ CSoundManager::~CSoundManager()
 
 bool CSoundManager::Init()
 {
-    SOUND_DEBUG_TRACE;
-    LOG("Initializing sound system.\n");
+    LOG_INFO("SoundManager", "Initializing sound system.");
     // initialize default output device
     s_backend.init();
     s_backend.setGlobalVolume(0.30f);
-    LOG("Sound init successfull.\n");
+    LOG_INFO("SoundManager", "Sound init successfull.");
 
     return true;
 }
 
 void CSoundManager::Free()
 {
-    SOUND_DEBUG_TRACE;
     StopMusic();
     s_backend.deinit();
 }
 
 void CSoundManager::PauseSound()
 {
-    SOUND_DEBUG_TRACE;
     s_backend.setPauseAll(true);
     g_Orion.AdjustSoundEffects(g_Ticks + 100000);
 }
 
 void CSoundManager::ResumeSound()
 {
-    SOUND_DEBUG_TRACE;
     s_backend.setPauseAll(false);
 }
 
@@ -221,7 +217,6 @@ bool CSoundManager::UpdateSoundEffect(SoundHandle stream, float volume)
 
 float CSoundManager::GetVolumeValue(int distance, bool music)
 {
-    SOUND_DEBUG_TRACE;
     u16 clientConfigVolume =
         music ? g_ConfigManager.GetMusicVolume() : g_ConfigManager.GetSoundVolume();
 
@@ -244,8 +239,6 @@ float CSoundManager::GetVolumeValue(int distance, bool music)
 
 SoundHandle CSoundManager::LoadSoundEffect(CIndexSound &is)
 {
-    SOUND_DEBUG_TRACE;
-
     if (is.m_WaveFile == nullptr)
     {
         is.m_WaveFile = CreateWaveFile(is);
@@ -265,7 +258,7 @@ SoundHandle CSoundManager::LoadSoundEffect(CIndexSound &is)
 
     if (stream == SOUND_NULL)
     {
-        LOG("Error creating sound voice: %s\n", GetErrorDescription());
+        LOG_ERROR("SoundManager", "Error creating sound voice: %s\n", GetErrorDescription());
         free(is.m_WaveFile);
         is.m_WaveFile = nullptr;
     }
@@ -275,7 +268,6 @@ SoundHandle CSoundManager::LoadSoundEffect(CIndexSound &is)
 
 void CSoundManager::PlaySoundEffect(SoundHandle stream, float volume)
 {
-    SOUND_DEBUG_TRACE;
     if (stream == SOUND_NULL || (!g_OrionWindow.IsActive() && !g_ConfigManager.BackgroundSound))
     {
         return;
@@ -287,13 +279,12 @@ void CSoundManager::PlaySoundEffect(SoundHandle stream, float volume)
     }
     else
     {
-        LOG("Trying to play unallocated sound");
+        LOG_ERROR("SoundManager", "Trying to play unallocated sound");
     }
 }
 
 void CSoundManager::FreeSound(SoundHandle stream)
 {
-    SOUND_DEBUG_TRACE;
     if (stream == SOUND_NULL)
     {
         return;
@@ -306,7 +297,7 @@ void CSoundManager::FreeSound(SoundHandle stream)
     }
     else
     {
-        LOG("Trying to free unallocated sound");
+        LOG_ERROR("SoundManager", "Trying to free unallocated sound");
     }
 
     stream = SOUND_NULL;
@@ -314,7 +305,6 @@ void CSoundManager::FreeSound(SoundHandle stream)
 
 void CSoundManager::SetMusicVolume(float volume)
 {
-    SOUND_DEBUG_TRACE;
     float v = VOLUME_FACTOR * volume / 255.0f;
     s_backend.setVolume(s_Music[0], v);
     s_backend.setVolume(s_Music[1], v);
@@ -322,15 +312,11 @@ void CSoundManager::SetMusicVolume(float volume)
 
 bool CSoundManager::IsPlayingNormalMusic()
 {
-    SOUND_DEBUG_TRACE;
-
     return s_backend.isValidVoiceHandle(s_Music[0]);
 }
 
 void CSoundManager::PlayMP3(const std::string &fileName, int index, bool loop, bool warmode)
 {
-    SOUND_DEBUG_TRACE;
-
     int cur = warmode ? 1 : 0;
     int old = warmode ? 0 : 1;
     if (s_Music[cur])
@@ -352,8 +338,6 @@ void CSoundManager::PlayMP3(const std::string &fileName, int index, bool loop, b
 
 void CSoundManager::StopWarMusic()
 {
-    SOUND_DEBUG_TRACE;
-
     s_backend.stop(s_Music[1]);
     if (s_Music[0] != 0 && !IsPlayingNormalMusic())
     {
@@ -363,8 +347,6 @@ void CSoundManager::StopWarMusic()
 
 void CSoundManager::StopMusic()
 {
-    SOUND_DEBUG_TRACE;
-
     s_backend.stop(s_Music[0]);
     s_backend.stop(s_Music[1]);
     s_backend.stopAudioSource(s_MusicStream[0]);
@@ -377,10 +359,9 @@ void CSoundManager::StopMusic()
 
 void CSoundManager::PlayMidi(int index, bool warmode)
 {
-    SOUND_DEBUG_TRACE;
     if (index < 0 || index >= MIDI_MUSIC_COUNT)
     {
-        LOG("Music ID is out of range: %i\n", index);
+        LOG_ERROR("SoundManager", "Music ID is out of range: %i\n", index);
         return;
     }
 

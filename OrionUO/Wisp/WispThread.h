@@ -1,6 +1,4 @@
-﻿// MIT License
-
-#ifndef WISP_THREAD_H
+﻿#ifndef WISP_THREAD_H
 #define WISP_THREAD_H
 
 #include "../Platform.h"
@@ -11,11 +9,7 @@ namespace Wisp
 class CThread
 {
 private:
-#if USE_WISP
-    HANDLE m_Handle = 0;
-#else
     SDL_Thread *m_Handle = nullptr;
-#endif
     ProtectedSection m_Mutex;
     u32 m_ID = 0;
     bool m_Paused = false;

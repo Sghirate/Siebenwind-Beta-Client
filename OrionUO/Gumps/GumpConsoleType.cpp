@@ -1,12 +1,12 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpConsoleType.h"
+#include "Core/StringUtils.h"
+#include "Globals.h"
 #include "../ToolTip.h"
 #include "../SelectedObject.h"
 #include "../Managers/ConfigManager.h"
 #include "../ScreenStages/GameScreen.h"
 #include "../TextEngine/GameConsole.h"
+#include <string>
 
 CGumpConsoleType *g_GumpConsoleType = nullptr;
 
@@ -220,8 +220,8 @@ void CGumpConsoleType::UpdateContent()
             }
             else
             {
-                string str = " ";
-                str += ToString(g_ConsolePrefix[i]);
+                std::string str = " ";
+                str += Core::ToString(g_ConsolePrefix[i]);
 
                 if (str.length() < 3)
                 {

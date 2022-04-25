@@ -10,6 +10,7 @@
 #include <time.h>
 #include "Managers/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Log.h"
 #include "SiebenwindClient.h"
 
 #if !defined(ORION_WINDOWS)
@@ -30,17 +31,8 @@ int main(int argc, char **argv)
 #endif
 {
     Core::ScopedCore core(argc, argv);
-
-    if (SDL_Init(SDL_INIT_TIMER) < 0)
-    {
-        SDL_LogError(
-            SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize SDL: %s\n", SDL_GetError());
+    if (!g_App.Init())
         return EXIT_FAILURE;
-    }
-
-    SDL_Log("SDL Initialized.");
-    g_App.Init();
-    INITLOGGER("orionuo.log");
     LoadGlobalConfig();
 
     // TODO: good cli parsing api
@@ -57,27 +49,13 @@ int main(int argc, char **argv)
         }
     }
 
-    // FIXME: log stuff
-    /*
-    auto path = g_App.ExeFilePath("crashlogs");
-    fs_path_create(path);
-    char buf[100]{};
-    auto t = time(nullptr);
-    auto now = *localtime(&t);
-    sprintf_s(buf, "/crash_%d%d%d_%d_%d_%d.txt", now.tm_year + 1900, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
-    path += ToPath(buf);
-    INITCRASHLOGGER(path);
-	*/
-
     if (!g_isHeadless)
     {
         Core::TWindowPosition pos;
         Core::TWindowSize size(640, 480);
-        if (!g_gameWindow.Create((SiebenwindClient::GetWindowTitle().c_str(), pos, size))
+        if (!g_gameWindow.Create(SiebenwindClient::GetWindowTitle().c_str(), pos, size))
         {
-            SDL_LogWarn(
-                SDL_LOG_CATEGORY_APPLICATION,
-                "Failed to create OrionUO client window. Fallbacking to headless mode.\n");
+            LOG_WARNING("Game", "Failed to create client window. Fallbacking to headless mode.");
             g_isHeadless = true;
         }
     }
@@ -91,7 +69,7 @@ int main(int argc, char **argv)
 
     g_Orion.LoadPluginConfig();
     auto ret = g_App.Run();
-    SDL_Quit();
+    g_App.Shutdown();
     return ret;
 }
 

@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) September 2016 Hotride
-
-#pragma once
+﻿#pragma once
 
 #include "Gump.h"
 #include "../Platform.h"

@@ -1,12 +1,13 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "FontsManager.h"
+﻿#include "FontsManager.h"
 #include "ColorManager.h"
+#include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
 #include "FileManager.h"
 #include "../OrionUO.h"
 #include "../DefinitionMacro.h"
 #include "../OrionApplication.h"
+#include "plugin/mulstruct.h"
 
 CFontsManager g_FontManager;
 
@@ -25,10 +26,8 @@ CFontsManager::~CFontsManager()
 
 bool CFontsManager::LoadFonts()
 {
-
-    Wisp::CMappedFile fontFile;
-
-    if (!fontFile.Load(g_App.UOFilesPath("fonts.mul")))
+    Core::MappedFile fontFile;
+    if (!fontFile.Load(g_App.GetGameDir() / "fonts.mul"))
     {
         return false;
     }
@@ -42,12 +41,12 @@ bool CFontsManager::LoadFonts()
 
         for (int i = 0; i < 224; i++)
         {
-            FONT_HEADER *fh = (FONT_HEADER *)fontFile.Ptr;
+            FONT_HEADER *fh = (FONT_HEADER *)fontFile.GetPtr();
             fontFile.Move(sizeof(FONT_HEADER));
 
             int bcount = fh->Width * fh->Height * 2;
 
-            if (fontFile.Ptr + bcount > fontFile.End) //Bad font file...
+            if (fontFile.GetPtr() + bcount > fontFile.GetEnd()) //Bad font file...
             {
                 exit = true;
 
@@ -80,13 +79,13 @@ bool CFontsManager::LoadFonts()
     for (int i = 0; i < FontCount; i++)
     {
         FONT_DATA &fd = Font[i];
-        fd.Header = fontFile.ReadUInt8();
+        fd.Header = fontFile.ReadBE<u8>();
 
         for (int j = 0; j < 224; j++)
         {
             FONT_CHARACTER_DATA &fcd = fd.Chars[j];
-            fcd.Width = fontFile.ReadUInt8();
-            fcd.Height = fontFile.ReadUInt8();
+            fcd.Width = fontFile.ReadBE<u8>();
+            fcd.Height = fontFile.ReadBE<u8>();
             fontFile.Move(1);
 
             int dataSize = fcd.Width * fcd.Height;
@@ -97,8 +96,8 @@ bool CFontsManager::LoadFonts()
 
     for (int i = 0; i < 20; i++)
     {
-        m_UnicodeFontAddress[i] = (size_t)g_FileManager.m_UnifontMul[i].Start;
-        m_UnicodeFontSize[i] = (u32)g_FileManager.m_UnifontMul[i].Size;
+        m_UnicodeFontAddress[i] = (size_t)g_FileManager.m_UnifontMul[i].GetBuffer();
+        m_UnicodeFontSize[i] = (u32)g_FileManager.m_UnifontMul[i].GetSize();
     }
 
     if (m_UnicodeFontAddress[1] == 0)
@@ -1111,12 +1110,12 @@ int CFontsManager::GetWidthW(u8 font, const std::wstring &str)
         }
         else if (c == L'\n' || c == L'\r')
         {
-            maxTextLength = std::max(maxTextLength, textLength);
+            maxTextLength = Core::Max(maxTextLength, textLength);
             textLength = 0;
         }
     }
 
-    return std::max(maxTextLength, textLength);
+    return Core::Max(maxTextLength, textLength);
 }
 
 int CFontsManager::GetWidthExW(
@@ -1267,7 +1266,7 @@ std::wstring CFontsManager::GetTextByWidthW(u8 font, const std::wstring &str, in
 
 u16 CFontsManager::GetWebLinkID(const std::wstring &link, u32 &color)
 {
-    return GetWebLinkID(ToString(link), color);
+    return GetWebLinkID(Core::ToString(link), color);
 }
 
 u16 CFontsManager::GetWebLinkID(const std::string &link, u32 &color)
@@ -1595,7 +1594,7 @@ void CFontsManager::TrimHTMLString(string &str)
     }
 }
 
-u32 CFontsManager::GetHTMLColorFromText(string &str)
+u32 CFontsManager::GetHTMLColorFromText(std::string &str)
 {
     u32 color = 0;
 
@@ -1611,7 +1610,7 @@ u32 CFontsManager::GetHTMLColorFromText(string &str)
         }
         else
         {
-            str = ToLowerA(str);
+            str = Core::ToLowerA(str);
 
             if (str == "red")
             {
@@ -1694,8 +1693,7 @@ u32 CFontsManager::GetHTMLColorFromText(string &str)
 void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const std::string &content)
 {
     Core::TextFileParser parser({}, " =", "", "\"\"");
-
-    std::vector<string> strings = parser.GetTokens(content.c_str());
+    std::vector<std::string> strings = parser.GetTokens(content.c_str());
     int size = (int)strings.size();
 
     for (int i = 0; i < size; i += 2)
@@ -1705,8 +1703,8 @@ void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const std::stri
             break;
         }
 
-        string str = ToLowerA(strings[i]);
-       std::string&value = strings[i + 1];
+        std::string str = Core::ToLowerA(strings[i]);
+        std::string&value = strings[i + 1];
         TrimHTMLString(value);
 
         if (value.length() == 0u)
@@ -1794,7 +1792,7 @@ void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const std::stri
             {
                 if (str == "align")
                 {
-                    str = ToLowerA(value);
+                    str = Core::ToLowerA(value);
 
                     if (str == "left")
                     {
@@ -1855,7 +1853,7 @@ CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, H
         cmd.resize(cmdLen);
         memcpy(&cmd[0], &str[j], cmdLen * 2);
         //LOG(L"cmd[%s] = %s\n", (endTag ? L"end" : L"start"), cmd.c_str());
-        cmd = ToLowerW(cmd);
+        cmd = Core::ToLowerW(cmd);
 
         j = i;
 
@@ -1971,7 +1969,7 @@ CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, H
 
                         if (static_cast<unsigned int>(!content.empty()) != 0u)
                         {
-                            GetHTMLInfoFromContent(info, ToString(content));
+                            GetHTMLInfoFromContent(info, Core::ToString(content));
                         }
 
                         break;

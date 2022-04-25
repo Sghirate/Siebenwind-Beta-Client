@@ -160,7 +160,7 @@ void Log::Print(enum LogVerbosity a_verbosity, const char* a_category, const cha
         logBuffer + timeLength,
         LOG_BUFFER_SIZE - timeLength,
         "[%09.3fs][%s][%s]",
-        Time::GetTotalSeconds(),
+        GameTimer::Get().GetElapsedSeconds(),
         GetVerbosityName(a_verbosity),
         a_category);
 

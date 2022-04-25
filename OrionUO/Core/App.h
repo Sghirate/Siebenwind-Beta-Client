@@ -15,9 +15,11 @@ struct App
     void SetGameDir(const std::filesystem::path& a_path) { m_gameDir = a_path; }
     void* GetHandle() const { return m_handle; }
     void SetHandle(void* a_handle) { m_handle = a_handle; }
+    int Run();
 
     virtual bool Init();
     virtual void BeginFrame();
+    virtual void TickFrame();
     virtual void EndFrame();
     virtual void Shutdown();
 

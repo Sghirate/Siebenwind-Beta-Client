@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) September 2016 Hotride
-
-#include "GUIMinMaxButtons.h"
+﻿#include "GUIMinMaxButtons.h"
 #include "../OrionUO.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/MouseManager.h"
@@ -157,9 +154,9 @@ void CGUIMinMaxButtons::Scroll(int delay)
     }
 }
 
-void CGUIMinMaxButtons::OnClick()
+void CGUIMinMaxButtons::OnClick(Core::Optional<Core::TMousePos> a_position)
 {
-    Core::TMousePos pos = g_MouseManager.GetPosition();
+    Core::TMousePos pos = a_position.IsSet() ? a_position.GetValue() : g_MouseManager.GetPosition();
     int x = pos.x - m_X;
     int y = pos.y - m_Y;
     if (x >= 0 && y >= 0 && y < 18)

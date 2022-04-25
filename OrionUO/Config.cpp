@@ -6,7 +6,6 @@
 #include "Globals.h"
 #include "Definitions.h"
 #include "OrionApplication.h"
-#include "Logging.h"
 #include "plugin/enumlist.h"
 #include "Crypt/CryptEntry.h"
 #include "Managers/PacketManager.h"
@@ -80,36 +79,6 @@ static u32 GetConfigKey(const std::string &key)
 } // namespace config
 
 static config::Modified s_Mark;
-
-static void SetClientVersion(const char *versionStr)
-{
-
-    if (!versionStr || !versionStr[0])
-    {
-        g_Config.ClientVersion = CV_LATEST;
-        return;
-    }
-
-    int a = 0, b = 0, c = 0, d = 0;
-    char extra[16]{};
-    char tok = 0;
-    sscanf(versionStr, "%d.%d.%d%s", &a, &b, &c, extra);
-
-    if (strlen(extra))
-    {
-        tok = extra[0];
-        if (tok == '.')
-        {
-            sscanf(extra, ".%d", &d);
-        }
-        else if (tok >= 'a' && tok <= 'z')
-        {
-            d = tok;
-        }
-    }
-
-    g_Config.ClientVersion = VERSION(a, b, c, d);
-}
 
 static CLIENT_FLAG GetClientTypeFromString(const std::string &str)
 {
@@ -271,70 +240,6 @@ static void SetClientCrypt(u32 version)
     }
 }
 
-static void ClientVersionFixup(const char *versionStr)
-{
-
-    SetClientVersion(versionStr);
-    SetClientCrypt(g_Config.ClientVersion);
-
-    const bool useVerdata = g_Config.ClientVersion < CV_500A;
-    const auto clientType = GetClientType(g_Config.ClientVersion);
-
-    if (g_Config.ClientVersion < CV_500A)
-    {
-        g_MapSize[0].x = 6144;
-        g_MapSize[1].x = 6144;
-    }
-
-    if (!g_Config.UseCrypt)
-    {
-        g_Config.EncryptionType = ET_NOCRYPT;
-    }
-
-    if (g_Config.ClientVersion >= CV_70331)
-    {
-        g_MaxViewRange = MAX_VIEW_RANGE_NEW;
-    }
-    else
-    {
-        g_MaxViewRange = MAX_VIEW_RANGE_OLD;
-    }
-
-    g_PacketManager.ConfigureClientVersion(g_Config.ClientVersion);
-
-    if (!s_Mark.ClientFlag)
-    {
-        g_Config.ClientFlag = clientType;
-    }
-    if (!s_Mark.UseVerdata)
-    {
-        g_Config.UseVerdata = useVerdata;
-    }
-}
-
-void GetClientVersion(u32 *major, u32 *minor, u32 *rev, u32 *proto)
-{
-    if (major)
-    {
-        *major = (g_Config.ClientVersion >> 24) & 0xff;
-    }
-
-    if (minor)
-    {
-        *minor = (g_Config.ClientVersion >> 16) & 0xff;
-    }
-
-    if (rev)
-    {
-        *rev = (g_Config.ClientVersion >> 8) & 0xff;
-    }
-
-    if (proto)
-    {
-        *proto = (g_Config.ClientVersion & 0xff);
-    }
-}
-
 void LoadGlobalConfig()
 {
 
@@ -349,11 +254,6 @@ void LoadGlobalConfig()
             const auto key = config::GetConfigKey(strings[0]);
             switch (key)
             {
-                case MSCC_CLIENT_VERSION:
-                {
-                    g_Config.ClientVersionString = strings[1];
-                    ClientVersionFixup(strings[1].c_str());
-                }
                 break;
                 case MSCC_CUSTOM_PATH:
                 {
@@ -424,35 +324,6 @@ void LoadGlobalConfig()
             }
         }
     }
-
-    int a = (g_Config.ClientVersion >> 24) & 0xff;
-    int b = (g_Config.ClientVersion >> 16) & 0xff;
-    int c = (g_Config.ClientVersion >> 8) & 0xff;
-    int d = (g_Config.ClientVersion & 0xff);
-    char p1[64], p2[8];
-    snprintf(p1, sizeof(p1), "%d.%d.%d", a, b, c);
-    if (d >= 'a' && d <= 'z')
-    {
-        snprintf(p2, sizeof(p2), "%c", d);
-    }
-    else
-    {
-        snprintf(p2, sizeof(p2), ".%d", d);
-    }
-
-//    LOG("Client Emulation:\n");
-//    LOG("\tClient Version: %s\n", g_Config.ClientVersionString.c_str());
-//    LOG("\tEmulation Compatibility Version: %s%s (0x%08x)\n", p1, p2, g_Config.ClientVersion);
-//    LOG("\tCryptography: %08x %08x %08x %04x (%d)\n",
-        // g_Config.Key1,
-        // g_Config.Key2,
-        // g_Config.Key3,
-        // g_Config.Seed,
-        // g_Config.EncryptionType);
-//    LOG("\tClient Type: %s (%d)\n",
-        // GetClientTypeName((CLIENT_FLAG)g_Config.ClientFlag),
-        // g_Config.ClientFlag);
-//    LOG("\tUse Verdata: %d\n", g_Config.UseVerdata);
 }
 
 void SaveGlobalConfig()
@@ -500,6 +371,5 @@ void SaveGlobalConfig()
         cfg.Print("LoginServer=%s,%d\n", g_Config.ServerAddress.c_str(), g_Config.ServerPort);
     }
 
-    cfg.Print("ClientVersion=%s\n", g_Config.ClientVersionString.c_str());
     cfg.Flush();
 }

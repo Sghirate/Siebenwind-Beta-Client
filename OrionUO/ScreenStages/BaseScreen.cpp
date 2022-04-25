@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "BaseScreen.h"
+﻿#include "BaseScreen.h"
 #include "../Profiler.h"
 #include "../SelectedObject.h"
 #include "../Managers/MouseManager.h"

@@ -1,7 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+﻿#pragma once
 
-#pragma once
+#include "Core/PacketReader.h"
+#include <deque>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 class CPacketManager;
 typedef void (CPacketManager::*PACKET_FUNCTION)();
@@ -52,11 +55,11 @@ struct HTMLGumpDataInfo
 
 #define HANDLER_PACKET(name) void Handle##name()
 
-class CPacketManager : public Wisp::CPacketReader
+class CPacketManager : public Core::PacketReader
 {
 public:
     void ConfigureClientVersion(u32 newClientVersion);
-    string AutoLoginNames = "";
+    std::string AutoLoginNames = "";
     u32 ConfigSerial = 0;
 
 private:
@@ -65,7 +68,7 @@ private:
     static CPacketInfo m_Packets[0x100];
     std::unordered_map<u32, GumpCoords> m_GumpsCoordsCache;
     std::vector<u32> m_MegaClilocRequests;
-    std::deque<vector<u8>> m_PluginData;
+    std::deque<std::vector<u8>> m_PluginData;
 
     bool AutoLoginNameExists(const std::string &name);
     void AddHTMLGumps(class CGump *gump, std::vector<HTMLGumpDataInfo> &list);

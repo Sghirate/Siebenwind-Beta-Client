@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "SkillGroup.h"
 #include "Managers/SkillsManager.h"
 

@@ -1,34 +1,3 @@
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-  add_definitions(-DNOMINMAX)
-  add_definitions(-DUNICODE)
-  add_definitions(-D_UNICODE)
-  add_definitions(-DWIN32_LEAN_AND_MEAN)
-  add_definitions(-D_WIN32_WINNT=0x0602)
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-else()
-  #thread sanitizer - issues to fix
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  #set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -fsanitize-blacklist=blacklist.txt")
-  #set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -fsanitize-blacklist=blacklist.txt")
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=undefined")
-  #set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=undefined")
-endif()
-
-if(ORION_WISP)
-  add_definitions(-DUSE_WISP=1)
-else()
-  add_definitions(-DUSE_WISP=0)
-endif()
-
-if(ORION_THREADED)
-    add_definitions(-DUSE_TIMERTHREAD=1)
-else()
-    add_definitions(-DUSE_TIMERTHREAD=0)
-endif()
-
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   # enable the latest C++ standard feature set,
   # and also disable MSVC specific extensions
@@ -53,24 +22,22 @@ add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 
 set(wisp_src
-  Wisp/WispApplication.cpp
-  Wisp/WispConnection.cpp
-  Wisp/WispPacketReader.cpp
   Wisp/WispThread.cpp
   Wisp/WispWindow.cpp
-  Wisp/WispPacketMessage.cpp
-  Wisp/WispThreadedTimer.cpp
 )
 
 set(core_src
   Core/App.cpp
   Core/CommandLine.cpp
+  Core/Connection.cpp
   Core/Console.cpp
   Core/Core.cpp
   Core/DataStream.cpp
   Core/File.cpp
   Core/Log.cpp
   Core/MappedFile.cpp
+  Core/PacketMessage.cpp
+  Core/PacketReader.cpp
   Core/Platform.cpp
   Core/StringUtils.cpp
   Core/Time.cpp
@@ -81,6 +48,7 @@ if(ORION_WITH_SDL2)
     Core/SDL2/SDL2App.cpp
     Core/SDL2/SDL2Input.cpp
     Core/SDL2/SDL2Platform.cpp
+    Core/SDL2/SDL2Thread.cpp
     Core/SDL2/SDL2Util.cpp
     Core/SDL2/SDL2Window.cpp
   )
@@ -310,7 +278,6 @@ set(crypt_src
 )
 
 set(orion_src
-  Logging.cpp
   Misc.cpp
   
   BaseQueue.cpp
@@ -362,7 +329,6 @@ set(orion_src
 if(ORION_WINDOWS)
   set(orion_src ${orion_src}
     VMQuery.cpp                 # FIXME: windows only, rap, coredump
-    ExceptionFilter.cpp         # FIXME: exception handler, wrap, use signals
     OrionUO.rc
   )
 endif()

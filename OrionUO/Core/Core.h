@@ -10,8 +10,10 @@ void Shutdown();
 
 struct ScopedCore
 {
-    ScopedCore(int a_argc, char** a_argv) { Init(a_argc, a_argv); }
-    ~ScopedCore() { Shutdown(); }
+    ScopedCore(int a_argc, char** a_argv) { Core::Init(a_argc, a_argv); }
+    void BeginFrame() { Core::BeginFrame(); }
+    void EndFrame() { Core::EndFrame(); }
+    ~ScopedCore() { Core::Shutdown(); }
 };
 
 } // namespace Core

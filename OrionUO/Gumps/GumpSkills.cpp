@@ -1,8 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSkills.h"
+#include "Globals.h"
 #include "GumpSkill.h"
+#include "Platform.h"
 #include "../OrionUO.h"
 #include "../ToolTip.h"
 #include "../SkillGroup.h"
@@ -327,7 +326,7 @@ void CGumpSkills::CalculateGumpState()
     if (g_PressedObject.LeftGump == this && g_PressedObject.LeftSerial >= ID_GS_SKILL &&
         g_PressedObject.LeftSerial < ID_GS_SKILL_STATE)
     {
-        g_GumpMovingOffset.Reset();
+        g_GumpMovingOffset.set(0, 0);
 
         if (Minimized)
         {
@@ -348,7 +347,7 @@ void CGumpSkills::PrepareContent()
 
     if (g_PressedObject.LeftGump == this && serial >= ID_GS_SKILL && serial < ID_GS_SKILL_STATE)
     {
-        int y = g_MouseManager.Position.Y;
+        int y = g_MouseManager.GetPosition().y;
         int testY = m_Y + m_HTMLGump->GetY();
 
         if (y < testY)
@@ -462,7 +461,7 @@ CSkillGroupObject *CGumpSkills::GetGroupUnderCursor(int &index)
     index = 0;
 
     //Получить группу под курсором
-    int mouseY = g_MouseManager.Position.Y;
+    int mouseY = g_MouseManager.GetPosition().y;
 
     //mouse.X -= m_X + m_HTMLGump->GetX();
     mouseY -= m_Y + m_HTMLGump->GetY();
@@ -481,7 +480,7 @@ CSkillGroupObject *CGumpSkills::GetGroupUnderCursor(int &index)
         {
             if (item->Type == GOT_SKILLGROUP)
             {
-                int height = ((CGUISkillGroup *)item)->GetSize().Height;
+                int height = ((CGUISkillGroup *)item)->GetSize().y;
 
                 if (mouseY >= drawY && mouseY < drawY + height)
                 {
@@ -585,8 +584,7 @@ void CGumpSkills::OnLeftMouseButtonUp()
 
         if (g_SelectedObject.Gump != this)
         {
-            Core::Vec2<i32> pos = g_MouseManager.Position;
-
+            Core::TMousePos pos = g_MouseManager.GetPosition();
             g_GumpManager.AddGump(
                 new CGumpSkill(g_PressedObject.LeftSerial - ID_GS_SKILL, pos.x - 70, pos.y - 10));
         }
@@ -726,8 +724,8 @@ void CGumpSkills::GUMP_TEXT_ENTRY_EVENT_C
     {
         if (group->m_Name->Focused)
         {
-            int x = g_MouseManager.Position.X - group->GetX();
-            int y = g_MouseManager.Position.Y - group->GetY();
+            int x = g_MouseManager.GetPosition().x - group->GetX();
+            int y = g_MouseManager.GetPosition().y - group->GetY();
 
             group->m_Name->OnClick(this, x, y);
         }

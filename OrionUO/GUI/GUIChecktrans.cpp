@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "GUIChecktrans.h"
+﻿#include "GUIChecktrans.h"
 
 CGUIChecktrans::CGUIChecktrans(int x, int y, int width, int height)
     : CGUIPolygonal(GOT_CHECKTRANS, x, y, width, height)

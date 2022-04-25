@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "EffectManager.h"
+﻿#include "EffectManager.h"
 #include "MapManager.h"
 #include "../OrionUO.h"
 #include "../Profiler.h"

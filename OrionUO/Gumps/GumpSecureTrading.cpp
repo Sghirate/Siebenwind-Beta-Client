@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSecureTrading.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../Target.h"
@@ -33,7 +32,7 @@ void CGumpSecureTrading::CalculateGumpState()
     if (g_GumpPressed && g_PressedObject.LeftObject != nullptr &&
         g_PressedObject.LeftObject->IsText())
     {
-        g_GumpMovingOffset.Reset();
+        g_GumpMovingOffset.set(0, 0);
 
         g_GumpTranslate.x = (float)m_X;
         g_GumpTranslate.y = (float)m_Y;
@@ -104,7 +103,7 @@ void CGumpSecureTrading::UpdateContent()
     {
         Add(new CGUIGumppic(0x0866, 0, 0)); //Trade Gump
 
-        if (g_Config.ClientVersion < CV_500A)
+        if (GameVars::GetClientVersion() < CV_500A)
         {
             Add(new CGUIColoredPolygone(0, 0, 45, 90, 110, 60, 0xFF000001));
 
@@ -261,13 +260,10 @@ CRenderObject *CGumpSecureTrading::Select()
 
     CRenderObject *selected = CGump::Select();
 
-    Core::Vec2<i32> oldPos = g_MouseManager.Position;
-    g_MouseManager.Position =
-        Core::Vec2<i32>(oldPos.x - (int)g_GumpTranslate.x, oldPos.y - (int)g_GumpTranslate.y);
-
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(oldPos - Core::TMousePos(g_GumpTranslate.x, g_GumpTranslate.y));
     m_TextRenderer.Select(this);
-
-    g_MouseManager.Position = oldPos;
+    g_MouseManager.SetPosition(oldPos);
 
     return selected;
 }
@@ -293,8 +289,8 @@ void CGumpSecureTrading::GUMP_BUTTON_EVENT_C
 
             g_ClickObject.Init(clickTarget);
             g_ClickObject.Timer = g_Ticks + DCLICK_DELAY;
-            g_ClickObject.X = g_MouseManager.Position.X - m_X;
-            g_ClickObject.Y = g_MouseManager.Position.Y - m_Y;
+            g_ClickObject.X = g_MouseManager.GetPosition().x - m_X;
+            g_ClickObject.Y = g_MouseManager.GetPosition().y - m_Y;
         }
     }
 }
@@ -312,8 +308,8 @@ void CGumpSecureTrading::OnLeftMouseButtonUp()
         {
             //if (GetTopObjDistance(g_Player, g_World->FindWorldObject(ID2)) <= DRAG_ITEMS_DISTANCE)
             {
-                x = g_MouseManager.Position.X - x - 45;
-                y = g_MouseManager.Position.Y - y - 70;
+                x = g_MouseManager.GetPosition().x - x - 45;
+                y = g_MouseManager.GetPosition().y - y - 70;
 
                 bool doubleDraw = false;
                 u16 graphic = g_ObjectInHand.GetDrawGraphic(doubleDraw);

@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) December 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"

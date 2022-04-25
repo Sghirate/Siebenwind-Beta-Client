@@ -1,7 +1,4 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "ToolTip.h"
+﻿#include "ToolTip.h"
 #include "SelectedObject.h"
 #include "DefinitionMacro.h"
 #include "Managers/FontsManager.h"
@@ -127,12 +124,12 @@ void CToolTip::Draw(int cursorWidth, int cursorHeight)
 
         if (x == 0)
         {
-            x = g_MouseManager.Position.X - (Texture.Width + 8);
+            x = g_MouseManager.GetPosition().x - (Texture.Width + 8);
         }
 
         if (y == 0)
         {
-            y = g_MouseManager.Position.Y - (Texture.Height + 8);
+            y = g_MouseManager.GetPosition().y - (Texture.Height + 8);
         }
 
         if (y < 0)

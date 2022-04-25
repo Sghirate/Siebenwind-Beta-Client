@@ -1,10 +1,11 @@
 #pragma once
 
+#include "Core/Connection.h"
 #include "UOHuffman.h"
 #include <string>
 #include <vector>
 
-class CSocket : public Wisp::CConnection
+class CSocket : public Core::Connection
 {
 public:
     bool GameSocket = false;

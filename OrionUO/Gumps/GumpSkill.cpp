@@ -1,7 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSkill.h"
+#include "Core/StringUtils.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 #include "../Managers/MouseManager.h"
@@ -23,7 +21,7 @@ CGumpSkill::CGumpSkill(int serial, int x, int y)
 
         if (skill != nullptr)
         {
-            text->CreateTextureW(1, ToWString(skill->Name), 30, 120, TS_CENTER);
+            text->CreateTextureW(1, Core::ToWString(skill->Name), 30, 120, TS_CENTER);
         }
 
         resizepic->Height = 20 + text->m_Texture.Height;
@@ -52,7 +50,7 @@ void CGumpSkill::OnLeftMouseButtonUp()
 
         if (skill != nullptr && skill->Button)
         {
-            Core::Vec2<i32> offset = g_MouseManager.LeftDroppedOffset();
+            Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
             if ((offset.x == 0) && (offset.y == 0))
             {

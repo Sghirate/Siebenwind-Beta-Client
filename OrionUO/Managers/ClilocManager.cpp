@@ -1,6 +1,6 @@
 ﻿#include "ClilocManager.h"
-#include "Globals.h"
 #include "Core/StringUtils.h"
+#include "Globals.h"
 #include "OrionApplication.h"
 #include <vector>
 
@@ -212,6 +212,6 @@ std::wstring ClilocManager::ParseArgumentsToClilocString(
     }
 
     if (a_toCamelCase)
-        return ToCamelCaseW(message);
+        return Core::ToCamelCaseW(message);
     return message;
 }
