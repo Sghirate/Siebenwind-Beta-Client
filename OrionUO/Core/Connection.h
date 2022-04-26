@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Minimal.h"
-#include "Sockets.h"
+#include "Core/Minimal.h"
+#include "Core/Sockets.h"
 #include <string>
 #include <vector>
 
@@ -31,7 +31,7 @@ struct Connection
 
 protected:
     struct PacketMessage* m_messageParser;
-    tcp_socket m_socket = nullptr;
+    TCPSocket m_socket;
     int m_dataReady = 0;
     int m_port = 0;
     bool m_connected = 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.h"
+#include "Core/Time.h"
 #include "Backend.h"
 #include <filesystem>
 
@@ -26,6 +27,7 @@ public:
 class CTextureAnimationDirection
 {
 public:
+    Core::TimeStamp LastAccessed;
     u8 FrameCount         = 0;
     size_t BaseAddress    = 0;
     u32 BaseSize          = 0;
@@ -34,7 +36,6 @@ public:
     int FileIndex         = 0;
     size_t Address        = 0;
     u32 Size              = 0;
-    u32 LastAccessTime    = 0;
     bool IsUOP            = false;
     bool IsVerdata        = false;
 

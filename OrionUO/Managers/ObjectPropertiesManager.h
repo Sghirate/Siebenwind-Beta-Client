@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Core/Time.h"
+#include <map>
+
 class CObjectProperty
 {
 public:
@@ -18,12 +21,6 @@ typedef std::map<u32, CObjectProperty> OBJECT_PROPERTIES_MAP;
 
 class CObjectPropertiesManager
 {
-    u32 Timer = 0;
-
-private:
-    OBJECT_PROPERTIES_MAP m_Map;
-    class CRenderObject *m_Object{ nullptr };
-
 public:
     CObjectPropertiesManager() {}
     virtual ~CObjectPropertiesManager();
@@ -33,6 +30,13 @@ public:
     void OnItemClicked(int serial);
     void Display(int serial);
     void Add(int serial, const CObjectProperty &objectProperty);
+    void SetDuration(const Core::TimeDiff& a_duration) { m_showUntil = Core::FrameTimer::Now() + a_duration; }
+    bool IsElapsed() const { return m_showUntil < Core::FrameTimer::Now(); }
+
+private:
+    OBJECT_PROPERTIES_MAP m_Map;
+    class CRenderObject *m_Object{ nullptr };
+    Core::TimeStamp m_showUntil;
 };
 
 extern CObjectPropertiesManager g_ObjectPropertiesManager;

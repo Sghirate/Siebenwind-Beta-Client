@@ -1,11 +1,11 @@
 ﻿#include "Gump.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "../OrionUO.h"
 #include "../Profiler.h"
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
 #include "../ClickObject.h"
-#include "../OrionWindow.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/MouseManager.h"
 #include "../Managers/ConfigManager.h"
@@ -72,15 +72,14 @@ CGump::~CGump()
 void CGump::GUMP_DIRECT_HTML_LINK_EVENT_C
 {
     g_FontManager.GoToWebLink(link);
-    DebugMsg("OnDirectHTMLLink(%i)\n", link);
 }
 
 void CGump::FixCoordinates()
 {
     const int gumpOffsetX = 40;
     const int gumpOffsetY = 40;
-    int maxX              = g_OrionWindow.GetSize().x - gumpOffsetX;
-    int maxY              = g_OrionWindow.GetSize().y - gumpOffsetY;
+    int maxX              = g_gameWindow.GetSize().x - gumpOffsetX;
+    int maxY              = g_gameWindow.GetSize().y - gumpOffsetY;
 
     if (Minimized && GumpType != GT_MINIMAP)
     {

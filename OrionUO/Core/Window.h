@@ -47,6 +47,7 @@ struct Window
     virtual void OnCreated();
     virtual void OnDestroy();
     virtual void OnResized();
+    virtual void OnDragging();
     virtual void OnActivation(bool a_isActive);
     virtual void OnVisibility(bool a_isVisible);
 

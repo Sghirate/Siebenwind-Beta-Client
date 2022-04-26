@@ -12,17 +12,14 @@ CGameEffectDrag::~CGameEffectDrag()
 
 void CGameEffectDrag::Update(CGameObject *parent)
 {
-    if (LastMoveTime > g_Ticks)
-    {
+    if (!CanMove())
         return;
-    }
 
     OffsetX += 8;
     OffsetY += 8;
 
-    LastMoveTime = g_Ticks + MoveDelay;
-
-    if (Duration < g_Ticks)
+    OnMoved();
+    if (IsElapsed())
     {
         g_EffectManager.RemoveEffect(this);
     }

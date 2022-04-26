@@ -21,11 +21,6 @@ endif()
 add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 
-set(wisp_src
-  Wisp/WispThread.cpp
-  Wisp/WispWindow.cpp
-)
-
 set(core_src
   Core/App.cpp
   Core/CommandLine.cpp
@@ -39,6 +34,8 @@ set(core_src
   Core/PacketMessage.cpp
   Core/PacketReader.cpp
   Core/Platform.cpp
+  Core/Random.cpp
+  Core/Sockets.cpp
   Core/StringUtils.cpp
   Core/Time.cpp
   Core/TextFileParser.cpp
@@ -216,7 +213,6 @@ set(managers_src
   Managers/ObjectPropertiesManager.cpp
   Managers/OptionsMacroManager.cpp
   Managers/PacketManager.cpp
-  Managers/PluginManager.cpp
   Managers/ProfessionManager.cpp
   Managers/ScreenEffectManager.cpp
   Managers/SkillGroupManager.cpp
@@ -258,7 +254,7 @@ set(textengine_src
 
 set(utility_src
   Utility/AutoResetEvent.cpp
-  Utility/PingThread.cpp
+  Utility/Pinger.cpp
 )
 
 set(walker_src
@@ -277,9 +273,7 @@ set(crypt_src
   Crypt/CryptEntry.cpp
 )
 
-set(orion_src
-  Misc.cpp
-  
+set(orion_src  
   BaseQueue.cpp
   CharacterList.cpp
   CityList.cpp
@@ -291,6 +285,7 @@ set(orion_src
   Globals.cpp
   ImageBounds.cpp
   IndexObject.cpp
+  GameInput.cpp
   GameVars.cpp
   GameWindow.cpp
   Macro.cpp
@@ -298,7 +293,6 @@ set(orion_src
   MultiMap.cpp
   OrionApplication.cpp
   OrionUO.cpp
-  OrionWindow.cpp
   Party.cpp
   PartyObject.cpp
   PressedObject.cpp
@@ -319,7 +313,6 @@ set(orion_src
   Weather.cpp
   WeatherEffect.cpp
 
-  Sockets.cpp
   OrionMain.cpp
   Platform.cpp
   Config.cpp
@@ -343,11 +336,9 @@ include_directories("${PROJECT_SOURCE_DIR}/OrionUO/ScreenStages")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/TextEngine")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/Utility")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/Walker")
-include_directories("${PROJECT_SOURCE_DIR}/OrionUO/Wisp")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  #target_link_libraries(wisp PUBLIC dl rt)
   add_definitions(-DNULL=nullptr)
 endif()
 
@@ -365,7 +356,6 @@ endmacro()
 
 if(ORION_BUILD_MODULES)
   orion_library(core "${core_src}")
-  orion_library(wisp "${wisp_src}")
   orion_library(gameobjects "${gameobjects_src}")
   orion_library(glengine "${glengine_src}")
   orion_library(gui "${gui_src}")
@@ -386,9 +376,9 @@ if(ORION_BUILD_MODULES)
   add_executable(OrionUO ${orion_src} ${orion_hdr})
   target_link_libraries(screenstages PRIVATE gumps)
   target_link_libraries(gumps PRIVATE managers)
-  target_link_libraries(OrionUO PUBLIC managers network gumps screenstages gameobjects glengine gui textengine utility walker crypt wisp)
+  target_link_libraries(OrionUO PUBLIC managers network gumps screenstages gameobjects glengine gui textengine utility walker crypt)
 else()
-  set(SRCS ${orion_src} ${core_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src} ${wisp_src})
+  set(SRCS ${orion_src} ${core_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src})
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
   string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")

@@ -41,11 +41,11 @@ enum class ConsoleFlags : u8
     Editor     = 0x08,
     Cheat      = 0x10,
 };
-ConsoleFlags operator|(ConsoleFlags lhs, ConsoleFlags rhs)
+inline ConsoleFlags operator|(ConsoleFlags lhs, ConsoleFlags rhs)
 {
     return static_cast<ConsoleFlags>(static_cast<u8>(lhs) | static_cast<u8>(rhs));
 }
-ConsoleFlags operator&(ConsoleFlags lhs, ConsoleFlags rhs)
+inline ConsoleFlags operator&(ConsoleFlags lhs, ConsoleFlags rhs)
 {
     return static_cast<ConsoleFlags>(static_cast<u8>(lhs) & static_cast<u8>(rhs));
 }

@@ -363,7 +363,7 @@ void SaveGlobalConfig()
     cfg.Print("Crypt=%s\n", (g_Config.UseCrypt ? "yes" : "no"));
     if (g_App.GetGameDir() != g_App.GetExeDir())
     {
-        cfg.Print("CustomPath=%s\n", g_App.GetGameDir().c_str());
+        cfg.Print("CustomPath=%s\n", g_App.GetGameDir().string().c_str());
     }
 
     if (!g_Config.ServerAddress.empty())

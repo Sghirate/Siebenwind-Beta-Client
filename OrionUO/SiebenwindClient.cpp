@@ -27,7 +27,7 @@ std::pair<std::wstring, std::wstring> g_7wWStrings[] = {
 
 std::string SiebenwindClient::GetBuildInfo()
 {
-    DWORD dwSize                = 0;
+    /*DWORD dwSize                = 0;
     BYTE* pVersionInfo          = NULL;
     VS_FIXEDFILEINFO* pFileInfo = NULL;
     UINT pLenFileInfo           = 0;
@@ -62,7 +62,8 @@ std::string SiebenwindClient::GetBuildInfo()
 
     std::ostringstream stream;
     stream << dwBuild;
-    return "Build " + stream.str();
+    return "Build " + stream.str();*/
+    return "DEV BUILD";
 }
 
 const std::string& SiebenwindClient::LocalizeA(const std::string& untranslated)

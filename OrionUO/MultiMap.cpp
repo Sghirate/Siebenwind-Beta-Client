@@ -163,8 +163,6 @@ bool CMultiMap::LoadFacet(CGumpMap* gump, CGUIExternalTexture* mapObject, int fa
     int mapWidth  = file.ReadLE<i16>();
     int mapHeight = file.ReadLE<i16>();
 
-    //DebugMsg("Facet w:%i h:%i\n", mapWidth, mapHeight);
-
     int startX = gump->StartX;
     int endX   = gump->EndX;
 

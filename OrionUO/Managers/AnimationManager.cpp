@@ -7,6 +7,7 @@
 #include "GameObjects/GameObject.h"
 #include "GLEngine/GLEngine.h"
 #include "Config.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "IndexObject.h"
 #include "OrionApplication.h"
@@ -21,7 +22,6 @@
 #include "ScreenStages/GameScreen.h"
 #include "SelectedObject.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "Target.h"
 #include "TargetGump.h"
 #include <string>
@@ -971,7 +971,7 @@ void CAnimationManager::ClearUnusedTextures(u32 ticks)
     {
         CTextureAnimationDirection* obj = *it;
 
-        if (obj->LastAccessTime < ticks)
+        if (obj->LastAccessed < Core::FrameTimer::Now())
         {
             if (obj->m_Frames != nullptr)
             {
@@ -979,7 +979,7 @@ void CAnimationManager::ClearUnusedTextures(u32 ticks)
                 obj->m_Frames = nullptr;
             }
             obj->FrameCount     = 0;
-            obj->LastAccessTime = 0;
+            obj->LastAccessed.Reset();
 
             it = m_UsedAnimList.erase(it);
 
@@ -1711,7 +1711,7 @@ void CAnimationManager::DrawCharacter(CGameCharacter* obj, int x, int y)
                     int yOffset = -70;
 
                     g_GL.PushScissor(
-                        drawX + xOffset, g_OrionWindow.GetSize().y - drawY + yOffset - 40, 20, 40);
+                        drawX + xOffset, g_gameWindow.GetSize().y - drawY + yOffset - 40, 20, 40);
                     bool selected = g_SelectedObject.Object == ro;
                     g_Orion.DrawStaticArt(
                         sittingData.Graphic,

@@ -1,7 +1,6 @@
 ﻿#include "Target.h"
 #include "GameObjects/GameWorld.h"
 #include "GameObjects/GameCharacter.h"
-#include "Utility/PingThread.h"
 
 bool g_AltPressed         = false;
 bool g_CtrlPressed        = false;
@@ -161,9 +160,6 @@ u32 g_ProcessStaticAnimationTimer = 0;
 u32 g_ProcessRemoveRangedTimer    = 0;
 int g_MaxViewRange                     = MAX_VIEW_RANGE_OLD;
 u32 g_OrionFeaturesFlags          = OFF_ALL_FLAGS;
-PING_INFO_DATA g_GameServerPingInfo    = {};
-std::string g_PingString                    = {};
-u32 g_PingTimer                   = 0;
 
 bool CanBeDraggedByOffset(const Core::Vec2<i32>& point)
 {

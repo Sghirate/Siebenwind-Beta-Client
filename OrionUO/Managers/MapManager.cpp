@@ -148,7 +148,7 @@ void CMapManager::SetPatchedMapBlock(size_t block, size_t address)
 {
     MAP_INDEX_LIST& list  = m_BlockData[0];
     Core::Vec2<i32>& size = g_MapBlockSize[0];
-    int maxBlockCount = size.x * size.y;
+    int maxBlockCount     = size.x * size.y;
     if (maxBlockCount < 1)
         return;
 
@@ -162,7 +162,7 @@ void CMapManager::ResetPatchesInBlockTable()
     {
         MAP_INDEX_LIST& list  = m_BlockData[map];
         Core::Vec2<i32>& size = g_MapBlockSize[map];
-        int maxBlockCount = size.x * size.y;
+        int maxBlockCount     = size.x * size.y;
         if (maxBlockCount < 1)
             return;
 
@@ -240,7 +240,7 @@ void CMapManager::ApplyPatches(Core::StreamReader& stream)
         {
             Core::MappedFile& difl = g_FileManager.m_StaDifl[i];
             Core::MappedFile& difi = g_FileManager.m_StaDifi[i];
-            size_t startAddress     = (size_t)g_FileManager.m_StaDif[i].GetBuffer();
+            size_t startAddress    = (size_t)g_FileManager.m_StaDif[i].GetBuffer();
 
             staticsPatchesCount = Core::Min(staticsPatchesCount, (intptr_t)difl.GetSize() / 4);
 
@@ -507,14 +507,15 @@ void CMapManager::GetMapZ(int x, int y, int& groundZ, int& staticZ)
 void CMapManager::ClearUnusedBlocks()
 {
     CMapBlock* block = (CMapBlock*)m_Items;
-    u32 ticks        = g_Ticks - CLEAR_TEXTURES_DELAY;
     int count        = 0;
+    Core::TimeStamp clearBefore =
+        Core::FrameTimer::Now() - Core::TimeDiff::FromMilliseconds(CLEAR_TEXTURES_DELAY);
 
     while (block != nullptr)
     {
         CMapBlock* next = (CMapBlock*)block->m_Next;
 
-        if (block->LastAccessTime < ticks && block->HasNoExternalData())
+        if (block->LastAccessed < clearBefore && block->HasNoExternalData())
         {
             u32 index = block->Index;
             Delete(block);
@@ -728,26 +729,19 @@ void CMapManager::AddRender(CRenderWorldObject* item)
 CMapBlock* CMapManager::GetBlock(u32 index)
 {
     CMapBlock* block = nullptr;
-
     if (index < MaxBlockIndex)
     {
         block = m_Blocks[index];
-
         if (block != nullptr)
-        {
-            block->LastAccessTime = g_Ticks;
-        }
+            block->LastAccessed = Core::FrameTimer::Now();
     }
-
     return block;
 }
 
 CMapBlock* CMapManager::AddBlock(u32 index)
 {
     CMapBlock* block = (CMapBlock*)Add(new CMapBlock(index));
-
     m_Blocks[index] = block;
-
     return block;
 }
 

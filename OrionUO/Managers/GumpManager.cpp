@@ -3,6 +3,7 @@
 #include "Core/MappedFile.h"
 #include "Core/StringUtils.h"
 #include "ConfigManager.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "SkillsManager.h"
 #include "MacroManager.h"
@@ -13,7 +14,6 @@
 #include "../Party.h"
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
-#include "../OrionWindow.h"
 #include "../UseItemsList.h"
 #include "../ContainerStack.h"
 #include "../Container.h"
@@ -1436,7 +1436,7 @@ void CGumpManager::Load(const std::filesystem::path& a_path)
             g_ConfigManager.GameWindowY = 40;
         }
 
-        Core::Vec2<i32> windowSize = g_OrionWindow.GetSize();
+        Core::Vec2<i32> windowSize = g_gameWindow.GetSize();
 
         int x = g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth;
         int y = g_ConfigManager.GameWindowY;
@@ -1488,7 +1488,7 @@ void CGumpManager::Load(const std::filesystem::path& a_path)
 
     if (!bufficonWindowFound)
     {
-        Core::Vec2<i32> windowSize = g_OrionWindow.GetSize();
+        Core::Vec2<i32> windowSize = g_gameWindow.GetSize();
 
         int x = g_ConfigManager.GameWindowX + (int)(g_ConfigManager.GameWindowWidth * 0.7f);
         int y = g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight;

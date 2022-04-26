@@ -1,8 +1,8 @@
 #include "GLEngine.h"
 #include "Core/Log.h"
 #include "Core/Minimal.h"
+#include "GameWindow.h"
 #include "GLEngine/GLTextTexture.h"
-#include "../OrionWindow.h"
 #include "../Managers/GumpManager.h"
 #include "../GameObjects/LandObject.h"
 
@@ -44,14 +44,16 @@ bool CGLEngine::Install()
 {
     OldTexture = -1;
 
-    m_context = SDL_GL_CreateContext(g_OrionWindow.m_window);
-    SDL_GL_MakeCurrent(g_OrionWindow.m_window, m_context);
+    // TODO: FIX!
+    m_context = SDL_GL_CreateContext(static_cast<SDL_Window*>(g_gameWindow.GetHandle()));
+    SDL_GL_MakeCurrent(static_cast<SDL_Window*>(g_gameWindow.GetHandle()), m_context);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    // ~TODO: FIX!
 
     int glewInitResult = glewInit();
     LOG_INFO(
         "GLEngine",
-        "glewInit() = %i fb=%i v(%s) (shader: %i)\n",
+        "glewInit() = %i fb=%i v(%s) (shader: %i)",
         glewInitResult,
         GL_ARB_framebuffer_object,
         glGetString(GL_VERSION),
@@ -61,12 +63,12 @@ bool CGLEngine::Install()
         return false;
     }
 
-    LOG_INFO("GLEngine", "Graphics Successfully Initialized\n");
-    LOG_INFO("GLEngine", "OpenGL Info:\n");
-    LOG_INFO("GLEngine", "    Version: %s\n", glGetString(GL_VERSION));
-    LOG_INFO("GLEngine", "     Vendor: %s\n", glGetString(GL_VENDOR));
-    LOG_INFO("GLEngine", "   Renderer: %s\n", glGetString(GL_RENDERER));
-    LOG_INFO("GLEngine", "    Shading: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    LOG_INFO("GLEngine", "Graphics Successfully Initialized");
+    LOG_INFO("GLEngine", "OpenGL Info:");
+    LOG_INFO("GLEngine", "    Version: %s", glGetString(GL_VERSION));
+    LOG_INFO("GLEngine", "     Vendor: %s", glGetString(GL_VENDOR));
+    LOG_INFO("GLEngine", "   Renderer: %s", glGetString(GL_RENDERER));
+    LOG_INFO("GLEngine", "    Shading: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     CanUseFrameBuffer =
         (GL_ARB_framebuffer_object && glBindFramebuffer && glDeleteFramebuffers &&
@@ -100,11 +102,11 @@ bool CGLEngine::Install()
     }
 
     LOG_INFO(
-        "GLEngine", "g_UseFrameBuffer = %i; CanUseBuffer = %i\n", CanUseFrameBuffer, CanUseBuffer);
+        "GLEngine", "g_UseFrameBuffer = %i; CanUseBuffer = %i", CanUseFrameBuffer, CanUseBuffer);
 
-    if (!CanUseFrameBuffer && g_ShowWarnings)
+    if (!CanUseFrameBuffer)
     {
-        g_OrionWindow.ShowMessage("Your graphics card does not support Frame Buffers!", "Warning!");
+        LOG_WARNING("GLEngine", "Your graphics card does not support Frame Buffers!");
     }
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black Background
@@ -139,7 +141,7 @@ bool CGLEngine::Install()
 
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
-    const auto size = g_OrionWindow.GetSize();
+    const auto size = g_gameWindow.GetSize();
     ViewPort(0, 0, size.x, size.y);
 
     return true;
@@ -156,11 +158,11 @@ void CGLEngine::Uninstall()
 void CGLEngine::UpdateRect()
 {
     int width, height;
-    //SDL_GL_GetDrawableSize(g_OrionWindow.m_window, &width, &height);
-    SDL_GetWindowSize(g_OrionWindow.m_window, &width, &height);
+    //SDL_GL_GetDrawableSize(g_gameWindow.m_window, &width, &height);
+    SDL_GetWindowSize(static_cast<SDL_Window*>(g_gameWindow.GetHandle()), &width, &height);
 
     ViewPort(0, 0, width, height);
-    //ViewPort(0, 0, g_OrionWindow.GetSize().Width, g_OrionWindow.GetSize().Height);
+    //ViewPort(0, 0, g_gameWindow.GetSize().Width, g_gameWindow.GetSize().Height);
 
     g_GumpManager.RedrawAll();
 }
@@ -295,7 +297,9 @@ void CGLEngine::EndDraw()
 
     glDisable(GL_ALPHA_TEST);
 
-    SDL_GL_SwapWindow(Wisp::g_WispWindow->m_window);
+    // TODO: FIX!
+    SDL_GL_SwapWindow(static_cast<SDL_Window*>(g_gameWindow.GetHandle()));
+    // ~TODO: FIX!
 }
 
 void CGLEngine::BeginStencil()
@@ -320,7 +324,7 @@ void CGLEngine::EndStencil()
 
 void CGLEngine::ViewPortScaled(int x, int y, int width, int height)
 {
-    glViewport(x, g_OrionWindow.GetSize().y - y - height, width, height);
+    glViewport(x, g_gameWindow.GetSize().y - y - height, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
@@ -341,7 +345,7 @@ void CGLEngine::ViewPortScaled(int x, int y, int width, int height)
 
 void CGLEngine::ViewPort(int x, int y, int width, int height)
 {
-    const auto size = g_OrionWindow.GetSize();
+    const auto size = g_gameWindow.GetSize();
     glViewport(x, size.y - y - height, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -351,10 +355,10 @@ void CGLEngine::ViewPort(int x, int y, int width, int height)
 
 void CGLEngine::RestorePort()
 {
-    glViewport(0, 0, g_OrionWindow.GetSize().x, g_OrionWindow.GetSize().y);
+    glViewport(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, g_OrionWindow.GetSize().x, g_OrionWindow.GetSize().y, 0.0, -150.0, 150.0);
+    glOrtho(0.0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y, 0.0, -150.0, 150.0);
     glMatrixMode(GL_MODELVIEW);
 }
 

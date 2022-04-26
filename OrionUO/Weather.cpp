@@ -1,4 +1,5 @@
 #include "Weather.h"
+#include "Core/Random.h"
 #include "Managers/ConfigManager.h"
 
 CWeather g_Weather;
@@ -52,8 +53,8 @@ void CWeather::Generate()
     {
         CWeatherEffect effect;
 
-        effect.X = (float)(drawX + RandomInt(g_ConfigManager.GameWindowWidth));
-        effect.Y = (float)(drawY + RandomInt(g_ConfigManager.GameWindowHeight));
+        effect.X = (float)(drawX + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowWidth));
+        effect.Y = (float)(drawY + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowHeight));
 
         m_Effects.push_back(effect);
 
@@ -97,13 +98,13 @@ void CWeather::Draw(int x, int y)
             windChanged = true; //Для установки стартовых значений снежинок
         }
 
-        WindTimer = g_Ticks + (RandomIntMinMax(7, 13) * 1000);
+        WindTimer = g_Ticks + (Core::Random::Get().GetNextInRange(7, 13) * 1000);
 
         char lastWind = Wind;
 
-        Wind = RandomInt(4);
+        Wind = Core::Random::Get().GetNextWrapped(4);
 
-        if (RandomInt(2) != 0)
+        if (Core::Random::Get().GetNextWrapped(2) != 0)
         {
             Wind *= (-1);
         }
@@ -164,8 +165,8 @@ void CWeather::Draw(int x, int y)
                 continue;
             }
 
-            effect->X = (float)(x + RandomInt(g_ConfigManager.GameWindowWidth));
-            effect->Y = (float)(y + RandomInt(g_ConfigManager.GameWindowHeight));
+            effect->X = (float)(x + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowWidth));
+            effect->Y = (float)(y + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowHeight));
         }
 
         switch (Type)

@@ -1,5 +1,7 @@
 #include "GumpOptions.h"
+#include "Core/Platform.h"
 #include "GameVars.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "GumpSelectColor.h"
 #include "GumpSelectFont.h"
@@ -11,7 +13,6 @@
 #include "../ToolTip.h"
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
-#include "../OrionWindow.h"
 #include "../Container.h"
 #include "../TextEngine/GameConsole.h"
 #include "../Managers/ConfigManager.h"
@@ -2054,11 +2055,9 @@ void CGumpOptions::DrawPage5()
 
 void CGumpOptions::DrawPage6()
 {
-
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     //Interface
     Add(new CGUIPage(6));
@@ -2229,11 +2228,9 @@ void CGumpOptions::DrawPage6()
 
 void CGumpOptions::DrawPage7()
 {
-
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     //Display
     Add(new CGUIPage(7));
@@ -4152,9 +4149,9 @@ void CGumpOptions::ApplyPageChanges()
             {
                 curX = 640;
             }
-            else if (curX > (g_OrionWindow.GetSize().x - 20))
+            else if (curX > (g_gameWindow.GetSize().x - 20))
             {
-                curX = g_OrionWindow.GetSize().x - 20;
+                curX = g_gameWindow.GetSize().x - 20;
             }
 
             g_OptionsConfig.GameWindowWidth = curX;
@@ -4171,9 +4168,9 @@ void CGumpOptions::ApplyPageChanges()
             {
                 curY = 480;
             }
-            else if (curY > (g_OrionWindow.GetSize().y - 40))
+            else if (curY > (g_gameWindow.GetSize().y - 40))
             {
-                curY = (g_OrionWindow.GetSize().y - 40);
+                curY = (g_gameWindow.GetSize().y - 40);
             }
 
             g_OptionsConfig.GameWindowHeight = curY;

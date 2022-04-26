@@ -1,6 +1,6 @@
 ﻿#include "Container.h"
+#include "GameWindow.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "Managers/ConfigManager.h"
 #include <vector>
 
@@ -66,12 +66,12 @@ void CContainerRect::Calculate(u16 gumpID)
             for (int i = 0; i < 4 && (passed == 0); i++)
             {
                 //!Пора изменять смещение по оси Y и обнулять по оси X
-                if (X + tex->Width + CONTAINERS_RECT_STEP > g_OrionWindow.GetSize().x)
+                if (X + tex->Width + CONTAINERS_RECT_STEP > g_gameWindow.GetSize().x)
                 {
                     X = CONTAINERS_RECT_DEFAULT_POS;
 
                     //!Если смещение по оси Y достигло максимума - выставим стандартное значение
-                    if (Y + tex->Height + CONTAINERS_RECT_LINESTEP > g_OrionWindow.GetSize().y)
+                    if (Y + tex->Height + CONTAINERS_RECT_LINESTEP > g_gameWindow.GetSize().y)
                     {
                         Y = CONTAINERS_RECT_DEFAULT_POS;
                     }
@@ -81,10 +81,10 @@ void CContainerRect::Calculate(u16 gumpID)
                     }
                 }
                 //!Пора изменять смещение по оси X и обнулять по оси Y
-                else if (Y + tex->Height + CONTAINERS_RECT_STEP > g_OrionWindow.GetSize().y)
+                else if (Y + tex->Height + CONTAINERS_RECT_STEP > g_gameWindow.GetSize().y)
                 {
                     //!Если смещение по оси X достигло максимума - выставим стандартное значение
-                    if (X + tex->Width + CONTAINERS_RECT_LINESTEP > g_OrionWindow.GetSize().x)
+                    if (X + tex->Width + CONTAINERS_RECT_LINESTEP > g_gameWindow.GetSize().x)
                     {
                         X = CONTAINERS_RECT_DEFAULT_POS;
                     }

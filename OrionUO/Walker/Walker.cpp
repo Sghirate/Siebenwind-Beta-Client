@@ -49,9 +49,6 @@ void CWalker::DenyWalk(u8 sequence, int x, int y, char z)
 
         g_RemoveRangeXY.x = x;
         g_RemoveRangeXY.y = y;
-
-        UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.x, g_RemoveRangeXY.y, 0 };
-        PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
     }
 }
 
@@ -114,10 +111,5 @@ void CWalker::ConfirmWalk(u8 sequence)
         WalkingFailed = true;
         StepsCount = 0;
         CurrentWalkSequence = 0;
-    }
-    else
-    {
-        UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.x, g_RemoveRangeXY.y, 0 };
-        PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
     }
 }

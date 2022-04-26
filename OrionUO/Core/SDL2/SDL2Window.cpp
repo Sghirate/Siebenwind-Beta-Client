@@ -1,6 +1,7 @@
 #include "Core/SDL2/SDL2Window.h"
 #include "Core/SDL2/SDL2Input.h"
 #include "Core/SDL2/SDL2Util.h"
+#include "Core/Log.h"
 #include <SDL.h>
 #include <list>
 
@@ -8,17 +9,14 @@ namespace Core
 {
 
 static const char* CORE_WINDOW_DATA_NAME = "core_window";
-static std::list<Core::Window*> s_coreWindows;
 
 Window::Window()
      : m_handle(nullptr)
 {
-    s_coreWindows.push_back(this);
 }
 
 Window::~Window()
 {
-    s_coreWindows.remove(this);
 }
 
 bool Window::Create(
@@ -26,7 +24,7 @@ bool Window::Create(
 {
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
     {
-        // TODO: LOG ERROR!
+        LOG_FATAL("Core::SDL2", "Could not initialize video subsystem!");
         return false;
     }
 
@@ -39,10 +37,10 @@ bool Window::Create(
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!sdlWindow)
     {
-        // TODO: LOG ERROR!
+        LOG_FATAL("Core::SDL2", "Could not create window!");
         return false;
     }
-
+    m_handle = sdlWindow;
     SDL_SetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME, this);
     OnCreated();
     return true;
@@ -220,7 +218,11 @@ void Window::Destroy()
     }
 }
 
-void Window::OnCreated() {}
+void Window::OnCreated()
+{
+    if (m_handle)
+        SDL_SetWindowData(static_cast<SDL_Window*>(m_handle), CORE_WINDOW_DATA_NAME, this);
+}
 void Window::OnDestroy()
 {
     if (m_handle)
@@ -230,19 +232,32 @@ void Window::OnDestroy()
     }
 }
 void Window::OnResized() {}
+void Window::OnDragging() {}
 void Window::OnActivation(bool a_isActive) {}
 void Window::OnVisibility(bool a_isVisible) {}
 
 namespace SDL2Window
 {
 
+u32 GetWindowID(Window* a_window)
+{
+    SDL_Window* sdlWindow = a_window ? static_cast<SDL_Window*>(a_window->GetHandle()) : nullptr;
+    return sdlWindow ? SDL_GetWindowID(sdlWindow) : 0;
+}
+
+Window* GetWindow(u32 a_id)
+{
+    SDL_Window* sdlWindow = SDL_GetWindowFromID(a_id);
+    Window* window = sdlWindow ? static_cast<Window*>(SDL_GetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME)) : nullptr;
+    return window;
+}
+
 void HandleEvent(union SDL_Event* a_event)
 {
     if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_QUIT))
     {
         // TODO: Handle
-        for (Window* window : s_coreWindows)
-            window->OnDestroy();
+        
     }
     else if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_USER))
     {

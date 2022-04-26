@@ -1,5 +1,6 @@
 ﻿#include "GameEffectMoving.h"
 #include "GameWorld.h"
+#include "Globals.h"
 #include "../ScreenStages/GameScreen.h"
 #include "../Managers/EffectManager.h"
 #include "../Managers/MapManager.h"
@@ -15,12 +16,10 @@ CGameEffectMoving::~CGameEffectMoving()
 
 void CGameEffectMoving::Update(CGameObject *parent)
 {
-    if (LastMoveTime > g_Ticks)
-    {
+    if (!CanMove())
         return;
-    }
 
-    LastMoveTime = g_Ticks + MoveDelay;
+    OnMoved();
 
     CGameEffect::Update(parent);
 

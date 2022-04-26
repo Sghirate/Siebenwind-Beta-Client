@@ -1,5 +1,6 @@
 #include "ObjectPropertiesManager.h"
 #include "ConfigManager.h"
+#include "Globals.h"
 #include "GumpManager.h"
 #include "../ToolTip.h"
 #include "../SelectedObject.h"
@@ -191,12 +192,12 @@ void CObjectPropertiesManager::Display(int serial)
     if (object != m_Object)
     {
         m_Object = object;
-        Timer = g_Ticks + g_ConfigManager.ToolTipsDelay;
+        SetDuration(Core::TimeDiff::FromMilliseconds(g_ConfigManager.ToolTipsDelay));
     }
 
     if (!condition)
     {
-        condition = !(Timer > g_Ticks);
+        condition = !IsElapsed();
     }
 
     if (condition && gump->Object != m_Object)

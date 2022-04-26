@@ -3,6 +3,7 @@
 #include "GameEffect.h"
 #include "GameCharacter.h"
 #include "GameVars.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "SiebenwindClient.h"
 #include <SDL_timer.h>
@@ -10,7 +11,6 @@
 #include "../OrionUO.h"
 #include "../ServerList.h"
 #include "../SelectedObject.h"
-#include "../OrionWindow.h"
 #include "../Managers/AnimationManager.h"
 #include "../Managers/GumpManager.h"
 #include "../Managers/ClilocManager.h"
@@ -85,10 +85,8 @@ void CGameObject::SetName(const std::string &newName)
                 title += " (" + server->Name + ")";
             }
 
-            g_OrionWindow.SetTitle(title); // FIXME: remove this dependency from here
+            g_gameWindow.SetTitle(title.c_str()); // FIXME: remove this dependency from here
         }
-
-        PLUGIN_EVENT(UOMSG_SET_PLAYER_NAME, newName.c_str());
     }
 
     m_Name = newName;

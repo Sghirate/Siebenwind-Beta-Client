@@ -9,7 +9,7 @@
 
 CMapBlock::CMapBlock(int index)
     : Index(index)
-    , LastAccessTime(SDL_GetTicks())
+    , LastAccessed(Core::FrameTimer::Now())
 {
     for (int i = 0; i < 8; i++)
     {

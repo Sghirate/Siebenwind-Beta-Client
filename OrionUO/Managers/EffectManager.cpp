@@ -1,9 +1,12 @@
 ﻿#include "EffectManager.h"
+#include "Core/Time.h"
 #include "MapManager.h"
 #include "../OrionUO.h"
 #include "../Profiler.h"
 #include "../GameObjects/GameWorld.h"
 #include "../GameObjects/GameEffectMoving.h"
+
+using namespace Core::TimeLiterals;
 
 CEffectManager g_EffectManager;
 
@@ -81,8 +84,7 @@ void CEffectManager::AddEffect(CGameEffect *effect)
                 if (effect->EffectType == EF_LIGHTING)
                 {
                     g_Orion.ExecuteGumpPart(0x4E20, 10);
-
-                    effect->Duration = g_Ticks + 400;
+                    effect->SetDuration(400_ms);
                     effect->Speed = 50;
                 }
 
@@ -120,7 +122,7 @@ void CEffectManager::CreateExplodeEffect(CGameEffect *effect, const EFFECT_TYPE 
     newEffect->SetZ(effect->DestZ);
     newEffect->Graphic = 0x36CB;
     newEffect->Speed = 50;
-    newEffect->Duration = g_Ticks + 400;
+    newEffect->SetDuration(400_ms);
     newEffect->FixedDirection = effect->FixedDirection;
 
     newEffect->Color = effect->Color;

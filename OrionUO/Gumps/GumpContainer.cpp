@@ -7,7 +7,6 @@
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
 #include "../ClickObject.h"
-#include "../OrionWindow.h"
 #include "../Container.h"
 #include "../Managers/MouseManager.h"
 #include "../Managers/ConfigManager.h"

@@ -1,7 +1,6 @@
 #include "PluginPackets.h"
 #include "../Macro.h"
 #include "../Managers/SkillsManager.h"
-#include "../Managers/PluginManager.h"
 #include "../Gumps/GumpSpellbook.h"
 
 CPluginPacket::CPluginPacket()
@@ -20,7 +19,7 @@ void CPluginPacket::SendToPlugin()
     if (m_buffer.size() >= 5)
     {
         pack16(&m_buffer[1], (u16)m_buffer.size());
-        g_PluginManager.PacketRecv(&m_buffer[0], (int)m_buffer.size());
+        //g_PluginManager.PacketRecv(&m_buffer[0], (int)m_buffer.size());
     }
 }
 

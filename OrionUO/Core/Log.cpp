@@ -74,11 +74,11 @@ static struct FileLogListener : public ILogListener
         if (m_file.IsOpen())
         {
             Log::RegisterLogListener(this);
-            Log::Print(LogVerbosity::Info, "Core", "Log File opened: %s", m_path.c_str());
+            Log::Print(LogVerbosity::Info, "Core", "Log File opened: %s", m_path.string().c_str());
         }
         else
         {
-            Log::Print(LogVerbosity::Error, "Core", "Could not open Log File: %s", m_path.c_str());
+            Log::Print(LogVerbosity::Error, "Core", "Could not open Log File: %s", m_path.string().c_str());
         }
     }
 
@@ -108,9 +108,6 @@ protected:
         FILE* stream = a_verbosity >= LogVerbosity::Error ? stderr : stdout;
         fprintf(stream, "%s", a_message);
         fflush(stream);
-    #if defined(ORION_WINDOWS)
-        OutputDebugStringA(a_message);
-    #endif // defined(ORION_WINDOWS)
     }
 
 } g_corePrintLogListener;
@@ -124,6 +121,18 @@ const char* GetVerbosityName(LogVerbosity a_verbosity)
     case LogVerbosity::Warning: return "Warning";
     case LogVerbosity::Error: return "Error";
     case LogVerbosity::Fatal: return "Fatal";
+    default: return "";
+    }
+}
+const char* GetVerbosityIndicator(LogVerbosity a_verbosity)
+{
+    switch(a_verbosity)
+    {
+    case LogVerbosity::Debug: return "D";
+    case LogVerbosity::Info: return "I";
+    case LogVerbosity::Warning: return "W";
+    case LogVerbosity::Error: return "E";
+    case LogVerbosity::Fatal: return "F";
     default: return "";
     }
 }
@@ -161,7 +170,7 @@ void Log::Print(enum LogVerbosity a_verbosity, const char* a_category, const cha
         LOG_BUFFER_SIZE - timeLength,
         "[%09.3fs][%s][%s]",
         GameTimer::Get().GetElapsedSeconds(),
-        GetVerbosityName(a_verbosity),
+        GetVerbosityIndicator(a_verbosity),
         a_category);
 
     va_list args;

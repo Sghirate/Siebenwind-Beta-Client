@@ -11,14 +11,13 @@ Connection::Connection()
 
 void Connection::Init()
 {
-    m_socket = tcp_open();
+    m_socket.Open();
     m_messageParser = new PacketMessage();
 }
 
 Connection::~Connection()
 {
     Disconnect();
-
     if (m_messageParser != nullptr)
     {
         delete m_messageParser;
@@ -29,53 +28,43 @@ Connection::~Connection()
 bool Connection::Connect(const std::string& a_address, u16 a_port)
 {
     if (m_connected)
-    {
         return false;
-    }
 
-    if (m_socket == nullptr)
-    {
-        m_socket = tcp_open();
-    }
-
-    if (m_socket == nullptr)
-    {
+    if (!m_socket.IsOpen() && !m_socket.Open())
         return false;
-    }
 
-    if (!tcp_connect(m_socket, a_address.c_str(), a_port))
-    {
+    if (!m_socket.Connect(a_address.c_str(), a_port))
         return false;
-    }
 
     m_port = a_port;
     m_connected = true;
     m_messageParser->Clear();
-
     return true;
 }
 
 void Connection::Disconnect()
 {
-    if (m_connected && m_socket != nullptr)
+    if (m_connected)
     {
-        tcp_close(m_socket);
-        m_socket = nullptr;
         m_connected = false;
         m_dataReady = 0;
         m_port = 0;
         m_messageParser->Clear();
     }
+    if (m_socket.IsOpen())
+    {
+        m_socket.Close();
+    }
 }
 
 bool Connection::ReadyRead()
 {
-    if (!m_connected || m_socket == nullptr)
+    if (!m_connected || m_socket.IsOpen())
     {
         return false;
     }
 
-    m_dataReady = tcp_select(m_socket);
+    m_dataReady = m_socket.Select();
     if (m_dataReady == -1)
     {
         LOG_ERROR("Connection", "ReadyRead: SOCKET_ERROR");
@@ -92,11 +81,10 @@ bool Connection::Read(int a_maxSize)
         LOG_ERROR("Connection", "Read, m_DataReady=%i", m_dataReady);
         Disconnect();
     }
-    else if (m_connected && m_socket != nullptr)
+    else if (m_connected && m_socket.IsOpen())
     {
         std::vector<u8> data(a_maxSize);
-        const int size = tcp_recv(m_socket, &data[0], a_maxSize);
-
+        const int size = m_socket.Receive(&data[0], a_maxSize);
         if (size > 0)
         {
             LOG_INFO("Connection", "Read size=%i", size);
@@ -118,26 +106,12 @@ bool Connection::Read(int a_maxSize)
 
 int Connection::Send(u8* a_data, int a_size)
 {
-    if (!m_connected || m_socket == nullptr)
-    {
-        return 0;
-    }
-
-    const int sent = tcp_send(m_socket, a_data, a_size);
-    //LOG_F(INFO, "Connection::Send=>%i\n", sent);
-    return sent;
+    return (m_connected && m_socket.IsOpen()) ? m_socket.Send(a_data, a_size) : 0;
 }
 
 int Connection::Send(const std::vector<u8>& a_data)
 {
-    if (a_data.empty())
-    {
-        return 0;
-    }
-
-    const int sent = Send((u8*)&a_data[0], (int)a_data.size());
-    LOG_INFO("Connection", "Send=>%i", sent);
-    return sent;
+    return !a_data.empty() ? Send((u8*)&a_data[0], (int)a_data.size()) : 0;
 }
 
 } // namespace Core

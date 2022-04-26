@@ -161,7 +161,7 @@ void CGameWorld::ProcessAnimation()
 
                     if (direction.Address != 0 || direction.IsUOP)
                     {
-                        direction.LastAccessTime = g_Ticks;
+                        direction.LastAccessed = Core::FrameTimer::Now();
                         int fc = direction.FrameCount;
 
                         if (gc->AnimationFromServer)
@@ -296,7 +296,7 @@ void CGameWorld::ProcessAnimation()
 
                     if (direction.Address != 0 || direction.IsUOP)
                     {
-                        direction.LastAccessTime = g_Ticks;
+                        direction.LastAccessed = Core::FrameTimer::Now();
                         int fc = direction.FrameCount;
 
                         if (frameIndex >= fc)
@@ -1089,9 +1089,6 @@ void CGameWorld::UpdatePlayer(
 
         g_RemoveRangeXY.x = x;
         g_RemoveRangeXY.y = y;
-
-        UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.x, g_RemoveRangeXY.y, 0 };
-        PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
 
         g_GameScreen.UpdateDrawPos = true;
 

@@ -1,8 +1,8 @@
 #include "CreateCharacterScreen.h"
 #include "ConnectionScreen.h"
+#include "GameWindow.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
-#include "../OrionWindow.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/ScreenEffectManager.h"
 #include "../Managers/CreateCharacterManager.h"
@@ -54,7 +54,7 @@ void CCreateCharacterScreen::ProcessSmoothAction(u8 action)
 
     if (action == ID_SMOOTH_CCS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Destroy();
     }
     else if (action == ID_SMOOTH_CCS_GO_SCREEN_CHARACTER)
     {

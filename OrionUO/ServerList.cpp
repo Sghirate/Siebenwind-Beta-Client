@@ -3,7 +3,40 @@
 #include "OrionUO.h"
 #include "ScreenStages/MainScreen.h"
 #include "ScreenStages/ServerScreen.h"
-#include "Utility/PingThread.h"
+#include "Utility/Pinger.h"
+
+namespace
+{
+
+static void OnPingResult(const PingResult& a_result)
+{
+    if (a_result.min >= 9999)
+        return;
+
+    if (CServer* server = g_ServerList.GetServer(a_result.serverId))
+    {
+        server->Ping = a_result.avg;
+        server->PacketsLoss = a_result.lost;
+        g_ServerScreen.UpdateContent();
+    }
+}
+static void PingServer(u32 a_id, u32 a_ip)
+{
+    if (ping_disable.GetValue() != 0)
+        return;
+    
+    char ipString[30] = { 0 };
+    sprintf_s(
+        ipString,
+        "%i.%i.%i.%i",
+        (a_ip >> 24) & 0xFF,
+        (a_ip >> 16) & 0xFF,
+        (a_ip >> 8) & 0xFF,
+        a_ip & 0xFF);
+    Pinger::Get().Ping(a_id, ipString, 100, OnPingResult);
+}
+
+} // namespace <anonymous>
 
 CServerList g_ServerList;
 
@@ -61,21 +94,8 @@ void CServerList::ParsePacket(Core::StreamReader& a_reader)
         {
             g_ServerList.LastServerIndex = (int)i;
         }
-        m_Servers.push_back(CServer(id, name, fullPercent, timezone, ip, selected));
-
-        if (!g_DisablePing)
-        {
-            char ipString[30] = { 0 };
-            sprintf_s(
-                ipString,
-                "%i.%i.%i.%i",
-                (ip >> 24) & 0xFF,
-                (ip >> 16) & 0xFF,
-                (ip >> 8) & 0xFF,
-                ip & 0xFF);
-            CPingThread* pingThread = new CPingThread(i, ipString, 100);
-            pingThread->Run();
-        }
+        m_Servers.emplace_back(id, name, fullPercent, timezone, ip, selected);
+        PingServer(i, ip);
     }
 
     if (g_ServerList.LastServerIndex < numServers && g_MainScreen.m_AutoLogin->Checked)

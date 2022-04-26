@@ -205,9 +205,6 @@ extern u32 g_ProcessStaticAnimationTimer;
 extern u32 g_ProcessRemoveRangedTimer;
 extern int g_MaxViewRange;
 extern u32 g_OrionFeaturesFlags;
-extern struct PING_INFO_DATA g_GameServerPingInfo;
-extern string g_PingString;
-extern u32 g_PingTimer;
 inline bool Int32TryParse(const std::string &str, int &result)
 {
     char *end = nullptr;

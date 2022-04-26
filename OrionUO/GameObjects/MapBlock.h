@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Time.h"
 #include "../BaseQueue.h"
 
 class CMapObject;
@@ -9,7 +10,7 @@ class CMapBlock : public CBaseQueueItem
 {
 public:
     u32 Index = 0;
-    u32 LastAccessTime = 0;
+    Core::TimeStamp LastAccessed;
     short X = 0;
     short Y = 0;
 

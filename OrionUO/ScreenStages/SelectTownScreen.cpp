@@ -5,7 +5,6 @@
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../CityList.h"
-#include "../OrionWindow.h"
 #include "../Managers/ScreenEffectManager.h"
 #include "../Network/Packets.h"
 

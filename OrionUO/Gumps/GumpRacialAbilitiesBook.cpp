@@ -6,7 +6,6 @@
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
 #include "../ClickObject.h"
-#include "../OrionWindow.h"
 #include "../Managers/MouseManager.h"
 #include "../Managers/ClilocManager.h"
 #include "../Managers/GumpManager.h"

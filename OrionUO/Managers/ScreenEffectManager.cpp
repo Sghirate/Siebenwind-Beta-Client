@@ -1,6 +1,6 @@
 #include "ScreenEffectManager.h"
+#include "GameWindow.h"
 #include "Globals.h"
-#include "../OrionWindow.h"
 #include "plugin/enumlist.h"
 
 CScreenEffectManager g_ScreenEffectManager;
@@ -90,14 +90,14 @@ void CScreenEffectManager::Draw()
 
         if (Type == SET_TO_WHITE_THEN_BLACK && Alpha >= 1.0f)
         {
-            g_GL.DrawPolygone(0, 0, g_OrionWindow.GetSize().x, g_OrionWindow.GetSize().y);
+            g_GL.DrawPolygone(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
         }
         else
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            g_GL.DrawPolygone(0, 0, g_OrionWindow.GetSize().x, g_OrionWindow.GetSize().y);
+            g_GL.DrawPolygone(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
 
             glDisable(GL_BLEND);
         }

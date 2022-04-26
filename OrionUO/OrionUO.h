@@ -64,10 +64,8 @@ private:
         int startIndex = 0);
     u16 TextToGraphic(const char *text);
     void CheckStaticTileFilterFiles();
-    string DecodeArgumentString(const char *text, int length);
+    std::string DecodeArgumentString(const char *text, int length);
     void ParseCommandLine();
-    void LoadPlugin(const std::filesystem::path& a_path, const std::string& a_function, int a_flags);
-    bool InstallPlugin(PluginEntry *initFunc, int flags);
     void LoadContainerOffsets();
 
 public:
@@ -87,7 +85,6 @@ public:
 
     void Process(bool rendering = false);
     void LoadStartupConfig(int serial);
-    void LoadPluginConfig();
     void LoadLocalConfig(int serial);
     void SaveLocalConfig(int serial);
 
@@ -106,7 +103,7 @@ public:
 
     bool InTileFilter(u16 graphic);
 
-    static string FixServerName(string name);
+    static std::string FixServerName(std::string name);
 
     void Connect();
     void Disconnect();
@@ -212,7 +209,7 @@ public:
     void EmoteAction(const char *action);
     void AllNames();
     u32 GetFileHashCode(u8 *ptr, size_t size);
-    void LoadLogin(string &login, int &port);
+    void LoadLogin(std::string &login, int &port);
     void GoToWebLink(const std::string &url);
     void RemoveRangedObjects();
     void ClearWorld();
@@ -244,6 +241,8 @@ public:
     void OpenCombatBookGump();
     void OpenRacialAbilitiesBookGump();
     void StartReconnect();
+
+    const std::string& GetPingString();
 };
 
 extern COrion g_Orion;

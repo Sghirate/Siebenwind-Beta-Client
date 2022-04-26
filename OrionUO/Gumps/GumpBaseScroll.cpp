@@ -1,4 +1,5 @@
 #include "GumpBaseScroll.h"
+#include "Core/Platform.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"
 
@@ -125,8 +126,8 @@ void CGumpBaseScroll::UpdateHeight()
         Height = m_MinHeight;
     }
 
-    int maxHeight;
-    GetDisplaySize(nullptr, &maxHeight);
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int maxHeight = display.size.y;
     maxHeight -= 50;
 
     if (Height >= maxHeight)

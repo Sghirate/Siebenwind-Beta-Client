@@ -51,7 +51,7 @@ std::vector<u8> PacketMessage::Read(PacketReader* a_reader, int& a_dataOffset)
     int offsetToSize = 0;
     int wantSize = a_reader->GetPacketSize(m_data, offsetToSize);
 
-    if (wantSize == PACKET_VARIABLE_SIZE)
+    if (wantSize == 0) // TODO: was : const int PACKET_VARIABLE_SIZE = 0;
     {
         if (m_data.size() < 3)
         {

@@ -203,7 +203,7 @@ void UOMsg_Send(u8 *data, size_t size)
 {
     auto owned = new u8[size];
     memcpy(owned, data, size);
-    PUSH_EVENT(UOMSG_SEND, data, size);
+    //PUSH_EVENT(UOMSG_SEND, data, size);
 }
 
 void CDECL FUNCBODY_SendCastSpell(int index)
@@ -261,7 +261,7 @@ void CDECL FUNCBODY_SendMenuResponse(unsigned int serial, unsigned int id, int c
     data->Serial = serial;
     data->ID = id;
     data->Code = code;
-    PUSH_EVENT(UOMSG_MENU_RESPONSE, data, nullptr);
+    //PUSH_EVENT(UOMSG_MENU_RESPONSE, data, nullptr);
 }
 
 void CDECL FUNCBODY_DisplayStatusbarGump(unsigned int serial, int x, int y)
@@ -360,7 +360,8 @@ bool CDECL FUNCBODY_GetCanWalk(unsigned char &direction, int &x, int &y, char &z
 
 bool CDECL FUNCBODY_GetWalk(bool run, unsigned char direction)
 {
-    return PUSH_EVENT(UOMSG_WALK, run, direction);
+    //return PUSH_EVENT(UOMSG_WALK, run, direction);
+    return 0;
 }
 
 bool CDECL FUNCBODY_GetWalkTo(int x, int y, int z, int distance)
@@ -384,11 +385,11 @@ bool CDECL FUNCBODY_GetWalkTo(int x, int y, int z, int distance)
         return true;
     }
 
-    bool result = PUSH_EVENT(
-        UOMSG_PATHFINDING,
-        ((x << 16) & 0xFFFF0000) | (y & 0xFFFF),
-        ((x << 16) & 0xFFFF0000) | (distance & 0xFFFF));
-
+    // bool result = PUSH_EVENT(
+    //     UOMSG_PATHFINDING,
+    //     ((x << 16) & 0xFFFF0000) | (y & 0xFFFF),
+    //     ((x << 16) & 0xFFFF0000) | (distance & 0xFFFF));
+    bool result = 0;
     if (result)
     {
         while (g_PathFinder.AutoWalking)

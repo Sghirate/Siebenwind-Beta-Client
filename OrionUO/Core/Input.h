@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Minimal.h"
+
 namespace Core
 {
 
@@ -27,16 +29,16 @@ struct IMouse
 {
     virtual ~IMouse() {}
 
-    virtual u32 GetFocus() const;
-    virtual bool IsButtonDown(EMouseButton a_button) const;
-    virtual TMousePos GetPosition() const;
-    virtual TMouseWheelDelta GetwheelDelta() const;
-    virtual void SetPosition(const TMousePos& a_position);
+    virtual u32 GetFocus() const = 0;
+    virtual bool IsButtonDown(EMouseButton a_button) const = 0;
+    virtual TMousePos GetPosition() const = 0;
+    virtual TMouseWheelDelta GetwheelDelta() const = 0;
+    virtual void SetPosition(const TMousePos& a_position) = 0;
 };
 struct IMouseListener
 {
-    virtual void OnMouseButton(u8 a_mouseIndex, const TMousePos& a_pos, EMouseButton a_button, bool a_state, u8 a_clicks) {}
-    virtual void OnMouseWheel(u8 a_mouseIndex, const TMousePos& a_pos, const TMouseWheelDelta& a_delta) {}
+    virtual void OnMouseButton(u8 a_mouseIndex, struct Window* a_focus, const TMousePos& a_pos, EMouseButton a_button, bool a_state, u8 a_clicks) {}
+    virtual void OnMouseWheel(u8 a_mouseIndex, struct Window* a_focus, const TMousePos& a_pos, const TMouseWheelDelta& a_delta) {}
 };
 // ~MOUSE
 

@@ -1,6 +1,7 @@
 #include "GumpWorldMap.h"
-#include "Globals.h"
+#include "Core/Platform.h"
 #include "Core/File.h"
+#include "Globals.h"
 #include "../OrionUO.h"
 #include "../OrionApplication.h"
 #include "../PressedObject.h"
@@ -684,7 +685,6 @@ void CGumpWorldMap::GUMP_COMBOBOX_SELECTION_EVENT_C
             mapTest--;
         }
 
-        DebugMsg("g_MapTexture[mapTest].Texture = %i\n", g_MapTexture[mapTest].Texture);
         if (g_MapTexture[mapTest].Texture == 0)
         {
             LoadMap(mapTest);
@@ -776,10 +776,9 @@ void CGumpWorldMap::OnMidMouseButtonScroll(bool up)
 
 void CGumpWorldMap::UpdateSize()
 {
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 50;
-    screenY -= 50;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 50;
+    int screenY = display.size.y - 50;
 
     if (Height < MIN_WORLD_MAP_HEIGHT)
     {

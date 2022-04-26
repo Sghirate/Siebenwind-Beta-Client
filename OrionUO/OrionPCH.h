@@ -105,13 +105,11 @@ typedef SoundInfo *SoundHandle;
 
 #if USE_PCH
 
-#include "Wisp.h"
 #include "Backend.h"
 
 #include "Platform.h"
 #include "plugin/mulstruct.h"
 #include "BaseQueue.h"
-#include "Utility/PingThread.h"
 #include "Utility/AutoResetEvent.h"
 
 #include "CharacterList.h"
@@ -128,7 +126,6 @@ typedef SoundInfo *SoundHandle;
 #include "MultiMap.h"
 #include "OrionApplication.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "PartyObject.h"
 #include "Party.h"
 #include "SelectedObject.h"
@@ -265,7 +262,6 @@ typedef SoundInfo *SoundHandle;
 #include "Managers/MouseManager.h"
 #include "Managers/OptionsMacroManager.h"
 #include "Managers/PacketManager.h"
-#include "Managers/PluginManager.h"
 #include "Managers/ProfessionManager.h"
 #include "Managers/ScreenEffectManager.h"
 #include "Managers/SkillGroupManager.h"

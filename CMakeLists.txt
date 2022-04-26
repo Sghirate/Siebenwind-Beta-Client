@@ -140,7 +140,6 @@ if(ORION_WINDOWS)
 	endif()
 
 else()
-	set(ORION_WISP OFF)
 	find_package(SDL2 REQUIRED)
 	find_package(GLEW REQUIRED)
 	# Set the preferred opengl library to GLVND if there is GLVND and Legacy.

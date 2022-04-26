@@ -66,7 +66,7 @@ void SetLanguageFromSystemLocale()
             }
         }
     }
-    LOG_INFO("Platform", "Locale: %s\n", g_Language.c_str());
+    LOG_INFO("Platform", "Locale: %s", g_Language.c_str());
 }
 
 void OpenBrowser(const std::string &url)
@@ -126,7 +126,7 @@ void SetLanguageFromSystemLocale()
         g_Language = "PTG";
     }
 
-    LOG_INFO("Platform", "Locale: %s\n", g_Language.c_str());
+    LOG_INFO("Platform", "Locale: %s", g_Language.c_str());
 }
 
 void OpenBrowser(const std::string &url)

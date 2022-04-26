@@ -65,19 +65,20 @@ bool MappedFile::Load(const std::filesystem::path& a_path)
         m_buffer = Map(a_path, m_size);
         result = m_buffer != nullptr;
         SetData(m_buffer, m_size);
+
+        if (!result)
+        {
+#if defined(ORION_WINDOWS)
+            auto errorCode = GetLastError();
+#else
+            auto errorCode = errno;
+#endif
+            LOG_ERROR("CORE", "Failed to memory map, error code: %i", errorCode);
+        }
     }
     else
     {
         LOG_WARNING("Core", "File not found %s", a_path.string().c_str());
-    }
-    if (!result)
-    {
-#if defined(ORION_WINDOWS)
-        auto errorCode = GetLastError();
-#else
-        auto errorCode = errno;
-#endif
-        LOG_ERROR("CORE", "Failed to memory map, error code: %i", errorCode);
     }
     return result;
 }

@@ -1,4 +1,5 @@
 #include "GumpMinimap.h"
+#include "Core/Time.h"
 #include "Globals.h"
 #include "../OrionUO.h"
 #include "../Managers/ConfigManager.h"
@@ -8,6 +9,8 @@
 #include "../GameObjects/GameItem.h"
 #include "../GameObjects/MapBlock.h"
 #include "../GameObjects/GamePlayer.h"
+
+using namespace Core::TimeLiterals;
 
 CGumpMinimap::CGumpMinimap(short x, short y, bool minimized)
     : CGump(GT_MINIMAP, 0, x, y)
@@ -271,12 +274,13 @@ void CGumpMinimap::PrepareContent()
         WantUpdateContent = true;
     }
 
-    static u32 ticks = 0;
-
-    if (ticks < g_Ticks)
+    Core::TimeStamp now = Core::FrameTimer::Now();
+    static Core::TimeStamp nextInc = now;
+    static const Core::TimeDiff kIncDelayMs = 300_ms;
+    if (nextInc <= now)
     {
         m_Count += 7;
-        ticks = g_Ticks + 300;
+        nextInc = now + kIncDelayMs;
     }
 
     if (m_Count > 12)

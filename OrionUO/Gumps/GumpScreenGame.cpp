@@ -1,5 +1,7 @@
 #include "GumpScreenGame.h"
+#include "Core/Platform.h"
 #include "GameVars.h"
+#include "GameWindow.h"
 #include "GumpConsoleType.h"
 #include "GumpOptions.h"
 #include "../Config.h"
@@ -7,7 +9,6 @@
 #include "../ToolTip.h"
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
-#include "../OrionWindow.h"
 #include "../Managers/GumpManager.h"
 #include "../Managers/ConfigManager.h"
 #include "../Managers/MouseManager.h"
@@ -17,7 +18,7 @@
 CGumpScreenGame::CGumpScreenGame()
     : CGump(GT_NONE, 0, 0, 0)
 {
-    NoMove = true;
+    NoMove  = true;
     NoClose = true;
 
     Add(new CGUIButton(ID_GS_RESIZE, 0x0837, 0x0837, 0x0838, 0, 0));
@@ -30,11 +31,9 @@ CGumpScreenGame::~CGumpScreenGame()
 
 void CGumpScreenGame::UpdateContent()
 {
-
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     if (g_PressedObject.LeftGump == this)
     {
@@ -65,7 +64,7 @@ void CGumpScreenGame::UpdateContent()
                 g_RenderBounds.GameWindowHeight = screenY;
             }
 
-            CGumpOptions *opt = (CGumpOptions *)g_GumpManager.UpdateGump(0, 0, GT_OPTIONS);
+            CGumpOptions* opt = (CGumpOptions*)g_GumpManager.UpdateGump(0, 0, GT_OPTIONS);
 
             if (opt != nullptr)
             {
@@ -91,17 +90,17 @@ void CGumpScreenGame::UpdateContent()
             }
 
             if (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth >
-                g_OrionWindow.GetSize().x)
+                g_gameWindow.GetSize().x)
             {
                 g_RenderBounds.GameWindowPosX =
-                    g_OrionWindow.GetSize().x - g_RenderBounds.GameWindowWidth;
+                    g_gameWindow.GetSize().x - g_RenderBounds.GameWindowWidth;
             }
 
             if (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight >
-                g_OrionWindow.GetSize().y)
+                g_gameWindow.GetSize().y)
             {
                 g_RenderBounds.GameWindowPosY =
-                    g_OrionWindow.GetSize().y - g_RenderBounds.GameWindowHeight;
+                    g_gameWindow.GetSize().y - g_RenderBounds.GameWindowHeight;
             }
         }
     }
@@ -170,9 +169,9 @@ void CGumpScreenGame::Draw()
         g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - 3);
 }
 
-CRenderObject *CGumpScreenGame::Select()
+CRenderObject* CGumpScreenGame::Select()
 {
-    CRenderObject *selected = nullptr;
+    CRenderObject* selected = nullptr;
 
     if (!g_ConfigManager.LockResizingGameWindow)
     {
@@ -181,7 +180,7 @@ CRenderObject *CGumpScreenGame::Select()
                 g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth - 3,
                 g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - 3))
         {
-            selected = (CRenderObject *)m_Items;
+            selected = (CRenderObject*)m_Items;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8D,
@@ -190,7 +189,7 @@ CRenderObject *CGumpScreenGame::Select()
                      0,
                      g_RenderBounds.GameWindowHeight + 8))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8D,
@@ -199,7 +198,7 @@ CRenderObject *CGumpScreenGame::Select()
                      0,
                      g_RenderBounds.GameWindowHeight + 8))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8C,
@@ -208,7 +207,7 @@ CRenderObject *CGumpScreenGame::Select()
                      g_RenderBounds.GameWindowWidth + 8,
                      0))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8C,
@@ -217,7 +216,7 @@ CRenderObject *CGumpScreenGame::Select()
                      g_RenderBounds.GameWindowWidth + 8,
                      0))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
 
         if (selected != nullptr)
@@ -241,17 +240,15 @@ void CGumpScreenGame::OnLeftMouseButtonDown()
 
 void CGumpScreenGame::OnLeftMouseButtonUp()
 {
-
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
     if (g_PressedObject.LeftObject == m_Items) //resizer
     {
-        g_ConfigManager.GameWindowWidth = g_ConfigManager.GameWindowWidth + offset.x;
+        g_ConfigManager.GameWindowWidth  = g_ConfigManager.GameWindowWidth + offset.x;
         g_ConfigManager.GameWindowHeight = g_ConfigManager.GameWindowHeight + offset.y;
 
         if (g_ConfigManager.GameWindowWidth < 640)
@@ -295,17 +292,17 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
         }
 
         if (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth >
-            g_OrionWindow.GetSize().x)
+            g_gameWindow.GetSize().x)
         {
             g_ConfigManager.GameWindowX =
-                g_OrionWindow.GetSize().x - g_ConfigManager.GameWindowWidth;
+                g_gameWindow.GetSize().x - g_ConfigManager.GameWindowWidth;
         }
 
         if (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight >
-            g_OrionWindow.GetSize().y)
+            g_gameWindow.GetSize().y)
         {
             g_ConfigManager.GameWindowY =
-                g_OrionWindow.GetSize().y - g_ConfigManager.GameWindowHeight;
+                g_gameWindow.GetSize().y - g_ConfigManager.GameWindowHeight;
         }
     }
 }

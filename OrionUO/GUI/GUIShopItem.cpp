@@ -7,6 +7,8 @@
 #include "../Managers/ColorManager.h"
 #include "../Managers/FontsManager.h"
 
+using namespace Core::TimeLiterals;
+
 CGUIShopItem::CGUIShopItem(
     int serial,
     u16 graphic,
@@ -127,8 +129,7 @@ void CGUIShopItem::CreateNameText()
         textColor = 0x0021;
     }
 
-    string str = Name + " für " + std::to_string(Price) + " Dukaten";
-
+    std::string str = Name + " für " + std::to_string(Price) + " Dukaten";
     // Convert the name of the item from ISO-8859-1 to UTF16. This is not ideal,
     // in the long run we should make the Siebenwind Server send UTF16.
     std::wstring unicode = Core::Iso8859ToUtf16(str);
@@ -181,7 +182,7 @@ void CGUIShopItem::PrepareTextures()
 
         CTextureAnimationDirection &direction =
             g_AnimationManager.m_DataIndex[Graphic].m_Groups[group].m_Direction[1];
-        direction.LastAccessTime = SDL_GetTicks() + 60000;
+        direction.LastAccessed =  Core::FrameTimer::Now() + 60_s;
         g_AnimationManager.AnimID = Graphic;
         g_AnimationManager.AnimGroup = group;
         g_AnimationManager.Direction = 1;

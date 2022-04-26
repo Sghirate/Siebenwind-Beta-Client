@@ -2,9 +2,11 @@
 
 #include "GameScreen.h"
 #include "Core/StringUtils.h"
+#include "DefinitionMacro.h"
 #include "GameVars.h"
 #include "Globals.h"
 #include "GameBlockedScreen.h"
+#include "GameWindow.h"
 #include "Platform.h"
 #include "../Config.h"
 #include "../Macro.h"
@@ -16,7 +18,6 @@
 #include "../PressedObject.h"
 #include "../SelectedObject.h"
 #include "../ClickObject.h"
-#include "../OrionWindow.h"
 #include "../Profiler.h"
 #include "../Managers/ConfigManager.h"
 #include "../Managers/MapManager.h"
@@ -25,7 +26,6 @@
 #include "../Managers/GumpManager.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/ClilocManager.h"
-#include "../Managers/PluginManager.h"
 #include "../Managers/MacroManager.h"
 #include "../Managers/ObjectPropertiesManager.h"
 #include "../Managers/ScreenEffectManager.h"
@@ -68,12 +68,9 @@ CGameScreen::~CGameScreen()
 
 void CGameScreen::Init()
 {
-    g_OrionWindow.SetWindowResizable(true);
-
+    g_gameWindow.SetIsResizeable(true);
     if (m_zoom)
-    {
-        g_OrionWindow.MaximizeWindow();
-    }
+        g_gameWindow.Maximize();
 
     g_ScreenEffectManager.UseSunrise();
     SmoothScreenAction = 0;
@@ -1069,12 +1066,12 @@ void CGameScreen::CalculateGameWindowBounds()
         (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight / 2) +
         (g_Player->GetZ() * 4);
 
-    /*int earthquakeMagnitude = RandomInt(11);
+    /*int earthquakeMagnitude = Core::Random::Get().GetNextWrapped(11);
 
 	if (earthquakeMagnitude)
 	{
-		g_RenderBounds.GameWindowCenterX += RandomInt(earthquakeMagnitude * 3);
-		g_RenderBounds.GameWindowCenterY += RandomInt(earthquakeMagnitude * 3);
+		g_RenderBounds.GameWindowCenterX += Core::Random::Get().GetNextWrapped(earthquakeMagnitude * 3);
+		g_RenderBounds.GameWindowCenterY += Core::Random::Get().GetNextWrapped(earthquakeMagnitude * 3);
 	}*/
 
     g_RenderBounds.GameWindowCenterX -= g_Player->OffsetX;
@@ -1429,8 +1426,6 @@ void CGameScreen::DrawGameWindow(bool render)
         {
             m_ObjectHandlesList[i]->DrawObjectHandlesTexture();
         }
-
-        g_PluginManager.WorldDraw();
     }
     else
     {
@@ -1699,7 +1694,6 @@ void CGameScreen::PrepareContent()
                     g_Orion.OpenStatus(selchar->Serial);
                     g_GeneratedMouseDown = true;
                     g_MouseManager.EmulateOnLeftMouseButtonDown();
-                    PLUGIN_EVENT(UOMSG_STATUS_REQUEST, selchar->Serial);
                 }
             }
         }
@@ -1871,7 +1865,7 @@ void CGameScreen::Render()
             FPScount,
             g_FrameDelay[WINDOW_ACTIVE],
             g_GlobalScale,
-            g_PingString.c_str());
+            g_Orion.GetPingString().c_str());
 
         g_FontManager.DrawA(
             3,
@@ -1889,7 +1883,7 @@ void CGameScreen::Render()
             "FPS=%i (%ims) %sDir=%i Z=%i (MDZ=%i) scale=%.1f",
             FPScount,
             g_FrameDelay[WINDOW_ACTIVE],
-            g_PingString.c_str(),
+            g_Orion.GetPingString().c_str(),
             g_Player->Direction,
             g_RenderBounds.PlayerZ,
             m_MaxDrawZ,
@@ -2018,7 +2012,6 @@ void CGameScreen::Render()
         TS_LEFT,
         UOFONT_BLACK_BORDER | UOFONT_FIXED);
 
-    g_PluginManager.SceneDraw();
     if (g_GameState == GS_GAME_BLOCKED)
     {
         g_SelectedObject.Init(tempSelected);

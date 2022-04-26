@@ -1,4 +1,5 @@
 #include "GumpScreenSelectProfession.h"
+#include "Core/Log.h"
 #include "Core/StringUtils.h"
 #include "GameVars.h"
 #include "Globals.h"
@@ -6,7 +7,6 @@
 #include "../ToolTip.h"
 #include "../Profession.h"
 #include "../SelectedObject.h"
-#include "../OrionWindow.h"
 #include "../DefinitionMacro.h"
 #include "../Managers/ConfigManager.h"
 #include "../Managers/ClilocManager.h"
@@ -60,7 +60,7 @@ void CGumpScreenSelectProfession::UpdateContent()
 
     if (g_ProfessionManager.Selected == nullptr)
     {
-        g_OrionWindow.ShowMessage("No items in profession manager!", "Profession error!");
+        LOG_ERROR("GumpScreenSelectProfession", "No items in profession manager!");
         return;
     }
 
@@ -80,7 +80,7 @@ void CGumpScreenSelectProfession::UpdateContentOld()
 
     if (obj == nullptr)
     {
-        g_OrionWindow.ShowMessage("No items in profession manager!", "Profession error!");
+        LOG_ERROR("GumpScreenSelectProfession", "No items in profession manager!");
         return;
     }
 

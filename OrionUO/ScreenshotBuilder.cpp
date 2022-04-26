@@ -1,5 +1,5 @@
 #include "ScreenshotBuilder.h"
-#include "OrionWindow.h"
+#include "GameWindow.h"
 #include "OrionApplication.h"
 #include "Globals.h"
 #include "OrionUO.h"
@@ -21,7 +21,7 @@ static std::vector<u32> GetScenePixels(int x, int y, int width, int height)
 
     glReadPixels(
         x,
-        g_OrionWindow.GetSize().y - y - height,
+        g_gameWindow.GetSize().y - y - height,
         width,
         height,
         GL_RGBA,
@@ -44,7 +44,7 @@ CScreenshotBuilder::~CScreenshotBuilder()
 
 void CScreenshotBuilder::SaveScreen()
 {
-    SaveScreen(0, 0, g_OrionWindow.GetSize().x, g_OrionWindow.GetSize().y);
+    SaveScreen(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
 }
 
 void CScreenshotBuilder::SaveScreen(int a_x, int a_y, int a_w, int a_h)

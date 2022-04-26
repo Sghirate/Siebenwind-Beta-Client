@@ -1,9 +1,9 @@
 #include "SoundManager.h"
 #include "Core/Log.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "ConfigManager.h"
 #include "../OrionUO.h"
-#include "../OrionWindow.h"
 #include <unordered_map>
 #include <assert.h>
 
@@ -268,7 +268,7 @@ SoundHandle CSoundManager::LoadSoundEffect(CIndexSound &is)
 
 void CSoundManager::PlaySoundEffect(SoundHandle stream, float volume)
 {
-    if (stream == SOUND_NULL || (!g_OrionWindow.IsActive() && !g_ConfigManager.BackgroundSound))
+    if (stream == SOUND_NULL || (!g_gameWindow.IsActive() && !g_ConfigManager.BackgroundSound))
     {
         return;
     }

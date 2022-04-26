@@ -5,41 +5,200 @@
 
 namespace Core
 {
+
 typedef std::chrono::high_resolution_clock TClock;
 typedef TClock::time_point TTimePoint;
+typedef TClock::duration TDuration;
 typedef std::chrono::duration<double> TSeconds;
 typedef std::chrono::duration<double, std::milli> TMilliseconds;
 
+static_assert(sizeof(TimeStamp::TData) >= sizeof(TTimePoint), "TimeStamp::TData is too small to store TTimePoint!");
+static_assert(sizeof(TimeDiff::TData) >= sizeof(TDuration), "TimeDiff::TData is too small to store TDuration1");
+
+TimeDiff::TimeDiff()
+{
+    new (&m_data)TDuration();
+}
+
+TimeDiff::TimeDiff(const TimeDiff& a_other)
+{
+    new (&m_data)TDuration(reinterpret_cast<const TDuration&>(a_other.m_data));
+}
+
+TimeDiff::~TimeDiff()
+{
+}
+
+TimeDiff TimeDiff::FromSeconds(double a_seconds)
+{
+    TimeDiff result;
+    reinterpret_cast<TDuration&>(result.m_data) = std::chrono::duration_cast<TDuration>(TSeconds(a_seconds));
+    return result;
+}
+
+TimeDiff TimeDiff::FromMilliseconds(double a_milliseconds)
+{
+    TimeDiff result;
+    reinterpret_cast<TDuration&>(result.m_data) = std::chrono::duration_cast<TDuration>(TMilliseconds(a_milliseconds));
+    return result;
+}
+
+TimeDiff TimeDiff::FromDiff(const TimeStamp& a_lhs, const TimeStamp& a_rhs)
+{
+    const TTimePoint& lhs = reinterpret_cast<const TTimePoint&>(a_lhs.m_data);
+    const TTimePoint& rhs = reinterpret_cast<const TTimePoint&>(a_rhs.m_data);
+
+    TimeDiff result;
+    reinterpret_cast<TDuration&>(result.m_data) = (lhs - rhs);
+    return result;
+}
+
+double TimeDiff::GetSeconds() const
+{
+    return std::chrono::duration_cast<TSeconds>(reinterpret_cast<const TDuration&>(m_data)).count();
+}
+
+double TimeDiff::GetMilliseconds() const
+{
+    return std::chrono::duration_cast<TMilliseconds>(reinterpret_cast<const TDuration&>(m_data)).count();
+}
+
+TimeStamp::TimeStamp()
+{
+    new (&m_data)TTimePoint();
+}
+
+TimeStamp::TimeStamp(const TimeStamp& a_other)
+{
+    new (&m_data)TTimePoint(reinterpret_cast<const TTimePoint&>(a_other.m_data));
+}
+
+TimeStamp::~TimeStamp()
+{
+}
+
+TimeStamp TimeStamp::Now()
+{
+    TimeStamp result;
+    reinterpret_cast<TTimePoint&>(result.m_data) = TClock::now();
+    return result;
+}
+
+void TimeStamp::Reset()
+{
+    TTimePoint unset;
+    reinterpret_cast<TTimePoint&>(m_data) = unset;
+}
+
+bool TimeStamp::IsSet() const
+{
+    TTimePoint unset;
+    return reinterpret_cast<const TTimePoint&>(m_data) != unset;
+}
+
+TimeStamp& TimeStamp::operator+=(const TimeDiff& a_other)
+{
+    TTimePoint& a = reinterpret_cast<TTimePoint&>(m_data);
+    const TDuration b = reinterpret_cast<const TDuration&>(a_other.m_data);
+    a += b;
+    return *this;
+}
+
+TimeStamp& TimeStamp::operator-=(const TimeDiff& a_other)
+{
+    TTimePoint& a = reinterpret_cast<TTimePoint&>(m_data);
+    const TDuration b = reinterpret_cast<const TDuration&>(a_other.m_data);
+    a -= b;
+    return *this;
+}
+
+TimeStamp& TimeStamp::operator=(const TimeStamp& a_other)
+{
+    m_data = a_other.m_data;
+    return *this;
+}
+
+bool TimeStamp::operator<(const TimeStamp& a_other) const
+{
+    const TTimePoint& a = reinterpret_cast<const TTimePoint&>(m_data);
+    const TTimePoint& b = reinterpret_cast<const TTimePoint&>(a_other.m_data);
+    return a < b;
+}
+
+bool TimeStamp::operator<=(const TimeStamp& a_other) const
+{
+    const TTimePoint& a = reinterpret_cast<const TTimePoint&>(m_data);
+    const TTimePoint& b = reinterpret_cast<const TTimePoint&>(a_other.m_data);
+    return a <= b;
+}
+
+bool TimeStamp::operator>(const TimeStamp& a_other) const
+{
+    const TTimePoint& a = reinterpret_cast<const TTimePoint&>(m_data);
+    const TTimePoint& b = reinterpret_cast<const TTimePoint&>(a_other.m_data);
+    return a > b;
+}
+
+bool TimeStamp::operator>=(const TimeStamp& a_other) const
+{
+    const TTimePoint& a = reinterpret_cast<const TTimePoint&>(m_data);
+    const TTimePoint& b = reinterpret_cast<const TTimePoint&>(a_other.m_data);
+    return a >= b;
+}
+
+bool TimeStamp::operator==(const TimeStamp& a_other) const
+{
+    const TTimePoint& a = reinterpret_cast<const TTimePoint&>(m_data);
+    const TTimePoint& b = reinterpret_cast<const TTimePoint&>(a_other.m_data);
+    return a == b;
+}
+
+bool TimeStamp::operator!=(const TimeStamp& a_other) const
+{
+    const TTimePoint& a = reinterpret_cast<const TTimePoint&>(m_data);
+    const TTimePoint& b = reinterpret_cast<const TTimePoint&>(a_other.m_data);
+    return a != b;
+}
+
+TimeDiff operator-(const TimeStamp& a_lhs, const TimeStamp& a_rhs)
+{
+    return TimeDiff::FromDiff(a_lhs, a_rhs);
+}
+
+TimeStamp operator-(const TimeStamp& a_lhs, const TimeDiff& a_rhs)
+{
+    TimeStamp result = a_lhs;
+    return result -= a_rhs;
+}
+
+TimeStamp operator+(const TimeStamp& a_lhs, const TimeDiff& a_rhs)
+{
+    TimeStamp result = a_lhs;
+    return result += a_rhs;
+}
+
 Timer::Timer()
-    : m_handle(new TTimePoint())
 {
     Reset();
 }
 
 Timer::~Timer()
 {
-    if (m_handle)
-    {
-        delete (m_handle);
-        m_handle = nullptr;
-    }
 }
 
 void Timer::Reset()
 {
-    if (m_handle)
-        *static_cast<TTimePoint*>(m_handle) = TClock::now();
+    m_start = TimeStamp::Now();
 }
 
 double Timer::GetElapsedSeconds() const
 {
-    return m_handle ? TSeconds(TClock::now() - *static_cast<TTimePoint*>(m_handle)).count() : 0.0;
+    return (TimeStamp::Now() - m_start).GetSeconds();
 }
 
 double Timer::GetElapsedMilliseconds() const
 {
-    return m_handle ? TMilliseconds(TClock::now() - *static_cast<TTimePoint*>(m_handle)).count() :
-                      0.0;
+    return (TimeStamp::Now() - m_start).GetMilliseconds();
 }
 
 GameTimer& GameTimer::Get()

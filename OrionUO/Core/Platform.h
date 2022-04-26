@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Rect.h"
 #include <filesystem>
 #include <stdarg.h>
 
@@ -19,6 +20,10 @@ static void* LoadFunction(void* a_object, const char* a_name);
 static void UnloadObject(void* a_object);
 static std::filesystem::path GetBinaryPath();
 static std::filesystem::path GetModulePath();
+static bool SetClipboardText(const char* a_text);
+static bool HasClipboardText();
+static const char* GetClipboardText();
+static Core::Rect<int> GetDisplayArea(int a_display = 0);
 
 };
 

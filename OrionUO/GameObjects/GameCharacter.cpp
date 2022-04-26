@@ -1,4 +1,5 @@
 ﻿#include <SDL_timer.h>
+#include "Core/Random.h"
 #include "GameItem.h"
 #include "Globals.h"
 #include "../OrionUO.h"
@@ -449,7 +450,7 @@ void CGameCharacter::SetRandomFidgetAnimation()
                                                 { HAG_FIDGET_1, HAG_FIDGET_2, HAG_FIDGET_1 },
                                                 { PAG_FIDGET_1, PAG_FIDGET_2, PAG_FIDGET_3 } };
 
-        AnimationGroup = fidgetAnimTable[groupIndex - 1][RandomInt(3)];
+        AnimationGroup = fidgetAnimTable[groupIndex - 1][Core::Random::Get().GetNextWrapped(3)];
     }
 }
 
@@ -938,17 +939,6 @@ void CGameCharacter::UpdateAnimationInfo(u8 &dir, bool canChange)
             {
                 if (IsPlayer())
                 {
-                    if (m_X != wd.X || m_Y != wd.Y || m_Z != wd.Z)
-                    {
-                        UOI_PLAYER_XYZ_DATA xyzData = { wd.X, wd.Y, wd.Z };
-                        PLUGIN_EVENT(UOMSG_UPDATE_PLAYER_XYZ, &xyzData);
-                    }
-
-                    if (Direction != wd.Direction)
-                    {
-                        PLUGIN_EVENT(UOMSG_UPDATE_PLAYER_DIR, wd.Direction);
-                    }
-
                     if (m_Z - wd.Z >= 22)
                     {
                         g_Orion.CreateTextMessage(TT_OBJECT, g_PlayerSerial, 3, 0, "Ouch!");

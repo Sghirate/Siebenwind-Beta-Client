@@ -9,7 +9,6 @@
 #include "../OrionUO.h"
 #include "../OrionApplication.h"
 #include "../Profession.h"
-#include "../OrionWindow.h"
 
 CProfessionManager g_ProfessionManager;
 
@@ -429,7 +428,6 @@ void CProfessionManager::LoadProfessionDescription()
     else
     {
         LOG_ERROR("ProfessionManager", "Failed to load professn.enu");
-        g_OrionWindow.ShowMessage("Failed to load professn.enu", "Failed to load");
     }
 }
 

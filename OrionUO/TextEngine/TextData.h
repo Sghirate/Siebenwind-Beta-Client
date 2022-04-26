@@ -12,7 +12,7 @@ public:
     u8 Font = 0;
     u32 Timer = 0;
     u32 MoveTimer = 0;
-    string Text = "";
+    std::string Text = "";
     std::wstring UnicodeText = {};
     u8 Alpha = 0xFF;
     CRenderWorldObject *Owner = nullptr;

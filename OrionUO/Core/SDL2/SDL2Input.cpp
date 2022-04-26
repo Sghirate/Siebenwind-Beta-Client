@@ -1,9 +1,12 @@
 #include "SDL2Input.h"
 #include "SDL2Util.h"
+#include "Core/SDL2/SDL2Window.h"
 #include <SDL.h>
 
 namespace Core
 {
+
+static SDL2Input g_sdl2Input;
 
 EMouseButton SDL2Mouse::SDLButtonToCoreButton(u8 a_button)
 {
@@ -49,6 +52,7 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
         m_mouse.m_focus = a_event->motion.windowID;
         m_mouse.m_position.x = a_event->motion.x;
         m_mouse.m_position.y = a_event->motion.y;
+        Window* focusWindow = SDL2Window::GetWindow(a_event->motion.windowID);
         switch (a_event->type)
         {
         case SDL_MOUSEBUTTONDOWN:
@@ -62,7 +66,7 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
                 m_mouse.m_buttons &=- ~buttonMask;
 
             for (IMouseListener* listener : m_mouseListeners)
-                listener->OnMouseButton(0, m_mouse.m_position, button, a_event->button.state == SDL_PRESSED, a_event->button.clicks);
+                listener->OnMouseButton(0, focusWindow, m_mouse.m_position, button, a_event->button.state == SDL_PRESSED, a_event->button.clicks);
         } break;
         case SDL_MOUSEWHEEL:
         {
@@ -70,7 +74,7 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
             m_mouse.m_wheelDelta.y += a_event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? (-a_event->wheel.y) : a_event->wheel.y;
 
             for (IMouseListener* listener : m_mouseListeners)
-                listener->OnMouseWheel(0, m_mouse.m_position, m_mouse.m_wheelDelta);
+                listener->OnMouseWheel(0, focusWindow, m_mouse.m_position, m_mouse.m_wheelDelta);
         } break;
         }
     }

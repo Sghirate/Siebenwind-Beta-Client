@@ -1,9 +1,9 @@
 #include "CharacterListScreen.h"
 #include "ConnectionScreen.h"
+#include "GameWindow.h"
 #include "MainScreen.h"
 #include "../OrionUO.h"
 #include "../ServerList.h"
-#include "../OrionWindow.h"
 #include "../CharacterList.h"
 #include "../Managers/ScreenEffectManager.h"
 #include "SiebenwindClient.h"
@@ -31,7 +31,7 @@ void CCharacterListScreen::Init()
         title += "(" + server->Name + ")";
     }
 
-    g_OrionWindow.SetTitle(title);
+    g_gameWindow.SetTitle(title.c_str());
 
     g_CharacterList.Selected = 0;
 
@@ -51,7 +51,7 @@ void CCharacterListScreen::ProcessSmoothAction(u8 action)
 
     if (action == ID_SMOOTH_CLS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Destroy();
     }
     else if (action == ID_SMOOTH_CLS_CONNECT)
     {

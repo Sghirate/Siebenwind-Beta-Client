@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Core/Time.h"
 #include "TextureObject.h"
 #include "plugin/mulstruct.h"
 
@@ -8,18 +9,18 @@ class CUopBlockHeader;
 class CIndexObject
 {
 public:
-    size_t Address = 0;
-    int DataSize = 0;
-    int Width = 0;
-    int Height = 0;
-    u16 ID = 0;
-    u16 Color = 0;
-    u32 LastAccessTime = 0;
-    CUopBlockHeader *UopBlock = nullptr;
+    Core::TimeStamp LastAccessed;
+    size_t Address            = 0;
+    int DataSize              = 0;
+    int Width                 = 0;
+    int Height                = 0;
+    u16 ID                    = 0;
+    u16 Color                 = 0;
+    CUopBlockHeader* UopBlock = nullptr;
     CIndexObject();
     virtual ~CIndexObject();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id);
-    CGLTexture *Texture{ nullptr };
+    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id);
+    CGLTexture* Texture{ nullptr };
 };
 
 class CIndexObjectLand : public CIndexObject
@@ -34,12 +35,12 @@ public:
 class CIndexObjectStatic : public CIndexObject
 {
 public:
-    u16 Index = 0;
-    char Offset = 0;
+    u16 Index      = 0;
+    char Offset    = 0;
     char AnimIndex = 0;
     u32 ChangeTime = 0;
     u16 LightColor = 0;
-    bool IsFiled = false;
+    bool IsFiled   = false;
 
     CIndexObjectStatic();
     virtual ~CIndexObjectStatic();
@@ -53,7 +54,7 @@ public:
     CIndexSound();
     virtual ~CIndexSound();
 
-    u8 *m_WaveFile = nullptr;
+    u8* m_WaveFile       = nullptr;
     SoundHandle m_Stream = SOUND_NULL;
 };
 
@@ -64,7 +65,7 @@ public:
 
     CIndexMulti();
     virtual ~CIndexMulti();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id) override;
+    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id) override;
 };
 
 class CIndexGump : public CIndexObject
@@ -72,7 +73,7 @@ class CIndexGump : public CIndexObject
 public:
     CIndexGump();
     virtual ~CIndexGump();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id) override;
+    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id) override;
 };
 
 class CIndexLight : public CIndexObject
@@ -80,18 +81,18 @@ class CIndexLight : public CIndexObject
 public:
     CIndexLight();
     virtual ~CIndexLight();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id) override;
+    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id) override;
 };
 
 class CIndexAnimation
 {
 public:
-    u16 Graphic = 0;
-    u16 Color = 0;
+    u16 Graphic                = 0;
+    u16 Color                  = 0;
     ANIMATION_GROUPS_TYPE Type = AGT_UNKNOWN;
-    u32 Flags = 0;
-    char MountedHeightOffset = 0;
-    bool IsUOP = false;
+    u32 Flags                  = 0;
+    char MountedHeightOffset   = 0;
+    bool IsUOP                 = false;
 
     CIndexAnimation();
     virtual ~CIndexAnimation();

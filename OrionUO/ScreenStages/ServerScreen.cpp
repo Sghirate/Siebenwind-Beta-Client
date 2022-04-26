@@ -4,7 +4,6 @@
 #include "SiebenwindClient.h"
 #include "../OrionUO.h"
 #include "../ServerList.h"
-#include "../OrionWindow.h"
 #include "../Managers/ScreenEffectManager.h"
 
 CServerScreen g_ServerScreen;

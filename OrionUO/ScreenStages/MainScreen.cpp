@@ -9,7 +9,6 @@
 #include "../Definitions.h"
 #include "../OrionUO.h"
 #include "../QuestArrow.h"
-#include "../OrionWindow.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/ScreenEffectManager.h"
 #include "../Managers/AnimationManager.h"

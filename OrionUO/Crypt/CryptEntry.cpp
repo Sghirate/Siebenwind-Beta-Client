@@ -1,6 +1,5 @@
 
 #include "CryptEntry.h"
-#include "../Misc.h"
 #include "../plugin/enumlist.h"
 #include "../plugin/plugininterface.h"
 #include "../Config.h"

@@ -1,9 +1,13 @@
 #include <miniz.h>
 #include "PacketManager.h"
 #include "Core/Log.h"
+#include "Core/Sockets.h"
 #include "Core/StringUtils.h"
 #include "Core/TextFileParser.h"
+#include "Core/Time.h"
+#include "DefinitionMacro.h"
 #include "GameVars.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "GumpManager.h"
 #include "ConfigManager.h"
@@ -20,11 +24,8 @@
 #include "SkillsManager.h"
 #include "MapManager.h"
 #include "ConnectionManager.h"
-#include "PluginManager.h"
 #include "FileManager.h"
 #include "MultiMap.h"
-#include "Sockets.h"
-#include "../Sockets.h"
 #include "../Config.h"
 #include "../OrionUO.h"
 #include "../Macro.h"
@@ -36,7 +37,6 @@
 #include "../Party.h"
 #include "../ServerList.h"
 #include "../QuestArrow.h"
-#include "../OrionWindow.h"
 #include "../Multi.h"
 #include "../ContainerStack.h"
 #include "../Container.h"
@@ -81,6 +81,10 @@
 #include "../Walker/Walker.h"
 #include "../Walker/PathFinder.h"
 #include "../TextEngine/TextData.h"
+
+const int PACKET_VARIABLE_SIZE = 0;
+
+using namespace Core::TimeLiterals;
 
 CPacketManager g_PacketManager;
 
@@ -656,7 +660,6 @@ void CPacketManager::OnReadFailed()
     g_Orion.DisconnectGump();
     //g_Orion.Disconnect();
     g_AbyssPacket03First = true;
-    g_PluginManager.Disconnect();
     g_ConnectionManager.Disconnect();
 }
 
@@ -700,15 +703,12 @@ void CPacketManager::OnPacket()
     {
         LOG_INFO("PacketManager", "message direction invalid: 0x%02X", *GetBuffer());
     }
-    else if (g_PluginManager.PacketRecv(GetBuffer(), (int)GetSize()))
+    else if (info.Handler != 0)
     {
-        if (info.Handler != 0)
-        {
-            SetPtr(GetBuffer() + 1);
-            if (info.Size == 0)
-                SetPtr(GetPtr() + 2);
-            (this->*(info.Handler))();
-        }
+        SetPtr(GetBuffer() + 1);
+        if (info.Size == 0)
+            SetPtr(GetPtr() + 2);
+        (this->*(info.Handler))();
     }
 }
 
@@ -790,16 +790,10 @@ PACKET_HANDLER(ServerList)
 PACKET_HANDLER(RelayServer)
 {
     memset(&g_SelectedCharName[0], 0, sizeof(g_SelectedCharName));
-    in_addr addr;
     u32* paddr = (u32*)GetPtr();
     Move(4);
-#if defined(ORION_WINDOWS)
-    addr.S_un.S_addr = *paddr;
-#else
-    addr.s_addr = *paddr;
-#endif
     char relayIP[30] = { 0 };
-    memcpy(&relayIP[0], inet_ntoa(addr), 29);
+    Core::Socket::AddressToString(*paddr, relayIP);
     int relayPort = ReadBE<u16>();
     g_Orion.RelayServer(relayIP, relayPort, GetPtr());
     g_PacketLoginComplete = false;
@@ -1005,9 +999,6 @@ PACKET_HANDLER(EnterWorld)
     g_RemoveRangeXY.x = g_Player->GetX();
     g_RemoveRangeXY.y = g_Player->GetY();
 
-    UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.x, g_RemoveRangeXY.y, 0 };
-    PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
-
     g_Player->OffsetX = 0;
     g_Player->OffsetY = 0;
     g_Player->OffsetZ = 0;
@@ -1022,7 +1013,7 @@ PACKET_HANDLER(EnterWorld)
     g_LastSpellIndex = 1;
     g_LastSkillIndex = 1;
 
-    CPacketClientVersion(GameVars::GetClientVersion()String).Send();
+    CPacketClientVersion(uo_client_version.GetValue()).Send();
 
     if (GameVars::GetClientVersion() >= CV_200)
     {
@@ -2221,7 +2212,7 @@ PACKET_HANDLER(OpenPaperdoll)
 
 PACKET_HANDLER(ClientVersion)
 {
-    CPacketClientVersion(GameVars::GetClientVersion()String).Send();
+    CPacketClientVersion(uo_client_version.GetValue()).Send();
 }
 
 PACKET_HANDLER(Ping)
@@ -3611,7 +3602,7 @@ PACKET_HANDLER(GraphicEffect)
         effect->Speed = speed + 6;
     }
 
-    effect->Duration       = g_Ticks + duration;
+    effect->SetDuration(Core::TimeDiff::FromMilliseconds(duration));
     effect->FixedDirection = (fixedDirection != 0);
     effect->Explode        = (explode != 0);
 
@@ -3661,7 +3652,7 @@ PACKET_HANDLER(PlayMusic)
     u16 index = ReadBE<u16>();
 
     //LOG("Play midi music 0x%04X\n", index);
-    if (!g_ConfigManager.GetMusic() || !g_OrionWindow.IsActive() ||
+    if (!g_ConfigManager.GetMusic() || !g_gameWindow.IsActive() ||
         g_ConfigManager.GetMusicVolume() < 1)
     {
         return;
@@ -3759,7 +3750,7 @@ PACKET_HANDLER(DragAnimation)
     effect->DestX    = destX;
     effect->DestY    = destY;
     effect->DestZ    = destZ;
-    effect->Duration = g_Ticks + 5000;
+    effect->SetDuration(5_s);
 
     uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.GetBuffer();
 
@@ -3914,7 +3905,7 @@ PACKET_HANDLER(KrriosClientSpecial)
 PACKET_HANDLER(AssistVersion)
 {
     u32 version = ReadBE<u32>();
-    CPacketAssistVersion(version, GameVars::GetClientVersion()String).Send();
+    CPacketAssistVersion(version, uo_client_version.GetValue()).Send();
 }
 
 PACKET_HANDLER(CharacterListNotification)
@@ -4620,8 +4611,8 @@ PACKET_HANDLER(OpenMenu)
     }
     else //gray menu
     {
-        int x = (g_OrionWindow.GetSize().x / 2) - 200;
-        int y = (g_OrionWindow.GetSize().y / 2) - ((121 + (count * 21)) / 2);
+        int x = (g_gameWindow.GetSize().x / 2) - 200;
+        int y = (g_gameWindow.GetSize().y / 2) - ((121 + (count * 21)) / 2);
 
         CGumpGrayMenu* gump = new CGumpGrayMenu(serial, id, x, y);
 
@@ -5409,9 +5400,9 @@ PACKET_HANDLER(OpenCompressedGump)
 
     LOG_INFO("PacketManager", "Gump decompressed! newsize=%d", newsize);
 
-    m_size  = newsize;
+    m_size   = newsize;
     m_buffer = newbuf;
-    m_end   = m_buffer + m_size;
+    m_end    = m_buffer + m_size;
 
     OnPacket();
 }
@@ -5424,8 +5415,8 @@ PACKET_HANDLER(DyeData)
 
     Core::Vec2<i32> gumpSize = g_Orion.GetGumpDimension(0x0906);
 
-    auto x         = i16((g_OrionWindow.GetSize().x / 2) - (gumpSize.x / 2));
-    auto y         = i16((g_OrionWindow.GetSize().y / 2) - (gumpSize.y / 2));
+    auto x         = i16((g_gameWindow.GetSize().x / 2) - (gumpSize.x / 2));
+    auto y         = i16((g_gameWindow.GetSize().y / 2) - (gumpSize.y / 2));
     CGumpDye* gump = new CGumpDye(serial, x, y, graphic);
 
     g_GumpManager.AddGump(gump);
@@ -5623,8 +5614,8 @@ PACKET_HANDLER(BulletinBoardData)
 
             std::string str((char*)m_ptr);
 
-            int x = (g_OrionWindow.GetSize().x / 2) - 245;
-            int y = (g_OrionWindow.GetSize().y / 2) - 205;
+            int x = (g_gameWindow.GetSize().x / 2) - 245;
+            int y = (g_gameWindow.GetSize().y / 2) - 205;
 
             CGumpBulletinBoard* gump = new CGumpBulletinBoard(serial, x, y, str);
 
@@ -5742,9 +5733,9 @@ PACKET_HANDLER(OpenBook) // 0x93
     u32 serial = ReadBE<u32>();
     u8 flags   = ReadBE<u8>();
     Move(1);
-    auto pageCount = ReadBE<u16>();
-    CGumpBook* gump =
-        new CGumpBook(serial, 0, 0, pageCount, flags != 0, (GameVars::GetClientVersion() >= CV_308Z));
+    auto pageCount  = ReadBE<u16>();
+    CGumpBook* gump = new CGumpBook(
+        serial, 0, 0, pageCount, flags != 0, (GameVars::GetClientVersion() >= CV_308Z));
 
     gump->m_EntryTitle->m_Entry.SetTextW(Core::DecodeUTF8(ReadString(60)));
     gump->m_EntryAuthor->m_Entry.SetTextW(Core::DecodeUTF8(ReadString(30)));
@@ -6116,7 +6107,9 @@ PACKET_HANDLER(CustomHouse)
         int z_err = mz_uncompress(&decompressedBytes[0], &dLen, m_ptr, cLen);
         if (z_err != Z_OK)
         {
-            LOG_ERROR("PacketManager", "Bad CustomHouseStruct compressed data received from server, house serial:%i",
+            LOG_ERROR(
+                "PacketManager",
+                "Bad CustomHouseStruct compressed data received from server, house serial:%i",
                 serial);
             //LOG("House plane idx:%i\n", idx);
             continue;

@@ -60,7 +60,7 @@ void CGameEffect::Update(CGameObject *parent)
 {
     if (EffectType != EF_MOVING)
     {
-        if (Duration < g_Ticks)
+        if (IsElapsed())
         {
             if (parent != nullptr)
             {

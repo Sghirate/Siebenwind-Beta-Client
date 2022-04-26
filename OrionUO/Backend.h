@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Wisp.h"
-
 #include "GLEngine/GLHeaders.h"
 #include "GLEngine/GLTexture.h"
 #include "GLEngine/GLTextTexture.h"

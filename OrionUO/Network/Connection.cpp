@@ -1,6 +1,5 @@
 #include "Connection.h"
 #include "Core/Log.h"
-#include "../Sockets.h"
 #include "../Crypt/CryptEntry.h"
 
 CSocket::CSocket(bool gameSocket)
@@ -26,36 +25,19 @@ bool CSocket::Connect(const std::string &address, u16 port)
         if (!Core::Connection::Connect(ProxyAddress, ProxyPort))
         {
             LOG_WARNING("Socket", "Can't connect to proxy");
-            m_socket = nullptr;
-            Connected = false;
+            m_socket.Close();
+            m_connected = false;
             LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
             return Core::Connection::Connect(address, port);
         }
 
-        u16 serverPort = htons(port);
-        u32 serverIP = inet_addr(address.c_str());
-
-        if (serverIP == 0xFFFFFFFF)
-        {
-            struct hostent *uohe = gethostbyname(address.c_str());
-
-            if (uohe != nullptr)
-            {
-                sockaddr_in caddr;
-                memcpy(&caddr.sin_addr, uohe->h_addr, uohe->h_length);
-#if defined(ORION_WINDOWS)
-                serverIP = caddr.sin_addr.S_un.S_addr;
-#else
-                serverIP = caddr.sin_addr.s_addr;
-#endif
-            }
-        }
+        u16 serverPort = Core::Socket::ConvertPort(port);
+        u32 serverIP = Core::Socket::AddressFromString(address.c_str());
 
         if (serverIP == 0xFFFFFFFF)
         {
             LOG_WARNING("Socket", "Unknowm server address");
-            tcp_close(m_socket);
-            m_socket = nullptr;
+            m_socket.Close();
             m_connected = false;
             LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
             return Core::Connection::Connect(address, port);
@@ -69,13 +51,12 @@ bool CSocket::Connect(const std::string &address, u16 port)
             str[1] = 2; //Number of authentication method
             str[2] = 0; //No auth required
             str[3] = 2; //Username/Password auth
-            tcp_send(m_socket, str, 4);
-            int num = tcp_recv(m_socket, str, 255);
+            m_socket.Send(str, 4);
+            int num =  m_socket.Receive(str);
             if ((str[0] != 5) || (num != 2))
             {
                 LOG_WARNING("Socket", "Proxy Server Version Missmatch");
-                tcp_close(m_socket);
-                m_socket = nullptr;
+                m_socket.Close();
                 m_connected = false;
                 LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
                 return Core::Connection::Connect(address, port);
@@ -92,13 +73,12 @@ bool CSocket::Connect(const std::string &address, u16 port)
                     buffer[0] = 1;
                     buffer[1] = (char)ProxyAccount.length();
                     buffer[2 + (int)ProxyAccount.length()] = (char)ProxyPassword.length();
-                    tcp_send(m_socket, (unsigned char *)&buffer[0], totalSize);
-                    tcp_recv(m_socket, str, 255);
+                    m_socket.Send((unsigned char *)&buffer[0], totalSize);
+                    m_socket.Receive(str);
                     if (str[1] != 0)
                     {
                         LOG_WARNING("Socket", "Wrong Username/Password");
-                        tcp_close(m_socket);
-                        m_socket = nullptr;
+                        m_socket.Close();
                         m_connected = false;
                         LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
                         return Core::Connection::Connect(address, port);
@@ -111,8 +91,8 @@ bool CSocket::Connect(const std::string &address, u16 port)
                 str[3] = 1;
                 memcpy(&str[4], &serverIP, 4);
                 memcpy(&str[8], &serverPort, 2);
-                tcp_send(m_socket, str, 10);
-                num = tcp_recv(m_socket, str, 255);
+                m_socket.Send(str, 10);
+                num = m_socket.Receive(str);
                 if (str[1] != 0)
                 {
                     switch (str[1])
@@ -147,44 +127,40 @@ bool CSocket::Connect(const std::string &address, u16 port)
                         default:
                             LOG_ERROR("Socket", "Unknown Error <%d> recieved", str[1]);
                     }
-
-                    tcp_close(m_socket);
-                    m_socket = nullptr;
-                    Connected = false;
-                    LOG("Connecting...%s:%i\n", address.c_str(), port);
+                    m_socket.Close();
+                    m_connected = false;
+                    LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
                     return Core::Connection::Connect(address, port);
                 }
-                LOG("Connected to server via proxy\n");
+                LOG_INFO("Socket", "Connected to server via proxy");
             }
             else
             {
-                LOG("No acceptable methods\n");
-                tcp_close(m_socket);
-                m_socket = nullptr;
-                Connected = false;
-                LOG("Connecting...%s:%i\n", address.c_str(), port);
+                LOG_WARNING("Socket", "No acceptable methods");
+                m_socket.Close();
+                m_connected = false;
+                LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
                 return Core::Connection::Connect(address, port);
             }
         }
         else
         {
-            LOG("Proxy Server Version 4 Selected\n");
+            LOG_INFO("Socket", "Proxy Server Version 4 Selected");
             unsigned char str[9] = { 0 };
             str[0] = 4;
             str[1] = 1;
             memcpy(&str[2], &serverPort, 2);
             memcpy(&str[4], &serverIP, 4);
-            tcp_send(m_socket, str, 9);
-            int recvSize = tcp_recv(m_socket, str, 8);
+            m_socket.Send(str);
+            int recvSize = m_socket.Receive(str, 8);
             if ((recvSize != 8) || (str[0] != 0) || (str[1] != 90))
             {
                 if (str[0] == 5)
                 {
-                    LOG("Proxy Server Version is 5\n");
-                    LOG("Trying  SOCKS5\n");
-                    tcp_close(m_socket);
-                    m_socket = nullptr;
-                    Connected = false;
+                    LOG_INFO("Socket", "Proxy Server Version is 5");
+                    LOG_INFO("Socket", "Trying  SOCKS5");
+                    m_socket.Close();
+                    m_connected = false;
                     ProxySocks5 = true;
                     return Connect(address, port);
                 }
@@ -192,27 +168,26 @@ bool CSocket::Connect(const std::string &address, u16 port)
                 {
                     case 1:
                     case 91:
-                        LOG("Proxy request rejected or failed\n");
+                        LOG_ERROR("Socket", "Proxy request rejected or failed");
                         break;
                     case 2:
                     case 92:
-                        LOG("Proxy rejected becasue SOCKS server cannot connect to identd on the client\n");
+                        LOG_ERROR("Socket", "Proxy rejected becasue SOCKS server cannot connect to identd on the client");
                         break;
                     case 3:
                     case 93:
-                        LOG("Proxy rejected becasue SOCKS server cannot connect to identd on the client\n");
+                        LOG_ERROR("Socket", "Proxy rejected becasue SOCKS server cannot connect to identd on the client");
                         break;
                     default:
-                        LOG("Unknown Error <%d> recieved\n", str[1]);
+                        LOG_ERROR("Socket", "Unknown Error <%d> recieved", str[1]);
                         break;
                 }
-                tcp_close(m_socket);
-                m_socket = nullptr;
-                Connected = false;
-                LOG("Connecting...%s:%i\n", address.c_str(), port);
+                m_socket.Close();
+                m_connected = false;
+                LOG_INFO("Socket", "Connecting...%s:%i", address.c_str(), port);
                 return Core::Connection::Connect(address, port);
             }
-            LOG("Connected to server via proxy\n");
+            LOG_INFO("Socket", "Connected to server via proxy");
         }
     }
     else
@@ -235,7 +210,7 @@ std::vector<u8> CSocket::Decompression(std::vector<u8> data)
         m_Decompressor((char *)&decBuf[0], (char *)&data[0], outSize, inSize);
         if (inSize != data.size())
         {
-            DebugMsg("decompression buffer too small\n");
+            LOG_ERROR("Socket", "decompression buffer too small");
             Disconnect();
         }
         else

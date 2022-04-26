@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "RenderWorldObject.h"
+#include "Core/Time.h"
 
 class CGameEffect : public CRenderWorldObject
 {
@@ -12,7 +13,6 @@ public:
     u16 DestY = 0;
     char DestZ = 0;
     u8 Speed = 0;
-    u32 Duration = 0;
     bool FixedDirection = false;
     bool Explode = false;
     u32 RenderMode = 0;
@@ -30,4 +30,9 @@ public:
     void RemoveRenderMode();
     bool IsEffectObject() { return true; }
     virtual void Update(class CGameObject *parent);
+    inline void SetDuration(const Core::TimeDiff& a_duration) { m_end = Core::FrameTimer::Now() + a_duration; }
+    inline bool IsElapsed() const { return Core::TimeStamp::Now() > m_end; }
+
+private:
+    Core::TimeStamp m_end;
 };

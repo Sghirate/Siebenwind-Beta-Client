@@ -4,7 +4,6 @@
 #include "Config.h"
 #include "GameWindow.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "OrionApplication.h"
 #include <SDL.h>
 #include <time.h>
@@ -67,7 +66,6 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-    g_Orion.LoadPluginConfig();
     auto ret = g_App.Run();
     g_App.Shutdown();
     return ret;

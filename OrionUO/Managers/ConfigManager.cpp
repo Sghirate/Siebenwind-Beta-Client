@@ -1,8 +1,10 @@
 #include "ConfigManager.h"
 #include "Core/File.h"
+#include "Core/Platform.h"
 #include "Core/StringUtils.h"
 #include "Core/TextFileParser.h"
 #include "GameVars.h"
+#include "GameWindow.h"
 #include "Globals.h"
 #include "GumpManager.h"
 #include "SoundManager.h"
@@ -11,7 +13,6 @@
 #include "../OrionUO.h"
 #include "../Party.h"
 #include "../ServerList.h"
-#include "../OrionWindow.h"
 #include "../Container.h"
 #include "../CharacterList.h"
 #include "../TextEngine/GameConsole.h"
@@ -565,7 +566,6 @@ void CConfigManager::SetClientFPS(u8 val)
         {
             g_FrameDelay[WINDOW_INACTIVE] = g_FrameDelay[WINDOW_ACTIVE];
         }
-        g_OrionWindow.SetRenderTimerDelay(g_FrameDelay[g_OrionWindow.IsActive()]);
     }
 }
 
@@ -691,7 +691,6 @@ void CConfigManager::SetReduceFPSUnactiveWindow(bool val)
         {
             g_FrameDelay[WINDOW_INACTIVE] = g_FrameDelay[WINDOW_ACTIVE];
         }
-        g_OrionWindow.SetRenderTimerDelay(g_FrameDelay[g_OrionWindow.IsActive()]);
     }
 
     m_ReduceFPSUnactiveWindow = val;
@@ -850,7 +849,6 @@ void CConfigManager::SetNoDrawRoofs(bool val)
 void CConfigManager::SetPingTimer(u8 val)
 {
     m_PingTimer = Core::Max(Core::Min(val, u8(120)), u8(10));
-    g_PingTimer = 0;
 }
 
 void CConfigManager::SetItemPropertiesMode(u8 val)
@@ -881,7 +879,7 @@ void CConfigManager::SetItemPropertiesIcon(bool val)
 
             if (gump == nullptr)
             {
-                Core::Vec2<i32> windowSize = g_OrionWindow.GetSize();
+                Core::Vec2<i32> windowSize = g_gameWindow.GetSize();
 
                 int x = GameWindowX + (int)(GameWindowWidth * 0.9f);
                 int y = GameWindowY + GameWindowHeight;
@@ -967,10 +965,9 @@ u16 CConfigManager::GetColorByNotoriety(u8 notoriety)
 
 bool CConfigManager::LoadBin(const std::filesystem::path& path)
 {
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     bool result     = false;
     g_DeveloperMode = DM_SHOW_FPS_ONLY;
@@ -1439,11 +1436,12 @@ bool CConfigManager::LoadBin(const std::filesystem::path& path)
 
                 if (zoomed)
                 {
-                    g_OrionWindow.MaximizeWindow();
+                    g_gameWindow.Maximize();
                 }
                 else
                 {
-                    g_OrionWindow.SetPositionSize(windowX, windowY, windowWidth, windowHeight);
+                    g_gameWindow.SetPosition(Core::TWindowPosition(windowX, windowY));
+                    g_gameWindow.SetSize(Core::TWindowSize(windowWidth, windowHeight));
                 }
 
                 g_GL.UpdateRect();
@@ -1460,7 +1458,7 @@ bool CConfigManager::LoadBin(const std::filesystem::path& path)
             }
             else
             {
-                g_OrionWindow.MaximizeWindow();
+                g_gameWindow.Maximize();
             }
         }
 
@@ -1505,10 +1503,9 @@ bool CConfigManager::Load(const std::filesystem::path& a_path)
     if (!std::filesystem::exists(a_path))
         return false;
 
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     Core::TextFileParser file(a_path, "=", "#;", "");
     bool zoomed      = false;
@@ -1830,18 +1827,19 @@ bool CConfigManager::Load(const std::filesystem::path& a_path)
 
         if (zoomed)
         {
-            g_OrionWindow.MaximizeWindow();
+            g_gameWindow.Maximize();
         }
         else
         {
-            g_OrionWindow.SetPositionSize(windowX, windowY, windowWidth, windowHeight);
+            g_gameWindow.SetPosition(Core::TWindowPosition(windowX, windowY));
+            g_gameWindow.SetSize(Core::TWindowSize(windowWidth, windowHeight));
         }
 
         g_GL.UpdateRect();
     }
     else
     {
-        g_OrionWindow.MaximizeWindow();
+        g_gameWindow.Maximize();
     }
 
     return true;
@@ -1996,15 +1994,15 @@ void CConfigManager::Save(const std::filesystem::path& a_path)
         file.Print("GameWindowX=%i\n", GameWindowX);
         file.Print("GameWindowY=%i\n", GameWindowY);
 
-        file.Print("Zoomed=%s\n", (g_OrionWindow.IsMaximizedWindow() ? "yes" : "no"));
+        file.Print("Zoomed=%s\n", (g_gameWindow.IsMaximized() ? "yes" : "no"));
 
-        int x, y, w, h;
-        g_OrionWindow.GetPositionSize(&x, &y, &w, &h);
+        Core::TWindowPosition windowPos = g_gameWindow.GetPosition();
+        Core::TWindowSize windowSize = g_gameWindow.GetSize();
 
-        file.Print("RealX=%i\n", x);
-        file.Print("RealY=%i\n", y);
-        file.Print("RealWidth=%i\n", w);
-        file.Print("RealHeight=%i\n", h);
+        file.Print("RealX=%i\n", windowPos.x);
+        file.Print("RealY=%i\n", windowPos.y);
+        file.Print("RealWidth=%i\n", windowSize.x);
+        file.Print("RealHeight=%i\n", windowSize.y);
 
         file.Print("ToggleBufficonWindow=%s\n", (ToggleBufficonWindow ? "yes" : "no"));
         file.Print("DeveloperMode=%i\n", g_DeveloperMode);

@@ -3,7 +3,6 @@
 #include "GameWindow.h"
 #include "../ToolTip.h"
 #include "../OrionUO.h"
-#include "../OrionWindow.h"
 #include "../Managers/ProfessionManager.h"
 #include "../Managers/ScreenEffectManager.h"
 

@@ -4,6 +4,7 @@
 #include "Core/File.h"
 #include "Core/Log.h"
 #include "Core/MappedFile.h"
+#include "Core/Platform.h"
 #include "Core/StringUtils.h"
 #include "Core/TextFileParser.h"
 #include "GameObjects/GameItem.h"
@@ -22,7 +23,6 @@
 #include "Network/Packets.h"
 #include "plugin/enumlist.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "Target.h"
 #include "TargetGump.h"
 #include "TextEngine/EntryText.h"
@@ -420,7 +420,6 @@ void MacroManager::ChangePointer(MacroObject* macro)
     if (g_MacroPointer == nullptr && SendNotificationToPlugin)
     {
         SendNotificationToPlugin = false;
-        //PLUGIN_EVENT(UOMSG_END_MACRO_PLAYING, nullptr);
     }
 }
 
@@ -862,37 +861,13 @@ MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
         {
             if (g_EntryPointer != nullptr)
             {
-#if defined(ORION_WINDOWS)
-                // FIXME: move clipboard access to wisp window
-                if (OpenClipboard((HWND)g_OrionWindow.Handle))
+                if (Core::Platform::HasClipboardText())
                 {
-                    HANDLE cb = GetClipboardData(CF_TEXT);
-
-                    if (cb != nullptr)
-                    {
-                        char* chBuffer = (char*)GlobalLock(cb);
-
-                        if (chBuffer != nullptr && (strlen(chBuffer) != 0u))
-                        {
-                            std::wstring str = g_EntryPointer->Data() + Core::ToWString(chBuffer);
-                            g_EntryPointer->SetTextW(str);
-                        }
-
-                        GlobalUnlock(cb);
-                    }
-
-                    CloseClipboard();
-                }
-#else
-                auto chBuffer = SDL_GetClipboardText();
-                if (chBuffer != nullptr && (strlen(chBuffer) != 0u))
-                {
-                    std::wstring str = g_EntryPointer->Data() + ToWString(chBuffer);
+                    const char* text = Core::Platform::GetClipboardText();
+                    std::wstring str = g_EntryPointer->Data() + Core::ToWString(text);
                     g_EntryPointer->SetTextW(str);
                 }
-#endif
             }
-
             break;
         }
         case MC_OPEN:
@@ -1121,7 +1096,6 @@ MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
 
                 g_LastTargetObject = obj->Serial;
                 g_LastAttackObject = obj->Serial;
-                //PLUGIN_EVENT(UOMSG_STATUS_REQUEST, obj->Serial);
             }
             break;
         }
