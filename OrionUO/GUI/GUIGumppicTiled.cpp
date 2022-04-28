@@ -1,4 +1,4 @@
-﻿#include "GUIGumppicTiled.h"
+#include "GUIGumppicTiled.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"
 

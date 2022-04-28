@@ -1,4 +1,4 @@
-﻿#include "BaseScreen.h"
+#include "BaseScreen.h"
 #include "../Profiler.h"
 #include "../SelectedObject.h"
 #include "../Managers/MouseManager.h"

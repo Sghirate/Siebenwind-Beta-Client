@@ -1,4 +1,4 @@
-﻿#include "GUISlider.h"
+#include "GUISlider.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 #include "../Managers/FontsManager.h"

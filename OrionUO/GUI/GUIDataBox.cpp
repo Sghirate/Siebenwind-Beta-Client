@@ -1,4 +1,4 @@
-﻿#include "GUIDataBox.h"
+#include "GUIDataBox.h"
 
 CGUIDataBox::CGUIDataBox()
     : CGUIPolygonal(GOT_DATABOX, 0, 0, 0, 0)

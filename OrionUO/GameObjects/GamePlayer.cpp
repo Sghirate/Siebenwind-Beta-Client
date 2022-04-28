@@ -1,4 +1,4 @@
-﻿#include "GamePlayer.h"
+#include "GamePlayer.h"
 #include "GameItem.h"
 #include "../OrionUO.h"
 #include "../Managers/GumpManager.h"

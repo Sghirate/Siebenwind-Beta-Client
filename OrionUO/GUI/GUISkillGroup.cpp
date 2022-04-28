@@ -1,4 +1,4 @@
-﻿#include "GUISkillGroup.h"
+#include "GUISkillGroup.h"
 #include "GUIButton.h"
 #include "GUITextEntry.h"
 #include "GUISkillItem.h"

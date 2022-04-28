@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include "Platform.h"
 
 typedef std::deque<Core::Rect<i32>> SCISSOR_LIST;
 

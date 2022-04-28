@@ -1,4 +1,4 @@
-﻿#include "GUIShopItem.h"
+#include "GUIShopItem.h"
 #include "Core/StringUtils.h"
 #include <SDL_timer.h>
 #include "../OrionUO.h"

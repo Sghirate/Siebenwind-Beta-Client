@@ -1,4 +1,4 @@
-﻿#include "GUIComboBox.h"
+#include "GUIComboBox.h"
 #include "GUIText.h"
 #include "../OrionUO.h"
 #include "../PressedObject.h"

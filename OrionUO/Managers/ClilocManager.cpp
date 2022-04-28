@@ -1,4 +1,4 @@
-﻿#include "ClilocManager.h"
+#include "ClilocManager.h"
 #include "Core/StringUtils.h"
 #include "Globals.h"
 #include "OrionApplication.h"

@@ -1,4 +1,4 @@
-﻿#include "Target.h"
+#include "Target.h"
 #include "GameObjects/GameWorld.h"
 #include "GameObjects/GameCharacter.h"
 

@@ -1,4 +1,4 @@
-﻿#include "FontsManager.h"
+#include "FontsManager.h"
 #include "ColorManager.h"
 #include "Core/MappedFile.h"
 #include "Core/StringUtils.h"

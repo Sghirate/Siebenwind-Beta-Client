@@ -1,4 +1,4 @@
-﻿#include "GUIWorldMapTexture.h"
+#include "GUIWorldMapTexture.h"
 #include "../Managers/MouseManager.h"
 
 CGUIWorldMapTexture::CGUIWorldMapTexture(int x, int y)

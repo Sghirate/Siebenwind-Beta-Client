@@ -41,6 +41,10 @@
 #define NODEFERWINDOWPOS
 #define NOMCX
 #include <windows.h>
+#else
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #endif
 
 namespace Core
@@ -130,7 +134,7 @@ fail:
 
     buffer = (unsigned char*)mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     if (buffer == MAP_FAILED)
-        ptr = nullptr;
+        buffer = nullptr;
 fail:
     close(fd);
 #endif

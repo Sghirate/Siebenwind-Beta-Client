@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <SDL_rect.h>
 #include "Core/Minimal.h"

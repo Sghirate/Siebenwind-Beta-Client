@@ -1,4 +1,4 @@
-﻿#include "GameEffect.h"
+#include "GameEffect.h"
 #include "GameEffectMoving.h"
 #include "Globals.h"
 #include "../OrionUO.h"

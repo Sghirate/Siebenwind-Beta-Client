@@ -1,4 +1,4 @@
-﻿#include "GUIGumppicHightlighted.h"
+#include "GUIGumppicHightlighted.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"
 #include "../Managers/ColorManager.h"

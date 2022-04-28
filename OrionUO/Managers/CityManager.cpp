@@ -1,4 +1,4 @@
-﻿#include "CityManager.h"
+#include "CityManager.h"
 #include "Core/MappedFile.h"
 #include "Core/StringUtils.h"
 #include "ClilocManager.h"

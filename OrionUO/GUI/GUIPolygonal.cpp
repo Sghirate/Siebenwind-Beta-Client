@@ -1,4 +1,4 @@
-﻿#include "GUIPolygonal.h"
+#include "GUIPolygonal.h"
 #include "../Managers/MouseManager.h"
 
 CGUIPolygonal::CGUIPolygonal(

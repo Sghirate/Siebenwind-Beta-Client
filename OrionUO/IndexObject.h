@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Core/Time.h"
 #include "TextureObject.h"

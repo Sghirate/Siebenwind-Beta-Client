@@ -1,4 +1,4 @@
-﻿#include "GUIBulletinBoardObject.h"
+#include "GUIBulletinBoardObject.h"
 #include "Core/StringUtils.h"
 #include "GameVars.h"
 #include "../Config.h"

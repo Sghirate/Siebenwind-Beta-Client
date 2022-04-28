@@ -1,4 +1,4 @@
-﻿#include "CityList.h"
+#include "CityList.h"
 #include "Managers/CityManager.h"
 
 CCityList g_CityList;

@@ -1,4 +1,4 @@
-﻿#include "GUIResizepic.h"
+#include "GUIResizepic.h"
 #include "../OrionUO.h"
 
 CGUIResizepic::CGUIResizepic(int serial, u16 graphic, int x, int y, int width, int height)

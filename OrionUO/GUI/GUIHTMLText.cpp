@@ -1,4 +1,4 @@
-﻿#include "GUIHTMLText.h"
+#include "GUIHTMLText.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/MouseManager.h"
 

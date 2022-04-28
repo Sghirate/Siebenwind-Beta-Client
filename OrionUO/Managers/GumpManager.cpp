@@ -1,4 +1,4 @@
-﻿#include "GumpManager.h"
+#include "GumpManager.h"
 #include "Core/File.h"
 #include "Core/MappedFile.h"
 #include "Core/StringUtils.h"

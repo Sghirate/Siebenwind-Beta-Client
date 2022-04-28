@@ -1,4 +1,4 @@
-﻿#include "GUIComboboxText.h"
+#include "GUIComboboxText.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"
 

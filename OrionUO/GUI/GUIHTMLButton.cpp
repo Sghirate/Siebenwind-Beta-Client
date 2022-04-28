@@ -1,4 +1,4 @@
-﻿#include "GUIHTMLButton.h"
+#include "GUIHTMLButton.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLButton::CGUIHTMLButton(

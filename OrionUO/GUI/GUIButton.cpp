@@ -1,4 +1,4 @@
-﻿#include "GUIButton.h"
+#include "GUIButton.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"

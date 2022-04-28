@@ -1,4 +1,4 @@
-﻿#include "GUIDrawObject.h"
+#include "GUIDrawObject.h"
 #include "../OrionUO.h"
 #include "../Managers/ColorManager.h"
 

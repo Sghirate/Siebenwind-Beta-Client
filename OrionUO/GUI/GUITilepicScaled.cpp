@@ -1,4 +1,4 @@
-﻿#include "GUITilepicScaled.h"
+#include "GUITilepicScaled.h"
 #include "../OrionUO.h"
 
 CGUITilepicScaled::CGUITilepicScaled(

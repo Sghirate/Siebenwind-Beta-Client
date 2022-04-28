@@ -1,4 +1,4 @@
-﻿#include "IndexObject.h"
+#include "IndexObject.h"
 #include "Config.h"
 #include "GameVars.h"
 #include "plugin/enumlist.h"

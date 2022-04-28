@@ -1,4 +1,4 @@
-﻿#include "Gump.h"
+#include "Gump.h"
 #include "GameWindow.h"
 #include "Globals.h"
 #include "../OrionUO.h"

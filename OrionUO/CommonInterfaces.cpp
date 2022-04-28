@@ -1,4 +1,4 @@
-﻿#include "plugin/commoninterfaces.h"
+#include "plugin/commoninterfaces.h"
 #include "Globals.h"
 #include "Core/MappedFile.h"
 #include "OrionUO.h"

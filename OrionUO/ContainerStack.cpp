@@ -1,4 +1,4 @@
-﻿#include "ContainerStack.h"
+#include "ContainerStack.h"
 
 std::deque<CContainerStackItem> g_ContainerStack;
 u32 g_CheckContainerStackTimer = 0;

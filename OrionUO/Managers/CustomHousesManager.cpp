@@ -1,4 +1,4 @@
-﻿#include "CustomHousesManager.h"
+#include "CustomHousesManager.h"
 #include "Core/DataStream.h"
 #include "Core/File.h"
 #include "Core/MappedFile.h"

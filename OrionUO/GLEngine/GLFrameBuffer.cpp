@@ -1,4 +1,4 @@
-﻿#include "GLFrameBuffer.h"
+#include "GLFrameBuffer.h"
 #include "GLEngine/GLEngine.h"
 
 CGLFrameBuffer::CGLFrameBuffer()

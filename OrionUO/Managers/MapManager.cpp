@@ -1,4 +1,4 @@
-﻿#include "MapManager.h"
+#include "MapManager.h"
 #include "Globals.h"
 #include "GumpManager.h"
 #include "FileManager.h"

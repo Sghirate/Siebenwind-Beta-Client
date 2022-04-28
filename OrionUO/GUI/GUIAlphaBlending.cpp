@@ -1,4 +1,4 @@
-﻿#include "GUIAlphaBlending.h"
+#include "GUIAlphaBlending.h"
 
 CGUIAlphaBlending::CGUIAlphaBlending(bool enabled, float alpha)
     : CGUIBlending(enabled, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

@@ -1,4 +1,4 @@
-﻿#include "GUIButtonTileart.h"
+#include "GUIButtonTileart.h"
 #include "../OrionUO.h"
 
 CGUIButtonTileart::CGUIButtonTileart(

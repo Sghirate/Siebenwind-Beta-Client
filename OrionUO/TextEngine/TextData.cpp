@@ -1,4 +1,4 @@
-﻿#include "TextData.h"
+#include "TextData.h"
 #include "../Managers/ConfigManager.h"
 #include "../Managers/FontsManager.h"
 

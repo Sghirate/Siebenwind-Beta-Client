@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "RenderWorldObject.h"
 #include "Core/Time.h"

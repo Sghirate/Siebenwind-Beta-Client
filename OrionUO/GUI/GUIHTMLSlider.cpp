@@ -1,4 +1,4 @@
-﻿#include "GUIHTMLSlider.h"
+#include "GUIHTMLSlider.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLSlider::CGUIHTMLSlider(

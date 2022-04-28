@@ -1,4 +1,4 @@
-﻿#include "GUITextEntry.h"
+#include "GUITextEntry.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"
 #include "../Managers/MouseManager.h"

@@ -1,4 +1,4 @@
-﻿#include "GumpContainer.h"
+#include "GumpContainer.h"
 #include "Globals.h"
 #include "GumpDrag.h"
 #include "../OrionUO.h"

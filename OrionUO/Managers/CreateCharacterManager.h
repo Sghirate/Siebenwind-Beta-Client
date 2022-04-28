@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 struct CC_HAIR_STYLE
 {

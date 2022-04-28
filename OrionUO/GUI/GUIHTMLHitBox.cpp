@@ -1,4 +1,4 @@
-﻿#include "GUIHTMLHitBox.h"
+#include "GUIHTMLHitBox.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLHitBox::CGUIHTMLHitBox(

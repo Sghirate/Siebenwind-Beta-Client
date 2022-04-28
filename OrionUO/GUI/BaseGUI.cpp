@@ -1,4 +1,4 @@
-﻿#include "BaseGUI.h"
+#include "BaseGUI.h"
 
 CBaseGUI::CBaseGUI(
     GUMP_OBJECT_TYPE type, int serial, u16 graphic, u16 color, int x, int y)

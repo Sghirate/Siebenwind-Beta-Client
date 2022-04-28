@@ -1,4 +1,4 @@
-﻿#include "GUIShopResult.h"
+#include "GUIShopResult.h"
 #include "GUIMinMaxButtons.h"
 #include "GUIShopItem.h"
 #include "../OrionUO.h"

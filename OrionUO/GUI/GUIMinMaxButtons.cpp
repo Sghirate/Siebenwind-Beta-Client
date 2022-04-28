@@ -1,4 +1,4 @@
-﻿#include "GUIMinMaxButtons.h"
+#include "GUIMinMaxButtons.h"
 #include "../OrionUO.h"
 #include "../Managers/FontsManager.h"
 #include "../Managers/MouseManager.h"

@@ -69,6 +69,9 @@ elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	set(ORION_64BITS 0)
 endif()
 
+add_subdirectory("${EXTERNAL_DIR}/GLEW/build/cmake")
+add_subdirectory("${EXTERNAL_DIR}/SDL2")
+
 if(ORION_WINDOWS)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
@@ -77,12 +80,12 @@ if(ORION_WINDOWS)
 	set(INC_BASE
 		"${INC_BASE}"
 		"${EXTERNAL_DIR}/GLEW/include")
-	set(LIBS_BASE
-		"${LIBS_BASE}"
-		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/lib/glew32.lib")
-	set(BINS_BASE
-		"${BINS_BASE}"
-		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")	
+	# set(LIBS_BASE
+	# 	"${LIBS_BASE}"
+	# 	"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/lib/glew32.lib")
+	# set(BINS_BASE
+	# 	"${BINS_BASE}"
+	# 	"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")
 	set(DEFINES_BASE
 		"${DEFINES_BASE}"
 		"ORION_WITH_GLEW")
@@ -93,13 +96,13 @@ if(ORION_WINDOWS)
 		"${INC_BASE}"
 		"${EXTERNAL_DIR}/SDL2/include"
 		"${EXTERNAL_DIR}/SDL2/include/SDL2")
-	set(LIBS_BASE
-		"${LIBS_BASE}"
-		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2.lib"
-		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2main.lib")
-	set(BINS_BASE
-		"${BINS_BASE}"
-		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/bin/SDL2.dll")
+	# set(LIBS_BASE
+	# 	"${LIBS_BASE}"
+	# 	"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2.lib"
+	# 	"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2main.lib")
+	# set(BINS_BASE
+	# 	"${BINS_BASE}"
+	# 	"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/bin/SDL2.dll")
 	set(DEFINES_BASE
 		"${DEFINES_BASE}"
 		"ORION_WITH_SDL2")
@@ -140,8 +143,26 @@ if(ORION_WINDOWS)
 	endif()
 
 else()
-	find_package(SDL2 REQUIRED)
-	find_package(GLEW REQUIRED)
+	# GLEW
+	set(INC_BASE
+		"${INC_BASE}"
+		"${EXTERNAL_DIR}/GLEW/include")
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_GLEW")
+	set(ORION_WITH_GLEW ON)
+
+	# SDL2
+	set(INC_BASE
+		"${INC_BASE}"
+		"${EXTERNAL_DIR}/SDL2/include")
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_SDL2")
+	set(ORION_WITH_SDL2 ON)
+
+	#find_package(SDL2 REQUIRED)
+	#find_package(GLEW REQUIRED)
 	# Set the preferred opengl library to GLVND if there is GLVND and Legacy.
 	# Only if there is no GLVND Legacy will be used.
 	# The that is the default with cmake-3.11. Legacy is deprecated.

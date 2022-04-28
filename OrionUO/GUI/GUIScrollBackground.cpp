@@ -1,4 +1,4 @@
-﻿#include "GUIScrollBackground.h"
+#include "GUIScrollBackground.h"
 #include "../OrionUO.h"
 #include "../Managers/MouseManager.h"
 

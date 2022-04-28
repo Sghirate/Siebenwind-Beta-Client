@@ -1,4 +1,4 @@
-﻿#include "CharacterList.h"
+#include "CharacterList.h"
 
 CCharacterList g_CharacterList;
 

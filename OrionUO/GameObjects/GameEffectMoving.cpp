@@ -1,4 +1,4 @@
-﻿#include "GameEffectMoving.h"
+#include "GameEffectMoving.h"
 #include "GameWorld.h"
 #include "Globals.h"
 #include "../ScreenStages/GameScreen.h"

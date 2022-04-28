@@ -1,4 +1,4 @@
-﻿#include "GUIHTMLResizepic.h"
+#include "GUIHTMLResizepic.h"
 #include "GUIHTMLGump.h"
 
 CGUIHTMLResizepic::CGUIHTMLResizepic(

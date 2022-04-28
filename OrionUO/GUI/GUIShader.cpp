@@ -1,4 +1,4 @@
-﻿#include "GUIShader.h"
+#include "GUIShader.h"
 
 CGUIShader::CGUIShader(CGLShader *shader, bool enabled)
     : CBaseGUI(GOT_SHADER, 0, 0, 0, 0, 0)

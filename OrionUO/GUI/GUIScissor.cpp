@@ -1,4 +1,4 @@
-﻿#include "GUIScissor.h"
+#include "GUIScissor.h"
 #include "../Gumps/Gump.h"
 
 CGUIScissor::CGUIScissor(bool enabled, int baseX, int baseY, int x, int y, int width, int height)

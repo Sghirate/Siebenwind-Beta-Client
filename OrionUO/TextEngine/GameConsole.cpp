@@ -1,4 +1,4 @@
-﻿#include "GameConsole.h"
+#include "GameConsole.h"
 #include "Core/StringUtils.h"
 #include "Globals.h"
 #include "../OrionUO.h"

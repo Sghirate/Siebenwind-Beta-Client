@@ -1,4 +1,4 @@
-﻿#include "Packets.h"
+#include "Packets.h"
 #include "Core/StringUtils.h"
 #include "GameVars.h"
 #include "Globals.h"

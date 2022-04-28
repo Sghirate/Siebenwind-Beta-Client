@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "BaseQueue.h"
 #include "Core/MappedFile.h"

@@ -1,4 +1,4 @@
-﻿#include "ColorManager.h"
+#include "ColorManager.h"
 #include "Constants.h"
 #include "FileManager.h"
 #include "Globals.h"

@@ -1,4 +1,4 @@
-﻿#include "TextureObject.h"
+#include "TextureObject.h"
 
 CTextureAnimationFrame::CTextureAnimationFrame()
     : CenterX(0)

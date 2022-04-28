@@ -1,4 +1,4 @@
-﻿#include "GUIHitBox.h"
+#include "GUIHitBox.h"
 #include "../SelectedObject.h"
 #include "../Gumps/Gump.h"
 

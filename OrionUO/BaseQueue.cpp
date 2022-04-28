@@ -1,4 +1,4 @@
-﻿#include "BaseQueue.h"
+#include "BaseQueue.h"
 
 CBaseQueueItem::CBaseQueueItem()
     : m_Next(nullptr)

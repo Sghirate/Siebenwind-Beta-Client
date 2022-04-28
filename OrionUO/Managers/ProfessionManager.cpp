@@ -1,4 +1,4 @@
-﻿#include "ProfessionManager.h"
+#include "ProfessionManager.h"
 #include "ClilocManager.h"
 #include "Core/Log.h"
 #include "Core/StringUtils.h"

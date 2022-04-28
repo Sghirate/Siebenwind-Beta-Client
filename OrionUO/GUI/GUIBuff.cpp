@@ -1,4 +1,4 @@
-﻿#include "GUIBuff.h"
+#include "GUIBuff.h"
 #include "../OrionUO.h"
 
 CGUIBuff::CGUIBuff(u16 graphic, int timer, const std::wstring &text)

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "../RenderObject.h"
 #include "../plugin/enumlist.h"

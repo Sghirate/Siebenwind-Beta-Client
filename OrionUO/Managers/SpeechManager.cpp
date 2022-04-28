@@ -1,4 +1,4 @@
-﻿#include "SpeechManager.h"
+#include "SpeechManager.h"
 #include "Core/DataStream.h"
 #include "Core/Log.h"
 #include "Core/MappedFile.h"

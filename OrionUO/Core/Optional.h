@@ -18,7 +18,7 @@ struct Optional
         new (&m_value) T(a_value);
     }
     Optional(T&& a_value)
-        : m_isSet(a_other.m_isSet)
+        : m_isSet(true)
     {
         new (&m_value) T(std::move(a_value));
     }
@@ -74,7 +74,7 @@ struct Optional
     }
     const T& GetValueOr(const T& a_fallback) const { return m_isSet ? *(T*)&m_value : a_fallback; }
 
-    inline explicit operator bool() const { return bIsSet; }
+    inline explicit operator bool() const { return m_isSet; }
     Optional& operator=(const Optional& a_other)
     {
         if (&a_other != this)

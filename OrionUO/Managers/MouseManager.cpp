@@ -1,4 +1,4 @@
-﻿#include "MouseManager.h"
+#include "MouseManager.h"
 #include "ColorManager.h"
 #include "Globals.h"
 #include "MapManager.h"

@@ -1,4 +1,4 @@
-﻿#include "Profession.h"
+#include "Profession.h"
 #include "Core/StringUtils.h"
 #include "Managers/FontsManager.h"
 

@@ -1,4 +1,4 @@
-﻿#include "GUIBlending.h"
+#include "GUIBlending.h"
 
 CGUIBlending::CGUIBlending(bool enabled, GLenum sFactor, GLenum dFactor)
     : CBaseGUI(GOT_BLENDING, 0, 0, 0, 0, 0)

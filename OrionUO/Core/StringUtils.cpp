@@ -1,8 +1,10 @@
 #include "StringUtils.h"
 #include "Core/Minimal.h"
+#include "Core/Log.h"
 #include <algorithm>
 #include <charconv>
 #include <codecvt>
+#include <cstring>
 #include <locale>
 #if defined(ORION_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
@@ -93,7 +95,11 @@ std::wstring Utf8ToUtf16(const std::string& a_utf8)
         }
         else if (ch <= 0xBF)
         {
+#if defined(__cpp_exceptions)
             throw std::logic_error("not a UTF-8 string");
+#else
+            assert(false && "not a UTF-8 string");
+#endif
         }
         else if (ch <= 0xDF)
         {
@@ -112,22 +118,50 @@ std::wstring Utf8ToUtf16(const std::string& a_utf8)
         }
         else
         {
+#if defined(__cpp_exceptions)
             throw std::logic_error("not a UTF-8 string");
+#else
+            assert(false && "not a UTF-8 string");
+#endif
         }
         for (size_t j = 0; j < todo; ++j)
         {
             if (i == a_utf8.size())
+            {
+#if defined(__cpp_exceptions)
                 throw std::logic_error("not a UTF-8 string");
+#else
+                assert(false && "not a UTF-8 string");
+#endif
+            }
             unsigned char ch = a_utf8[i++];
             if (ch < 0x80 || ch > 0xBF)
-                throw std::logic_error("not a UTF-8 string");
+            {
+#if defined(__cpp_exceptions)
+            throw std::logic_error("not a UTF-8 string");
+#else
+            assert(false && "not a UTF-8 string");
+#endif
+            }
             uni <<= 6;
             uni += ch & 0x3F;
         }
         if (uni >= 0xD800 && uni <= 0xDFFF)
+            {
+#if defined(__cpp_exceptions)
             throw std::logic_error("not a UTF-8 string");
+#else
+            assert(false && "not a UTF-8 string");
+#endif
+            }
         if (uni > 0x10FFFF)
+            {
+#if defined(__cpp_exceptions)
             throw std::logic_error("not a UTF-8 string");
+#else
+            assert(false && "not a UTF-8 string");
+#endif
+            }
         unicode.push_back(uni);
     }
     std::wstring utf16;
@@ -196,7 +230,7 @@ std::wstring DecodeUTF8(const std::string& a_str)
     const size_t size = mbsrtowcs(nullptr, &p, 0, &state);
     if (size == -1)
     {
-        LOG("\nDecodeUTF8 Failed: %s\n", a_str.c_str());
+        LOG_ERROR("Core", "DecodeUTF8 Failed: %s", a_str.c_str());
         return L"Invalid UTF8 sequence found";
     }
 

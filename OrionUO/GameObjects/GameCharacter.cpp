@@ -1,4 +1,4 @@
-﻿#include <SDL_timer.h>
+#include <SDL_timer.h>
 #include "Core/Random.h"
 #include "GameItem.h"
 #include "Globals.h"

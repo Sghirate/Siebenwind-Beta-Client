@@ -1,4 +1,4 @@
-﻿#include "SelectTownScreen.h"
+#include "SelectTownScreen.h"
 #include "CreateCharacterScreen.h"
 #include "GameVars.h"
 #include "GameWindow.h"

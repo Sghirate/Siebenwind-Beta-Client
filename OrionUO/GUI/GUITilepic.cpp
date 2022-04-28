@@ -1,4 +1,4 @@
-﻿#include "GUITilepic.h"
+#include "GUITilepic.h"
 #include "../OrionUO.h"
 
 CGUITilepic::CGUITilepic(u16 graphic, u16 color, int x, int y)

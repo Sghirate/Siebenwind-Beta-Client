@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "GameEffect.h"
 #include "Core/Time.h"

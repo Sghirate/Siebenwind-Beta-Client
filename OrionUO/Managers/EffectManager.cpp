@@ -1,4 +1,4 @@
-﻿#include "EffectManager.h"
+#include "EffectManager.h"
 #include "Core/Time.h"
 #include "MapManager.h"
 #include "../OrionUO.h"

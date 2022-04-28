@@ -1,4 +1,4 @@
-﻿#include "Party.h"
+#include "Party.h"
 #include "Core/StringUtils.h"
 #include "Globals.h"
 #include "OrionUO.h"

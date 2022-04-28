@@ -1,4 +1,4 @@
-﻿#include "GUIRadio.h"
+#include "GUIRadio.h"
 
 CGUIRadio::CGUIRadio(
     int serial, u16 graphic, u16 graphicChecked, u16 graphicDisabled, int x, int y)

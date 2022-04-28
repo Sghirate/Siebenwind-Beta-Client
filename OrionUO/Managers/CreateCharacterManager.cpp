@@ -1,4 +1,4 @@
-﻿#include "CreateCharacterManager.h"
+#include "CreateCharacterManager.h"
 #include "../OrionUO.h"
 
 CCreateCharacterManager g_CreateCharacterManager;

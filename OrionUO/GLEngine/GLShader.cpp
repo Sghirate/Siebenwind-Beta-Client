@@ -1,4 +1,4 @@
-﻿#include "GLShader.h"
+#include "GLShader.h"
 #include "Core/Log.h"
 
 CDeathShader g_DeathShader;

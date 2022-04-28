@@ -14,10 +14,12 @@
 #include <sys/select.h>
 typedef struct hostent HOSTENT;
 typedef HOSTENT* LPHOSTENT;
+#define closesocket close
+#define SOCKET int
 #define SOCKADDR struct sockaddr
 #define SOCKADDR_IN struct in_addr
 #define LPIN_ADDR struct in_addr*
-#define LPSOCKADDR const SOCKADDR*
+#define LPSOCKADDR SOCKADDR*
 #define INVALID_SOCKET (-1)
 #endif
 
@@ -272,8 +274,10 @@ bool ICMPSocket::Open()
 
     SOCKET& s = socket_cast(m_handle);
     s = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+#if defined(ORION_WINDOWS)
     if (s == SOCKET_ERROR)
         s = INVALID_SOCKET;
+#endif // defined(ORION_WINDOWS)
     return s != INVALID_SOCKET;
 }
 
@@ -301,7 +305,7 @@ int ICMPSocket::Ping(const char* a_address, u8* a_data, size_t a_dataSize)
         const auto rs = sizeof(ICMPEchoRequest);
         request.icmpHeader.checksum = icmp_checksum((u16 *)&request, rs);
 
-        const auto r = (LPSTR)&request;
+        const void* r = (void*)&request;
         const auto dst = (LPSOCKADDR)&destAddress;
         ::sendto(s, r, rs, 0, dst, sizeof(SOCKADDR_IN));
 
@@ -317,9 +321,9 @@ int ICMPSocket::Ping(const char* a_address, u8* a_data, size_t a_dataSize)
             ICMPEchoReply reply;
             sockaddr_in sourceAddress;
             int length = sizeof(sockaddr_in);
-            const auto a = (LPSTR)&reply;
-            const auto as = sizeof(ICMPEchoReply);
-            const auto src = (LPSOCKADDR)&sourceAddress;
+            void* a = (void*)&reply;
+            auto as = sizeof(ICMPEchoReply);
+            auto src = (LPSOCKADDR)&sourceAddress;
             if (::recvfrom(s, a, as, 0, src, &length) != -1)
             {
                 if (a_data)

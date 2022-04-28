@@ -1,4 +1,4 @@
-﻿#include <SDL_timer.h>
+#include <SDL_timer.h>
 #include "MapBlock.h"
 #include "LandObject.h"
 #include "CustomHouseMultiObject.h"

@@ -1,4 +1,4 @@
-﻿#include <SDL_clipboard.h>
+#include <SDL_clipboard.h>
 
 #include "EntryText.h"
 #include "Core/StringUtils.h"

@@ -1,4 +1,4 @@
-﻿#include "GUITilepicHightlighted.h"
+#include "GUITilepicHightlighted.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 #include "../Managers/ColorManager.h"

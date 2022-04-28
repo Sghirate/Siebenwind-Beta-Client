@@ -1,4 +1,4 @@
-﻿#include "LandObject.h"
+#include "LandObject.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 

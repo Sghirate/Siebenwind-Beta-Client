@@ -1,4 +1,4 @@
-﻿#include "IntlocManager.h"
+#include "IntlocManager.h"
 #include "ClilocManager.h"
 #include "Core/StringUtils.h"
 #include "OrionApplication.h"

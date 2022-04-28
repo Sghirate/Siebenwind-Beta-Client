@@ -1,4 +1,4 @@
-﻿#include "ConnectionManager.h"
+#include "ConnectionManager.h"
 #include "Core/Log.h"
 #include "GameVars.h"
 #include "Globals.h"

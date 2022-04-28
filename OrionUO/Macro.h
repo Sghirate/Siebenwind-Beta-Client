@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Core/MappedFile.h"
 #include "BaseQueue.h"
@@ -17,7 +17,7 @@ public:
     void SetSubCode(MACRO_SUB_CODE a_subCode) { m_subCode = a_subCode; }
     char HasSubMenu() const { return m_hasSubMenu; }
     virtual bool HasString() const { return false; }
-    const std::string& GetString() const { return 0; }
+    const std::string& GetString() const { return std::string(); }
 
 private:
     MACRO_CODE m_code = MC_NONE;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "BaseScreen.h"
 #include "../Gumps/GumpScreenSelectProfession.h"

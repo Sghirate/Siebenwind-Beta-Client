@@ -1,4 +1,4 @@
-﻿#include "GUIGenericText.h"
+#include "GUIGenericText.h"
 #include "GameVars.h"
 #include "../Config.h"
 #include "../DefinitionMacro.h"

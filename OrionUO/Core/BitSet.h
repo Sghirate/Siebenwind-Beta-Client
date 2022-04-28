@@ -140,7 +140,7 @@ struct DynamicBitSet
     {
         const u8 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
-        return (m_bytes && idx < m_byteCount) ? ((m_bytes[idx] & mask) == mask) : nullptr;
+        return (m_bytes && idx < m_byteCount) ? ((m_bytes[idx] & mask) == mask) : false;
     }
     inline void Set(int a_bit, bool a_value)
     {

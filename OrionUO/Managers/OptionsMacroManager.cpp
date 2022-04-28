@@ -1,4 +1,4 @@
-﻿#include "OptionsMacroManager.h"
+#include "OptionsMacroManager.h"
 #include "MacroManager.h"
 #include "../Macro.h"
 

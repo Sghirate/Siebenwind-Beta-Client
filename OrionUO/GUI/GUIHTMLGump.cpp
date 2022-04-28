@@ -1,4 +1,4 @@
-﻿#include "GUIHTMLGump.h"
+#include "GUIHTMLGump.h"
 #include "GUIHTMLResizepic.h"
 #include "GUIHTMLHitBox.h"
 #include "GUIHTMLSlider.h"

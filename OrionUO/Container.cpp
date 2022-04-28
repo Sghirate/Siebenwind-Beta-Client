@@ -1,4 +1,4 @@
-﻿#include "Container.h"
+#include "Container.h"
 #include "GameWindow.h"
 #include "OrionUO.h"
 #include "Managers/ConfigManager.h"

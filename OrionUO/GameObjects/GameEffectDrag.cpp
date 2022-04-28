@@ -1,4 +1,4 @@
-﻿#include "GameEffectDrag.h"
+#include "GameEffectDrag.h"
 #include "../Managers/EffectManager.h"
 #include "../GameObjects/GameEffectMoving.h"
 

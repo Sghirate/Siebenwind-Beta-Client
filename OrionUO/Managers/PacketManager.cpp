@@ -691,7 +691,7 @@ void CPacketManager::OnPacket()
             "PacketManager",
             "--- ^(%d) r(+%zd => %d) Server:: %s",
             ticks - g_LastPacketTime,
-            Size,
+            GetSize(),
             g_TotalRecvSize,
             info.Name);
 #endif

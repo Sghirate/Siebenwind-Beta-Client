@@ -1,4 +1,4 @@
-﻿#include "GUIExternalTexture.h"
+#include "GUIExternalTexture.h"
 #include "../Managers/ColorManager.h"
 
 CGUIExternalTexture::CGUIExternalTexture(

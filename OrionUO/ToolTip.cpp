@@ -1,4 +1,4 @@
-﻿#include "ToolTip.h"
+#include "ToolTip.h"
 #include "SelectedObject.h"
 #include "DefinitionMacro.h"
 #include "Managers/FontsManager.h"

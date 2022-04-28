@@ -1,4 +1,4 @@
-﻿#include "CustomHouseMultiObject.h"
+#include "CustomHouseMultiObject.h"
 
 CCustomHouseMultiObject::CCustomHouseMultiObject(
     u16 graphic, u16 color, short x, short y, char z, int flags)

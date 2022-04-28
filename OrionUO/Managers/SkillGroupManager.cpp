@@ -1,4 +1,4 @@
-﻿#include "SkillGroupManager.h"
+#include "SkillGroupManager.h"
 #include "Core/File.h"
 #include "Core/MappedFile.h"
 #include "GumpManager.h"

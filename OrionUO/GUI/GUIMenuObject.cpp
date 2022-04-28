@@ -1,4 +1,4 @@
-﻿#include "GUIMenuObject.h"
+#include "GUIMenuObject.h"
 #include "../OrionUO.h"
 #include "../SelectedObject.h"
 #include "../Managers/MouseManager.h"
