@@ -11,7 +11,6 @@ Dependencies/
 *.zip
 *.7z
 *.lnk
-*.txt
 *.cuo
 *.mul
 *.rle
@@ -58,9 +57,6 @@ Dependencies/
 !/test_bin64/*.exe
 !/test_bin64/*.pdb
 !/test_bin64/*.sf2
-!/WikiData/RU/*.txt
-!/CMakeLists.txt
-!/OrionUO/CMakeLists.txt
 /test_bin64/OrionUO.exe
 /test_bin64/OrionUO.pdb
 /bin/OrionUO.exe
