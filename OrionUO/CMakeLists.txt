@@ -312,7 +312,7 @@ set(orion_src
   Weather.cpp
   WeatherEffect.cpp
 
-  OrionMain.cpp
+  Main.cpp
   Platform.cpp
   Config.cpp
   SiebenwindClient.cpp
@@ -410,15 +410,15 @@ if (DEFINES_RELEASE)
   target_compile_definitions(OrionUO PUBLIC "$<$<CONFIG:RELEASE>:DEFINES_RELEASE>")
 endif()
 # Copy binaries
-if(ORION_WINDOWS)
-  set(BINS_COPY
-    ${BINS_BASE}
-    $<$<CONFIG:debug>:${BINS_DEBUG}>$<$<CONFIG:release>:${BINS_RELEASE}>)
-  if(BINS_COPY)
-    add_custom_command(TARGET OrionUO POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${BINS_COPY}" $<TARGET_FILE_DIR:OrionUO> COMMAND_EXPAND_LISTS)
-  endif()
-endif()
+# if(ORION_WINDOWS)
+#   set(BINS_COPY
+#     ${BINS_BASE}
+#     $<$<CONFIG:debug>:${BINS_DEBUG}>$<$<CONFIG:release>:${BINS_RELEASE}>)
+#   if(BINS_COPY)
+#     add_custom_command(TARGET OrionUO POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy "${BINS_COPY}" $<TARGET_FILE_DIR:OrionUO> COMMAND_EXPAND_LISTS)
+#   endif()
+# endif()
 
 if(ORION_WINDOWS)
   set_target_properties(OrionUO PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")

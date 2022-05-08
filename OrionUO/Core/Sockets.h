@@ -16,7 +16,7 @@ namespace Socket
 }
 struct TCPSocket
 {
-    typedef u64 THandle;
+    typedef i64 THandle;
 
     TCPSocket();
     ~TCPSocket();
@@ -40,7 +40,7 @@ private:
 
 struct ICMPSocket
 {
-    typedef u64 THandle;
+    typedef i64 THandle;
 
     ICMPSocket();
     ~ICMPSocket();

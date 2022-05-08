@@ -59,7 +59,7 @@ void Connection::Disconnect()
 
 bool Connection::ReadyRead()
 {
-    if (!m_connected || m_socket.IsOpen())
+    if (!m_connected || !m_socket.IsOpen())
     {
         return false;
     }

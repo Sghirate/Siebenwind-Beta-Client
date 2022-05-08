@@ -1,22 +1,55 @@
 #include "Main.h"
 #include "Core/Core.h"
+#include "Core/Window.h"
+#include "Config.h"
+#include "GameWindow.h"
 #include "OrionApplication.h"
+#include "SiebenwindClient.h"
+
+static bool g_isHeadless = false;
 
 int Main(int argc, char** argv)
 {
-    return 0;
-    // Core::ScopedCore core(argc, argv);
-    // g_app.Init(argc, argv);
-    // g_ConfigManager.Init();
+    Core::ScopedCore core(argc, argv);
+    if (!g_App.Init())
+        return EXIT_FAILURE;
+    LoadGlobalConfig();
 
-    // if (!g_sotWindow.Create("SoT", "SoT", true, 640, 480))
-    // {
-    //     LOG_F(ERROR, "Could not create game window!");
-    //     return -1;
-    // }
+    // TODO: good cli parsing api
+    // keep this simple for now just for travis-ci
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--headless") == 0)
+        {
+            g_isHeadless = true;
+        }
+        else if (strcmp(argv[i], "--nocrypt") == 0)
+        {
+            g_Config.EncryptionType = ET_NOCRYPT;
+        }
+    }
 
-    // int result = g_app.Run();
-    // return result;
+    if (!g_isHeadless)
+    {
+        Core::TWindowPosition pos;
+        Core::TWindowSize size(640, 480);
+        if (!g_gameWindow.Create(SiebenwindClient::GetWindowTitle().c_str(), pos, size))
+        {
+            LOG_WARNING("Game", "Failed to create client window. Fallbacking to headless mode.");
+            g_isHeadless = true;
+        }
+    }
+    g_ConfigManager.Init();
+
+    // FIXME: headless: lets end here so we can run on travis for now
+    if (g_isHeadless)
+    {
+        return EXIT_SUCCESS;
+    }
+
+    auto ret = g_App.Run();
+    g_App.Shutdown();
+    return ret;
 }
 
 #if (_WIN32)
@@ -72,6 +105,15 @@ WinArgs::~WinArgs()
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+{
+    WinArgs args;
+    if (!args.IsValid())
+        return -1;
+
+    return Main(args.GetArgc(), args.GetArgv());
+}
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     WinArgs args;
     if (!args.IsValid())

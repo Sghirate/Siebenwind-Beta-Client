@@ -52,23 +52,3 @@ inline constexpr T& operator^=(T& a, T b)
         static_cast<typename std::underlying_type<T>::type>(b));
     return a;
 }
-template<class T>
-inline constexpr bool operator==(const T a, const typename std::underlying_type<T>::type b)
-{
-    return static_cast<const typename std::underlying_type<T>::type>(a) == b;
-}
-template<class T>
-inline constexpr bool operator!=(const T a, const typename std::underlying_type<T>::type b)
-{
-    return static_cast<const typename std::underlying_type<T>::type>(a) != b;
-}
-template<class T>
-inline constexpr bool operator==(const typename std::underlying_type<T>::type b, const T a)
-{
-    return static_cast<const typename std::underlying_type<T>::type>(a) == b;
-}
-template<class T>
-inline constexpr bool operator!=(const typename std::underlying_type<T>::type b, const T a)
-{
-    return static_cast<const typename std::underlying_type<T>::type>(a) != b;
-}

@@ -487,13 +487,14 @@ void CGumpBook::InsertInContent(int key, bool isCharPress)
         }
         else
         {
+            Core::EKey ekey = (Core::EKey)key;
             if (page > 0)
             {
                 if (!WasAtEnd)
                 {
                     int pos = g_EntryPointer->Pos();
                     if (pos == g_EntryPointer->Length() &&
-                        (key == Core::EKey::Key_Right || key == Core::EKey::Key_End))
+                        (ekey == Core::EKey::Key_Right || ekey == Core::EKey::Key_End))
                     {
                         int nextpage = page + 1;
                         if (nextpage <= PageCount)
@@ -511,8 +512,8 @@ void CGumpBook::InsertInContent(int key, bool isCharPress)
                     }
                     else if (
                         pos == 0 &&
-                        (key == Core::EKey::Key_Left || key == Core::EKey::Key_Backspace ||
-                         key == Core::EKey::Key_Home))
+                        (ekey == Core::EKey::Key_Left || ekey == Core::EKey::Key_Backspace ||
+                         ekey == Core::EKey::Key_Home))
                     {
                         int previousPage = page - 2;
                         if (previousPage >= 0)
@@ -529,7 +530,7 @@ void CGumpBook::InsertInContent(int key, bool isCharPress)
                 {
                     WasAtEnd = false;
                 }
-                if (key == Core::EKey::Key_Backspace || key == Core::EKey::Key_Delete)
+                if (ekey == Core::EKey::Key_Backspace || ekey == Core::EKey::Key_Delete)
                 {
                     m_ChangedPage[page] = true;
                 }
