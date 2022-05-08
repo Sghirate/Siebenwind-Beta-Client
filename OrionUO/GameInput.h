@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Minimal.h"
+#include "Core/Input.h"
 
 struct GameInput
 {
@@ -11,6 +12,7 @@ struct GameInput
 
     bool IsInputPossible() const;
 
+    void OnMouseMove(const Core::Vec2<i32>& pos);
     void OnLeftMouseButtonDown(const Core::Vec2<i32>& a_pos);
     void OnLeftMouseButtonUp(const Core::Vec2<i32>& a_pos);
     void OnLeftMouseButtonDoubleClick(const Core::Vec2<i32>& a_pos);
@@ -21,6 +23,9 @@ struct GameInput
     void OnMidMouseButtonUp(const Core::Vec2<i32>& a_pos);
     void OnMidMouseButtonDoubleClick(const Core::Vec2<i32>& a_pos);
     void OnMidMouseButtonScroll(const Core::Vec2<i32>& a_pos, i8 a_delta);
+    void OnKeyDown(const Core::KeyEvent& a_event);
+    void OnKeyUp(const Core::KeyEvent& a_event);
+    void OnText(const Core::TextEvent& a_event);
 
 private:
     GameInput();

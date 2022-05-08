@@ -35,6 +35,8 @@ public:
 };
 struct SDL2Keyboard : public IKeyboard
 {
+    static EScanCode SDLScanCodeToCoreScanCode(i32 a_scanCode);
+    static i32 CoreScanCodeToSDLScanCode(EScanCode a_scanCode);
     static EKey SDLKeyToCoreKey(i32 a_key);
     static i32 CoreKeyToSDLKey(EKey a_key);
 

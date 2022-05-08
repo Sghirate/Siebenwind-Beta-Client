@@ -12,20 +12,28 @@
 namespace
 {
 
-struct GameInputHandler : public Core::IMouseListener
+struct GameInputHandler : public Core::IMouseListener, public Core::IKeyboardListener
 {
-    void Register() { Core::Input::RegisterMouseListener(this); }
-    void Unregister() { Core::Input::UnregisterMouseListener(this); }
+    void Register()
+    {
+        Core::Input::RegisterMouseListener(this);
+        Core::Input::RegisterKeyboardListener(this);
+    }
+    void Unregister()
+    {
+        Core::Input::UnregisterKeyboardListener(this);
+        Core::Input::UnregisterMouseListener(this);
+    }
 
     void OnMouseEvent(const Core::MouseEvent& ev) override
     {
         if (ev.focus != &g_gameWindow)
             return;
 
-        switch(ev.type)
+        switch (ev.type)
         {
             case Core::EMouseEventType::Button:
-                switch(ev.button.button)
+                switch (ev.button.button)
                 {
                     case Core::EMouseButton::Button_Left:
                         if (ev.button.state)
@@ -75,6 +83,23 @@ struct GameInputHandler : public Core::IMouseListener
             default: break;
         }
     }
+    void OnKeyboardEvent(const Core::KeyEvent& ev) override
+    {
+        if (ev.focus != &g_gameWindow)
+            return;
+
+        if (ev.state)
+            GameInput::Get().OnKeyDown(ev);
+        else
+            GameInput::Get().OnKeyUp(ev);
+    }
+    void OnTextEvent(const Core::TextEvent& ev) override
+    {
+        if (ev.focus != &g_gameWindow)
+            return;
+
+        GameInput::Get().OnText(ev);
+    }
 } g_gameInputHandler;
 
 } // namespace
@@ -106,6 +131,15 @@ void GameInput::Shutdown()
 bool GameInput::IsInputPossible() const
 {
     return g_CurrentScreen != nullptr && g_ScreenEffectManager.Mode == SEM_NONE;
+}
+
+void GameInput::OnMouseMove(const Core::Vec2<i32>& pos)
+{
+    static bool dragging = false;
+    if (dragging && IsInputPossible())
+    {
+        g_CurrentScreen->OnDragging();
+    }
 }
 
 void GameInput::OnLeftMouseButtonDown(const Core::Vec2<i32>& a_pos)
@@ -250,5 +284,47 @@ void GameInput::OnMidMouseButtonScroll(const Core::Vec2<i32>& a_pos, i8 a_delta)
     {
         g_CurrentScreen->SelectObject();
         g_CurrentScreen->OnMidMouseButtonScroll(a_delta > 0);
+    }
+}
+
+void GameInput::OnKeyDown(const Core::KeyEvent& a_event)
+{
+    if (IsInputPossible())
+    {
+        g_CurrentScreen->OnKeyDown(a_event);
+    }
+    // TODO:
+    // else if (ch == 0x16 && g_EntryPointer != nullptr)
+    // {
+    //     if (g_GameState == GS_MAIN)
+    //     {
+    //         g_MainScreen.Paste();
+    //     }
+    //     else
+    //     {
+    //         g_EntryPointer->Paste();
+    //     }
+    // }
+}
+
+void GameInput::OnKeyUp(const Core::KeyEvent& a_event)
+{
+    if (IsInputPossible())
+    {
+        g_CurrentScreen->OnKeyUp(a_event);
+    }
+    // TODO:
+    // const auto key = EvKey(ev);
+    // if (key == KEY_PRINTSCREEN)
+    // {
+    //     g_ScreenshotBuilder.SaveScreen();
+    // }
+}
+
+void GameInput::OnText(const Core::TextEvent& a_event)
+{
+    if (IsInputPossible())
+    {
+        g_CurrentScreen->OnTextInput(a_event);
     }
 }

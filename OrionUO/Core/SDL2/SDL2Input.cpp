@@ -27,6 +27,17 @@ u8 SDL2Mouse::CoreButtonToSDLButton(EMouseButton a_button)
     }
 }
 
+EScanCode SDL2Keyboard::SDLScanCodeToCoreScanCode(i32 a_scanCode)
+{
+    // SDL should be a direct 1:1 mapping!
+    return (EScanCode)a_scanCode;
+}
+
+i32 SDL2Keyboard::CoreScanCodeToSDLScanCode(EScanCode a_scanCode)
+{
+    return (i32)a_scanCode;
+}
+
 EKey SDL2Keyboard::SDLKeyToCoreKey(i32 a_key)
 {
     // SDL should be a direct 1:1 mapping!
@@ -71,6 +82,13 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
 
         switch (a_event->type)
         {
+        case SDL_MOUSEMOTION:
+        {
+            ev.type = EMouseEventType::Motion;
+
+            for (IMouseListener* listener : m_mouseListeners)
+                listener->OnMouseEvent(ev);
+        } break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
         {
@@ -109,8 +127,29 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
         {
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-            
-            break;
+        {
+            KeyEvent keyEvent;
+            keyEvent.focus = SDL2Window::GetWindow(a_event->motion.windowID);
+            keyEvent.scancode = SDL2Keyboard::SDLScanCodeToCoreScanCode(a_event->key.keysym.scancode);
+            keyEvent.key = SDL2Keyboard::SDLKeyToCoreKey(a_event->key.keysym.sym);
+            //keyEvent.mod = EModifier::None;
+            keyEvent.repeat = a_event->key.repeat;
+            keyEvent.state = a_event->key.state == SDL_PRESSED;
+
+            for (IKeyboardListener* listener : m_keyboardListeners)
+                listener->OnKeyboardEvent(keyEvent);
+        } break;
+
+        case SDL_TEXTINPUT:
+        {
+            TextEvent textEvent;
+            textEvent.focus = SDL2Window::GetWindow(a_event->motion.windowID);
+            textEvent.length = SDL_TEXTINPUTEVENT_TEXT_SIZE;
+            textEvent.text = a_event->text.text;
+
+            for (IKeyboardListener* listener : m_keyboardListeners)
+                listener->OnTextEvent(textEvent);
+        } break;
         
         default:
             break;

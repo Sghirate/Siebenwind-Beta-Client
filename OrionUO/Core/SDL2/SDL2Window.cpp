@@ -159,7 +159,10 @@ bool Window::IsMaximized() const
 void Window::Maximize()
 {
     if (m_handle)
+    {
+        SDL_RestoreWindow(static_cast<SDL_Window*>(m_handle));
         SDL_MaximizeWindow(static_cast<SDL_Window*>(m_handle));
+    }
 }
 
 bool Window::IsBorderless() const

@@ -31,6 +31,7 @@ enum class EMouseEventType
     Unknown = 0,
     Button,
     Wheel,
+    Motion,
 };
 struct MouseButtonEvent
 {
@@ -82,11 +83,14 @@ struct KeyEvent
 };
 struct TextEvent
 {
+    struct Window* focus;
+    u32 length;
     char* text;
 };
 struct IKeyboardListener
 {
     virtual void OnKeyboardEvent(const Core::KeyEvent& ev) = 0;
+    virtual void OnTextEvent(const Core::TextEvent& ev) = 0;
 };
 struct IKeyboard
 {
