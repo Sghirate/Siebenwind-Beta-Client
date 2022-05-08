@@ -31,5 +31,6 @@ struct Config
 
 void LoadGlobalConfig();
 void SaveGlobalConfig();
+void ClientVersionFixup(u32 a_version);
 
 extern Config g_Config;

@@ -199,17 +199,17 @@ bool CSocket::Connect(const std::string &address, u16 port)
     return true;
 }
 
-std::vector<u8> CSocket::Decompression(std::vector<u8> data)
+std::vector<u8> CSocket::Decompress(std::vector<u8> a_data)
 {
     if (GameSocket)
     {
-        auto inSize = (intptr_t)data.size();
-        Crypt::Decrypt(&data[0], &data[0], (int)inSize);
+        auto inSize = (intptr_t)a_data.size();
+        Crypt::Decrypt(&a_data[0], &a_data[0], (int)inSize);
 
         std::vector<u8> decBuf(inSize * 4 + 2);
         int outSize = 65536;
-        m_Decompressor((char *)&decBuf[0], (char *)&data[0], outSize, inSize);
-        if (inSize != data.size())
+        m_Decompressor((char *)&decBuf[0], (char *)&a_data[0], outSize, inSize);
+        if (inSize != a_data.size())
         {
             LOG_ERROR("Socket", "decompression buffer too small");
             Disconnect();
@@ -220,5 +220,5 @@ std::vector<u8> CSocket::Decompression(std::vector<u8> data)
         }
         return decBuf;
     }
-    return data;
+    return a_data;
 }

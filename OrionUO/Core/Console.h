@@ -147,8 +147,8 @@ struct ConsoleVariable final : public BaseConsoleVariable
         ConsoleInit a_initCallback               = nullptr);
     ConsoleVariable(
         const char* a_name,
-        const char* a_description,
         TValue a_defaultValue,
+        const char* a_description,
         ConsoleFlags a_flags                     = ConsoleFlags::None,
         ConsoleVariableChanged a_changedCallback = nullptr,
         ConsoleInit a_initCallback               = nullptr);
@@ -181,8 +181,8 @@ ConsoleVariable<TValue>::ConsoleVariable(
 template <typename TValue>
 ConsoleVariable<TValue>::ConsoleVariable(
     const char* a_name,
-    const char* a_description,
     TValue a_defaultValue,
+    const char* a_description,
     ConsoleFlags a_flags /*= ConsoleFlags::None*/,
     ConsoleVariableChanged a_changedCallback /*= nullptr*/,
     ConsoleInit a_initCallback /*= nullptr*/)

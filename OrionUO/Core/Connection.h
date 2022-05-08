@@ -22,7 +22,7 @@ struct Connection
     int GetDataReady() const { return m_dataReady; }
     struct PacketMessage* GetMessageParser() const { return m_messageParser; }
 
-    virtual std::vector<u8> Decompress(const std::vector<u8>& a_data) { return a_data; }
+    virtual std::vector<u8> Decompress(std::vector<u8> a_data) { return a_data; }
 
     bool Read(int a_maxSize = 0x1000);
 

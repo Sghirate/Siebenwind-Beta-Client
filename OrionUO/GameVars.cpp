@@ -1,4 +1,5 @@
 #include "GameVars.h"
+#include "Config.h"
 #include "plugin/enumlist.h"
 #include <cstring>
 
@@ -26,6 +27,7 @@ static u32 ClientVersionFromString(const std::string& a_string)
 static void OnClientVersionChanged()
 {
     g_clientVersion = ClientVersionFromString(uo_client_version.GetValue());
+    ClientVersionFixup(g_clientVersion);
 }
 } // <anonymous> namespace
 

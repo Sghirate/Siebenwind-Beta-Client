@@ -186,6 +186,76 @@ static void SetClientCrypt(u32 version)
     }
 }
 
+static CLIENT_FLAG GetClientType(uint32_t version)
+{
+    if (version < CV_200)
+    {
+        return CF_T2A;
+    }
+    if (version < CV_300)
+    {
+        return CF_RE;
+    }
+    if (version < CV_308)
+    {
+        return CF_TD;
+    }
+    if (version < CV_308Z)
+    {
+        return CF_LBR;
+    }
+    if (version < CV_405A)
+    {
+        // >=3.0.8z
+        return CF_AOS;
+    }
+    if (version < CV_60144)
+    {
+        return CF_SE;
+    }
+    return CF_SA;
+}
+
+void ClientVersionFixup(u32 a_version)
+{
+    //SetClientVersion(versionStr);
+    SetClientCrypt(a_version);
+
+    const bool useVerdata = a_version < CV_500A;
+    const auto clientType = GetClientType(a_version);
+
+    if (a_version < CV_500A)
+    {
+        g_MapSize[0].x = 6144;
+        g_MapSize[1].x = 6144;
+    }
+
+    if (!g_Config.UseCrypt)
+    {
+        g_Config.EncryptionType = ET_NOCRYPT;
+    }
+
+    if (a_version >= CV_70331)
+    {
+        g_MaxViewRange = MAX_VIEW_RANGE_NEW;
+    }
+    else
+    {
+        g_MaxViewRange = MAX_VIEW_RANGE_OLD;
+    }
+
+    g_PacketManager.ConfigureClientVersion(a_version);
+
+    if (!s_Mark.ClientFlag)
+    {
+        g_Config.ClientFlag = clientType;
+    }
+    if (!s_Mark.UseVerdata)
+    {
+        g_Config.UseVerdata = useVerdata;
+    }
+}
+
 void LoadGlobalConfig()
 {
 

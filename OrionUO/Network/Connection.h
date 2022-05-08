@@ -24,5 +24,5 @@ public:
     ~CSocket();
 
     virtual bool Connect(const std::string &address, u16 port);
-    virtual std::vector<u8> Decompression(std::vector<u8> data);
+    std::vector<u8> Decompress(std::vector<u8> a_data) override;
 };
