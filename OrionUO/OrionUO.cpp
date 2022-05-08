@@ -1207,7 +1207,7 @@ void COrion::Process(bool rendering)
                 g_GameScreen.RenderListInitalized = true;
                 g_SelectedObject.Clear();
                 g_SelectedGameObjectHandle = 0;
-                if (!g_gameWindow.IsMaximized())
+                if (!g_gameWindow.IsMinimized())
                 {
                     if (canRenderSelect)
                     {
