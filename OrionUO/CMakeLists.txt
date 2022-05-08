@@ -46,7 +46,6 @@ if(ORION_WITH_SDL2)
     Core/SDL2/SDL2Input.cpp
     Core/SDL2/SDL2Platform.cpp
     Core/SDL2/SDL2Thread.cpp
-    Core/SDL2/SDL2Util.cpp
     Core/SDL2/SDL2Window.cpp
   )
 endif()

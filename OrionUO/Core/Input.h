@@ -90,7 +90,7 @@ struct TextEvent
 struct IKeyboardListener
 {
     virtual void OnKeyboardEvent(const Core::KeyEvent& ev) = 0;
-    virtual void OnTextEvent(const Core::TextEvent& ev) = 0;
+    virtual void OnTextEvent(const Core::TextEvent& ev)    = 0;
 };
 struct IKeyboard
 {
@@ -99,8 +99,117 @@ struct IKeyboard
 // ~KEYBOARD
 
 // GAMEPAD
+enum class EGamepadAxis
+{
+    Unknown = -1,
+
+    LeftX,
+    LeftY,
+    RightX,
+    RightY,
+    LeftTrigger,
+    RightTrigger,
+
+    COUNT
+};
+enum class EGamepadStick
+{
+    Unknown = -1,
+
+    Left,
+    Right,
+
+    COUNT
+};
+enum class EGamepadTrigger
+{
+    Unknown = -1,
+
+    Left,
+    Right,
+
+    COUNT
+};
+enum class EGamepadButton
+{
+    Unknown = -1,
+
+    A,
+    B,
+    X,
+    Y,
+    Back,
+    Guide,
+    Start,
+    LeftStick,
+    RightStick,
+    LeftShoulder,
+    RightShoulder,
+    DPadUp,
+    DPadDown,
+    DPadLeft,
+    DPadRight,
+    Misc1,
+    Paddle1,
+    Paddle2,
+    Paddle3,
+    Paddle4,
+    TouchPad,
+
+    COUNT
+};
+enum class EGamepadEventType
+{
+    Unknown = 0,
+    Axis,
+    Button,
+    Device,
+    // TouchPad,
+    // Sensor,
+};
+enum class EGamepadDeviceState
+{
+    Unknown = 0,
+    Added,
+    Removed,
+    Remapped,
+};
+struct GamepadAxisEvent
+{
+    EGamepadAxis axis;
+    float value;
+};
+struct GamepadButtonEvent
+{
+    EGamepadButton button;
+    bool state;
+};
+struct GamepadDeviceEvent
+{
+    EGamepadDeviceState typestate;
+};
+struct GamepadEvent
+{
+    EGamepadEventType type;
+    u8 gamepadIndex;
+    union
+    {
+        GamepadAxisEvent axis;
+        GamepadButtonEvent button;
+        GamepadDeviceEvent device;
+    };
+};
+struct IGamepadListener
+{
+    virtual void OnGamepadEvent(const Core::GamepadEvent& ev) = 0;
+};
 struct IGamepad
 {
+    virtual ~IGamepad() {}
+
+    virtual Vec2<float> GetStickValues(EGamepadStick a_stick) const = 0;
+    virtual float GetTriggerValue(EGamepadTrigger a_trigger) const  = 0;
+    virtual bool IsButtonPressed(EGamepadButton a_button) const   = 0;
 };
 // ~GAMEPAD
 
@@ -119,6 +228,8 @@ struct Input
     static void UnregisterMouseListener(IMouseListener* a_listener);
     static void RegisterKeyboardListener(IKeyboardListener* a_listener);
     static void UnregisterKeyboardListener(IKeyboardListener* a_listener);
+    static void RegisterGamepadListener(IGamepadListener* a_listener);
+    static void UnregisterGamepadListener(IGamepadListener* a_listener);
 };
 
 } // namespace Core

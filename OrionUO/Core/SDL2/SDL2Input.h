@@ -50,8 +50,35 @@ public:
     BitSet<128> m_keys;
 };
 
+struct SDL2Gamepad : public IGamepad
+{
+    static EGamepadAxis SDLAxisToCoreAxis(int a_axis);
+    static int CoreAxisToSDLAxis(EGamepadAxis a_axis);
+    static EGamepadButton SDLButtonToCoreButton(int a_button);
+    static int CoreButtonToSDLButton(EGamepadButton a_button);
+
+    SDL2Gamepad() { Reset(); }
+    ~SDL2Gamepad() {}
+
+    void Reset();
+
+    // IGamepad
+    Vec2<float> GetStickValues(EGamepadStick a_stick) const override { return sticks[(size_t)a_stick]; }
+    float GetTriggerValue(EGamepadTrigger a_trigger) const override { return triggers[(size_t)a_trigger]; }
+    bool IsButtonPressed(EGamepadButton a_button) const override { return buttons.Get((size_t)a_button); }
+    // ~IGamepad
+
+public:
+    Vec2<float> sticks[(size_t)EGamepadStick::COUNT];
+    float triggers[(size_t)EGamepadTrigger::COUNT];
+    BitSet<(size_t)EGamepadButton::COUNT> buttons;
+    void* handle = nullptr;
+};
+
 struct SDL2Input
 {
+    enum { kMaxGamepads = 8 };
+
     static SDL2Input& Get();
 
     void Init();
@@ -62,17 +89,23 @@ struct SDL2Input
     const SDL2Mouse& GetMouse() const { return m_mouse; }
     SDL2Keyboard& GetKeyboard() { return m_keyboard; }
     const SDL2Keyboard& GetKeyboard() const { return m_keyboard; }
+    SDL2Gamepad& GetGamepad(u8 a_gamepadIndex) { return m_gamepads[a_gamepadIndex]; }
+    const SDL2Gamepad& GetGamepad(u8 a_gamepadIndex) const { return m_gamepads[a_gamepadIndex]; }
 
     void RegisterMouseListener(IMouseListener* a_listener) { m_mouseListeners.push_back(a_listener); }
     void UnregisterMouseListener(IMouseListener* a_listener) { m_mouseListeners.erase(std::remove(m_mouseListeners.begin(), m_mouseListeners.end(), a_listener), m_mouseListeners.end()); }
     void RegisterKeyboardListener(IKeyboardListener* a_listener) { m_keyboardListeners.push_back(a_listener); }
     void UnregisterKeyboardListener(IKeyboardListener* a_listener) { m_keyboardListeners.erase(std::remove(m_keyboardListeners.begin(), m_keyboardListeners.end(), a_listener), m_keyboardListeners.end()); }
+    void RegisterGamepadListener(IGamepadListener* a_listener) { m_gamepadListeners.push_back(a_listener); }
+    void UnregisterGamepadListener(IGamepadListener* a_listener) { m_gamepadListeners.erase(std::remove(m_gamepadListeners.begin(), m_gamepadListeners.end(), a_listener), m_gamepadListeners.end()); }
 
 private:
     SDL2Mouse m_mouse;
     SDL2Keyboard m_keyboard;
+    SDL2Gamepad m_gamepads[kMaxGamepads];
     std::vector<IMouseListener*> m_mouseListeners;
     std::vector<IKeyboardListener*> m_keyboardListeners;
+    std::vector<IGamepadListener*> m_gamepadListeners;
 };
 
 } // namespace Core

@@ -12,15 +12,17 @@
 namespace
 {
 
-struct GameInputHandler : public Core::IMouseListener, public Core::IKeyboardListener
+struct GameInputHandler : public Core::IMouseListener, public Core::IKeyboardListener, public Core::IGamepadListener
 {
     void Register()
     {
         Core::Input::RegisterMouseListener(this);
         Core::Input::RegisterKeyboardListener(this);
+        Core::Input::RegisterGamepadListener(this);
     }
     void Unregister()
     {
+        Core::Input::UnregisterGamepadListener(this);
         Core::Input::UnregisterKeyboardListener(this);
         Core::Input::UnregisterMouseListener(this);
     }
@@ -99,6 +101,9 @@ struct GameInputHandler : public Core::IMouseListener, public Core::IKeyboardLis
             return;
 
         GameInput::Get().OnText(ev);
+    }
+    void OnGamepadEvent(const Core::GamepadEvent& ev) override
+    {
     }
 } g_gameInputHandler;
 

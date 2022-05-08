@@ -46,6 +46,67 @@
 #include "TextEngine/GameConsole.h"
 #include "TextEngine/TextData.h"
 
+namespace 
+{
+
+static int Sgn(int val)
+{
+    return static_cast<int>(0 < val) - static_cast<int>(val < 0);
+}
+static int GetFacing(int shiftX, int shiftY, int current_facing)
+{
+    int hashf  = 100 * (Sgn(shiftX) + 2) + 10 * (Sgn(shiftY) + 2);
+    if ((shiftX != 0) && (shiftY != 0))
+    {
+        shiftX = std::abs(shiftX);
+        shiftY = std::abs(shiftY);
+
+        if ((shiftY * 5) <= (shiftX * 2))
+        {
+            hashf = hashf + 1;
+        }
+        else if ((shiftY * 2) >= (shiftX * 5))
+        {
+            hashf = hashf + 3;
+        }
+        else
+        {
+            hashf = hashf + 2;
+        }
+    }
+    else if (shiftX == 0)
+    {
+        if (shiftY == 0)
+        {
+            return current_facing;
+        }
+    }
+    switch (hashf)
+    {
+        case 111: return DT_W;  // W
+        case 112: return DT_NW; // NW
+        case 113: return DT_N;  // N
+        case 120: return DT_W;  // W
+        case 131: return DT_W;  // W
+        case 132: return DT_SW; // SW
+        case 133: return DT_S;  // S
+        case 210: return DT_N;  // N
+        case 230: return DT_S;  // S
+        case 311: return DT_E;  // E
+        case 312: return DT_NE; // NE
+        case 313: return DT_N;  // N
+        case 320: return DT_E;  // E
+        case 331: return DT_E;  // E
+        case 332: return DT_SE; // SE
+        case 333: return DT_S;  // S
+        default: break;
+    }
+
+    return current_facing;
+}
+
+}
+
 CGameScreen g_GameScreen;
 RENDER_VARIABLES_FOR_GAME_WINDOW g_RenderBounds;
 
@@ -1697,6 +1758,21 @@ void CGameScreen::PrepareContent()
             }
         }
     }
+
+    if (!g_PathFinder.AutoWalking)
+    {
+        Core::IGamepad* gamepad = Core::Input::GetGamepad(0);
+        Core::Vec2<float> stick = gamepad->GetStickValues(Core::EGamepadStick::Left);
+        int shiftX = (int)(stick.x * 1000.0f);
+        int shiftY = (int)(stick.y * 1000.0f);
+        if (stick.length() > 0.2f)
+        {
+            int dir =  GetFacing(shiftX, shiftY, 1);
+            if (dir == 0)
+                dir = 8;
+            g_PathFinder.Walk(stick.length() > 0.75f, dir - 1);
+        }
+    }
 }
 
 void CGameScreen::PreRender()
@@ -1858,13 +1934,19 @@ void CGameScreen::Render()
     {
         char dbf[100] = { 0 };
 
+        Core::TMousePos pos = g_MouseManager.GetPosition();
+        Core::IGamepad* gamepad = Core::Input::GetGamepad(0);
+        Core::Vec2<float> leftStick = gamepad->GetStickValues(Core::EGamepadStick::Left);
+
         sprintf_s(
             dbf,
-            "FPS=%i (%ims) scale=%.1f\n%s",
+            "FPS=%i (%ims) scale=%.1f\n%s\nX=%i , Y=%i\nX=%f , Y = %f",
             FPScount,
             g_FrameDelay[WINDOW_ACTIVE],
             g_GlobalScale,
-            g_Orion.GetPingString().c_str());
+            g_Orion.GetPingString().c_str(),
+            pos.x, pos.y,
+            leftStick.x, leftStick.y);
 
         g_FontManager.DrawA(
             3,

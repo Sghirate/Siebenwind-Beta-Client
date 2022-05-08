@@ -1,6 +1,5 @@
 #include "Core/SDL2/SDL2Window.h"
 #include "Core/SDL2/SDL2Input.h"
-#include "Core/SDL2/SDL2Util.h"
 #include "Core/Log.h"
 #include <SDL.h>
 #include <list>
@@ -11,7 +10,7 @@ namespace Core
 static const char* CORE_WINDOW_DATA_NAME = "core_window";
 
 Window::Window()
-     : m_handle(nullptr)
+    : m_handle(nullptr)
 {
 }
 
@@ -120,12 +119,15 @@ void Window::SetTitle(const char* a_title)
 void Window::SetIsResizeable(bool a_resizeable)
 {
     if (m_handle)
-        SDL_SetWindowResizable(static_cast<SDL_Window*>(m_handle), a_resizeable ? SDL_TRUE : SDL_FALSE);
+        SDL_SetWindowResizable(
+            static_cast<SDL_Window*>(m_handle), a_resizeable ? SDL_TRUE : SDL_FALSE);
 }
 
 bool Window::IsActive() const
 {
-    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_INPUT_FOCUS) == SDL_WINDOW_INPUT_FOCUS : false;
+    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) &
+                       SDL_WINDOW_INPUT_FOCUS) == SDL_WINDOW_INPUT_FOCUS :
+                      false;
 }
 
 bool Window::HasMouseFocus() const
@@ -142,7 +144,9 @@ bool Window::HasKeyboardFocus() const
 
 bool Window::IsMinimized() const
 {
-    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_MINIMIZED) == SDL_WINDOW_MINIMIZED : false;
+    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) &
+                       SDL_WINDOW_MINIMIZED) == SDL_WINDOW_MINIMIZED :
+                      false;
 }
 
 void Window::Minimize()
@@ -153,7 +157,9 @@ void Window::Minimize()
 
 bool Window::IsMaximized() const
 {
-    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_MAXIMIZED) == SDL_WINDOW_MAXIMIZED : false;
+    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) &
+                       SDL_WINDOW_MAXIMIZED) == SDL_WINDOW_MAXIMIZED :
+                      false;
 }
 
 void Window::Maximize()
@@ -167,18 +173,23 @@ void Window::Maximize()
 
 bool Window::IsBorderless() const
 {
-    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_BORDERLESS) == SDL_WINDOW_BORDERLESS : false;
+    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) &
+                       SDL_WINDOW_BORDERLESS) == SDL_WINDOW_BORDERLESS :
+                      false;
 }
 
 void Window::SetBorderless(bool a_borderless)
 {
     if (m_handle)
-        SDL_SetWindowBordered(static_cast<SDL_Window*>(m_handle), a_borderless ? SDL_FALSE : SDL_TRUE);
+        SDL_SetWindowBordered(
+            static_cast<SDL_Window*>(m_handle), a_borderless ? SDL_FALSE : SDL_TRUE);
 }
 
 bool Window::IsVisible() const
 {
-    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_SHOWN) == SDL_WINDOW_SHOWN : false;
+    return m_handle ? (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_SHOWN) ==
+                          SDL_WINDOW_SHOWN :
+                      false;
 }
 
 void Window::Show()
@@ -234,105 +245,131 @@ void Window::OnDestroy()
         m_handle = nullptr;
     }
 }
-void Window::OnResized() {}
-void Window::OnDragging() {}
-void Window::OnActivation(bool a_isActive) {}
-void Window::OnVisibility(bool a_isVisible) {}
+void Window::OnResized()
+{
+}
+void Window::OnDragging()
+{
+}
+void Window::OnActivation(bool a_isActive)
+{
+}
+void Window::OnVisibility(bool a_isVisible)
+{
+}
 
 namespace SDL2Window
 {
 
-u32 GetWindowID(Window* a_window)
-{
-    SDL_Window* sdlWindow = a_window ? static_cast<SDL_Window*>(a_window->GetHandle()) : nullptr;
-    return sdlWindow ? SDL_GetWindowID(sdlWindow) : 0;
-}
-
-Window* GetWindow(u32 a_id)
-{
-    SDL_Window* sdlWindow = SDL_GetWindowFromID(a_id);
-    Window* window = sdlWindow ? static_cast<Window*>(SDL_GetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME)) : nullptr;
-    return window;
-}
-
-void HandleEvent(union SDL_Event* a_event)
-{
-    if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_QUIT))
+    u32 GetWindowID(Window* a_window)
     {
-        // TODO: Handle
-        
+        SDL_Window* sdlWindow =
+            a_window ? static_cast<SDL_Window*>(a_window->GetHandle()) : nullptr;
+        return sdlWindow ? SDL_GetWindowID(sdlWindow) : 0;
     }
-    else if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_USER))
+
+    Window* GetWindow(u32 a_id)
     {
-        switch (a_event->user.code)
+        SDL_Window* sdlWindow = SDL_GetWindowFromID(a_id);
+        Window* window =
+            sdlWindow ? static_cast<Window*>(SDL_GetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME)) :
+                        nullptr;
+        return window;
+    }
+
+    void HandleEvent(union SDL_Event* a_event)
+    {
+        switch (a_event->type)
         {
+            //case SDL_APP_TERMINATING:
+            //case SDL_APP_LOWMEMORY:
+            //case SDL_APP_WILLENTERBACKGROUND:
+            //case SDL_APP_DIDENTERBACKGROUND:
+            //case SDL_APP_WILLENTERFOREGROUND:
+            //case SDL_APP_DIDENTERFOREGROUND:
             case SDL_QUIT:
             {
-                if (a_event->user.data1 && a_event->user.data2)
+                // TODO: Handle
+            }
+            break;
+            case SDL_USEREVENT:
+            {
+                switch (a_event->user.code)
                 {
-                    Window* window = (Window*)a_event->user.data1;
-                    window->OnDestroy();
+                    case SDL_QUIT:
+                    {
+                        if (a_event->user.data1 && a_event->user.data2)
+                        {
+                            Window* window = (Window*)a_event->user.data1;
+                            window->OnDestroy();
+                        }
+                    }
+                    break;
+                    default: break;
+                }
+            }
+            break;
+            case SDL_WINDOWEVENT:
+            {
+                SDL_Window* sdlWindow = SDL_GetWindowFromID(a_event->window.windowID);
+                Window* window        = sdlWindow ?
+                                            (Window*)SDL_GetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME) :
+                                            nullptr;
+                if (window && window->GetHandle() == sdlWindow)
+                {
+                    switch (a_event->window.event)
+                    {
+                        case SDL_WINDOWEVENT_CLOSE:
+                        {
+                            window->OnDestroy();
+                        }
+                        break;
+                        case SDL_WINDOWEVENT_SHOWN:
+                        {
+                            window->OnVisibility(true);
+                            window->OnActivation(true);
+                        }
+                        break;
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        case SDL_WINDOWEVENT_RESIZED:
+                        {
+                            window->OnResized();
+                        }
+                        break;
+                        case SDL_WINDOWEVENT_MAXIMIZED:
+                        {
+                            window->OnResized();
+                        }
+                        break;
+                        case SDL_WINDOWEVENT_RESTORED:
+                        {
+                            int x, y, borderH = 0;
+#if SDL_VERSION_ATLEAST(2, 0, 5)
+                            SDL_GetWindowBordersSize(
+                                sdlWindow, &borderH, nullptr, nullptr, nullptr);
+#endif
+                            SDL_GetWindowPosition(sdlWindow, &x, &y);
+                            SDL_SetWindowPosition(sdlWindow, x, Core::Max(y, borderH));
+                            window->OnResized();
+                        }
+                        break;
+
+                        case SDL_WINDOWEVENT_HIDDEN:
+                        {
+                            window->OnVisibility(false);
+                            window->OnActivation(false);
+                        }
+                        break;
+
+                        default: break;
+                    }
                 }
             }
             break;
             default: break;
         }
     }
-    else if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_WINDOW))
-    {
-        SDL_Window* sdlWindow = SDL_GetWindowFromID(a_event->window.windowID);
-        Window* window = sdlWindow ? (Window*)SDL_GetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME) : nullptr;
-        if (window && window->GetHandle() == sdlWindow)
-        {
-            switch (a_event->window.event)
-            {
-                case SDL_WINDOWEVENT_CLOSE:
-                {
-                    window->OnDestroy();
-                }
-                break;
-                case SDL_WINDOWEVENT_SHOWN:
-                {
-                    window->OnVisibility(true);
-                    window->OnActivation(true);
-                }
-                break;
-                case SDL_WINDOWEVENT_SIZE_CHANGED:
-                case SDL_WINDOWEVENT_RESIZED:
-                {
-                    window->OnResized();
-                }
-                break;
-                case SDL_WINDOWEVENT_MAXIMIZED:
-                {
-                    window->OnResized();
-                }
-                break;
-                case SDL_WINDOWEVENT_RESTORED:
-                {
-                    int x, y, borderH = 0;
-#if SDL_VERSION_ATLEAST(2, 0, 5)
-                    SDL_GetWindowBordersSize(sdlWindow, &borderH, nullptr, nullptr, nullptr);
-#endif
-                    SDL_GetWindowPosition(sdlWindow, &x, &y);
-                    SDL_SetWindowPosition(sdlWindow, x, Core::Max(y, borderH));
-                    window->OnResized();
-                }
-                break;
 
-                case SDL_WINDOWEVENT_HIDDEN:
-                {
-                    window->OnVisibility(false);
-                    window->OnActivation(false);
-                }
-                break;
-            
-                default: break;
-            }
-        }
-    }
-}
-
-};
+}; // namespace SDL2Window
 
 } // namespace Core
