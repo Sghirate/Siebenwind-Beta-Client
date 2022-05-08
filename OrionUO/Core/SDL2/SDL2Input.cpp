@@ -72,19 +72,20 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
     if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_MOUSE))
     {
         m_mouse.m_focus = a_event->motion.windowID;
-        m_mouse.m_position.x = a_event->motion.x;
-        m_mouse.m_position.y = a_event->motion.y;
 
         MouseEvent ev {};
         ev.mouseIndex = a_event->motion.which;
         ev.focus = SDL2Window::GetWindow(a_event->motion.windowID);
-        ev.pos = m_mouse.m_position;
 
         switch (a_event->type)
         {
         case SDL_MOUSEMOTION:
         {
+            m_mouse.m_position.x = a_event->motion.x;
+            m_mouse.m_position.y = a_event->motion.y;
+
             ev.type = EMouseEventType::Motion;
+            ev.pos = m_mouse.m_position;
 
             for (IMouseListener* listener : m_mouseListeners)
                 listener->OnMouseEvent(ev);
@@ -92,7 +93,11 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
         {
+            m_mouse.m_position.x = a_event->button.x;
+            m_mouse.m_position.y = a_event->button.y;
+
             ev.type = EMouseEventType::Button;
+            ev.pos = m_mouse.m_position;
             ev.button.button = SDL2Mouse::SDLButtonToCoreButton(a_event->button.button);
             ev.button.clicks = a_event->button.clicks;
             ev.button.state = a_event->button.state == SDL_PRESSED;
@@ -108,6 +113,7 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
         case SDL_MOUSEWHEEL:
         {
             ev.type = EMouseEventType::Wheel;
+            ev.pos = m_mouse.m_position;
             ev.wheel.delta = TMouseWheelDelta(
                 a_event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? (-a_event->wheel.x) : a_event->wheel.x,
                 a_event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? (-a_event->wheel.y) : a_event->wheel.y);
