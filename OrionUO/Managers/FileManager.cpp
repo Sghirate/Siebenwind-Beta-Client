@@ -88,7 +88,7 @@ bool CFileManager::Load()
         { m_GumpMul, "gumpart.mul" },      { m_SoundIdx, "soundidx.mul" },
         { m_SoundMul, "sound.mul" },       { m_AnimIdx[0], "anim.idx" },
         { m_LightIdx, "lightidx.mul" },    { m_MultiIdx, "multi.idx" },
-        { m_SkillsIdx, "Skills.idx" },     { m_MultiMap, "Multimap.rle" },
+        { m_SkillsIdx, "skills.idx" },     { m_MultiMap, "multimap.rle" },
         { m_TextureIdx, "texidx.mul" },    { m_AnimdataMul, "animdata.mul" },
         { m_HuesMul, "hues.mul" },         { m_LightMul, "light.mul" },
         { m_MultiMul, "multi.mul" },       { m_RadarcolMul, "radarcol.mul" },

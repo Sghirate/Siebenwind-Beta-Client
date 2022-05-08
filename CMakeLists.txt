@@ -83,45 +83,32 @@ if (ORION_WINDOWS OR ORION_LINUX)
 	set(ORION_WITH_TRACY ON)
 endif()
 
-
+# GLEW
 add_subdirectory("${EXTERNAL_DIR}/GLEW/build/cmake")
+set(LIBS_BASE
+	"${LIBS_BASE}"
+	"glew")
+set(DEFINES_BASE
+	"${DEFINES_BASE}"
+	"ORION_WITH_GLEW")
+set(ORION_WITH_GLEW ON)
+
+# SDL2
 add_subdirectory("${EXTERNAL_DIR}/SDL2")
+set(INC_BASE
+	"${INC_BASE}"
+	"${EXTERNAL_DIR}/GLEW/include")
+set(LIBS_BASE
+	"${LIBS_BASE}"
+	"SDL2")
+set(DEFINES_BASE
+	"${DEFINES_BASE}"
+	"ORION_WITH_SDL2")
+set(ORION_WITH_SDL2 ON)
 
 if(ORION_WINDOWS)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-	
-	# GLEW
-	set(INC_BASE
-		"${INC_BASE}"
-		"${EXTERNAL_DIR}/GLEW/include")
-	# set(LIBS_BASE
-	# 	"${LIBS_BASE}"
-	# 	"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/lib/glew32.lib")
-	# set(BINS_BASE
-	# 	"${BINS_BASE}"
-	# 	"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")
-	set(DEFINES_BASE
-		"${DEFINES_BASE}"
-		"ORION_WITH_GLEW")
-	set(ORION_WITH_GLEW ON)
-
-	# SDL2
-	set(INC_BASE
-		"${INC_BASE}"
-		"${EXTERNAL_DIR}/SDL2/include"
-		"${EXTERNAL_DIR}/SDL2/include/SDL2")
-	# set(LIBS_BASE
-	# 	"${LIBS_BASE}"
-	# 	"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2.lib"
-	# 	"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2main.lib")
-	# set(BINS_BASE
-	# 	"${BINS_BASE}"
-	# 	"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/bin/SDL2.dll")
-	set(DEFINES_BASE
-		"${DEFINES_BASE}"
-		"ORION_WITH_SDL2")
-	set(ORION_WITH_SDL2 ON)
 
 	# PSAPI
 	set(LIBS_BASE
@@ -131,51 +118,7 @@ if(ORION_WINDOWS)
 		"${DEFINES_BASE}"
 		"ORION_WITH_PSASI")
 	set(ORION_WITH_PSASI ON)
-
-	# Optick
-	if (ORION_ARCH STREQUAL "x64")
-		set(INC_BASE
-			"${INC_BASE}"
-			"${EXTERNAL_DIR}/Optick/include")
-		set(LIBS_DEBUG
-			"${LIBS_DEBUG}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.lib")
-		set(BINS_DEBUG
-			"${BINS_DEBUG}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.dll"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.pdb")
-		set(LIBS_RELEASE
-			"${LIBS_RELEASE}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.lib")
-		set(BINS_RELEASE
-			"${BINS_RELEASE}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.dll"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.pdb")
-		set(DEFINES_BASE
-			"${DEFINES_BASE}"
-			"ORION_WITH_OPTICK")
-		set(ORION_WITH_OPTICK ON)
-	endif()
-
 else()
-	# GLEW
-	set(INC_BASE
-		"${INC_BASE}"
-		"${EXTERNAL_DIR}/GLEW/include")
-	set(DEFINES_BASE
-		"${DEFINES_BASE}"
-		"ORION_WITH_GLEW")
-	set(ORION_WITH_GLEW ON)
-
-	# SDL2
-	set(INC_BASE
-		"${INC_BASE}"
-		"${EXTERNAL_DIR}/SDL2/include")
-	set(DEFINES_BASE
-		"${DEFINES_BASE}"
-		"ORION_WITH_SDL2")
-	set(ORION_WITH_SDL2 ON)
-
 	#find_package(SDL2 REQUIRED)
 	#find_package(GLEW REQUIRED)
 	# Set the preferred opengl library to GLVND if there is GLVND and Legacy.

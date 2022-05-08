@@ -8823,6 +8823,7 @@ static DRFLAC_INLINE drflac_uint16 drflac_crc16_bytes(drflac_uint16 crc, drflac_
     case 3: crc = drflac_crc16_byte(crc, (drflac_uint8)((data >> 16) & 0xFF));
     case 2: crc = drflac_crc16_byte(crc, (drflac_uint8)((data >>  8) & 0xFF));
     case 1: crc = drflac_crc16_byte(crc, (drflac_uint8)((data >>  0) & 0xFF));
+    default: break;
     }
 
     return crc;
@@ -9641,6 +9642,7 @@ static DRFLAC_INLINE drflac_int32 drflac__calculate_prediction_32(drflac_uint32 
     case  3: prediction += coefficients[ 2] * pDecodedSamples[- 3];
     case  2: prediction += coefficients[ 1] * pDecodedSamples[- 2];
     case  1: prediction += coefficients[ 0] * pDecodedSamples[- 1];
+    default: break;
     }
 
     return (drflac_int32)(prediction >> shift);
@@ -9817,6 +9819,7 @@ static DRFLAC_INLINE drflac_int32 drflac__calculate_prediction_64(drflac_uint32 
     case  3: prediction += coefficients[ 2] * (drflac_int64)pDecodedSamples[- 3];
     case  2: prediction += coefficients[ 1] * (drflac_int64)pDecodedSamples[- 2];
     case  1: prediction += coefficients[ 0] * (drflac_int64)pDecodedSamples[- 1];
+    default: break;
     }
 #endif
 
@@ -9981,6 +9984,7 @@ static DRFLAC_INLINE void drflac__calculate_prediction_64_x4(drflac_uint32 order
         prediction2 += coefficients[3] * (drflac_int64)pDecodedSamples[- 2];
         prediction3 += coefficients[3] * (drflac_int64)pDecodedSamples[- 1];
         order = 3;
+    default: break;
     }
 
     switch (order)
@@ -9988,6 +9992,7 @@ static DRFLAC_INLINE void drflac__calculate_prediction_64_x4(drflac_uint32 order
     case 3: prediction0 += coefficients[ 2] * (drflac_int64)pDecodedSamples[- 3];
     case 2: prediction0 += coefficients[ 1] * (drflac_int64)pDecodedSamples[- 2];
     case 1: prediction0 += coefficients[ 0] * (drflac_int64)pDecodedSamples[- 1];
+    default: break;
     }
     pDecodedSamples[0] = riceParamParts[0] + (drflac_int32)(prediction0 >> shift);
 
@@ -9996,6 +10001,7 @@ static DRFLAC_INLINE void drflac__calculate_prediction_64_x4(drflac_uint32 order
     case 3: prediction1 += coefficients[ 2] * (drflac_int64)pDecodedSamples[- 2];
     case 2: prediction1 += coefficients[ 1] * (drflac_int64)pDecodedSamples[- 1];
     case 1: prediction1 += coefficients[ 0] * (drflac_int64)pDecodedSamples[  0];
+    default: break;
     }
     pDecodedSamples[1] = riceParamParts[1] + (drflac_int32)(prediction1 >> shift);
 
@@ -10004,6 +10010,7 @@ static DRFLAC_INLINE void drflac__calculate_prediction_64_x4(drflac_uint32 order
     case 3: prediction2 += coefficients[ 2] * (drflac_int64)pDecodedSamples[- 1];
     case 2: prediction2 += coefficients[ 1] * (drflac_int64)pDecodedSamples[  0];
     case 1: prediction2 += coefficients[ 0] * (drflac_int64)pDecodedSamples[  1];
+    default: break;
     }
     pDecodedSamples[2] = riceParamParts[2] + (drflac_int32)(prediction2 >> shift);
 
@@ -10012,6 +10019,7 @@ static DRFLAC_INLINE void drflac__calculate_prediction_64_x4(drflac_uint32 order
     case 3: prediction3 += coefficients[ 2] * (drflac_int64)pDecodedSamples[  0];
     case 2: prediction3 += coefficients[ 1] * (drflac_int64)pDecodedSamples[  1];
     case 1: prediction3 += coefficients[ 0] * (drflac_int64)pDecodedSamples[  2];
+    default: break;
     }
     pDecodedSamples[3] = riceParamParts[3] + (drflac_int32)(prediction3 >> shift);
 }

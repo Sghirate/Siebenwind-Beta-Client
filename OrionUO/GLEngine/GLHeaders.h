@@ -2,8 +2,8 @@
 
 #if defined(ORION_WINDOWS)
 
-#include "../external/GLEW/include/glew.h"
-#include "../external/GLEW/include/wglew.h"
+#include <GL/glew.h>
+#include <GL/wglew.h>
 
 #else
 
