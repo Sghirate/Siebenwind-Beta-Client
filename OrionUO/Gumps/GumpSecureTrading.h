@@ -1,28 +1,29 @@
 #pragma once
 
 #include "Gump.h"
-#include "../TextEngine/TextContainer.h"
-#include "../TextEngine/EntryText.h"
-#include "../TextEngine/TextRenderer.h"
+#include "TextEngine/TextContainer.h"
+#include "TextEngine/EntryText.h"
+#include "TextEngine/TextRenderer.h"
+#include <string>
 
 class CGumpSecureTrading : public CGump
 {
 public:
-    u32 ID2 = 0;
-    bool StateMy = false;
+    u32 ID2            = 0;
+    bool StateMy       = false;
     bool StateOpponent = false;
-    string Text = "";
+    std::string Text   = "";
 
 private:
     static const int ID_GST_CHECKBOX = 1;
 
     CTextRenderer m_TextRenderer{ CTextRenderer() };
 
-    CGUIButton *m_MyCheck{ nullptr };
-    CGUIGumppic *m_OpponentCheck{ nullptr };
+    CGUIButton* m_MyCheck{ nullptr };
+    CGUIGumppic* m_OpponentCheck{ nullptr };
 
-    CGUIDataBox *m_MyDataBox{ nullptr };
-    CGUIDataBox *m_OpponentDataBox{ nullptr };
+    CGUIDataBox* m_MyDataBox{ nullptr };
+    CGUIDataBox* m_OpponentDataBox{ nullptr };
 
 protected:
     virtual void CalculateGumpState();
@@ -33,14 +34,14 @@ public:
 
     void SendTradingResponse(int code);
 
-    CTextRenderer *GetTextRenderer() { return &m_TextRenderer; }
+    CTextRenderer* GetTextRenderer() { return &m_TextRenderer; }
 
     virtual void PrepareContent();
 
     virtual void UpdateContent();
 
     virtual void Draw();
-    virtual CRenderObject *Select();
+    virtual CRenderObject* Select();
 
     GUMP_BUTTON_EVENT_H;
 

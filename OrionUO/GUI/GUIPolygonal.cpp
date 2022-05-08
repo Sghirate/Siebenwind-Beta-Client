@@ -1,5 +1,5 @@
 #include "GUIPolygonal.h"
-#include "../Managers/MouseManager.h"
+#include "Managers/MouseManager.h"
 
 CGUIPolygonal::CGUIPolygonal(
     GUMP_OBJECT_TYPE type, int x, int y, int width, int height, bool callOnMouseUp)

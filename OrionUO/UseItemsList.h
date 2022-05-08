@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include <deque>
+
 class CUseItemActions
 {
     u32 Timer = 0;

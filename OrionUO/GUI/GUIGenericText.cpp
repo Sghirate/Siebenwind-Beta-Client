@@ -1,7 +1,7 @@
 #include "GUIGenericText.h"
 #include "GameVars.h"
-#include "../Config.h"
-#include "../DefinitionMacro.h"
+#include "Config.h"
+#include "DefinitionMacro.h"
 
 CGUIGenericText::CGUIGenericText(int index, u16 color, int x, int y, int maxWidth)
     : CGUIText(color, x, y)

@@ -2,7 +2,6 @@
 #include "GameWindow.h"
 #include "OrionUO.h"
 #include "Managers/ConfigManager.h"
-#include <vector>
 
 CContainerRect g_ContainerRect;
 std::vector<CContainerOffset> g_ContainerOffset;

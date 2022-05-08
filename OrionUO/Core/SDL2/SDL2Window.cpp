@@ -272,6 +272,7 @@ void HandleEvent(union SDL_Event* a_event)
                 }
             }
             break;
+            default: break;
         }
     }
     else if (SDL2Util::IsEventCategory(a_event, SDL_EVENTCATEGORY_WINDOW))
@@ -322,6 +323,8 @@ void HandleEvent(union SDL_Event* a_event)
                     window->OnActivation(false);
                 }
                 break;
+            
+                default: break;
             }
         }
     }

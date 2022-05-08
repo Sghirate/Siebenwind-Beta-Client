@@ -1,9 +1,10 @@
 #include "MultiObject.h"
 #include "CustomHouseMultiObject.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/CustomHousesManager.h"
-#include "../Gumps/GumpCustomHouse.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/CustomHousesManager.h"
+#include "Gumps/GumpCustomHouse.h"
 
 CMultiObject::CMultiObject(u16 graphic, short x, short y, char z, int flags)
     : CRenderStaticObject(ROT_MULTI_OBJECT, 0, graphic, 0, x, y, z)

@@ -1,11 +1,11 @@
 #include "CreateCharacterScreen.h"
 #include "ConnectionScreen.h"
 #include "GameWindow.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Managers/CreateCharacterManager.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Managers/CreateCharacterManager.h"
 
 CCreateCharacterScreen g_CreateCharacterScreen;
 
@@ -87,10 +87,10 @@ void CCreateCharacterScreen::OnLeftMouseButtonDown()
     }
 }
 
-void CCreateCharacterScreen::OnTextInput(const TextEvent &ev)
+void CCreateCharacterScreen::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {
         return;
@@ -109,13 +109,11 @@ void CCreateCharacterScreen::OnTextInput(const TextEvent &ev)
     m_Gump.WantRedraw = true;
 }
 
-void CCreateCharacterScreen::OnKeyDown(const KeyEvent &ev)
+void CCreateCharacterScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
-
-    const auto key = EvKey(ev);
     if (g_EntryPointer != nullptr)
     {
-        g_EntryPointer->OnKey(&m_Gump, key);
+        g_EntryPointer->OnKey(&m_Gump, ev.key);
         Name = g_EntryPointer->c_str();
         m_Gump.WantRedraw = true;
     }

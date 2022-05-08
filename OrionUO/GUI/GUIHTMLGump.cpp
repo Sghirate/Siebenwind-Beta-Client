@@ -4,8 +4,8 @@
 #include "GUIHTMLSlider.h"
 #include "GUIHTMLButton.h"
 #include "GUIScissor.h"
-#include "../OrionUO.h"
-#include "../Managers/MouseManager.h"
+#include "OrionUO.h"
+#include "Managers/MouseManager.h"
 
 CGUIHTMLGump::CGUIHTMLGump(
     int serial,

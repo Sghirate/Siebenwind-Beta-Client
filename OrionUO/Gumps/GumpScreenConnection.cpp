@@ -1,13 +1,14 @@
 #include "Connection.h"
+#include "Globals.h"
 #include "GumpScreenConnection.h"
-#include "../CharacterList.h"
-#include "../Managers/ClilocManager.h"
-#include "../ScreenStages/ConnectionScreen.h"
+#include "CharacterList.h"
+#include "Managers/ClilocManager.h"
+#include "ScreenStages/ConnectionScreen.h"
 
 CGumpScreenConnection::CGumpScreenConnection()
     : CGump(GT_NONE, 0, 0, 0)
 {
-    NoMove = true;
+    NoMove  = true;
     NoClose = true;
 }
 
@@ -15,14 +16,14 @@ CGumpScreenConnection::~CGumpScreenConnection()
 {
 }
 
-void CGumpScreenConnection::CreateText(int x, int y, string str, u8 font)
+void CGumpScreenConnection::CreateText(int x, int y, std::string str, u8 font)
 {
     if (g_ConnectionScreen.GetTextA().length() != 0u)
     {
         str = g_ConnectionScreen.GetTextA();
     }
 
-    CGUIText *obj = new CGUIText(0x0386, x, y);
+    CGUIText* obj = new CGUIText(0x0386, x, y);
     obj->CreateTextureA(font, str, 260, TS_CENTER);
     Add(obj);
 }
@@ -115,7 +116,8 @@ void CGumpScreenConnection::UpdateContent()
             CreateText(
                 189,
                 178,
-                g_ClilocManager.GetCliloc(g_Language)->GetA(3000001, false, "Entering Britannia..."),
+                g_ClilocManager.GetCliloc(g_Language)
+                    ->GetA(3000001, false, "Entering Britannia..."),
                 2);
 
             g_ConnectionScreen.CursorGraphic = 0x2077; //Waiting mouse cursor

@@ -1,6 +1,6 @@
 #include "GUIGumppicTiled.h"
-#include "../OrionUO.h"
-#include "../Managers/MouseManager.h"
+#include "OrionUO.h"
+#include "Managers/MouseManager.h"
 
 CGUIGumppicTiled::CGUIGumppicTiled(u16 graphic, int x, int y, int width, int height)
     : CGUIDrawObject(GOT_GUMPPICTILED, 0, graphic, 0, x, y)

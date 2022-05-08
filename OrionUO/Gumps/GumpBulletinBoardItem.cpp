@@ -1,10 +1,10 @@
 #include "GumpBulletinBoardItem.h"
 #include "Core/StringUtils.h"
 #include "GameVars.h"
-#include "../Config.h"
-#include "../Managers/GumpManager.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "Config.h"
+#include "Managers/GumpManager.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 enum
 {
@@ -266,17 +266,17 @@ void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
     }
 }
 
-void CGumpBulletinBoardItem::OnTextInput(const TextEvent& ev)
+void CGumpBulletinBoardItem::OnTextInput(const Core::TextEvent& ev)
 {
-    g_EntryPointer->Insert(EvChar(ev));
+    g_EntryPointer->Insert(ev.text[0]);
     RecalculateHeight();
     WantRedraw = true;
 }
 
-void CGumpBulletinBoardItem::OnKeyDown(const KeyEvent& ev)
+void CGumpBulletinBoardItem::OnKeyDown(const Core::KeyEvent& ev)
 {
-    auto key = EvKey(ev);
-    if ((key == KEY_RETURN || key == KEY_RETURN2) && m_Entry != nullptr &&
+    auto key = ev.key;
+    if ((key == Core::EKey::Key_Return || key == Core::EKey::Key_Return2) && m_Entry != nullptr &&
         g_EntryPointer == &m_Entry->m_Entry)
     {
         g_EntryPointer->Insert(L'\n');

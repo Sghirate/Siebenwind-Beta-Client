@@ -1,5 +1,5 @@
 #include "CreateCharacterManager.h"
-#include "../OrionUO.h"
+#include "OrionUO.h"
 
 CCreateCharacterManager g_CreateCharacterManager;
 
@@ -173,10 +173,10 @@ void CCreateCharacterManager::SetRace(RACE_TYPE newRace)
     m_Race = newRace;
     SetFemale(m_Female);
 
-    SkinTone = (*GetSkinTonePtr()) + 1;
-    const u16 *ptr = GetHairColorPtr();
-    HairColor = (*ptr) + 1;
-    BeardColor = (*ptr) + 1;
+    SkinTone       = (*GetSkinTonePtr()) + 1;
+    const u16* ptr = GetHairColorPtr();
+    HairColor      = (*ptr) + 1;
+    BeardColor     = (*ptr) + 1;
 }
 
 void CCreateCharacterManager::Init()
@@ -209,15 +209,15 @@ void CCreateCharacterManager::Init()
 
 void CCreateCharacterManager::Clear()
 {
-    m_Female = false;
-    HairStyle = 1;
+    m_Female   = false;
+    HairStyle  = 1;
     BeardStyle = 0;
-    m_Race = RT_HUMAN;
+    m_Race     = RT_HUMAN;
 
-    SkinTone = 0x03EA;
+    SkinTone   = 0x03EA;
     ShirtColor = 0x0084;
     PantsColor = 0x035F;
-    HairColor = 0x044E;
+    HairColor  = 0x044E;
     BeardColor = 0x044E;
 }
 
@@ -241,18 +241,14 @@ int CCreateCharacterManager::GetCurrentFacialHairCount()
 
 u16 CCreateCharacterManager::GetBodyGump()
 {
-    static const u16 gump[3][2] = { { 0x0761, 0x0760 },
-                                         { 0x0766, 0x0765 },
-                                         { 0x076B, 0x076A } };
+    static const u16 gump[3][2] = { { 0x0761, 0x0760 }, { 0x0766, 0x0765 }, { 0x076B, 0x076A } };
 
     return gump[m_Race - 1][m_Female];
 }
 
 u16 CCreateCharacterManager::GetShirtGump()
 {
-    static const u16 gump[3][2] = { { 0x0739, 0x0714 },
-                                         { 0x0739, 0x0714 },
-                                         { 0x0778, 0x07A7 } };
+    static const u16 gump[3][2] = { { 0x0739, 0x0714 }, { 0x0739, 0x0714 }, { 0x0778, 0x07A7 } };
 
     return gump[m_Race - 1][m_Female];
 }
@@ -271,20 +267,20 @@ u16 CCreateCharacterManager::GetBootsGump()
     return gump[m_Race - 1][m_Female];
 }
 
-const u16 *CCreateCharacterManager::GetSkinTonePtr()
+const u16* CCreateCharacterManager::GetSkinTonePtr()
 {
-    static const u16 *ptr[3] = { (u16 *)&m_HumanSkinTone[0],
-                                      (u16 *)&m_ElfSkinTone[0],
-                                      (u16 *)&m_GargoyleSkinTone[0] };
+    static const u16* ptr[3] = { (u16*)&m_HumanSkinTone[0],
+                                 (u16*)&m_ElfSkinTone[0],
+                                 (u16*)&m_GargoyleSkinTone[0] };
 
     return ptr[m_Race - 1];
 }
 
-const u16 *CCreateCharacterManager::GetHairColorPtr()
+const u16* CCreateCharacterManager::GetHairColorPtr()
 {
-    static const u16 *ptr[3] = { (u16 *)&m_HumanHairColor[0],
-                                      (u16 *)&m_ElfHairColor[0],
-                                      (u16 *)&m_GargoyleHairColor[0] };
+    static const u16* ptr[3] = { (u16*)&m_HumanHairColor[0],
+                                 (u16*)&m_ElfHairColor[0],
+                                 (u16*)&m_GargoyleHairColor[0] };
 
     return ptr[m_Race - 1];
 }

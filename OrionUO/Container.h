@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include <vector>
+
 class CContainerOffsetRect
 {
 public:

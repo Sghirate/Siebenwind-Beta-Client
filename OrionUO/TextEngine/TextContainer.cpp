@@ -1,4 +1,5 @@
 #include "TextContainer.h"
+#include "Globals.h"
 #include "TextEngine/TextData.h"
 
 CTextContainer g_SystemChat(30);

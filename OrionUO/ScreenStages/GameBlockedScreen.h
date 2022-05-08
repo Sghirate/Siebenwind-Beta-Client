@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BaseScreen.h"
-#include "../Platform.h"
+#include "Platform.h"
 
 class CGameBlockedScreen : public CBaseScreen
 {
@@ -13,12 +13,12 @@ public:
     ~CGameBlockedScreen();
 
     virtual void Init();
-    virtual void Render() override;
-    virtual void SelectObject() override;
+     void Render()  override;
+     void SelectObject()  override;
     virtual void OnLeftMouseButtonDown();
     virtual void OnLeftMouseButtonUp();
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 };
 
 extern CGameBlockedScreen g_GameBlockedScreen;

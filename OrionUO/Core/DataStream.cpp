@@ -1,4 +1,5 @@
 #include "DataStream.h"
+#include <cstring>
 
 namespace Core
 {
@@ -150,8 +151,8 @@ StreamReader::StreamReader()
 
 StreamReader::StreamReader(u8* a_buffer, size_t a_size)
     : m_buffer(a_buffer)
-    , m_size(a_size)
     , m_end(a_buffer + a_size)
+    , m_size(a_size)
 {
     ResetPtr();
 }

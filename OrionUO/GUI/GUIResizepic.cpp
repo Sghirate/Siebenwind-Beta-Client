@@ -1,10 +1,11 @@
 #include "GUIResizepic.h"
-#include "../OrionUO.h"
+#include "Globals.h"
+#include "OrionUO.h"
 
 CGUIResizepic::CGUIResizepic(int serial, u16 graphic, int x, int y, int width, int height)
     : CGUIPolygonal(GOT_RESIZEPIC, x, y, width, height)
 {
-    Serial = serial;
+    Serial  = serial;
     Graphic = graphic;
 }
 
@@ -19,11 +20,11 @@ void CGUIResizepic::PrepareTextures()
 
 void CGUIResizepic::Draw(bool checktrans)
 {
-    CGLTexture *th[9] = { nullptr };
+    CGLTexture* th[9] = { nullptr };
 
     for (int i = 0; i < 9; i++)
     {
-        CGLTexture *pth = g_Orion.ExecuteGump(Graphic + (int)i);
+        CGLTexture* pth = g_Orion.ExecuteGump(Graphic + (int)i);
 
         if (pth == nullptr)
         {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
 
 class CTextData;
 

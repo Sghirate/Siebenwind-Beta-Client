@@ -23,7 +23,7 @@ public:
     CGumpSelectColor(u32 serial, short x, short y, SELECT_COLOR_GUMP_STATE state);
     virtual ~CGumpSelectColor();
 
-    virtual void UpdateContent() override;
+     void UpdateContent()  override;
 
     GUMP_BUTTON_EVENT_H;
     GUMP_SLIDER_CLICK_EVENT_H;

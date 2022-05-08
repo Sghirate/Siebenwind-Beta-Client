@@ -1,5 +1,5 @@
 #include "GUIButtonTileart.h"
-#include "../OrionUO.h"
+#include "OrionUO.h"
 
 CGUIButtonTileart::CGUIButtonTileart(
     int serial,

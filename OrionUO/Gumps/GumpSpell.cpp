@@ -1,13 +1,13 @@
 #include "GumpSpell.h"
 #include "Globals.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/ClilocManager.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/ClilocManager.h"
 
 CGumpSpell::CGumpSpell(
     u32 serial, short x, short y, u16 graphic, SPELLBOOK_TYPE spellType)

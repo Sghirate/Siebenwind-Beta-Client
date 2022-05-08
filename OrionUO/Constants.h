@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Minimal.h"
+
 const int MAX_MOBILE_DIRECTIONS = 5;
 
 const int CONTAINERS_RECT_DEFAULT_POS = 40;

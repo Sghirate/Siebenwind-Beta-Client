@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include "Constants.h"
+
 class CStepInfo
 {
 public:

@@ -11,8 +11,8 @@ CRenderWorldObject::CRenderWorldObject(
     int y,
     char z)
     : CRenderObject(serial, graphic, color, x, y)
-    , RenderType(renderType)
     , m_Z(z)
+    , RenderType(renderType)
 {
     m_DrawTextureColor[0] = 0xFF;
     m_DrawTextureColor[1] = 0xFF;

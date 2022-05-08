@@ -1,4 +1,5 @@
 #include "GLShader.h"
+#include "Globals.h"
 #include "Core/Log.h"
 
 CDeathShader g_DeathShader;
@@ -17,7 +18,7 @@ CGLShader::CGLShader()
 {
 }
 
-bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderData)
+bool CGLShader::Init(const char* vertexShaderData, const char* fragmentShaderData)
 {
     GLint val = GL_FALSE;
 
@@ -26,7 +27,7 @@ bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderDat
         m_Shader = glCreateProgramObjectARB();
 
         m_VertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-        glShaderSourceARB(m_VertexShader, 1, (const GLcharARB **)&vertexShaderData, nullptr);
+        glShaderSourceARB(m_VertexShader, 1, (const GLcharARB**)&vertexShaderData, nullptr);
         glCompileShaderARB(m_VertexShader);
 
         glGetShaderiv(m_VertexShader, GL_COMPILE_STATUS, &val);
@@ -45,7 +46,7 @@ bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderDat
         glAttachObjectARB(m_Shader, m_VertexShader);
 
         m_FragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-        glShaderSourceARB(m_FragmentShader, 1, (const GLcharARB **)&fragmentShaderData, nullptr);
+        glShaderSourceARB(m_FragmentShader, 1, (const GLcharARB**)&fragmentShaderData, nullptr);
         glCompileShaderARB(m_FragmentShader);
 
         glGetShaderiv(m_FragmentShader, GL_COMPILE_STATUS, &val);
@@ -161,7 +162,7 @@ CDeathShader::CDeathShader()
 {
 }
 
-bool CDeathShader::Init(const char *vertexShaderData, const char *fragmentShaderData)
+bool CDeathShader::Init(const char* vertexShaderData, const char* fragmentShaderData)
 {
     if (CGLShader::Init(vertexShaderData, fragmentShaderData))
     {
@@ -180,13 +181,13 @@ CColorizerShader::CColorizerShader()
 {
 }
 
-bool CColorizerShader::Init(const char *vertexShaderData, const char *fragmentShaderData)
+bool CColorizerShader::Init(const char* vertexShaderData, const char* fragmentShaderData)
 {
     if (CGLShader::Init(vertexShaderData, fragmentShaderData))
     {
-        m_TexturePointer = glGetUniformLocationARB(m_Shader, "usedTexture");
+        m_TexturePointer    = glGetUniformLocationARB(m_Shader, "usedTexture");
         m_ColorTablePointer = glGetUniformLocationARB(m_Shader, "colors");
-        m_DrawModePointer = glGetUniformLocationARB(m_Shader, "drawMode");
+        m_DrawModePointer   = glGetUniformLocationARB(m_Shader, "drawMode");
     }
     else
     {

@@ -5,10 +5,10 @@
 #include "GameVars.h"
 #include "Globals.h"
 #include "SkillsManager.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../OrionApplication.h"
-#include "../Profession.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "OrionApplication.h"
+#include "Profession.h"
 
 CProfessionManager g_ProfessionManager;
 

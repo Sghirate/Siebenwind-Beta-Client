@@ -1,10 +1,10 @@
 
 #include "CryptEntry.h"
-#include "../plugin/enumlist.h"
-#include "../plugin/plugininterface.h"
-#include "../Config.h"
+#include "plugin/enumlist.h"
+#include "Config.h"
 #include "LoginCrypt.h"
 #include "GameCrypt.h"
+#include <cstring>
 #include <memory>
 
 static size_t s_CryptPluginsCount = 0;

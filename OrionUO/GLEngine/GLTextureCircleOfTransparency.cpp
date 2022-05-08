@@ -1,4 +1,4 @@
-#include "../Managers/ConfigManager.h"
+#include "Managers/ConfigManager.h"
 
 CGLTextureCircleOfTransparency g_CircleOfTransparency;
 

@@ -1,5 +1,5 @@
 #include "GUITilepicScaled.h"
-#include "../OrionUO.h"
+#include "OrionUO.h"
 
 CGUITilepicScaled::CGUITilepicScaled(
     u16 graphic, u16 color, int x, int y, int width, int height)

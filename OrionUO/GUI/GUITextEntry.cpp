@@ -1,7 +1,8 @@
 #include "GUITextEntry.h"
-#include "../SelectedObject.h"
-#include "../Gumps/Gump.h"
-#include "../Managers/MouseManager.h"
+#include "Globals.h"
+#include "SelectedObject.h"
+#include "Gumps/Gump.h"
+#include "Managers/MouseManager.h"
 
 CGUITextEntry::CGUITextEntry(
     int serial,

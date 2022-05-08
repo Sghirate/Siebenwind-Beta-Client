@@ -2,12 +2,12 @@
 #include "ConfigManager.h"
 #include "Globals.h"
 #include "GumpManager.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Gumps/GumpProperty.h"
-#include "../Gumps/GumpPropertyIcon.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/GameCharacter.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Gumps/GumpProperty.h"
+#include "Gumps/GumpPropertyIcon.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/GameCharacter.h"
 
 CObjectPropertiesManager g_ObjectPropertiesManager;
 

@@ -8,10 +8,12 @@
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <arpa/inet.h>
+#include <cstring>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <unistd.h>
 typedef struct hostent HOSTENT;
 typedef HOSTENT* LPHOSTENT;
 #define closesocket close
@@ -324,7 +326,8 @@ int ICMPSocket::Ping(const char* a_address, u8* a_data, size_t a_dataSize)
             void* a = (void*)&reply;
             auto as = sizeof(ICMPEchoReply);
             auto src = (LPSOCKADDR)&sourceAddress;
-            if (::recvfrom(s, a, as, 0, src, &length) != -1)
+            socklen_t* len = (socklen_t*)&length;
+            if (::recvfrom(s, a, as, 0, src, len) != -1)
             {
                 if (a_data)
                     memcpy(a_data, &reply.echoRequest.data, a_dataSize);

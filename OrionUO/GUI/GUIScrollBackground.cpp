@@ -1,6 +1,6 @@
 #include "GUIScrollBackground.h"
-#include "../OrionUO.h"
-#include "../Managers/MouseManager.h"
+#include "OrionUO.h"
+#include "Managers/MouseManager.h"
 
 CGUIScrollBackground::CGUIScrollBackground(int serial, u16 graphic, int x, int y, int height)
     : CBaseGUI(GOT_SCROLLBACKGROUND, serial, graphic, 0, x, y)

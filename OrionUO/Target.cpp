@@ -5,7 +5,6 @@
 #include "OrionUO.h"
 #include "Multi.h"
 #include "plugin/mulstruct.h"
-#include "plugin/commoninterfaces.h"
 #include "Network/Packets.h"
 #include "Managers/FileManager.h"
 #include "Managers/MouseManager.h"
@@ -226,7 +225,7 @@ void CTarget::Plugin_SendTargetObject(int serial)
         if (obj != nullptr && obj->NPC && ((CGameCharacter*)obj)->MaxHits == 0)
         {
             CPacketStatusRequest packet(serial);
-            UOMsg_Send(packet.GetData().data(), packet.GetData().size());
+            // TODO: reimplement: UOMsg_Send(packet.GetData().data(), packet.GetData().size());
         }
     }
 
@@ -306,7 +305,7 @@ void CTarget::SendTarget()
 
 void CTarget::Plugin_SendTarget()
 {
-    UOMsg_Send(m_Data, sizeof(m_Data));
+    // TODO: reimplement: UOMsg_Send(m_Data, sizeof(m_Data));
     memset(m_Data, 0, sizeof(m_Data));
     Targeting    = false;
     MultiGraphic = 0;

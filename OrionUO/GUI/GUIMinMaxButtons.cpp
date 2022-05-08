@@ -1,7 +1,9 @@
 #include "GUIMinMaxButtons.h"
-#include "../OrionUO.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/MouseManager.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Managers/FontsManager.h"
+#include "Managers/MouseManager.h"
+#include <string>
 
 CGUIMinMaxButtons::CGUIMinMaxButtons(
     int serial, u16 graphic, int x, int y, int minValue, int maxValue, int value)
@@ -32,7 +34,7 @@ void CGUIMinMaxButtons::UpdateText()
                 Font, Text, std::to_string(Value), TextColor, TextWidth, Align, TextFlags);
         }
 
-        CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+        CGLTexture* th = g_Orion.ExecuteGump(Graphic);
 
         if (th != nullptr)
         {
@@ -71,8 +73,7 @@ void CGUIMinMaxButtons::UpdateText()
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             switch (TextPosition)
@@ -80,7 +81,7 @@ void CGUIMinMaxButtons::UpdateText()
                 case STP_TOP_CENTER:
                 case STP_BOTTOM_CENTER:
                 {
-                    int textWidth = Text.Width;
+                    int textWidth   = Text.Width;
                     int sliderWidth = 36;
 
                     int deltaX = abs(sliderWidth - textWidth) / 2;
@@ -99,7 +100,7 @@ void CGUIMinMaxButtons::UpdateText()
                 case STP_LEFT_CENTER:
                 case STP_RIGHT_CENTER:
                 {
-                    int textHeight = Text.Height;
+                    int textHeight   = Text.Height;
                     int sliderHeight = 18;
 
                     int deltaY = abs(sliderHeight - textHeight) / 2;
@@ -115,8 +116,7 @@ void CGUIMinMaxButtons::UpdateText()
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             TextX = textX;
@@ -157,8 +157,8 @@ void CGUIMinMaxButtons::Scroll(int delay)
 void CGUIMinMaxButtons::OnClick(Core::Optional<Core::TMousePos> a_position)
 {
     Core::TMousePos pos = a_position.IsSet() ? a_position.GetValue() : g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     if (x >= 0 && y >= 0 && y < 18)
     {
         if (x < 18)
@@ -171,7 +171,7 @@ void CGUIMinMaxButtons::OnClick(Core::Optional<Core::TMousePos> a_position)
         m_ScrollMode = 0;
     }
     LastScrollTime = g_Ticks + 100;
-    ScrollStep = BaseScrollStep;
+    ScrollStep     = BaseScrollStep;
 }
 
 void CGUIMinMaxButtons::SetTextParameters(
@@ -184,14 +184,14 @@ void CGUIMinMaxButtons::SetTextParameters(
     TEXT_ALIGN_TYPE align,
     u16 textFlags)
 {
-    HaveText = haveText;
+    HaveText     = haveText;
     TextPosition = textPosition;
-    Font = font;
-    TextColor = color;
-    Unicode = unicode;
-    TextWidth = textWidth;
-    Align = align;
-    TextFlags = textFlags;
+    Font         = font;
+    TextColor    = color;
+    Unicode      = unicode;
+    TextWidth    = textWidth;
+    Align        = align;
+    TextFlags    = textFlags;
 
     UpdateText();
 }
@@ -208,7 +208,7 @@ void CGUIMinMaxButtons::Draw(bool checktrans)
 
     for (int i = 0; i < 2; i++)
     {
-        CGLTexture *th = g_Orion.ExecuteGump(Graphic + (int)i);
+        CGLTexture* th = g_Orion.ExecuteGump(Graphic + (int)i);
 
         if (th != nullptr)
         {
@@ -225,7 +225,7 @@ void CGUIMinMaxButtons::Draw(bool checktrans)
 bool CGUIMinMaxButtons::Select()
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < 36 && y < 18);
 }

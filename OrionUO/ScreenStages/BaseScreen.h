@@ -1,20 +1,20 @@
 #pragma once
 
-#include "../Platform.h"
-#include "../BaseQueue.h"
-#include "../Gumps/Gump.h"
+#include "Platform.h"
+#include "BaseQueue.h"
+#include "Gumps/Gump.h"
 
 class CBaseScreen : public CBaseQueue
 {
 public:
     u8 SmoothScreenAction = 0;
-    u16 CursorGraphic = 0x2073;
+    u16 CursorGraphic     = 0x2073;
 
 protected:
-    CGump &m_Gump;
+    CGump& m_Gump;
 
 public:
-    CBaseScreen(CGump &gump);
+    CBaseScreen(CGump& gump);
     virtual ~CBaseScreen() {}
 
     virtual void PrepareContent() { m_Gump.PrepareContent(); }
@@ -43,9 +43,9 @@ public:
     virtual bool OnMidMouseButtonDoubleClick() { return m_Gump.OnMidMouseButtonDoubleClick(); }
     virtual void OnMidMouseButtonScroll(bool up) { m_Gump.OnMidMouseButtonScroll(up); }
     virtual void OnDragging() { m_Gump.OnDragging(); }
-    virtual void OnTextInput(const TextEvent &ev) { m_Gump.OnTextInput(ev); }
-    virtual void OnKeyDown(const KeyEvent &ev) { m_Gump.OnKeyDown(ev); }
-    virtual void OnKeyUp(const KeyEvent &ev) { m_Gump.OnKeyUp(ev); }
+    virtual void OnTextInput(const Core::TextEvent& ev) { m_Gump.OnTextInput(ev); }
+    virtual void OnKeyDown(const Core::KeyEvent& ev) { m_Gump.OnKeyDown(ev); }
+    virtual void OnKeyUp(const Core::KeyEvent& ev) { m_Gump.OnKeyUp(ev); }
 };
 
-extern CBaseScreen *g_CurrentScreen;
+extern CBaseScreen* g_CurrentScreen;

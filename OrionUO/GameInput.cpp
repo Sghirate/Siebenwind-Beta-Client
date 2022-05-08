@@ -17,60 +17,64 @@ struct GameInputHandler : public Core::IMouseListener
     void Register() { Core::Input::RegisterMouseListener(this); }
     void Unregister() { Core::Input::UnregisterMouseListener(this); }
 
-    void OnMouseButton(
-        u8 a_mouseIndex,
-        Core::Window* a_focusWindow,
-        const Core::TMousePos& a_pos,
-        Core::EMouseButton a_button,
-        bool a_state,
-        u8 a_clicks) override
+    void OnMouseEvent(const Core::MouseEvent& ev) override
     {
-        if (a_focusWindow == &g_gameWindow)
+        if (ev.focus != &g_gameWindow)
+            return;
+
+        switch(ev.type)
         {
-            switch (a_button)
-            {
-                case Core::EMouseButton::Button_Left:
-                    if (a_state)
-                    {
-                        if (a_clicks > 1)
-                            GameInput::Get().OnLeftMouseButtonDoubleClick(a_pos);
+            case Core::EMouseEventType::Button:
+                switch(ev.button.button)
+                {
+                    case Core::EMouseButton::Button_Left:
+                        if (ev.button.state)
+                        {
+                            if (ev.button.clicks > 1)
+                                GameInput::Get().OnLeftMouseButtonDoubleClick(ev.pos);
+                            else
+                                GameInput::Get().OnLeftMouseButtonDown(ev.pos);
+                        }
                         else
-                            GameInput::Get().OnLeftMouseButtonDown(a_pos);
-                    }
-                    else
-                    {
-                        GameInput::Get().OnLeftMouseButtonUp(a_pos);
-                    }
-                    break;
-                case Core::EMouseButton::Button_Middle:
-                    if (a_state)
-                        GameInput::Get().OnMidMouseButtonDown(a_pos);
-                    else
-                        GameInput::Get().OnMidMouseButtonUp(a_pos);
-                    break;
-                case Core::EMouseButton::Button_Right:
-                    if (a_state)
-                        GameInput::Get().OnRightMouseButtonDown(a_pos);
-                    else
-                        GameInput::Get().OnRightMouseButtonUp(a_pos);
-                    break;
-                default: break;
-            }
+                        {
+                            GameInput::Get().OnLeftMouseButtonUp(ev.pos);
+                        }
+                        break;
+                    case Core::EMouseButton::Button_Middle:
+                        if (ev.button.state)
+                        {
+                            if (ev.button.clicks > 1)
+                                GameInput::Get().OnMidMouseButtonDoubleClick(ev.pos);
+                            else
+                                GameInput::Get().OnMidMouseButtonDown(ev.pos);
+                        }
+                        else
+                        {
+                            GameInput::Get().OnMidMouseButtonUp(ev.pos);
+                        }
+                        break;
+                    case Core::EMouseButton::Button_Right:
+                        if (ev.button.state)
+                        {
+                            if (ev.button.clicks > 1)
+                                GameInput::Get().OnRightMouseButtonDoubleClick(ev.pos);
+                            else
+                                GameInput::Get().OnRightMouseButtonDown(ev.pos);
+                        }
+                        else
+                        {
+                            GameInput::Get().OnRightMouseButtonUp(ev.pos);
+                        }
+                        break;
+                    default: break;
+                }
+                break;
+            case Core::EMouseEventType::Wheel:
+                GameInput::Get().OnMidMouseButtonScroll(ev.pos, ev.wheel.delta.y);
+                break;
+            default: break;
         }
     }
-
-    void OnMouseWheel(
-        u8 a_mouseIndex,
-        Core::Window* a_focusWindow,
-        const Core::TMousePos& a_pos,
-        const Core::TMouseWheelDelta& a_delta) override
-    {
-        if (a_focusWindow == &g_gameWindow)
-        {
-            GameInput::Get().OnMidMouseButtonScroll(a_pos, a_delta.y);
-        }
-    }
-
 } g_gameInputHandler;
 
 } // namespace

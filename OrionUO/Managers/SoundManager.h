@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../IndexObject.h"
+#include "Audio/AudioTypes.h"
+#include "IndexObject.h"
 
 class CSoundManager
 {

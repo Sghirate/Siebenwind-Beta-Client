@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Core/Minimal.h"
+#include <cstring>
+#include <memory>
 
 namespace Core
 {

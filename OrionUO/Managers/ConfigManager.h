@@ -1,56 +1,59 @@
 #pragma once
 
 #include "Core/Minimal.h"
+#include "Globals.h"
+#include <filesystem>
+#include <string>
 
 class CConfigManager
 {
 protected:
     bool m_Sound                       = true;
     bool m_Music                       = false;
-    u8 m_SoundVolume              = 255;
-    u8 m_MusicVolume              = 255;
-    u8 m_ClientFPS                = 32;
+    u8 m_SoundVolume                   = 255;
+    u8 m_MusicVolume                   = 255;
+    u8 m_ClientFPS                     = 32;
     bool m_UseScaling                  = false;
-    u8 m_DrawStatusState          = 0;
+    u8 m_DrawStatusState               = 0;
     bool m_DrawStumps                  = false;
     bool m_MarkingCaves                = false;
     bool m_NoVegetation                = false;
     bool m_NoAnimateFields             = false;
     bool m_ReduceFPSUnactiveWindow     = false;
     bool m_ConsoleNeedEnter            = false;
-    u8 m_SpellIconAlpha           = 0;
+    u8 m_SpellIconAlpha                = 0;
     bool m_OldStyleStatusbar           = false;
     bool m_OriginalPartyStatusbar      = false;
     bool m_ApplyStateColorOnCharacters = false;
     bool m_ChangeFieldsGraphic         = false;
     bool m_PaperdollSlots              = false;
-    u8 m_DrawAuraState            = 0;
+    u8 m_DrawAuraState                 = 0;
     bool m_ScaleImagesInPaperdollSlots = false;
     bool m_UseGlobalMapLayer           = false;
     bool m_NoDrawRoofs                 = false;
-    u8 m_PingTimer                = 10;
-    u8 m_ItemPropertiesMode       = OPM_FOLLOW_MOUSE;
+    u8 m_PingTimer                     = 10;
+    u8 m_ItemPropertiesMode            = OPM_FOLLOW_MOUSE;
     bool m_ItemPropertiesIcon          = false;
-    u8 m_CharacterBackpackStyle   = CBS_DEFAULT;
+    u8 m_CharacterBackpackStyle        = CBS_DEFAULT;
 
 public:
     bool FootstepsSound                    = true;
     bool CombatMusic                       = true;
     bool BackgroundSound                   = false;
     bool RemoveTextWithBlending            = false;
-    u8 DrawStatusConditionState       = 0;
-    u8 DrawStatusConditionValue       = 0;
+    u8 DrawStatusConditionState            = 0;
+    u8 DrawStatusConditionValue            = 0;
     bool StandartCharactersAnimationDelay  = false;
     bool StandartItemsAnimationDelay       = false;
     bool LockGumpsMoving                   = false;
-    u8 HiddenCharactersRenderMode     = 0;
-    u8 HiddenAlpha                    = 0;
+    u8 HiddenCharactersRenderMode          = 0;
+    u8 HiddenAlpha                         = 0;
     bool UseHiddenModeOnlyForSelf          = false;
-    u8 TransparentSpellIcons          = 0;
+    u8 TransparentSpellIcons               = 0;
     bool RemoveStatusbarsWithoutObjects    = false;
     bool ShowDefaultConsoleEntryMode       = false;
     bool DrawAuraWithCtrlPressed           = false;
-    u8 ScreenshotFormat               = 0;
+    u8 ScreenshotFormat                    = 0;
     bool RemoveOrCreateObjectsWithBlending = false;
     bool DrawHelmetsOnShroud               = false;
     bool HighlightTargetByType             = true;
@@ -60,7 +63,7 @@ public:
     bool CancelNewTargetSystemOnShiftEsc   = false;
     bool DrawStatusForHumanoids            = true;
 
-    bool UseToolTips           = false;
+    bool UseToolTips      = false;
     u16 ToolTipsTextColor = 0;
     u16 ToolTipsTextFont  = 0;
     u16 ToolTipsDelay     = 0;
@@ -96,37 +99,37 @@ public:
     bool HoldShiftForEnablePathfind = false;
     int GameWindowWidth             = 0;
     int GameWindowHeight            = 0;
-    u16 SpeechDelay            = 0;
+    u16 SpeechDelay                 = 0;
     bool ScaleSpeechDelay           = false;
-    u16 SpeechColor            = 0;
-    u16 EmoteColor             = 0;
-    u16 PartyMessageColor      = 0;
-    u16 GuildMessageColor      = 0;
-    u16 AllianceMessageColor   = 0;
+    u16 SpeechColor                 = 0;
+    u16 EmoteColor                  = 0;
+    u16 PartyMessageColor           = 0;
+    u16 GuildMessageColor           = 0;
+    u16 AllianceMessageColor        = 0;
     bool IgnoreGuildMessage         = false;
     bool IgnoreAllianceMessage      = false;
     bool DarkNights                 = false;
     bool ColoredLighting            = false;
     bool LockResizingGameWindow     = false;
 
-    u16 InnocentColor    = 0;
-    u16 FriendlyColor    = 0;
-    u16 SomeoneColor     = 0;
-    u16 CriminalColor    = 0;
-    u16 EnemyColor       = 0;
-    u16 MurdererColor    = 0;
+    u16 InnocentColor         = 0;
+    u16 FriendlyColor         = 0;
+    u16 SomeoneColor          = 0;
+    u16 CriminalColor         = 0;
+    u16 EnemyColor            = 0;
+    u16 MurdererColor         = 0;
     bool CriminalActionsQuery = false;
 
-    bool ShowIncomingNames    = false;
-    bool UseCircleTrans       = false;
-    bool StatReport           = false;
-    u8 CircleTransRadius = 0;
-    u8 SkillReport       = 0;
-    u16 SpeechFont       = 0;
+    bool ShowIncomingNames = false;
+    bool UseCircleTrans    = false;
+    bool StatReport        = false;
+    u8 CircleTransRadius   = 0;
+    u8 SkillReport         = 0;
+    u16 SpeechFont         = 0;
 
-    bool FilterPWOn       = false;
-    bool ObscenityFilter  = false;
-    string FilterPassword = "";
+    bool FilterPWOn            = false;
+    bool ObscenityFilter       = false;
+    std::string FilterPassword = "";
 
     bool ToggleBufficonWindow = false;
     int GameWindowX           = 0;

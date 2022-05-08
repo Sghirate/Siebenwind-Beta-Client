@@ -1,6 +1,7 @@
 #include "GameCrypt.h"
 #include "aes.h"
 #include "md5.h"
+#include <cstring>
 #include <memory>
 
 #define CRYPT_AUTO_VALUE 0x80

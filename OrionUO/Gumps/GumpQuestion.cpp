@@ -1,6 +1,7 @@
 #include "GumpQuestion.h"
-#include "../OrionUO.h"
-#include "../ScreenStages/GameScreen.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "ScreenStages/GameScreen.h"
 
 CGumpQuestion::CGumpQuestion(u32 serial, short x, short y, u8 variant)
     : CGump(GT_QUESTION, serial, x, y)

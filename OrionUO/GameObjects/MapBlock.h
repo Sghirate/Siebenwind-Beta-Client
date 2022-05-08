@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Core/Time.h"
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
 
+class CLandObject;
 class CMapObject;
 class CRenderWorldObject;
 
@@ -26,19 +28,19 @@ public:
     virtual ~CMapBlock();
 
     //Данные блока
-    CMapObject *Block[8][8];
+    CMapObject* Block[8][8];
 
     //Добавить объект
-    CMapObject *AddObject(CMapObject *obj, int x, int y);
+    CMapObject* AddObject(CMapObject* obj, int x, int y);
 
     //Получить указатель на объект ландшафта
-    CLandObject *GetLand(int x, int y);
+    CLandObject* GetLand(int x, int y);
 
     //Добавить объект в очередь рендера
-    void AddRender(CRenderWorldObject *item, int x, int y);
+    void AddRender(CRenderWorldObject* item, int x, int y);
 
     //Получить начало очереди рендера
-    CRenderWorldObject *GetRender(int x, int y);
+    CRenderWorldObject* GetRender(int x, int y);
 
     //Получить цвет точки для радара
     u16 GetRadarColor(int x, int y);

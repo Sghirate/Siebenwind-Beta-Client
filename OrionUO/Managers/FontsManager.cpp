@@ -1,12 +1,13 @@
 #include "FontsManager.h"
+#include "Globals.h"
 #include "ColorManager.h"
 #include "Core/MappedFile.h"
 #include "Core/StringUtils.h"
 #include "Core/TextFileParser.h"
 #include "FileManager.h"
-#include "../OrionUO.h"
-#include "../DefinitionMacro.h"
-#include "../OrionApplication.h"
+#include "OrionUO.h"
+#include "DefinitionMacro.h"
+#include "OrionApplication.h"
 #include "plugin/mulstruct.h"
 
 CFontsManager g_FontManager;
@@ -409,7 +410,7 @@ std::string CFontsManager::GetTextByWidthA(u8 font, const std::string &str, int 
 {
     if (font >= FontCount || str.empty())
     {
-        return string("");
+        return std::string("");
     }
 
     FONT_DATA &fd = Font[font];
@@ -420,7 +421,7 @@ std::string CFontsManager::GetTextByWidthA(u8 font, const std::string &str, int 
     }
 
     int textLength = 0;
-    string result = {};
+    std::string result = {};
     for (char c : str)
     {
         textLength += fd.Chars[m_FontIndex[(u8)c]].Width;
@@ -703,7 +704,7 @@ bool CFontsManager::GenerateA(
 
         if (realWidth > width)
         {
-            string newstr = GetTextByWidthA(font, str, width, (flags & UOFONT_CROPPED) != 0);
+            std::string newstr = GetTextByWidthA(font, str, width, (flags & UOFONT_CROPPED) != 0);
             return GenerateABase(font, th, newstr, color, width, align, flags);
         }
     }
@@ -1585,7 +1586,7 @@ HTML_DATA_INFO CFontsManager::GetCurrentHTMLInfo(const HTMLINFO_LIST &list)
     return info;
 }
 
-void CFontsManager::TrimHTMLString(string &str)
+void CFontsManager::TrimHTMLString(std::string &str)
 {
     if (str.length() >= 2 && str[0] == '"' && str[str.length() - 1] == '"')
     {

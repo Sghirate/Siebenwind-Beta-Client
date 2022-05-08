@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Core/Input.h"
 #include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
 #include "BaseQueue.h"
 #include "plugin/enumlist.h"
 #include <string>
@@ -17,7 +19,7 @@ public:
     void SetSubCode(MACRO_SUB_CODE a_subCode) { m_subCode = a_subCode; }
     char HasSubMenu() const { return m_hasSubMenu; }
     virtual bool HasString() const { return false; }
-    const std::string& GetString() const { return std::string(); }
+    const std::string& GetString() const { return Core::EmptyString; }
 
 private:
     MACRO_CODE m_code = MC_NONE;
@@ -45,14 +47,14 @@ public:
     enum { kMacroActionNamesCount = 60 };
     enum { kMacroActionsCount = 210 };
 
-    Macro(Keycode a_key, bool a_alt, bool a_ctrl, bool a_shift);
+    Macro(Core::EKey a_key, bool a_alt, bool a_ctrl, bool a_shift);
     virtual ~Macro();
 
-    Keycode GetKey() const { return m_key; }
+    Core::EKey GetKey() const { return m_key; }
     bool GetAlt() const { return m_alt; }
     bool GetCtrl() const { return m_ctrl; }
     bool GetShift() const { return m_shift; }
-    void SetKey(Keycode a_key) { m_key = a_key; }
+    void SetKey(Core::EKey a_key) { m_key = a_key; }
     void SetAlt(bool a_alt) { m_alt = m_alt; }
     void SetCtrl(bool a_ctrl) { m_ctrl = m_ctrl; }
     void SetShift(bool a_shift) { m_shift = m_shift; }
@@ -72,7 +74,7 @@ public:
 private:
     static const char* s_macroActionName[kMacroActionNamesCount];
     static const char* s_macroAction[kMacroActionsCount];
-    Keycode m_key = 0;
+    Core::EKey m_key = Core::EKey::Key_Unknown;
     bool m_alt = false;
     bool m_ctrl = false;
     bool m_shift = false;

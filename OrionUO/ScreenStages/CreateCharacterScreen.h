@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../Platform.h"
+#include "Platform.h"
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenCreateCharacter.h"
+#include "Gumps/GumpScreenCreateCharacter.h"
+#include <string>
 
 class CCreateCharacterScreen : public CBaseScreen
 {
@@ -19,7 +20,7 @@ protected:
 public:
     int GetColorSelection() { return m_ColorSelection; };
     void SetColorSelection(int val);
-    string Name = "";
+    std::string Name = "";
 
 private:
     CGumpScreenCreateCharacter m_CreateCharacterGump;
@@ -36,8 +37,8 @@ public:
     void Init();
     void ProcessSmoothAction(u8 action = 0xFF);
     virtual void OnLeftMouseButtonDown();
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 };
 
 extern CCreateCharacterScreen g_CreateCharacterScreen;

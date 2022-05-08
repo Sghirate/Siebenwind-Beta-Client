@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Gump.h"
-#include "../Platform.h"
+#include "Platform.h"
+#include <string>
 
 class CGumpStatusbar : public CGump
 {
@@ -17,7 +18,7 @@ protected:
     CGUIGumppic *m_HitsBody{ nullptr };
     CGUITextEntry *m_Entry{ nullptr };
 
-    string m_Name;
+    std::string m_Name;
 
 public:
     CGumpStatusbar(u32 serial, short x, short y, bool minimized);
@@ -48,6 +49,6 @@ public:
     virtual void OnLeftMouseButtonDown();
     virtual bool OnLeftMouseButtonDoubleClick();
 
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 };

@@ -7,24 +7,22 @@
 #include "GumpSelectFont.h"
 #include "GumpMenubar.h"
 #include "Platform.h"
-#include "../Config.h"
-#include "../Macro.h"
-#include "../DefinitionMacro.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../Container.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/MacroManager.h"
-#include "../Managers/OptionsMacroManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Network/Packets.h"
+#include "Config.h"
+#include "Macro.h"
+#include "DefinitionMacro.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "Container.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/MacroManager.h"
+#include "Managers/OptionsMacroManager.h"
+#include "Managers/ColorManager.h"
+#include "Network/Packets.h"
 
-#define KeyName(x) SDL_GetKeyName(x)
-
-const u16 g_OptionsTextColor = 0;
+const u16 g_OptionsTextColor           = 0;
 const int g_OptionsPolygoneColorOffset = 12;
 
 enum
@@ -198,8 +196,8 @@ enum
 
     ID_GO_COUNT,
 
-    ID_GO_P5_MACRO_START = 1000,
-    ID_GO_P5_MACRO_SELECTION = 2000,
+    ID_GO_P5_MACRO_START      = 1000,
+    ID_GO_P5_MACRO_SELECTION  = 2000,
     ID_GO_P5_ACTION_SELECTION = 10000,
 };
 
@@ -222,7 +220,7 @@ void CGumpOptions::CalculateGumpState()
     if (g_GumpPressed)
     {
         if (g_PressedObject.LeftObject != nullptr &&
-            ((CBaseGUI *)g_PressedObject.LeftObject)->Type == GOT_COMBOBOX)
+            ((CBaseGUI*)g_PressedObject.LeftObject)->Type == GOT_COMBOBOX)
         {
             g_GumpMovingOffset.set(0, 0);
 
@@ -263,38 +261,38 @@ void CGumpOptions::UpdateContent()
     //Left page buttons
 
     //Sound and Music
-    CGUIButton *button =
-        (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_1, 0x00DA, 0x00DA, 0x00DA, 0, 45));
+    CGUIButton* button =
+        (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_1, 0x00DA, 0x00DA, 0x00DA, 0, 45));
     button->ToPage = 1;
     //Orion's configuration
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_2, 0x00DC, 0x00DC, 0x00DC, 0, 111));
+    button         = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_2, 0x00DC, 0x00DC, 0x00DC, 0, 111));
     button->ToPage = 2;
     //Language
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_3, 0x00DE, 0x00DE, 0x00DE, 0, 177));
+    button         = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_3, 0x00DE, 0x00DE, 0x00DE, 0, 177));
     button->ToPage = 3;
     //Chat
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_4, 0x00E0, 0x00E0, 0x00E0, 0, 243));
+    button         = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_4, 0x00E0, 0x00E0, 0x00E0, 0, 243));
     button->ToPage = 4;
     //Macro Options
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_5, 0x00ED, 0x00ED, 0x00ED, 0, 309));
+    button         = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_5, 0x00ED, 0x00ED, 0x00ED, 0, 309));
     button->ToPage = 5;
 
     //Right page buttons
 
     //Interface
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_6, 0x00E2, 0x00E2, 0x00E2, 576, 45));
+    button = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_6, 0x00E2, 0x00E2, 0x00E2, 576, 45));
     button->ToPage = 6;
     //Display
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_7, 0x00E4, 0x00E4, 0x00E4, 576, 111));
+    button = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_7, 0x00E4, 0x00E4, 0x00E4, 576, 111));
     button->ToPage = 7;
     //Reputation System
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_8, 0x00E6, 0x00E6, 0x00E6, 576, 177));
+    button = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_8, 0x00E6, 0x00E6, 0x00E6, 576, 177));
     button->ToPage = 8;
     //Miscellaneous
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_9, 0x00E8, 0x00E8, 0x00E8, 576, 243));
+    button = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_9, 0x00E8, 0x00E8, 0x00E8, 576, 243));
     button->ToPage = 9;
     //Filter Options
-    button = (CGUIButton *)Add(new CGUIButton(ID_GO_PAGE_10, 0x00EB, 0x00EB, 0x00EB, 576, 309));
+    button = (CGUIButton*)Add(new CGUIButton(ID_GO_PAGE_10, 0x00EB, 0x00EB, 0x00EB, 576, 309));
     button->ToPage = 10;
 
     Add(new CGUIButton(ID_GO_CANCEL, 0x00F3, 0x00F2, 0x00F1, 154, 405));
@@ -321,8 +319,8 @@ void CGumpOptions::Init()
     g_OptionsMacroManager.LoadFromMacro();
     g_OptionsDeveloperMode = g_DeveloperMode;
 
-    m_MacroPointer = (Macro *)g_OptionsMacroManager.m_Items;
-    m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
+    m_MacroPointer       = (Macro*)g_OptionsMacroManager.m_Items;
+    m_MacroObjectPointer = (MacroObject*)m_MacroPointer->m_Items;
 
     WantUpdateContent = true;
 }
@@ -1015,8 +1013,7 @@ void CGumpOptions::InitToolTip()
             g_ToolTip.Set(L"Skills increase/decrease information");
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -1027,25 +1024,25 @@ void CGumpOptions::DrawPage1()
 
     Add(new CGUIGumppic(0x00D9, 0, 45));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Sound and Music", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(
         0,
         L"These settings affect the sound and music you will hear while playing Ultima Online.",
         30,
         500);
 
-    CGUICheckbox *checkbox = (CGUICheckbox *)Add(
-        new CGUICheckbox(ID_GO_P1_SOUND_ON_OFF, 0x00D2, 0x00D3, 0x00D2, 64, 90));
+    CGUICheckbox* checkbox =
+        (CGUICheckbox*)Add(new CGUICheckbox(ID_GO_P1_SOUND_ON_OFF, 0x00D2, 0x00D3, 0x00D2, 64, 90));
     checkbox->Checked = g_OptionsConfig.GetSound();
     checkbox->SetTextParameters(0, L"Sound on/off", g_OptionsTextColor);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 112));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 112));
     text->CreateTextureW(0, L"Sound volume");
 
-    m_SliderSound = (CGUISlider *)Add(new CGUISlider(
+    m_SliderSound = (CGUISlider*)Add(new CGUISlider(
         ID_GO_P1_SOUND_VOLUME,
         0x00D8,
         0x00D8,
@@ -1061,15 +1058,15 @@ void CGumpOptions::DrawPage1()
         g_OptionsConfig.GetSoundVolume()));
     m_SliderSound->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P1_MUSIC_ON_OFF, 0x00D2, 0x00D3, 0x00D2, 64, 151));
     checkbox->Checked = g_OptionsConfig.GetMusic();
     checkbox->SetTextParameters(0, L"Music on/off", g_OptionsTextColor);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 173));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 173));
     text->CreateTextureW(0, L"Music volume");
 
-    m_SliderMusic = (CGUISlider *)Add(new CGUISlider(
+    m_SliderMusic = (CGUISlider*)Add(new CGUISlider(
         ID_GO_P1_MUSIC_VOLUME,
         0x00D8,
         0x00D8,
@@ -1085,17 +1082,17 @@ void CGumpOptions::DrawPage1()
         g_OptionsConfig.GetMusicVolume()));
     m_SliderMusic->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P1_PLAY_FOOTSTEP_SOUNDS, 0x00D2, 0x00D3, 0x00D2, 64, 212));
     checkbox->Checked = g_OptionsConfig.FootstepsSound;
     checkbox->SetTextParameters(0, L"Play footstep sounds", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P1_PLAY_COMBAT_MUSIC, 0x00D2, 0x00D3, 0x00D2, 64, 232));
     checkbox->Checked = g_OptionsConfig.CombatMusic;
     checkbox->SetTextParameters(0, L"Play combat music", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P1_BACKGROUND_SOUND, 0x00D2, 0x00D3, 0x00D2, 64, 252));
     checkbox->Checked = g_OptionsConfig.BackgroundSound;
     checkbox->SetTextParameters(0, L"Play sounds in background", g_OptionsTextColor);
@@ -1108,34 +1105,32 @@ void CGumpOptions::DrawPage2()
 
     Add(new CGUIGumppic(0x00DB, 0, 111));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Orion's configuration", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(0, L"These settings configure the Orion UO Client.");
 
-    CGUIRadio *devRadio =
-        (CGUIRadio *)Add(new CGUIRadio(ID_GO_P2_DEV_MODE_1, 0x00D0, 0x00D1, 0x00D2, 64, 64));
+    CGUIRadio* devRadio =
+        (CGUIRadio*)Add(new CGUIRadio(ID_GO_P2_DEV_MODE_1, 0x00D0, 0x00D1, 0x00D2, 64, 64));
     devRadio->Checked = (g_DeveloperMode == DM_NO_DEBUG);
     devRadio->SetTextParameters(0, L"No debug", g_OptionsTextColor);
 
-    devRadio =
-        (CGUIRadio *)Add(new CGUIRadio(ID_GO_P2_DEV_MODE_2, 0x00D0, 0x00D1, 0x00D2, 164, 64));
+    devRadio = (CGUIRadio*)Add(new CGUIRadio(ID_GO_P2_DEV_MODE_2, 0x00D0, 0x00D1, 0x00D2, 164, 64));
     devRadio->Checked = (g_DeveloperMode == DM_SHOW_FPS_ONLY);
     devRadio->SetTextParameters(0, L"FPS only", g_OptionsTextColor);
 
-    devRadio =
-        (CGUIRadio *)Add(new CGUIRadio(ID_GO_P2_DEV_MODE_3, 0x00D0, 0x00D1, 0x00D2, 264, 64));
+    devRadio = (CGUIRadio*)Add(new CGUIRadio(ID_GO_P2_DEV_MODE_3, 0x00D0, 0x00D1, 0x00D2, 264, 64));
     devRadio->Checked = (g_DeveloperMode == DM_DEBUGGING);
     devRadio->SetTextParameters(0, L"Debugging", g_OptionsTextColor);
 
-    CGUIHTMLGump *html =
-        (CGUIHTMLGump *)Add(new CGUIHTMLGump(0xFFFFFFFF, 0x0BB8, 64, 90, 500, 300, false, true));
+    CGUIHTMLGump* html =
+        (CGUIHTMLGump*)Add(new CGUIHTMLGump(0xFFFFFFFF, 0x0BB8, 64, 90, 500, 300, false, true));
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 0));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 0));
     text->CreateTextureW(0, L"FPS rate:");
 
-    m_SliderClientFPS = (CGUISlider *)html->Add(new CGUISlider(
+    m_SliderClientFPS = (CGUISlider*)html->Add(new CGUISlider(
         ID_GO_P2_CLIENT_FPS,
         0x00D8,
         0x00D8,
@@ -1151,73 +1146,73 @@ void CGumpOptions::DrawPage2()
         g_OptionsConfig.GetClientFPS()));
     m_SliderClientFPS->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    CGUICheckbox *checkbox = (CGUICheckbox *)html->Add(
+    CGUICheckbox* checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_REDUCE_FPS_UNACTIVE_WINDOW, 0x00D2, 0x00D3, 0x00D2, 140, 16));
     checkbox->Checked = g_OptionsConfig.GetReduceFPSUnactiveWindow();
     checkbox->SetTextParameters(0, L"Reduce FPS when UO window is unactive", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_CHARACTERS_ANIMATION_DELAY, 0x00D2, 0x00D3, 0x00D2, 0, 40));
     checkbox->Checked = g_OptionsConfig.StandartCharactersAnimationDelay;
     checkbox->SetTextParameters(0, L"Standard characters animation delay", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_ITEMS_ANIMATION_DELAY, 0x00D2, 0x00D3, 0x00D2, 0, 60));
     checkbox->Checked = g_OptionsConfig.StandartItemsAnimationDelay;
     checkbox->SetTextParameters(0, L"Standard items animation delay", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_ENABLE_SCALING, 0x00D2, 0x00D3, 0x00D2, 0, 80));
     checkbox->Checked = g_OptionsConfig.GetUseScaling();
     checkbox->SetTextParameters(
         0, L"Use scaling in game window (BETA VERSION!!!)", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_REMOVE_TEXT_WITH_BLENDING, 0x00D2, 0x00D3, 0x00D2, 0, 100));
     checkbox->Checked = g_OptionsConfig.RemoveTextWithBlending;
     checkbox->SetTextParameters(0, L"Remove object's text with alpha-blending", g_OptionsTextColor);
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 120));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 120));
     text->CreateTextureW(0, L"Draw character's status in game window");
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_DRAW_STATUS_FOR_HUMANOIDS, 0x00D2, 0x00D3, 0x00D2, 300, 120));
     checkbox->Checked = g_OptionsConfig.DrawStatusForHumanoids;
     checkbox->SetTextParameters(0, L"For humanoids only", g_OptionsTextColor);
 
     html->Add(new CGUIGroup(1));
-    CGUIRadio *radio = (CGUIRadio *)html->Add(
+    CGUIRadio* radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_NO_DRAW_CHARACTERS_STATUS, 0x00D0, 0x00D1, 0x00D2, 10, 140));
     radio->Checked = (g_OptionsConfig.GetDrawStatusState() == DCSS_NO_DRAW);
     radio->SetTextParameters(0, L"No draw", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_CHARACTERS_STATUS_TOP, 0x00D0, 0x00D1, 0x00D2, 10, 160));
     radio->Checked = (g_OptionsConfig.GetDrawStatusState() == DCSS_ABOVE);
     radio->SetTextParameters(0, L"Above character (Text)", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_CHARACTERS_STATUS_BOTTOM, 0x00D0, 0x00D1, 0x00D2, 10, 180));
     radio->Checked = (g_OptionsConfig.GetDrawStatusState() == DCSS_UNDER);
     radio->SetTextParameters(0, L"Under character (Line)", g_OptionsTextColor);
 
     html->Add(new CGUIGroup(2));
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_CHARACTER_BARS_ALWAYS, 0x00D0, 0x00D1, 0x00D2, 230, 140));
     radio->Checked = (g_OptionsConfig.DrawStatusConditionState == DCSCS_ALWAYS);
     radio->SetTextParameters(0, L"Always", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_CHARACTER_BARS_NOT_MAX, 0x00D0, 0x00D1, 0x00D2, 230, 160));
     radio->Checked = (g_OptionsConfig.DrawStatusConditionState == DCSCS_NOT_MAX);
     radio->SetTextParameters(0, L"HP <> MaxHP", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_CHARACTER_BARS_LOWER, 0x00D0, 0x00D1, 0x00D2, 230, 180));
     radio->Checked = (g_OptionsConfig.DrawStatusConditionState == DCSCS_LOWER);
     radio->SetTextParameters(0, L"HP lower %", g_OptionsTextColor);
 
-    m_SliderDrawStatusConditionValue = (CGUISlider *)html->Add(new CGUISlider(
+    m_SliderDrawStatusConditionValue = (CGUISlider*)html->Add(new CGUISlider(
         ID_GO_P2_DRAW_CHARACTER_BARS_LOWER_VALUE,
         0x00D8,
         0x00D8,
@@ -1234,61 +1229,61 @@ void CGumpOptions::DrawPage2()
     m_SliderDrawStatusConditionValue->SetTextParameters(
         true, STP_RIGHT_CENTER, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_DRAW_STUMPS, 0x00D2, 0x00D3, 0x00D2, 0, 205));
     checkbox->Checked = g_OptionsConfig.GetDrawStumps();
     checkbox->SetTextParameters(0, L"Change trees to stumps", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_MARKING_CAVES, 0x00D2, 0x00D3, 0x00D2, 0, 225));
     checkbox->Checked = g_OptionsConfig.GetMarkingCaves();
     checkbox->SetTextParameters(0, L"Marking cave tiles", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_NO_VEGETATION, 0x00D2, 0x00D3, 0x00D2, 0, 245));
     checkbox->Checked = g_OptionsConfig.GetNoVegetation();
     checkbox->SetTextParameters(0, L"Hide vegetation", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_NO_ANIMATE_FIELDS, 0x00D2, 0x00D3, 0x00D2, 0, 265));
     checkbox->Checked = g_OptionsConfig.GetNoAnimateFields();
     checkbox->SetTextParameters(0, L"No fields animation", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_LOCK_GUMP_MOVING, 0x00D2, 0x00D3, 0x00D2, 0, 285));
     checkbox->Checked = g_OptionsConfig.LockGumpsMoving;
     checkbox->SetTextParameters(0, L"Lock gumps moving", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_CONSOLE_ENTER, 0x00D2, 0x00D3, 0x00D2, 0, 305));
     checkbox->Checked = g_OptionsConfig.GetConsoleNeedEnter();
     checkbox->SetTextParameters(0, L"Chat need press 'Enter' to activate it.", g_OptionsTextColor);
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 325));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 325));
     text->CreateTextureW(0, L"Hidden characters display mode:");
 
     html->Add(new CGUIGroup(3));
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_HIDDEN_CHARACTES_MODE_1, 0x00D0, 0x00D1, 0x00D2, 10, 345));
     radio->Checked = (g_OptionsConfig.HiddenCharactersRenderMode == HCRM_ORIGINAL);
     radio->SetTextParameters(0, L"Original", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_HIDDEN_CHARACTES_MODE_2, 0x00D0, 0x00D1, 0x00D2, 10, 365));
     radio->Checked = (g_OptionsConfig.HiddenCharactersRenderMode == HCRM_ALPHA_BLENDING);
     radio->SetTextParameters(0, L"With alpha-blending, alpha:", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_HIDDEN_CHARACTES_MODE_3, 0x00D0, 0x00D1, 0x00D2, 10, 385));
     radio->Checked = (g_OptionsConfig.HiddenCharactersRenderMode == HCRM_SPECTRAL_COLOR);
     radio->SetTextParameters(0, L"With spectral color", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_HIDDEN_CHARACTES_MODE_4, 0x00D0, 0x00D1, 0x00D2, 10, 405));
     radio->Checked = (g_OptionsConfig.HiddenCharactersRenderMode == HCRM_SPECIAL_SPECTRAL_COLOR);
     radio->SetTextParameters(0, L"With special spectral color", g_OptionsTextColor);
 
-    m_SliderHiddenAlpha = (CGUISlider *)html->Add(new CGUISlider(
+    m_SliderHiddenAlpha = (CGUISlider*)html->Add(new CGUISlider(
         ID_GO_P2_HIDDEN_ALPHA,
         0x00D8,
         0x00D8,
@@ -1304,18 +1299,18 @@ void CGumpOptions::DrawPage2()
         g_OptionsConfig.HiddenAlpha));
     m_SliderHiddenAlpha->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_USE_HIDDEN_MODE_ONLY_FOR_SELF, 0x00D2, 0x00D3, 0x00D2, 0, 430));
     checkbox->Checked = g_OptionsConfig.UseHiddenModeOnlyForSelf;
     checkbox->SetTextParameters(
         0, L"Change hidden characters mode only for your person", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_TRANSPARENT_SPELL_ICONS, 0x00D2, 0x00D3, 0x00D2, 0, 450));
     checkbox->Checked = (g_OptionsConfig.TransparentSpellIcons != 0u);
     checkbox->SetTextParameters(0, L"Transparent spell icons, alpha:", g_OptionsTextColor);
 
-    m_SliderSpellIconsAlpha = (CGUISlider *)html->Add(new CGUISlider(
+    m_SliderSpellIconsAlpha = (CGUISlider*)html->Add(new CGUISlider(
         ID_GO_P2_SPELL_ICONS_ALPHA,
         0x00D8,
         0x00D8,
@@ -1331,132 +1326,132 @@ void CGumpOptions::DrawPage2()
         g_OptionsConfig.GetSpellIconAlpha()));
     m_SliderSpellIconsAlpha->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_OLD_STYLE_STATUSBAR, 0x00D2, 0x00D3, 0x00D2, 0, 470));
     checkbox->Checked = g_OptionsConfig.GetOldStyleStatusbar();
     checkbox->SetTextParameters(0, L"Old style maximized statusbar", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_ORIGINAL_PARTY_STATUSBAR, 0x00D2, 0x00D3, 0x00D2, 0, 490));
     checkbox->Checked = g_OptionsConfig.GetOriginalPartyStatusbar();
     checkbox->SetTextParameters(0, L"Original party statusbar gump", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_APPLY_STATE_COLOR_ON_CHARACTERS, 0x00D2, 0x00D3, 0x00D2, 0, 510));
     checkbox->Checked = g_OptionsConfig.GetApplyStateColorOnCharacters();
     checkbox->SetTextParameters(0, L"Colorize characters by state", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_CHANGE_FIELDS_GRAPHIC, 0x00D2, 0x00D3, 0x00D2, 0, 530));
     checkbox->Checked = g_OptionsConfig.GetChangeFieldsGraphic();
     checkbox->SetTextParameters(0, L"Change animated fields to tiles", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(new CGUICheckbox(
+    checkbox          = (CGUICheckbox*)html->Add(new CGUICheckbox(
         ID_GO_P2_REMOVE_STATUSBARS_WITHOUT_OBJECTS, 0x00D2, 0x00D3, 0x00D2, 0, 570));
     checkbox->Checked = g_OptionsConfig.RemoveStatusbarsWithoutObjects;
     checkbox->SetTextParameters(0, L"Remove statusbars without objects", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_SHOW_CONSOLE_ENTRY_MODE, 0x00D2, 0x00D3, 0x00D2, 0, 590));
     checkbox->Checked = g_OptionsConfig.ShowDefaultConsoleEntryMode;
     checkbox->SetTextParameters(
         0, L"Show console entry mode under game window", g_OptionsTextColor);
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 610));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 610));
     text->CreateTextureW(0, L"Draw aura under characters mode:");
 
     html->Add(new CGUIGroup(4));
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_AURA_NEVER, 0x00D0, 0x00D1, 0x00D2, 10, 630));
     radio->Checked = (g_OptionsConfig.GetDrawAuraState() == DAS_NEVER);
     radio->SetTextParameters(0, L"Never", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_AURA_IN_WARMODE, 0x00D0, 0x00D1, 0x00D2, 10, 650));
     radio->Checked = (g_OptionsConfig.GetDrawAuraState() == DAS_IN_WARMODE);
     radio->SetTextParameters(0, L"Only in war mode", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_DRAW_AURA_ALWAYS, 0x00D0, 0x00D1, 0x00D2, 10, 670));
     radio->Checked = (g_OptionsConfig.GetDrawAuraState() == DAS_ALWAYS);
     radio->SetTextParameters(0, L"Always", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_DRAW_AURA_WITH_CTRL_PRESSED, 0x00D2, 0x00D3, 0x00D2, 0, 690));
     checkbox->Checked = g_OptionsConfig.DrawAuraWithCtrlPressed;
     checkbox->SetTextParameters(0, L"Draw aura only if Ctrl pressed", g_OptionsTextColor);
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 710));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 710));
     text->CreateTextureW(0, L"Screenshots format:");
 
     html->Add(new CGUIGroup(5));
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_SCREENSHOT_FORMAT_BMP, 0x00D0, 0x00D1, 0x00D2, 10, 730));
     radio->Checked = (g_OptionsConfig.ScreenshotFormat == SF_BMP);
     radio->SetTextParameters(0, L"BMP", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_SCREENSHOT_FORMAT_PNG, 0x00D0, 0x00D1, 0x00D2, 100, 730));
     radio->Checked = (g_OptionsConfig.ScreenshotFormat == SF_PNG);
     radio->SetTextParameters(0, L"PNG", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_SCREENSHOT_FORMAT_TGA, 0x00D0, 0x00D1, 0x00D2, 190, 730));
     radio->Checked = (g_OptionsConfig.ScreenshotFormat == SF_TGA);
     radio->SetTextParameters(0, L"TGA", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P2_SCREENSHOT_FORMAT_JPG, 0x00D0, 0x00D1, 0x00D2, 280, 730));
     radio->Checked = (g_OptionsConfig.ScreenshotFormat == SF_JPG);
     radio->SetTextParameters(0, L"JPG", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(new CGUICheckbox(
+    checkbox          = (CGUICheckbox*)html->Add(new CGUICheckbox(
         ID_GO_P2_REMOVE_OR_CREATE_OBJECTS_WITH_BLENDING, 0x00D2, 0x00D3, 0x00D2, 0, 760));
     checkbox->Checked = g_OptionsConfig.RemoveOrCreateObjectsWithBlending;
     checkbox->SetTextParameters(
         0, L"Remove or new draw objects displaying with use blending", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_DRAW_HELMETS_ON_SHROUD, 0x00D2, 0x00D3, 0x00D2, 0, 780));
     checkbox->Checked = g_OptionsConfig.DrawHelmetsOnShroud;
     checkbox->SetTextParameters(0, L"Draw helmets on shroud in the world", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_USE_GLOBAL_MAP_LAYER, 0x00D2, 0x00D3, 0x00D2, 0, 800));
     checkbox->Checked = g_OptionsConfig.GetUseGlobalMapLayer();
     checkbox->SetTextParameters(0, L"Draw world map before all gumps", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_NO_DRAW_ROOFS, 0x00D2, 0x00D3, 0x00D2, 0, 820));
     checkbox->Checked = g_OptionsConfig.GetNoDrawRoofs();
     checkbox->SetTextParameters(0, L"No draw roofs", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_HIGHLIGHT_TARGET_BY_TYPE, 0x00D2, 0x00D3, 0x00D2, 0, 840));
     checkbox->Checked = g_OptionsConfig.HighlightTargetByType;
     checkbox->SetTextParameters(
         0, L"Highlight target by type (netural, harmful, helpful)", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_AUTO_DISPLAY_WORLD_MAP, 0x00D2, 0x00D3, 0x00D2, 0, 860));
     checkbox->Checked = g_OptionsConfig.AutoDisplayWorldMap;
     checkbox->SetTextParameters(
         0, L"Display a world map immediately after entering the world", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_DISABLE_MACRO_IN_CHAT, 0x00D2, 0x00D3, 0x00D2, 0, 880));
     checkbox->Checked = g_OptionsConfig.DisableMacroInChat;
     checkbox->SetTextParameters(
         0, L"Disables macro activation when chat is active", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_CHECK_PING, 0x00D2, 0x00D3, 0x00D2, 0, 900));
     checkbox->Checked = g_OptionsConfig.CheckPing;
     checkbox->SetTextParameters(0, L"Check ping in game, timer in seconds:", g_OptionsTextColor);
 
-    m_SliderPingTimer = (CGUISlider *)html->Add(new CGUISlider(
+    m_SliderPingTimer = (CGUISlider*)html->Add(new CGUISlider(
         ID_GO_P2_PING_TIMER,
         0x00D8,
         0x00D8,
@@ -1472,7 +1467,7 @@ void CGumpOptions::DrawPage2()
         g_OptionsConfig.GetPingTimer()));
     m_SliderPingTimer->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)html->Add(new CGUICheckbox(
+    checkbox          = (CGUICheckbox*)html->Add(new CGUICheckbox(
         ID_GO_P2_CANCEL_NEW_TARGET_SYSTEM_ON_SHIFT_ESC, 0x00D2, 0x00D3, 0x00D2, 0, 920));
     checkbox->Checked = g_OptionsConfig.CancelNewTargetSystemOnShiftEsc;
     checkbox->SetTextParameters(
@@ -1488,25 +1483,25 @@ void CGumpOptions::DrawPage3()
 
     Add(new CGUIGumppic(0x00DD, 0, 177));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Language", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(
         0,
         L"The language you use when playing UO is obtained from your Operating System settings.",
         30,
         480);
 
-    CGUICheckbox *checkbox =
-        (CGUICheckbox *)Add(new CGUICheckbox(ID_GO_P3_USE_TOOLTIP, 0x00D2, 0x00D3, 0x00D2, 64, 90));
+    CGUICheckbox* checkbox =
+        (CGUICheckbox*)Add(new CGUICheckbox(ID_GO_P3_USE_TOOLTIP, 0x00D2, 0x00D3, 0x00D2, 64, 90));
     checkbox->Checked = g_OptionsConfig.UseToolTips;
     checkbox->SetTextParameters(0, L"Use Tool-tips", g_OptionsTextColor);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 112));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 112));
     text->CreateTextureW(0, L"Delay before Tool-tip appears");
 
-    m_SliderTooltipDelay = (CGUISlider *)Add(new CGUISlider(
+    m_SliderTooltipDelay = (CGUISlider*)Add(new CGUISlider(
         ID_GO_P3_DELAY_BEFORE_TOOLTIP,
         0x00D8,
         0x00D8,
@@ -1532,16 +1527,16 @@ void CGumpOptions::DrawPage3()
             g_OptionsPolygoneColorOffset, g_OptionsConfig.ToolTipsTextColor);
     }
 
-    m_ColorTooltipText = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorTooltipText                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P3_TEXT_COLOR, g_OptionsConfig.ToolTipsTextColor, 67, 154, 13, 14, color));
     m_ColorTooltipText->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 151));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 151));
     text->CreateTextureW(0, L"Color of Tool-tip text");
 
     Add(new CGUIButton(ID_GO_P3_TEXT_FONT, 0x00D0, 0x00D0, 0x00D0, 64, 173));
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 173));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 173));
     text->CreateTextureW(0, L"Font for Tool-tips");
 }
 
@@ -1552,10 +1547,10 @@ void CGumpOptions::DrawPage4()
 
     Add(new CGUIGumppic(0x00DF, 0, 243));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Chat", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(0, L"These settings affect the interface display for the chat system.");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 90));
@@ -1568,11 +1563,11 @@ void CGumpOptions::DrawPage4()
             g_OptionsPolygoneColorOffset, g_OptionsConfig.ChatColorInputText);
     }
 
-    m_ColorInputText = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorInputText                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR, g_OptionsConfig.ChatColorInputText, 67, 93, 13, 14, color));
     m_ColorInputText->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 90));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 90));
     text->CreateTextureW(0, L"Input text color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 1, 0x00D4, 0x00D4, 0x00D4, 64, 109));
@@ -1587,11 +1582,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorMenuOption = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorMenuOption                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 1, g_OptionsConfig.ChatColorInputText, 67, 112, 13, 14, color));
     m_ColorMenuOption->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 109));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 109));
     text->CreateTextureW(0, L"Menu option color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 2, 0x00D4, 0x00D4, 0x00D4, 64, 128));
@@ -1606,11 +1601,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorPlayerColorInMemberList = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorPlayerColorInMemberList = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 2, g_OptionsConfig.ChatColorInputText, 67, 131, 13, 14, color));
     m_ColorPlayerColorInMemberList->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 128));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 128));
     text->CreateTextureW(0, L"Player color in member list");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 3, 0x00D4, 0x00D4, 0x00D4, 64, 147));
@@ -1625,11 +1620,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorChatText = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorChatText                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 3, g_OptionsConfig.ChatColorInputText, 67, 150, 13, 14, color));
     m_ColorChatText->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 147));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 147));
     text->CreateTextureW(0, L"Chat text color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 4, 0x00D4, 0x00D4, 0x00D4, 64, 166));
@@ -1644,11 +1639,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorPlayerNameWithoutSpeakingPrivileges = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorPlayerNameWithoutSpeakingPrivileges = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 4, g_OptionsConfig.ChatColorInputText, 67, 169, 13, 14, color));
     m_ColorPlayerNameWithoutSpeakingPrivileges->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 166));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 166));
     text->CreateTextureW(0, L"Player name without speaking privileges", 30, 160);
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 5, 0x00D4, 0x00D4, 0x00D4, 64, 201));
@@ -1663,11 +1658,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorMutedText = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorMutedText                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 5, g_OptionsConfig.ChatColorInputText, 67, 204, 13, 14, color));
     m_ColorMutedText->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 201));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 201));
     text->CreateTextureW(0, L"Muted text color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 6, 0x00D4, 0x00D4, 0x00D4, 64, 220));
@@ -1682,11 +1677,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorChannelModeratorName = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorChannelModeratorName                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 6, g_OptionsConfig.ChatColorInputText, 67, 223, 13, 14, color));
     m_ColorChannelModeratorName->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 220));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 220));
     text->CreateTextureW(0, L"Channel moderator name");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 7, 0x00D4, 0x00D4, 0x00D4, 64, 239));
@@ -1701,11 +1696,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorChannelModeratorText = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorChannelModeratorText                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 7, g_OptionsConfig.ChatColorInputText, 67, 242, 13, 14, color));
     m_ColorChannelModeratorText->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 239));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 239));
     text->CreateTextureW(0, L"Channel moderator text");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 8, 0x00D4, 0x00D4, 0x00D4, 64, 258));
@@ -1720,11 +1715,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorMyName = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorMyName                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 8, g_OptionsConfig.ChatColorInputText, 67, 261, 13, 14, color));
     m_ColorMyName->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 258));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 258));
     text->CreateTextureW(0, L"My name's color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 9, 0x00D4, 0x00D4, 0x00D4, 64, 277));
@@ -1739,11 +1734,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorMyText = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorMyText                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 9, g_OptionsConfig.ChatColorInputText, 67, 280, 13, 14, color));
     m_ColorMyText->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 277));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 277));
     text->CreateTextureW(0, L"My text color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 10, 0x00D4, 0x00D4, 0x00D4, 64, 296));
@@ -1758,11 +1753,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorSystemMessage = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorSystemMessage                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 10, g_OptionsConfig.ChatColorInputText, 67, 299, 13, 14, color));
     m_ColorSystemMessage->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 88, 296));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 88, 296));
     text->CreateTextureW(0, L"System message color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 11, 0x00D4, 0x00D4, 0x00D4, 300, 90));
@@ -1777,11 +1772,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorTextOutputBackground = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorTextOutputBackground                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 11, g_OptionsConfig.ChatColorInputText, 303, 93, 13, 14, color));
     m_ColorTextOutputBackground->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 324, 90));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 324, 90));
     text->CreateTextureW(0, L"Text Output Background Color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 12, 0x00D4, 0x00D4, 0x00D4, 300, 109));
@@ -1796,11 +1791,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorTextInputBackground = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorTextInputBackground                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 12, g_OptionsConfig.ChatColorInputText, 303, 112, 13, 14, color));
     m_ColorTextInputBackground->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 324, 109));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 324, 109));
     text->CreateTextureW(0, L"Text Input Background Color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 13, 0x00D4, 0x00D4, 0x00D4, 300, 128));
@@ -1815,11 +1810,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorUserListBackground = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorUserListBackground                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 13, g_OptionsConfig.ChatColorInputText, 303, 131, 13, 14, color));
     m_ColorUserListBackground->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 324, 128));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 324, 128));
     text->CreateTextureW(0, L"User List Background Color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 14, 0x00D4, 0x00D4, 0x00D4, 300, 147));
@@ -1834,11 +1829,11 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorConferenceListBackground = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorConferenceListBackground = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 14, g_OptionsConfig.ChatColorInputText, 303, 150, 13, 14, color));
     m_ColorConferenceListBackground->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 324, 147));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 324, 147));
     text->CreateTextureW(0, L"Conference List Background Color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_COLOR + 15, 0x00D4, 0x00D4, 0x00D4, 300, 166));
@@ -1853,44 +1848,44 @@ void CGumpOptions::DrawPage4()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorCommandListBackground = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorCommandListBackground                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P4_TEXT_COLOR + 15, g_OptionsConfig.ChatColorInputText, 303, 169, 13, 14, color));
     m_ColorCommandListBackground->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 324, 166));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 324, 166));
     text->CreateTextureW(0, L"Command List Background Color");
 
     Add(new CGUIButton(ID_GO_P4_TEXT_FONT, 0x00D0, 0x00D0, 0x00D0, 300, 192));
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 324, 192));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 324, 192));
     text->CreateTextureW(0, L"Chat font");
 }
 
 void CGumpOptions::RedrawMacroData()
 {
     m_WantRedrawMacroData = false;
-    WantUpdateContent = true;
+    WantUpdateContent     = true;
     m_MacroDataBox->Clear();
 
-    bool alt = false;
-    bool ctrl = false;
-    bool shift = false;
-    Keycode key = 0;
+    bool alt       = false;
+    bool ctrl      = false;
+    bool shift     = false;
+    Core::EKey key = Core::EKey::Key_Unknown;
 
     if (m_MacroPointer != nullptr)
     {
-        alt = m_MacroPointer->GetAlt();
-        ctrl = m_MacroPointer->GetCtrl();
+        alt   = m_MacroPointer->GetAlt();
+        ctrl  = m_MacroPointer->GetCtrl();
         shift = m_MacroPointer->GetShift();
-        key = m_MacroPointer->GetKey();
+        key   = m_MacroPointer->GetKey();
     }
 
     m_MacroCheckboxShift->Checked = shift;
-    m_MacroCheckboxAlt->Checked = alt;
-    m_MacroCheckboxCtrl->Checked = ctrl;
-    m_MacroKey->m_Entry.SetTextA(KeyName(key));
+    m_MacroCheckboxAlt->Checked   = alt;
+    m_MacroCheckboxCtrl->Checked  = ctrl;
+    m_MacroKey->m_Entry.SetTextA(Core::Input::GetKeyName(key));
 
-    MacroObject *obj = m_MacroObjectPointer;
+    MacroObject* obj = m_MacroObjectPointer;
     if (obj != nullptr)
     {
         if (obj->m_Prev != nullptr)
@@ -1900,14 +1895,14 @@ void CGumpOptions::RedrawMacroData()
         }
 
         const int maxMacroDraw = 7;
-        int macroCount = 0;
+        int macroCount         = 0;
 
         int x = 164;
         int y = 187;
 
         while (obj != nullptr && macroCount < maxMacroDraw)
         {
-            CGUIComboBox *combobox = (CGUIComboBox *)m_MacroDataBox->Add(new CGUIComboBox(
+            CGUIComboBox* combobox  = (CGUIComboBox*)m_MacroDataBox->Add(new CGUIComboBox(
                 ID_GO_P5_MACRO_SELECTION + (macroCount * ID_GO_P5_MACRO_START),
                 0x098D,
                 true,
@@ -1925,10 +1920,10 @@ void CGumpOptions::RedrawMacroData()
             if (obj->HasSubMenu() == 1)
             {
                 int macroListOffset = 0;
-                int macroListCount = 0;
+                int macroListCount  = 0;
                 Macro::GetBoundByCode(obj->GetCode(), macroListCount, macroListOffset);
 
-                combobox = (CGUIComboBox *)m_MacroDataBox->Add(new CGUIComboBox(
+                combobox                = (CGUIComboBox*)m_MacroDataBox->Add(new CGUIComboBox(
                     ID_GO_P5_ACTION_SELECTION + (macroCount * ID_GO_P5_MACRO_START),
                     0x098E,
                     true,
@@ -1962,7 +1957,7 @@ void CGumpOptions::RedrawMacroData()
                     150,
                     20));
 
-                CGUITextEntry *entry = (CGUITextEntry *)m_MacroDataBox->Add(new CGUITextEntry(
+                CGUITextEntry* entry = (CGUITextEntry*)m_MacroDataBox->Add(new CGUITextEntry(
                     ID_GO_P5_ACTION_SELECTION + (macroCount * ID_GO_P5_MACRO_START),
                     0x0386,
                     0x0386,
@@ -1973,13 +1968,13 @@ void CGumpOptions::RedrawMacroData()
                     false,
                     1));
                 entry->CheckOnSerial = true;
-                entry->m_Entry.SetTextA(((MacroObjectString *)obj)->GetString());
+                entry->m_Entry.SetTextA(((MacroObjectString*)obj)->GetString());
                 m_MacroDataBox->Add(new CGUIScissor(false));
             }
 
             macroCount++;
             y += 26;
-            obj = (MacroObject *)obj->m_Next;
+            obj = (MacroObject*)obj->m_Next;
         }
 
         if (macroCount >= maxMacroDraw)
@@ -1996,90 +1991,90 @@ void CGumpOptions::DrawPage5()
 
     Add(new CGUIGumppic(0x00EC, 0, 309));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Macro Options", 30, 460, TS_CENTER);
 
     Add(new CGUIButton(ID_GO_P5_BUTTON_ADD, 0x099C, 0x099E, 0x099D, 152, 60));
-    CGUIButton *button =
-        (CGUIButton *)Add(new CGUIButton(ID_GO_P5_BUTTON_DELETE, 0x099F, 0x09A1, 0x09A0, 205, 60));
-    button->ProcessPressedState = true;
-    button = (CGUIButton *)Add(
-        new CGUIButton(ID_GO_P5_BUTTON_PREVIOUS, 0x09A2, 0x09A4, 0x09A3, 273, 60));
+    CGUIButton* button =
+        (CGUIButton*)Add(new CGUIButton(ID_GO_P5_BUTTON_DELETE, 0x099F, 0x09A1, 0x09A0, 205, 60));
     button->ProcessPressedState = true;
     button =
-        (CGUIButton *)Add(new CGUIButton(ID_GO_P5_BUTTON_NEXT, 0x09A5, 0x09A7, 0x09A6, 357, 60));
+        (CGUIButton*)Add(new CGUIButton(ID_GO_P5_BUTTON_PREVIOUS, 0x09A2, 0x09A4, 0x09A3, 273, 60));
+    button->ProcessPressedState = true;
+    button =
+        (CGUIButton*)Add(new CGUIButton(ID_GO_P5_BUTTON_NEXT, 0x09A5, 0x09A7, 0x09A6, 357, 60));
     button->ProcessPressedState = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 134, 82));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 134, 82));
     text->CreateTextureW(0, L"Keystroke");
 
     //KeyBox
     Add(new CGUIGumppic(0x098B, 133, 112));
     Add(new CGUIHitBox(ID_GO_P5_KEY_BOX, 133, 112, 63, 23));
-    m_MacroKey = (CGUITextEntry *)Add(new CGUITextEntry(
+    m_MacroKey                = (CGUITextEntry*)Add(new CGUITextEntry(
         ID_GO_P5_KEY_BOX, 0x0386, 0x0386, 0x0386, 138, 117, 56, false, 1, TS_LEFT, UOFONT_FIXED));
     m_MacroKey->CheckOnSerial = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 200, 111));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 200, 111));
     text->CreateTextureW(0, L"Key");
 
     //Shift checkbox
-    m_MacroCheckboxShift = (CGUICheckbox *)Add(
+    m_MacroCheckboxShift = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P5_BUTTON_SHIFT, 0x0867, 0x0869, 0x0867, 248, 79));
     m_MacroCheckboxShift->GraphicSelected = 0x0868;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 280, 82));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 280, 82));
     text->CreateTextureW(0, L"Shift");
 
     //Alt checkbox
-    m_MacroCheckboxAlt = (CGUICheckbox *)Add(
-        new CGUICheckbox(ID_GO_P5_BUTTON_ALT, 0x0867, 0x0869, 0x0867, 248, 107));
+    m_MacroCheckboxAlt =
+        (CGUICheckbox*)Add(new CGUICheckbox(ID_GO_P5_BUTTON_ALT, 0x0867, 0x0869, 0x0867, 248, 107));
     m_MacroCheckboxAlt->GraphicSelected = 0x0868;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 280, 111));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 280, 111));
     text->CreateTextureW(0, L"Alt");
 
     //Ctrl checkbox
-    m_MacroCheckboxCtrl = (CGUICheckbox *)Add(
+    m_MacroCheckboxCtrl = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P5_BUTTON_CTRL, 0x0867, 0x0869, 0x0867, 248, 135));
     m_MacroCheckboxCtrl->GraphicSelected = 0x0868;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 280, 140));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 280, 140));
     text->CreateTextureW(0, L"Ctrl");
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 134, 163));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 134, 163));
     text->CreateTextureW(0, L"Actions");
 
-    m_MacroDataBox = (CGUIDataBox *)Add(new CGUIDataBox());
+    m_MacroDataBox = (CGUIDataBox*)Add(new CGUIDataBox());
 }
 
 void CGumpOptions::DrawPage6()
 {
     Core::Rect<int> display = Core::Platform::GetDisplayArea();
-    int screenX = display.size.x - 20;
-    int screenY = display.size.y - 60;
+    int screenX             = display.size.x - 20;
+    int screenY             = display.size.y - 60;
 
     //Interface
     Add(new CGUIPage(6));
 
     Add(new CGUIGumppic(0x00E1, 576, 45));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Interface", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(0, L"These options affect your interface.");
 
-    CGUIHTMLGump *html =
-        (CGUIHTMLGump *)Add(new CGUIHTMLGump(0xFFFFFFFF, 0x0BB8, 64, 90, 500, 300, false, true));
+    CGUIHTMLGump* html =
+        (CGUIHTMLGump*)Add(new CGUIHTMLGump(0xFFFFFFFF, 0x0BB8, 64, 90, 500, 300, false, true));
 
-    CGUICheckbox *checkbox = (CGUICheckbox *)html->Add(
+    CGUICheckbox* checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_ENABLE_PATHFINDING, 0x00D2, 0x00D3, 0x00D2, 0, 0));
     checkbox->Checked = g_OptionsConfig.EnablePathfind;
     checkbox->SetTextParameters(
         0, L"Enable pathfinding with double-right-click", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_HOLD_TAB_FOR_COMBAT, 0x00D2, 0x00D3, 0x00D2, 0, 20));
     checkbox->Checked = g_OptionsConfig.HoldTabForCombat;
     checkbox->SetTextParameters(
@@ -2089,136 +2084,136 @@ void CGumpOptions::DrawPage6()
         STP_RIGHT,
         450);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_OFFSET_INTERFACE_WINDOWS, 0x00D2, 0x00D3, 0x00D2, 0, 56));
     checkbox->Checked = g_OptionsConfig.OffsetInterfaceWindows;
     checkbox->SetTextParameters(
         0, L"Offset interface windows rather than perfectly stacking them", g_OptionsTextColor);
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 76));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 76));
     text->CreateTextureW(0, L"Default interface windows offset x:");
 
     html->Add(new CGUIResizepic(ID_GO_P6_CONTAINER_OFFSET_X, 0x0BB8, 250, 76, 60, 22));
-    m_ContainerOffsetX = (CGUITextEntry *)html->Add(new CGUITextEntry(
+    m_ContainerOffsetX                     = (CGUITextEntry*)html->Add(new CGUITextEntry(
         ID_GO_P6_CONTAINER_OFFSET_X,
         g_OptionsTextColor,
         g_OptionsTextColor,
         g_OptionsTextColor,
         254,
         78));
-    m_ContainerOffsetX->CheckOnSerial = true;
-    m_ContainerOffsetX->m_Entry.MaxLength = screenX;
+    m_ContainerOffsetX->CheckOnSerial      = true;
+    m_ContainerOffsetX->m_Entry.MaxLength  = screenX;
     m_ContainerOffsetX->m_Entry.NumberOnly = true;
     m_ContainerOffsetX->m_Entry.SetTextW(std::to_wstring(g_ContainerRect.DefaultX));
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 312, 76));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 312, 76));
     text->CreateTextureW(0, L"y:");
 
     html->Add(new CGUIResizepic(ID_GO_P6_CONTAINER_OFFSET_Y, 0x0BB8, 329, 76, 60, 22));
-    m_ContainerOffsetY = (CGUITextEntry *)html->Add(new CGUITextEntry(
+    m_ContainerOffsetY                     = (CGUITextEntry*)html->Add(new CGUITextEntry(
         ID_GO_P6_CONTAINER_OFFSET_Y,
         g_OptionsTextColor,
         g_OptionsTextColor,
         g_OptionsTextColor,
         333,
         77));
-    m_ContainerOffsetY->CheckOnSerial = true;
-    m_ContainerOffsetY->m_Entry.MaxLength = screenY;
+    m_ContainerOffsetY->CheckOnSerial      = true;
+    m_ContainerOffsetY->m_Entry.MaxLength  = screenY;
     m_ContainerOffsetY->m_Entry.NumberOnly = true;
     m_ContainerOffsetY->m_Entry.SetTextW(std::to_wstring(g_ContainerRect.DefaultY));
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_AUTO_ARRANGE_MINIMIZED_WINDOWS, 0x00D2, 0x00D3, 0x00D2, 0, 96));
     checkbox->Checked = g_OptionsConfig.AutoArrange;
     checkbox->SetTextParameters(0, L"Automatically arrange minimized windows", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_ALWAYS_RUN, 0x00D2, 0x00D3, 0x00D2, 0, 116));
     checkbox->Checked = g_OptionsConfig.AlwaysRun;
     checkbox->SetTextParameters(
         0, L"Your character will always run if this is checked", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_DISABLE_MENUBAR, 0x00D2, 0x00D3, 0x00D2, 0, 136));
     checkbox->Checked = g_OptionsConfig.DisableMenubar;
     checkbox->SetTextParameters(0, L"Disable the Menu Bar", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_GRAY_OUT_OF_RANGE_OBJECTS, 0x00D2, 0x00D3, 0x00D2, 0, 156));
     checkbox->Checked = g_OptionsConfig.GrayOutOfRangeObjects;
     checkbox->SetTextParameters(0, L"Gray out of range objects", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_DISABLE_NEW_TARGET_SYSTEM, 0x00D2, 0x00D3, 0x00D2, 0, 176));
     checkbox->Checked = g_OptionsConfig.DisableNewTargetSystem;
     checkbox->SetTextParameters(0, L"Disable New Targeting System", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_OBJECT_HANDLES, 0x00D2, 0x00D3, 0x00D2, 0, 196));
     checkbox->Checked = g_OptionsConfig.ObjectHandles;
     checkbox->SetTextParameters(0, L"Object Handles", g_OptionsTextColor);
 
     html->Add(new CGUIGroup(6));
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 216));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 216));
     text->CreateTextureW(0, L"Item Properties Display Mode:");
 
-    CGUIRadio *radio = (CGUIRadio *)html->Add(new CGUIRadio(
+    CGUIRadio* radio = (CGUIRadio*)html->Add(new CGUIRadio(
         ID_GO_P6_DISPLAY_ITEM_PROPERTIES_MODE_AT_ICON, 0x00D0, 0x00D1, 0x00D2, 10, 236));
-    radio->Checked = (g_OptionsConfig.GetItemPropertiesMode() == OPM_AT_ICON);
+    radio->Checked   = (g_OptionsConfig.GetItemPropertiesMode() == OPM_AT_ICON);
     radio->SetTextParameters(0, L"At Icon", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(new CGUIRadio(
+    radio          = (CGUIRadio*)html->Add(new CGUIRadio(
         ID_GO_P6_DISPLAY_ITEM_PROPERTIES_MODE_ALWAYS_UP, 0x00D0, 0x00D1, 0x00D2, 10, 256));
     radio->Checked = (g_OptionsConfig.GetItemPropertiesMode() == OPM_ALWAYS_UP);
     radio->SetTextParameters(0, L"Always Up", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(new CGUIRadio(
+    radio          = (CGUIRadio*)html->Add(new CGUIRadio(
         ID_GO_P6_DISPLAY_ITEM_PROPERTIES_MODE_FOLLOW_MOUSE, 0x00D0, 0x00D1, 0x00D2, 10, 276));
     radio->Checked = (g_OptionsConfig.GetItemPropertiesMode() == OPM_FOLLOW_MOUSE);
     radio->SetTextParameters(0, L"Follow Mouse", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(new CGUIRadio(
+    radio          = (CGUIRadio*)html->Add(new CGUIRadio(
         ID_GO_P6_DISPLAY_ITEM_PROPERTIES_MODE_SINGLE_CLICK, 0x00D0, 0x00D1, 0x00D2, 10, 296));
     radio->Checked = (g_OptionsConfig.GetItemPropertiesMode() == OPM_SINGLE_CLICK);
     radio->SetTextParameters(0, L"Single Click", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_DISPLAY_ITEM_PROPERTIES_ICON, 0x00D2, 0x00D3, 0x00D2, 0, 316));
     checkbox->Checked = g_OptionsConfig.GetItemPropertiesIcon();
     checkbox->SetTextParameters(0, L"Display Item Properties Icon", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(
+    checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P6_HOLD_SHIFT_FOR_CONTEXT_MENUS, 0x00D2, 0x00D3, 0x00D2, 0, 336));
     checkbox->Checked = g_OptionsConfig.HoldShiftForContextMenus;
     checkbox->SetTextParameters(0, L"Hold Shift For Context Menus", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)html->Add(new CGUICheckbox(
+    checkbox          = (CGUICheckbox*)html->Add(new CGUICheckbox(
         ID_GO_P6_HOLD_SHIFT_FOR_ENABLE_PATHFINDING, 0x00D2, 0x00D3, 0x00D2, 0, 356));
     checkbox->Checked = g_OptionsConfig.HoldShiftForEnablePathfind;
     checkbox->SetTextParameters(0, L"Hold Shift For Enable Pathfinding", g_OptionsTextColor);
 
     html->Add(new CGUIGroup(7));
 
-    text = (CGUIText *)html->Add(new CGUIText(g_OptionsTextColor, 0, 376));
+    text = (CGUIText*)html->Add(new CGUIText(g_OptionsTextColor, 0, 376));
     text->CreateTextureW(0, L"Select Character Backpack Style");
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P6_CHARACTER_BACKPACK_STYLE_DEFAULT, 0x00D0, 0x00D1, 0x00D2, 10, 396));
     radio->Checked = (g_OptionsConfig.GetCharacterBackpackStyle() == CBS_DEFAULT);
     radio->SetTextParameters(0, L"Default", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(
+    radio = (CGUIRadio*)html->Add(
         new CGUIRadio(ID_GO_P6_CHARACTER_BACKPACK_STYLE_SUEDE, 0x00D0, 0x00D1, 0x00D2, 10, 416));
     radio->Checked = (g_OptionsConfig.GetCharacterBackpackStyle() == CBS_SUEDE);
     radio->SetTextParameters(0, L"Suede", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(new CGUIRadio(
+    radio          = (CGUIRadio*)html->Add(new CGUIRadio(
         ID_GO_P6_CHARACTER_BACKPACK_STYLE_POLAR_BEAR, 0x00D0, 0x00D1, 0x00D2, 10, 436));
     radio->Checked = (g_OptionsConfig.GetCharacterBackpackStyle() == CBS_POLAR_BEAR);
     radio->SetTextParameters(0, L"Polar Bear", g_OptionsTextColor);
 
-    radio = (CGUIRadio *)html->Add(new CGUIRadio(
+    radio          = (CGUIRadio*)html->Add(new CGUIRadio(
         ID_GO_P6_CHARACTER_BACKPACK_STYLE_GHOUL_SKIN, 0x00D0, 0x00D1, 0x00D2, 10, 456));
     radio->Checked = (g_OptionsConfig.GetCharacterBackpackStyle() == CBS_GHOUL_SKIN);
     radio->SetTextParameters(0, L"Ghoul Skin", g_OptionsTextColor);
@@ -2229,64 +2224,64 @@ void CGumpOptions::DrawPage6()
 void CGumpOptions::DrawPage7()
 {
     Core::Rect<int> display = Core::Platform::GetDisplayArea();
-    int screenX = display.size.x - 20;
-    int screenY = display.size.y - 60;
+    int screenX             = display.size.x - 20;
+    int screenY             = display.size.y - 60;
 
     //Display
     Add(new CGUIPage(7));
     Add(new CGUIGumppic(0x00E3, 576, 111));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Display", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(
         0,
         L"These options affect your display, and adjusting some of them may improve your graphics performance.",
         30,
         500);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 90));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 90));
     text->CreateTextureW(0, L"Game Play Window Size");
 
     Add(new CGUIResizepic(ID_GO_P7_GAME_WINDOW_WIDTH, 0x0BB8, 64, 112, 60, 22));
-    m_GameWindowWidth = (CGUITextEntry *)Add(new CGUITextEntry(
+    m_GameWindowWidth                     = (CGUITextEntry*)Add(new CGUITextEntry(
         ID_GO_P7_GAME_WINDOW_WIDTH,
         g_OptionsTextColor,
         g_OptionsTextColor,
         g_OptionsTextColor,
         68,
         114));
-    m_GameWindowWidth->CheckOnSerial = true;
-    m_GameWindowWidth->m_Entry.MaxLength = screenX;
+    m_GameWindowWidth->CheckOnSerial      = true;
+    m_GameWindowWidth->m_Entry.MaxLength  = screenX;
     m_GameWindowWidth->m_Entry.NumberOnly = true;
     m_GameWindowWidth->m_Entry.SetTextW(std::to_wstring(g_OptionsConfig.GameWindowWidth));
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 126, 112));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 126, 112));
     text->CreateTextureW(0, L"x");
 
     Add(new CGUIResizepic(ID_GO_P7_GAME_WINDOW_HEIGHT, 0x0BB8, 139, 112, 60, 22));
-    m_GameWindowHeight = (CGUITextEntry *)Add(new CGUITextEntry(
+    m_GameWindowHeight                     = (CGUITextEntry*)Add(new CGUITextEntry(
         ID_GO_P7_GAME_WINDOW_HEIGHT,
         g_OptionsTextColor,
         g_OptionsTextColor,
         g_OptionsTextColor,
         143,
         114));
-    m_GameWindowHeight->CheckOnSerial = true;
-    m_GameWindowHeight->m_Entry.MaxLength = screenY;
+    m_GameWindowHeight->CheckOnSerial      = true;
+    m_GameWindowHeight->m_Entry.MaxLength  = screenY;
     m_GameWindowHeight->m_Entry.NumberOnly = true;
     m_GameWindowHeight->m_Entry.SetTextW(std::to_wstring(g_OptionsConfig.GameWindowHeight));
 
-    CGUICheckbox *checkbox = (CGUICheckbox *)Add(
+    CGUICheckbox* checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P7_LOCK_GAME_WINDOW_RESIZING, 0x00D2, 0x00D3, 0x00D2, 230, 114));
     checkbox->Checked = g_OptionsConfig.LockResizingGameWindow;
     checkbox->SetTextParameters(0, L"Lock game window moving and resizing", g_OptionsTextColor);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 140));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 140));
     text->CreateTextureW(0, L"Adjust how long speech remains on screen");
 
-    m_SliderSpeechDuration = (CGUISlider *)Add(new CGUISlider(
+    m_SliderSpeechDuration = (CGUISlider*)Add(new CGUISlider(
         ID_GO_P7_AJUST_LONG_SPEECH,
         0x00D8,
         0x00D8,
@@ -2302,7 +2297,7 @@ void CGumpOptions::DrawPage7()
         g_OptionsConfig.SpeechDelay));
     m_SliderSpeechDuration->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P7_SCALE_SPEECH_DURATION, 0x00D2, 0x00D3, 0x00D2, 64, 182));
     checkbox->Checked = g_OptionsConfig.ScaleSpeechDelay;
     checkbox->SetTextParameters(0, L"Scale speech duration based on length", g_OptionsTextColor);
@@ -2317,11 +2312,11 @@ void CGumpOptions::DrawPage7()
             g_OptionsPolygoneColorOffset, g_OptionsConfig.SpeechColor);
     }
 
-    m_ColorSpeech = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorSpeech                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P7_SPEECH_COLOR, g_OptionsConfig.SpeechColor, 67, 207, 13, 14, color));
     m_ColorSpeech->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 204));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 204));
     text->CreateTextureW(0, L"Speech Color");
 
     Add(new CGUIButton(ID_GO_P7_EMOTE_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 223));
@@ -2336,11 +2331,11 @@ void CGumpOptions::DrawPage7()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorEmote = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorEmote                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P7_EMOTE_COLOR, g_OptionsConfig.EmoteColor, 67, 226, 13, 14, color));
     m_ColorEmote->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 223));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 223));
     text->CreateTextureW(0, L"Emote Color");
 
     Add(new CGUIButton(ID_GO_P7_PARTY_MESSAGE_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 242));
@@ -2355,19 +2350,19 @@ void CGumpOptions::DrawPage7()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorPartyMessage = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorPartyMessage                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P7_PARTY_MESSAGE_COLOR, g_OptionsConfig.PartyMessageColor, 67, 245, 13, 14, color));
     m_ColorPartyMessage->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 242));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 242));
     text->CreateTextureW(0, L"Party Message Color");
 
-    checkbox = (CGUICheckbox *)Add(
-        new CGUICheckbox(ID_GO_P7_DARK_NIGHTS, 0x00D2, 0x00D3, 0x00D2, 64, 264));
+    checkbox =
+        (CGUICheckbox*)Add(new CGUICheckbox(ID_GO_P7_DARK_NIGHTS, 0x00D2, 0x00D3, 0x00D2, 64, 264));
     checkbox->Checked = g_OptionsConfig.DarkNights;
     checkbox->SetTextParameters(0, L"Dark Nights", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P7_COLORED_LIGHTING, 0x00D2, 0x00D3, 0x00D2, 64, 284));
     checkbox->Checked = g_OptionsConfig.ColoredLighting;
     checkbox->SetTextParameters(0, L"Colored Lighting", g_OptionsTextColor);
@@ -2386,7 +2381,7 @@ void CGumpOptions::DrawPage7()
             color = 0xFF7F7F7F;
         }
 
-        m_ColorGuildMessage = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+        m_ColorGuildMessage                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
             ID_GO_P7_GUILD_MESSAGE_COLOR,
             g_OptionsConfig.GuildMessageColor,
             357,
@@ -2396,7 +2391,7 @@ void CGumpOptions::DrawPage7()
             color));
         m_ColorGuildMessage->CallOnMouseUp = true;
 
-        text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 376, 204));
+        text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 376, 204));
         text->CreateTextureW(0, L"Guild Message Color");
 
         Add(new CGUIButton(ID_GO_P7_ALLIANCE_MESSAGE_COLOR, 0x00D4, 0x00D4, 0x00D4, 354, 223));
@@ -2411,7 +2406,7 @@ void CGumpOptions::DrawPage7()
             color = 0xFF7F7F7F;
         }
 
-        m_ColorAllianceMessage = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+        m_ColorAllianceMessage                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
             ID_GO_P7_ALLIANCE_MESSAGE_COLOR,
             g_OptionsConfig.AllianceMessageColor,
             357,
@@ -2421,15 +2416,15 @@ void CGumpOptions::DrawPage7()
             color));
         m_ColorAllianceMessage->CallOnMouseUp = true;
 
-        text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 376, 223));
+        text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 376, 223));
         text->CreateTextureW(0, L"Alliance Message Color");
 
-        checkbox = (CGUICheckbox *)Add(
+        checkbox = (CGUICheckbox*)Add(
             new CGUICheckbox(ID_GO_P7_IGNORE_GUILD_MESSAGE, 0x00D2, 0x00D3, 0x00D2, 354, 245));
         checkbox->Checked = g_OptionsConfig.IgnoreGuildMessage;
         checkbox->SetTextParameters(0, L"Ignore Guild Messages", g_OptionsTextColor);
 
-        checkbox = (CGUICheckbox *)Add(
+        checkbox = (CGUICheckbox*)Add(
             new CGUICheckbox(ID_GO_P7_IGNORE_ALLIANCE_MESSAGE, 0x00D2, 0x00D3, 0x00D2, 354, 265));
         checkbox->Checked = g_OptionsConfig.IgnoreAllianceMessage;
         checkbox->SetTextParameters(0, L"Ignore Alliance Messages", g_OptionsTextColor);
@@ -2438,15 +2433,14 @@ void CGumpOptions::DrawPage7()
 
 void CGumpOptions::DrawPage8()
 {
-
     //Reputation System
     Add(new CGUIPage(8));
     Add(new CGUIGumppic(0x00E5, 576, 177));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Reputation System", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(
         0,
         L"These settings affect the reputation system, which is Ultima Online's system for controlling antisocial behavior.",
@@ -2463,11 +2457,11 @@ void CGumpOptions::DrawPage8()
             g_OptionsPolygoneColorOffset, g_OptionsConfig.InnocentColor);
     }
 
-    m_ColorInnocent = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorInnocent                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P8_INNOCENT_COLOR, g_OptionsConfig.InnocentColor, 67, 93, 13, 14, color));
     m_ColorInnocent->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 90));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 90));
     text->CreateTextureW(0, L"Innocent highlight color");
 
     Add(new CGUIButton(ID_GO_P8_FRIENDLY_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 109));
@@ -2482,11 +2476,11 @@ void CGumpOptions::DrawPage8()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorFriendly = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorFriendly                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P8_FRIENDLY_COLOR, g_OptionsConfig.FriendlyColor, 67, 112, 13, 14, color));
     m_ColorFriendly->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 109));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 109));
     text->CreateTextureW(0, L"Friendly guilds highlight color");
 
     Add(new CGUIButton(ID_GO_P8_SOMEONE_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 128));
@@ -2501,11 +2495,11 @@ void CGumpOptions::DrawPage8()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorSomeone = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorSomeone                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P8_SOMEONE_COLOR, g_OptionsConfig.SomeoneColor, 67, 131, 13, 14, color));
     m_ColorSomeone->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 128));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 128));
     text->CreateTextureW(0, L"Someone that can be attacked color");
 
     Add(new CGUIButton(ID_GO_P8_CRIMINAL_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 147));
@@ -2520,11 +2514,11 @@ void CGumpOptions::DrawPage8()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorCriminal = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorCriminal                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P8_CRIMINAL_COLOR, g_OptionsConfig.CriminalColor, 67, 150, 13, 14, color));
     m_ColorCriminal->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 147));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 147));
     text->CreateTextureW(0, L"Criminal highlight color");
 
     Add(new CGUIButton(ID_GO_P8_ENEMY_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 166));
@@ -2539,11 +2533,11 @@ void CGumpOptions::DrawPage8()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorEnemy = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorEnemy                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P8_ENEMY_COLOR, g_OptionsConfig.EnemyColor, 67, 169, 13, 14, color));
     m_ColorEnemy->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 166));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 166));
     text->CreateTextureW(0, L"Enemy guildmembers color");
 
     Add(new CGUIButton(ID_GO_P8_MURDERER_COLOR, 0x00D4, 0x00D4, 0x00D4, 64, 185));
@@ -2558,14 +2552,14 @@ void CGumpOptions::DrawPage8()
         color = 0xFF7F7F7F;
     }
 
-    m_ColorMurderer = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(
+    m_ColorMurderer                = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(
         ID_GO_P8_MURDERER_COLOR, g_OptionsConfig.MurdererColor, 67, 188, 13, 14, color));
     m_ColorMurderer->CallOnMouseUp = true;
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 185));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 185));
     text->CreateTextureW(0, L"Murderer highlight color");
 
-    CGUICheckbox *checkbox = (CGUICheckbox *)Add(
+    CGUICheckbox* checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P8_QUERY_CRIMINAL_ACTIONS, 0x00D2, 0x00D3, 0x00D2, 64, 204));
     checkbox->Checked = g_OptionsConfig.CriminalActionsQuery;
     checkbox->SetTextParameters(0, L"Query before performing criminal actions", g_OptionsTextColor);
@@ -2573,31 +2567,30 @@ void CGumpOptions::DrawPage8()
 
 void CGumpOptions::DrawPage9()
 {
-
     //Miscellaneous
     Add(new CGUIPage(9));
     Add(new CGUIGumppic(0x00E7, 576, 243));
 
-    CGUIText *text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 84, 22));
+    CGUIText* text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 84, 22));
     text->CreateTextureW(0, L"Miscellaneous", 30, 460, TS_CENTER);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 44));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 44));
     text->CreateTextureW(0, L"Miscellaneous options.", 30, 500);
 
-    CGUICheckbox *checkbox = (CGUICheckbox *)Add(
+    CGUICheckbox* checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P9_SHOW_APPROACHING_NAMES, 0x00D2, 0x00D3, 0x00D2, 64, 90));
     checkbox->Checked = g_OptionsConfig.ShowIncomingNames;
     checkbox->SetTextParameters(0, L"Show Names of Approaching Players", g_OptionsTextColor);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P9_USE_CIRCLE_OF_TRANSPARENCY, 0x00D2, 0x00D3, 0x00D2, 64, 110));
     checkbox->Checked = g_OptionsConfig.UseCircleTrans;
     checkbox->SetTextParameters(0, L"Use circle of transparency", g_OptionsTextColor);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 132));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 132));
     text->CreateTextureW(0, L"Set radius of transparency circle");
 
-    m_SliderCircleTransparency = (CGUISlider *)Add(new CGUISlider(
+    m_SliderCircleTransparency = (CGUISlider*)Add(new CGUISlider(
         ID_GO_P9_TRANSPARENCY_RADIUS,
         0x00D8,
         0x00D8,
@@ -2613,10 +2606,10 @@ void CGumpOptions::DrawPage9()
         g_OptionsConfig.CircleTransRadius));
     m_SliderCircleTransparency->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 64, 175));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 64, 175));
     text->CreateTextureW(0, L"Inform me when my skills improve this much (in tenths)");
 
-    m_SliderInformSkills = (CGUISlider *)Add(new CGUISlider(
+    m_SliderInformSkills = (CGUISlider*)Add(new CGUISlider(
         ID_GO_P9_INFORM_SKILLS,
         0x00D8,
         0x00D8,
@@ -2632,7 +2625,7 @@ void CGumpOptions::DrawPage9()
         g_OptionsConfig.SkillReport));
     m_SliderInformSkills->SetTextParameters(true, STP_RIGHT, 0, g_OptionsTextColor, true);
 
-    checkbox = (CGUICheckbox *)Add(
+    checkbox = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GO_P9_INFORM_STATS, 0x00D2, 0x00D3, 0x00D2, 64, 216));
     checkbox->Checked = g_OptionsConfig.StatReport;
     checkbox->SetTextParameters(
@@ -2640,7 +2633,7 @@ void CGumpOptions::DrawPage9()
 
     Add(new CGUIButton(ID_GO_P9_SPEECH_FONT, 0x00D0, 0x00D0, 0x00D0, 64, 243));
 
-    text = (CGUIText *)Add(new CGUIText(g_OptionsTextColor, 86, 243));
+    text = (CGUIText*)Add(new CGUIText(g_OptionsTextColor, 86, 243));
     text->CreateTextureW(0, L"Set the font for speech");
 }
 
@@ -2651,7 +2644,7 @@ void CGumpOptions::DrawPage10()
     Add(new CGUIGumppic(0x00EA, 576, 309));
 }
 
-void CGumpOptions::UpdateColor(const SELECT_COLOR_GUMP_STATE &state, u16 color)
+void CGumpOptions::UpdateColor(const SELECT_COLOR_GUMP_STATE& state, u16 color)
 {
     switch (state)
     {
@@ -2851,8 +2844,7 @@ void CGumpOptions::UpdateColor(const SELECT_COLOR_GUMP_STATE &state, u16 color)
                 color, g_ColorManager.GetPolygoneColor(g_OptionsPolygoneColorOffset, color));
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -2931,8 +2923,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 g_OptionsConfig.DefaultPage9();
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
         WantUpdateContent = true;
@@ -2976,8 +2967,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                         0,
                         100,
                         100,
-                        (SELECT_COLOR_GUMP_STATE)(
-                            SCGS_OPT_CHAT_INPUT_TEXT + (serial - ID_GO_P4_TEXT_COLOR))));
+                        (SELECT_COLOR_GUMP_STATE)(SCGS_OPT_CHAT_INPUT_TEXT + (serial - ID_GO_P4_TEXT_COLOR))));
                 }
                 else if (serial == ID_GO_P4_TEXT_FONT)
                 { //Font
@@ -2990,21 +2980,21 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
             {
                 if (serial == ID_GO_P5_BUTTON_ADD) //Add button
                 {
-                    m_MacroPointer = Macro::CreateBlankMacro();
-                    m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
+                    m_MacroPointer       = Macro::CreateBlankMacro();
+                    m_MacroObjectPointer = (MacroObject*)m_MacroPointer->m_Items;
                     g_OptionsMacroManager.Add(m_MacroPointer);
-                    m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->GetKey()));
+                    m_MacroKey->m_Entry.SetTextA(Core::Input::GetKeyName(m_MacroPointer->GetKey()));
                     RedrawMacroData();
                 }
                 else if (serial == ID_GO_P5_BUTTON_DELETE) //Delete button
                 {
                     if (m_LastChangeMacroTime < g_Ticks)
                     {
-                        Macro *newpointer = (Macro *)m_MacroPointer->m_Next;
+                        Macro* newpointer = (Macro*)m_MacroPointer->m_Next;
 
                         if (newpointer == nullptr)
                         {
-                            newpointer = (Macro *)m_MacroPointer->m_Prev;
+                            newpointer = (Macro*)m_MacroPointer->m_Prev;
                         }
 
                         g_OptionsMacroManager.Delete(m_MacroPointer);
@@ -3014,9 +3004,9 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                             g_OptionsMacroManager.Add(newpointer);
                         }
 
-                        m_MacroPointer = newpointer;
-                        m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
-                        m_MacroKey->m_Entry.SetTextA(KeyName(m_MacroPointer->GetKey()));
+                        m_MacroPointer       = newpointer;
+                        m_MacroObjectPointer = (MacroObject*)m_MacroPointer->m_Items;
+                        m_MacroKey->m_Entry.SetTextA(Core::Input::GetKeyName(m_MacroPointer->GetKey()));
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
                     }
@@ -3025,8 +3015,8 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroPointer->m_Prev != nullptr && m_LastChangeMacroTime < g_Ticks)
                     {
-                        m_MacroPointer = (Macro *)m_MacroPointer->m_Prev;
-                        m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
+                        m_MacroPointer       = (Macro*)m_MacroPointer->m_Prev;
+                        m_MacroObjectPointer = (MacroObject*)m_MacroPointer->m_Items;
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
                     }
@@ -3036,8 +3026,8 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroPointer->m_Next != nullptr)
                     {
-                        m_MacroPointer = (Macro *)m_MacroPointer->m_Next;
-                        m_MacroObjectPointer = (MacroObject *)m_MacroPointer->m_Items;
+                        m_MacroPointer       = (Macro*)m_MacroPointer->m_Next;
+                        m_MacroObjectPointer = (MacroObject*)m_MacroPointer->m_Items;
                         RedrawMacroData();
                         m_LastChangeMacroTime = g_Ticks + CHANGE_MACRO_DELAY;
                     }
@@ -3046,7 +3036,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroObjectPointer->m_Prev != nullptr)
                     {
-                        m_MacroObjectPointer = (MacroObject *)m_MacroObjectPointer->m_Prev;
+                        m_MacroObjectPointer = (MacroObject*)m_MacroObjectPointer->m_Prev;
                         RedrawMacroData();
                     }
                 }
@@ -3054,7 +3044,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                 {
                     if (m_MacroObjectPointer->m_Next != nullptr)
                     {
-                        m_MacroObjectPointer = (MacroObject *)m_MacroObjectPointer->m_Next;
+                        m_MacroObjectPointer = (MacroObject*)m_MacroObjectPointer->m_Next;
                         RedrawMacroData();
                     }
                 }
@@ -3073,8 +3063,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                         0,
                         100,
                         100,
-                        (SELECT_COLOR_GUMP_STATE)(
-                            SCGS_OPT_DISPLAY_SPEECH + (serial - ID_GO_P7_SPEECH_COLOR))));
+                        (SELECT_COLOR_GUMP_STATE)(SCGS_OPT_DISPLAY_SPEECH + (serial - ID_GO_P7_SPEECH_COLOR))));
                 }
 
                 break;
@@ -3087,8 +3076,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
                         0,
                         100,
                         100,
-                        (SELECT_COLOR_GUMP_STATE)(
-                            SCGS_OPT_REPSYS_INNOCENT + (serial - ID_GO_P8_INNOCENT_COLOR))));
+                        (SELECT_COLOR_GUMP_STATE)(SCGS_OPT_REPSYS_INNOCENT + (serial - ID_GO_P8_INNOCENT_COLOR))));
                 }
 
                 break;
@@ -3106,8 +3094,7 @@ void CGumpOptions::GUMP_BUTTON_EVENT_C
             {
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
 }
@@ -3427,8 +3414,7 @@ void CGumpOptions::GUMP_CHECKBOX_EVENT_C
         {
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -3595,8 +3581,7 @@ void CGumpOptions::GUMP_RADIO_EVENT_C
         {
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
@@ -3697,19 +3682,18 @@ void CGumpOptions::GUMP_SLIDER_MOVE_EVENT_C
         {
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
 void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
 {
     bool isAction = false;
-    int index = serial - ID_GO_P5_MACRO_SELECTION;
+    int index     = serial - ID_GO_P5_MACRO_SELECTION;
     if (serial >= ID_GO_P5_ACTION_SELECTION)
     {
         isAction = true;
-        index = serial - ID_GO_P5_ACTION_SELECTION;
+        index    = serial - ID_GO_P5_ACTION_SELECTION;
     }
 
     int macroIndex = 0;
@@ -3719,12 +3703,12 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
         macroIndex++;
     }
 
-    MacroObject *obj = m_MacroObjectPointer;
+    MacroObject* obj = m_MacroObjectPointer;
 
     if (obj != nullptr)
     {
         const int maxMacroDraw = 7;
-        int macroCount = 0;
+        int macroCount         = 0;
 
         while (obj != nullptr && macroCount < maxMacroDraw)
         {
@@ -3734,7 +3718,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
             }
 
             macroCount++;
-            obj = (MacroObject *)obj->m_Next;
+            obj = (MacroObject*)obj->m_Next;
         }
     }
 
@@ -3746,7 +3730,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
 
             if (obj->GetCode() != code)
             {
-                MacroObject *newobj = Macro::CreateMacro(code);
+                MacroObject* newobj = Macro::CreateMacro(code);
 
                 if (obj == m_MacroObjectPointer)
                 {
@@ -3766,11 +3750,11 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
             }
             else if (
                 obj->m_Next != nullptr && obj->m_Next->m_Next == nullptr &&
-                ((MacroObject *)obj->m_Next)->GetCode() == MC_NONE)
+                ((MacroObject*)obj->m_Next)->GetCode() == MC_NONE)
             {
                 if (obj == m_MacroObjectPointer)
                 {
-                    m_MacroObjectPointer = (MacroObject *)obj->m_Next;
+                    m_MacroObjectPointer = (MacroObject*)obj->m_Next;
                 }
 
                 m_MacroPointer->Delete(obj);
@@ -3779,7 +3763,7 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
         else
         {
             int macroListOffset = 0;
-            int macroListCount = 0;
+            int macroListCount  = 0;
             Macro::GetBoundByCode(obj->GetCode(), macroListCount, macroListOffset);
 
             obj->SetSubCode((MACRO_SUB_CODE)(macroListOffset + index));
@@ -3789,10 +3773,9 @@ void CGumpOptions::GUMP_COMBOBOX_SELECTION_EVENT_C
     }
 }
 
-void CGumpOptions::OnTextInput(const TextEvent &ev)
+void CGumpOptions::OnTextInput(const Core::TextEvent& ev)
 {
-
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (g_EntryPointer == &m_GameWindowWidth->m_Entry ||
         g_EntryPointer == &m_GameWindowHeight->m_Entry ||
         g_EntryPointer == &m_ContainerOffsetX->m_Entry ||
@@ -3815,16 +3798,16 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
     }
     else if (g_EntryPointer != &m_MacroKey->m_Entry)
     {
-        MacroObject *obj = m_MacroObjectPointer;
+        MacroObject* obj = m_MacroObjectPointer;
         if (obj != nullptr)
         {
-            CGUITextEntry *entry = nullptr;
-            QFOR(item, m_MacroDataBox->m_Items, CBaseGUI *)
+            CGUITextEntry* entry = nullptr;
+            QFOR(item, m_MacroDataBox->m_Items, CBaseGUI*)
             {
                 if (item->Type == GOT_TEXTENTRY &&
-                    g_EntryPointer == &((CGUITextEntry *)item)->m_Entry)
+                    g_EntryPointer == &((CGUITextEntry*)item)->m_Entry)
                 {
-                    entry = (CGUITextEntry *)item;
+                    entry = (CGUITextEntry*)item;
                     break;
                 }
             }
@@ -3832,7 +3815,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
             if (entry != nullptr)
             {
                 const int maxMacroDraw = 7;
-                int macroCount = 0;
+                int macroCount         = 0;
                 while (obj != nullptr && macroCount < maxMacroDraw)
                 {
                     if (obj->HasSubMenu() == 2 &&
@@ -3843,7 +3826,7 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
                     }
 
                     macroCount++;
-                    obj = (MacroObject *)obj->m_Next;
+                    obj = (MacroObject*)obj->m_Next;
                 }
             }
         }
@@ -3871,33 +3854,30 @@ void CGumpOptions::OnTextInput(const TextEvent &ev)
                     canAdd = true;
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             if (canAdd)
             {
                 g_EntryPointer->Insert(ch);
-                ((MacroObjectString *)obj)->SetString(g_EntryPointer->c_str());
+                ((MacroObjectString*)obj)->SetString(g_EntryPointer->c_str());
                 WantRedraw = true;
             }
         }
     }
 }
 
-void CGumpOptions::OnKeyDown(const KeyEvent &ev)
+void CGumpOptions::OnKeyDown(const Core::KeyEvent& ev)
 {
-
-    const auto key = EvKey(ev);
     if (g_EntryPointer == &m_MacroKey->m_Entry)
     {
-        m_MacroPointer->SetKey(key);
-        m_MacroKey->m_Entry.SetTextA(KeyName(key));
+        m_MacroPointer->SetKey(ev.key);
+        m_MacroKey->m_Entry.SetTextA(Core::Input::GetKeyName(ev.key));
         WantRedraw = true;
     }
     else
     {
-        if (key == KEY_RETURN || key == KEY_RETURN2)
+        if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2)
         {
             if (g_ConfigManager.GetConsoleNeedEnter())
             {
@@ -3911,25 +3891,25 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
         }
         else
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
 
             if (g_EntryPointer != &m_GameWindowWidth->m_Entry &&
                 g_EntryPointer != &m_GameWindowHeight->m_Entry &&
                 g_EntryPointer != &m_ContainerOffsetX->m_Entry &&
                 g_EntryPointer != &m_ContainerOffsetY->m_Entry)
             {
-                MacroObject *obj = m_MacroObjectPointer;
+                MacroObject* obj = m_MacroObjectPointer;
 
                 if (obj != nullptr)
                 {
-                    CGUITextEntry *entry = nullptr;
+                    CGUITextEntry* entry = nullptr;
 
-                    QFOR(item, m_MacroDataBox->m_Items, CBaseGUI *)
+                    QFOR(item, m_MacroDataBox->m_Items, CBaseGUI*)
                     {
                         if (item->Type == GOT_TEXTENTRY &&
-                            g_EntryPointer == &((CGUITextEntry *)item)->m_Entry)
+                            g_EntryPointer == &((CGUITextEntry*)item)->m_Entry)
                         {
-                            entry = (CGUITextEntry *)item;
+                            entry = (CGUITextEntry*)item;
                             break;
                         }
                     }
@@ -3937,7 +3917,7 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
                     if (entry != nullptr)
                     {
                         const int maxMacroDraw = 7;
-                        int macroCount = 0;
+                        int macroCount         = 0;
 
                         while (obj != nullptr && macroCount < maxMacroDraw)
                         {
@@ -3949,14 +3929,14 @@ void CGumpOptions::OnKeyDown(const KeyEvent &ev)
                             }
 
                             macroCount++;
-                            obj = (MacroObject *)obj->m_Next;
+                            obj = (MacroObject*)obj->m_Next;
                         }
                     }
                 }
 
                 if (obj != nullptr)
                 {
-                    ((MacroObjectString *)obj)->SetString(g_EntryPointer->c_str());
+                    ((MacroObjectString*)obj)->SetString(g_EntryPointer->c_str());
                 }
             }
         }
@@ -3982,7 +3962,7 @@ void CGumpOptions::ApplyPageChanges()
             g_ConfigManager.SetMusic(g_OptionsConfig.GetMusic());
 
             g_ConfigManager.FootstepsSound = g_OptionsConfig.FootstepsSound;
-            g_ConfigManager.CombatMusic = g_OptionsConfig.CombatMusic;
+            g_ConfigManager.CombatMusic    = g_OptionsConfig.CombatMusic;
 
             g_ConfigManager.BackgroundSound = g_OptionsConfig.BackgroundSound;
 
@@ -4005,11 +3985,11 @@ void CGumpOptions::ApplyPageChanges()
                 g_OptionsConfig.StandartCharactersAnimationDelay;
             g_ConfigManager.StandartItemsAnimationDelay =
                 g_OptionsConfig.StandartItemsAnimationDelay;
-            g_ConfigManager.LockGumpsMoving = g_OptionsConfig.LockGumpsMoving;
+            g_ConfigManager.LockGumpsMoving            = g_OptionsConfig.LockGumpsMoving;
             g_ConfigManager.HiddenCharactersRenderMode = g_OptionsConfig.HiddenCharactersRenderMode;
-            g_ConfigManager.HiddenAlpha = g_OptionsConfig.HiddenAlpha;
-            g_ConfigManager.UseHiddenModeOnlyForSelf = g_OptionsConfig.UseHiddenModeOnlyForSelf;
-            g_ConfigManager.TransparentSpellIcons = g_OptionsConfig.TransparentSpellIcons;
+            g_ConfigManager.HiddenAlpha                = g_OptionsConfig.HiddenAlpha;
+            g_ConfigManager.UseHiddenModeOnlyForSelf   = g_OptionsConfig.UseHiddenModeOnlyForSelf;
+            g_ConfigManager.TransparentSpellIcons      = g_OptionsConfig.TransparentSpellIcons;
             g_ConfigManager.SetSpellIconAlpha(g_OptionsConfig.GetSpellIconAlpha());
             g_ConfigManager.SetOldStyleStatusbar(g_OptionsConfig.GetOldStyleStatusbar());
             g_ConfigManager.SetOriginalPartyStatusbar(g_OptionsConfig.GetOriginalPartyStatusbar());
@@ -4025,7 +4005,7 @@ void CGumpOptions::ApplyPageChanges()
                 g_OptionsConfig.ShowDefaultConsoleEntryMode;
             g_ConfigManager.SetDrawAuraState(g_OptionsConfig.GetDrawAuraState());
             g_ConfigManager.DrawAuraWithCtrlPressed = g_OptionsConfig.DrawAuraWithCtrlPressed;
-            g_ConfigManager.ScreenshotFormat = g_OptionsConfig.ScreenshotFormat;
+            g_ConfigManager.ScreenshotFormat        = g_OptionsConfig.ScreenshotFormat;
             g_ConfigManager.SetScaleImagesInPaperdollSlots(
                 g_OptionsConfig.GetScaleImagesInPaperdollSlots());
             g_ConfigManager.RemoveOrCreateObjectsWithBlending =
@@ -4034,48 +4014,48 @@ void CGumpOptions::ApplyPageChanges()
             g_ConfigManager.SetUseGlobalMapLayer(g_OptionsConfig.GetUseGlobalMapLayer());
             g_ConfigManager.SetNoDrawRoofs(g_OptionsConfig.GetNoDrawRoofs());
             g_ConfigManager.HighlightTargetByType = g_OptionsConfig.HighlightTargetByType;
-            g_ConfigManager.AutoDisplayWorldMap = g_OptionsConfig.AutoDisplayWorldMap;
-            g_ConfigManager.DisableMacroInChat = g_OptionsConfig.DisableMacroInChat;
-            g_ConfigManager.CheckPing = g_OptionsConfig.CheckPing;
+            g_ConfigManager.AutoDisplayWorldMap   = g_OptionsConfig.AutoDisplayWorldMap;
+            g_ConfigManager.DisableMacroInChat    = g_OptionsConfig.DisableMacroInChat;
+            g_ConfigManager.CheckPing             = g_OptionsConfig.CheckPing;
             g_ConfigManager.SetPingTimer(g_OptionsConfig.GetPingTimer());
             g_ConfigManager.CancelNewTargetSystemOnShiftEsc =
                 g_OptionsConfig.CancelNewTargetSystemOnShiftEsc;
             g_ConfigManager.DrawStatusForHumanoids = g_OptionsConfig.DrawStatusForHumanoids;
-            g_DeveloperMode = g_OptionsDeveloperMode;
+            g_DeveloperMode                        = g_OptionsDeveloperMode;
 
             break;
         }
         case 3: //Language
         {
-            g_ConfigManager.UseToolTips = g_OptionsConfig.UseToolTips;
+            g_ConfigManager.UseToolTips       = g_OptionsConfig.UseToolTips;
             g_ConfigManager.ToolTipsTextColor = g_OptionsConfig.ToolTipsTextColor;
-            g_ConfigManager.ToolTipsTextFont = g_OptionsConfig.ToolTipsTextFont;
-            g_ConfigManager.ToolTipsDelay = g_OptionsConfig.ToolTipsDelay;
+            g_ConfigManager.ToolTipsTextFont  = g_OptionsConfig.ToolTipsTextFont;
+            g_ConfigManager.ToolTipsDelay     = g_OptionsConfig.ToolTipsDelay;
 
             break;
         }
         case 4: //Chat
         {
-            g_ConfigManager.ChatColorInputText = g_OptionsConfig.ChatColorInputText;
+            g_ConfigManager.ChatColorInputText  = g_OptionsConfig.ChatColorInputText;
             g_ConfigManager.ChatColorMenuOption = g_OptionsConfig.ChatColorMenuOption;
             g_ConfigManager.ChatColorPlayerInMemberList =
                 g_OptionsConfig.ChatColorPlayerInMemberList;
-            g_ConfigManager.ChatColorText = g_OptionsConfig.ChatColorText;
+            g_ConfigManager.ChatColorText              = g_OptionsConfig.ChatColorText;
             g_ConfigManager.ChatColorPlayerNameWithout = g_OptionsConfig.ChatColorPlayerNameWithout;
-            g_ConfigManager.ChatColorMuted = g_OptionsConfig.ChatColorMuted;
+            g_ConfigManager.ChatColorMuted             = g_OptionsConfig.ChatColorMuted;
             g_ConfigManager.ChatColorChannelModeratorName =
                 g_OptionsConfig.ChatColorChannelModeratorName;
             g_ConfigManager.ChatColorChannelModeratorText =
                 g_OptionsConfig.ChatColorChannelModeratorText;
-            g_ConfigManager.ChatColorMyName = g_OptionsConfig.ChatColorMyName;
-            g_ConfigManager.ChatColorMyText = g_OptionsConfig.ChatColorMyText;
+            g_ConfigManager.ChatColorMyName        = g_OptionsConfig.ChatColorMyName;
+            g_ConfigManager.ChatColorMyText        = g_OptionsConfig.ChatColorMyText;
             g_ConfigManager.ChatColorSystemMessage = g_OptionsConfig.ChatColorSystemMessage;
-            g_ConfigManager.ChatColorBGOutputText = g_OptionsConfig.ChatColorBGOutputText;
-            g_ConfigManager.ChatColorBGInputText = g_OptionsConfig.ChatColorBGInputText;
-            g_ConfigManager.ChatColorBGUserList = g_OptionsConfig.ChatColorBGUserList;
-            g_ConfigManager.ChatColorBGConfList = g_OptionsConfig.ChatColorBGConfList;
+            g_ConfigManager.ChatColorBGOutputText  = g_OptionsConfig.ChatColorBGOutputText;
+            g_ConfigManager.ChatColorBGInputText   = g_OptionsConfig.ChatColorBGInputText;
+            g_ConfigManager.ChatColorBGUserList    = g_OptionsConfig.ChatColorBGUserList;
+            g_ConfigManager.ChatColorBGConfList    = g_OptionsConfig.ChatColorBGConfList;
             g_ConfigManager.ChatColorBGCommandList = g_OptionsConfig.ChatColorBGCommandList;
-            g_ConfigManager.ChatFont = g_OptionsConfig.ChatFont;
+            g_ConfigManager.ChatFont               = g_OptionsConfig.ChatFont;
 
             break;
         }
@@ -4086,7 +4066,7 @@ void CGumpOptions::ApplyPageChanges()
         }
         case 6: //Interface
         {
-            g_ConfigManager.EnablePathfind = g_OptionsConfig.EnablePathfind;
+            g_ConfigManager.EnablePathfind   = g_OptionsConfig.EnablePathfind;
             g_ConfigManager.HoldTabForCombat = g_OptionsConfig.HoldTabForCombat;
 
             if (g_ConfigManager.OffsetInterfaceWindows != g_OptionsConfig.OffsetInterfaceWindows &&
@@ -4096,15 +4076,15 @@ void CGumpOptions::ApplyPageChanges()
             }
 
             g_ConfigManager.OffsetInterfaceWindows = g_OptionsConfig.OffsetInterfaceWindows;
-            g_ConfigManager.AutoArrange = g_OptionsConfig.AutoArrange;
-            g_ConfigManager.AlwaysRun = g_OptionsConfig.AlwaysRun;
-            g_ConfigManager.DisableMenubar = g_OptionsConfig.DisableMenubar;
-            g_ConfigManager.GrayOutOfRangeObjects = g_OptionsConfig.GrayOutOfRangeObjects;
+            g_ConfigManager.AutoArrange            = g_OptionsConfig.AutoArrange;
+            g_ConfigManager.AlwaysRun              = g_OptionsConfig.AlwaysRun;
+            g_ConfigManager.DisableMenubar         = g_OptionsConfig.DisableMenubar;
+            g_ConfigManager.GrayOutOfRangeObjects  = g_OptionsConfig.GrayOutOfRangeObjects;
             g_ConfigManager.DisableNewTargetSystem = g_OptionsConfig.DisableNewTargetSystem;
-            g_ConfigManager.ObjectHandles = g_OptionsConfig.ObjectHandles;
+            g_ConfigManager.ObjectHandles          = g_OptionsConfig.ObjectHandles;
             g_ConfigManager.SetItemPropertiesIcon(g_OptionsConfig.GetItemPropertiesIcon());
             g_ConfigManager.SetItemPropertiesMode(g_OptionsConfig.GetItemPropertiesMode());
-            g_ConfigManager.HoldShiftForContextMenus = g_OptionsConfig.HoldShiftForContextMenus;
+            g_ConfigManager.HoldShiftForContextMenus   = g_OptionsConfig.HoldShiftForContextMenus;
             g_ConfigManager.HoldShiftForEnablePathfind = g_OptionsConfig.HoldShiftForEnablePathfind;
             g_ConfigManager.SetCharacterBackpackStyle(g_OptionsConfig.GetCharacterBackpackStyle());
 
@@ -4181,32 +4161,32 @@ void CGumpOptions::ApplyPageChanges()
                 CPacketGameWindowSize().Send();
             }
 
-            g_ConfigManager.SpeechDelay = g_OptionsConfig.SpeechDelay;
-            g_ConfigManager.ScaleSpeechDelay = g_OptionsConfig.ScaleSpeechDelay;
-            g_ConfigManager.SpeechColor = g_OptionsConfig.SpeechColor;
-            g_ConfigManager.EmoteColor = g_OptionsConfig.EmoteColor;
-            g_ConfigManager.PartyMessageColor = g_OptionsConfig.PartyMessageColor;
-            g_ConfigManager.GuildMessageColor = g_OptionsConfig.GuildMessageColor;
-            g_ConfigManager.AllianceMessageColor = g_OptionsConfig.AllianceMessageColor;
-            g_ConfigManager.IgnoreGuildMessage = g_OptionsConfig.IgnoreGuildMessage;
-            g_ConfigManager.IgnoreAllianceMessage = g_OptionsConfig.IgnoreAllianceMessage;
-            g_ConfigManager.DarkNights = g_OptionsConfig.DarkNights;
-            g_ConfigManager.ColoredLighting = g_OptionsConfig.ColoredLighting;
+            g_ConfigManager.SpeechDelay            = g_OptionsConfig.SpeechDelay;
+            g_ConfigManager.ScaleSpeechDelay       = g_OptionsConfig.ScaleSpeechDelay;
+            g_ConfigManager.SpeechColor            = g_OptionsConfig.SpeechColor;
+            g_ConfigManager.EmoteColor             = g_OptionsConfig.EmoteColor;
+            g_ConfigManager.PartyMessageColor      = g_OptionsConfig.PartyMessageColor;
+            g_ConfigManager.GuildMessageColor      = g_OptionsConfig.GuildMessageColor;
+            g_ConfigManager.AllianceMessageColor   = g_OptionsConfig.AllianceMessageColor;
+            g_ConfigManager.IgnoreGuildMessage     = g_OptionsConfig.IgnoreGuildMessage;
+            g_ConfigManager.IgnoreAllianceMessage  = g_OptionsConfig.IgnoreAllianceMessage;
+            g_ConfigManager.DarkNights             = g_OptionsConfig.DarkNights;
+            g_ConfigManager.ColoredLighting        = g_OptionsConfig.ColoredLighting;
             g_ConfigManager.LockResizingGameWindow = g_OptionsConfig.LockResizingGameWindow;
 
             break;
         }
         case 8: //Reputation System
         {
-            g_ConfigManager.InnocentColor = g_OptionsConfig.InnocentColor;
-            g_ConfigManager.FriendlyColor = g_OptionsConfig.FriendlyColor;
-            g_ConfigManager.SomeoneColor = g_OptionsConfig.SomeoneColor;
-            g_ConfigManager.CriminalColor = g_OptionsConfig.CriminalColor;
-            g_ConfigManager.EnemyColor = g_OptionsConfig.EnemyColor;
-            g_ConfigManager.MurdererColor = g_OptionsConfig.MurdererColor;
+            g_ConfigManager.InnocentColor        = g_OptionsConfig.InnocentColor;
+            g_ConfigManager.FriendlyColor        = g_OptionsConfig.FriendlyColor;
+            g_ConfigManager.SomeoneColor         = g_OptionsConfig.SomeoneColor;
+            g_ConfigManager.CriminalColor        = g_OptionsConfig.CriminalColor;
+            g_ConfigManager.EnemyColor           = g_OptionsConfig.EnemyColor;
+            g_ConfigManager.MurdererColor        = g_OptionsConfig.MurdererColor;
             g_ConfigManager.CriminalActionsQuery = g_OptionsConfig.CriminalActionsQuery;
 
-            QFOR(gump, g_GumpManager.m_Items, CGump *)
+            QFOR(gump, g_GumpManager.m_Items, CGump*)
             {
                 if (gump->GumpType == GT_STATUSBAR)
                 {
@@ -4219,11 +4199,11 @@ void CGumpOptions::ApplyPageChanges()
         case 9: //Miscellaneous
         {
             g_ConfigManager.ShowIncomingNames = g_OptionsConfig.ShowIncomingNames;
-            g_ConfigManager.UseCircleTrans = g_OptionsConfig.UseCircleTrans;
-            g_ConfigManager.StatReport = g_OptionsConfig.StatReport;
+            g_ConfigManager.UseCircleTrans    = g_OptionsConfig.UseCircleTrans;
+            g_ConfigManager.StatReport        = g_OptionsConfig.StatReport;
             g_ConfigManager.CircleTransRadius = g_OptionsConfig.CircleTransRadius;
-            g_ConfigManager.SkillReport = g_OptionsConfig.SkillReport;
-            g_ConfigManager.SpeechFont = g_OptionsConfig.SpeechFont;
+            g_ConfigManager.SkillReport       = g_OptionsConfig.SkillReport;
+            g_ConfigManager.SpeechFont        = g_OptionsConfig.SpeechFont;
 
             g_CircleOfTransparency.Create(g_ConfigManager.CircleTransRadius);
 
@@ -4233,7 +4213,6 @@ void CGumpOptions::ApplyPageChanges()
         {
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }

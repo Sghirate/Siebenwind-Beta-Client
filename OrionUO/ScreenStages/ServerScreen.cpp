@@ -2,9 +2,9 @@
 #include "MainScreen.h"
 #include "GameWindow.h"
 #include "SiebenwindClient.h"
-#include "../OrionUO.h"
-#include "../ServerList.h"
-#include "../Managers/ScreenEffectManager.h"
+#include "OrionUO.h"
+#include "ServerList.h"
+#include "Managers/ScreenEffectManager.h"
 
 CServerScreen g_ServerScreen;
 
@@ -27,13 +27,11 @@ void CServerScreen::Init()
     m_Gump.WantUpdateContent = true;
 }
 
-void CServerScreen::OnKeyDown(const KeyEvent &ev)
+void CServerScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
 
     m_Gump.OnKeyDown(ev);
-
-    const auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2)
     {
         SelectionServerTempValue = g_ServerList.LastServerIndex;
         CreateSmoothAction(ID_SMOOTH_SS_SELECT_SERVER);

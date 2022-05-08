@@ -35,6 +35,9 @@ public:
 };
 struct SDL2Keyboard : public IKeyboard
 {
+    static EKey SDLKeyToCoreKey(i32 a_key);
+    static i32 CoreKeyToSDLKey(EKey a_key);
+
     SDL2Keyboard() {}
     ~SDL2Keyboard() {}
 

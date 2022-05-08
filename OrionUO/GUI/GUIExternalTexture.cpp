@@ -1,8 +1,11 @@
 #include "GUIExternalTexture.h"
-#include "../Managers/ColorManager.h"
+#include "GLEngine/GLEngine.h"
+#include "GLEngine/GLTexture.h"
+#include "Globals.h"
+#include "Managers/ColorManager.h"
 
 CGUIExternalTexture::CGUIExternalTexture(
-    CGLTexture *texture, bool deleteTextureOnDestroy, int x, int y, int drawWidth, int drawHeight)
+    CGLTexture* texture, bool deleteTextureOnDestroy, int x, int y, int drawWidth, int drawHeight)
     : CBaseGUI(GOT_EXTERNALTEXTURE, 0, 0, 0, x, y)
     , m_Texture(texture)
     , DeleteTextureOnDestroy(deleteTextureOnDestroy)
@@ -13,9 +16,10 @@ CGUIExternalTexture::CGUIExternalTexture(
 
 CGUIExternalTexture::~CGUIExternalTexture()
 {
-    if (DeleteTextureOnDestroy)
+    if (DeleteTextureOnDestroy && m_Texture)
     {
-        RELEASE_POINTER(m_Texture);
+        delete (m_Texture);
+        m_Texture = nullptr;
     }
 }
 

@@ -1,10 +1,10 @@
 #include "GumpBuff.h"
 #include "Globals.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ConfigManager.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
 
 CGumpBuff::CGumpBuff(short x, short y)
     : CGump(GT_BUFF, 0, x, y)

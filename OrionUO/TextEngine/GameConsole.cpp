@@ -1,13 +1,13 @@
 #include "GameConsole.h"
 #include "Core/StringUtils.h"
 #include "Globals.h"
-#include "../OrionUO.h"
-#include "../Party.h"
-#include "../DefinitionMacro.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "OrionUO.h"
+#include "Party.h"
+#include "DefinitionMacro.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 #include "plugin/enumlist.h"
 
 CGameConsole g_GameConsole;
@@ -37,11 +37,11 @@ void CGameConsole::Send(std::wstring text, u16 defaultColor)
     if (len != 0u)
     {
         SPEECH_TYPE speechType = ST_NORMAL;
-        u16 sendColor = g_ConfigManager.SpeechColor;
-        int offset = 0;
+        u16 sendColor          = g_ConfigManager.SpeechColor;
+        int offset             = 0;
         if (len > 1)
         {
-            int member = -1;
+            int member                  = -1;
             GAME_CONSOLE_TEXT_TYPE type = GCTT_NORMAL;
             IsSystemCommand(text.c_str(), len, member, type);
             if ((type != GCTT_NORMAL && len > 2) || type == GCTT_PARTY)
@@ -49,37 +49,37 @@ void CGameConsole::Send(std::wstring text, u16 defaultColor)
                 if (type == GCTT_YELL)
                 {
                     speechType = ST_YELL;
-                    offset = 2;
+                    offset     = 2;
                 }
                 else if (type == GCTT_WHISPER)
                 {
                     speechType = ST_WHISPER;
-                    offset = 2;
+                    offset     = 2;
                 }
                 else if (type == GCTT_EMOTE)
                 {
-                    text = text.replace(0, 2, L": *").append(L"*");
+                    text       = text.replace(0, 2, L": *").append(L"*");
                     speechType = ST_EMOTE;
-                    sendColor = g_ConfigManager.EmoteColor;
-                    offset = 2;
+                    sendColor  = g_ConfigManager.EmoteColor;
+                    offset     = 2;
                 }
                 else if (type == GCTT_GUILD)
                 {
                     speechType = ST_GUILD_CHAT;
-                    sendColor = g_ConfigManager.GuildMessageColor;
-                    offset = 2;
+                    sendColor  = g_ConfigManager.GuildMessageColor;
+                    offset     = 2;
                 }
                 else if (type == GCTT_ALLIANCE)
                 {
-                    sendColor = g_ConfigManager.AllianceMessageColor;
+                    sendColor  = g_ConfigManager.AllianceMessageColor;
                     speechType = ST_ALLIANCE_CHAT;
-                    offset = 2;
+                    offset     = 2;
                 }
                 else if (type == GCTT_PARTY)
                 {
                     u32 serial = 0;
-                    offset = 1;
-                    sendColor = g_ConfigManager.PartyMessageColor;
+                    offset     = 1;
+                    sendColor  = g_ConfigManager.PartyMessageColor;
                     if (member != -1)
                     {
                         serial = g_Party.Member[member].Serial;
@@ -101,7 +101,7 @@ void CGameConsole::Send(std::wstring text, u16 defaultColor)
                     if (g_Party.Inviter != 0 && g_Party.Leader == 0)
                     {
                         CPacketPartyAccept(g_Party.Inviter).Send();
-                        g_Party.Leader = g_Party.Inviter;
+                        g_Party.Leader  = g_Party.Inviter;
                         g_Party.Inviter = 0;
                     }
                     else
@@ -116,7 +116,7 @@ void CGameConsole::Send(std::wstring text, u16 defaultColor)
                     if (g_Party.Inviter != 0 && g_Party.Leader == 0)
                     {
                         CPacketPartyDecline(g_Party.Inviter).Send();
-                        g_Party.Leader = 0;
+                        g_Party.Leader  = 0;
                         g_Party.Inviter = 0;
                     }
                     else
@@ -166,23 +166,23 @@ void CGameConsole::Send(std::wstring text, u16 defaultColor)
         }
 
         CPacketUnicodeSpeechRequest(
-            text.c_str() + offset, speechType, 3, sendColor, (u8 *)g_Language.c_str())
+            text.c_str() + offset, speechType, 3, sendColor, (u8*)g_Language.c_str())
             .Send();
     }
 }
 
 std::wstring CGameConsole::IsSystemCommand(
-    const wchar_t *text, size_t &len, int &member, GAME_CONSOLE_TEXT_TYPE &type)
+    const wchar_t* text, size_t& len, int& member, GAME_CONSOLE_TEXT_TYPE& type)
 {
-    type = GCTT_NORMAL;
+    type                = GCTT_NORMAL;
     std::wstring result = {};
 
     if (*text == g_ConsolePrefix[GCTT_PARTY][0]) //Party
     {
-        std::string lStr = Core::ToString(text);
-        const char *cText = lStr.c_str();
+        std::string lStr  = Core::ToString(text);
+        const char* cText = lStr.c_str();
 
-        char *ptr = (char *)cText + 1;
+        char* ptr = (char*)cText + 1;
 
         while (ptr < cText + len && *ptr == ' ')
         {
@@ -210,7 +210,7 @@ std::wstring CGameConsole::IsSystemCommand(
 
                 result = Core::ToWString(pmBuf);
 
-                type = GCTT_PARTY;
+                type   = GCTT_PARTY;
                 member = i - 1;
             }
         }
@@ -260,44 +260,44 @@ std::wstring CGameConsole::IsSystemCommand(
         if (type == GCTT_NORMAL && (result.length() == 0u))
         {
             result = L"Party:";
-            type = GCTT_PARTY;
+            type   = GCTT_PARTY;
         }
     }
     else if (memcmp(&text[0], g_ConsolePrefix[GCTT_YELL].c_str(), 4) == 0) //Yell
     {
         result = L"Yell:";
-        type = GCTT_YELL;
+        type   = GCTT_YELL;
     }
     else if (memcmp(&text[0], g_ConsolePrefix[GCTT_WHISPER].c_str(), 4) == 0) //Whisper
     {
         result = L"Whisper:";
-        type = GCTT_WHISPER;
+        type   = GCTT_WHISPER;
     }
     else if (memcmp(&text[0], g_ConsolePrefix[GCTT_EMOTE].c_str(), 4) == 0) //Emote
     {
         result = L"Emote:";
-        type = GCTT_EMOTE;
+        type   = GCTT_EMOTE;
     }
     else if (
         g_Player->Graphic == 0x03DB && (*text == L'=' || *text == g_ConsolePrefix[GCTT_C][0])) //C
     {
         result = L"C:";
-        type = GCTT_C;
+        type   = GCTT_C;
     }
     else if (memcmp(&text[0], g_ConsolePrefix[GCTT_BROADCAST].c_str(), 4) == 0) //Broadcast
     {
         result = L"Broadcast:";
-        type = GCTT_BROADCAST;
+        type   = GCTT_BROADCAST;
     }
     else if (memcmp(&text[0], g_ConsolePrefix[GCTT_GUILD].c_str(), 4) == 0) //Guild
     {
         result = L"Guild:";
-        type = GCTT_GUILD;
+        type   = GCTT_GUILD;
     }
     else if (memcmp(&text[0], g_ConsolePrefix[GCTT_ALLIANCE].c_str(), 4) == 0) //Alliance
     {
         result = L"Alliance:";
-        type = GCTT_ALLIANCE;
+        type   = GCTT_ALLIANCE;
     }
 
     return result;
@@ -308,10 +308,9 @@ bool CGameConsole::InChat() const
     return (m_Type > GCTT_NORMAL);
 }
 
-void CGameConsole::DrawW(
-    u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
+void CGameConsole::DrawW(u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    int posOffset = 0;
+    int posOffset      = 0;
     std::wstring wtext = Data();
     if (wtext.empty())
     {
@@ -323,17 +322,17 @@ void CGameConsole::DrawW(
         FixMaxWidthW(font);
     }
 
-    size_t len = Length();
-    const wchar_t *text = Data();
+    size_t len          = Length();
+    const wchar_t* text = Data();
     if (len >= 2)
     {
-        int member = 0;
+        int member          = 0;
         std::wstring sysStr = IsSystemCommand(text, len, member, m_Type);
         if (sysStr.length() != 0u)
         {
-            posOffset = g_FontManager.GetWidthW(font, sysStr);
+            posOffset           = g_FontManager.GetWidthW(font, sysStr);
             wchar_t trimPart[2] = L" ";
-            *trimPart = *text;
+            *trimPart           = *text;
             posOffset -= g_FontManager.GetWidthW(font, trimPart);
             sysStr += (text + 1);
             wtext = sysStr;
@@ -345,7 +344,7 @@ void CGameConsole::DrawW(
         CheckMaxWidthW(font, wtext);
         CreateTextureW(font, wtext, color, Width, align, flags);
         Changed = false;
-        Color = color;
+        Color   = color;
     }
 
     m_Texture.Draw(x, y);
@@ -372,7 +371,7 @@ void CGameConsole::SaveConsoleMessage()
         }
     }
     m_ConsoleSelectedIndex = (m_ConsoleStackCount - 1) % MAX_CONSOLE_STACK_SIZE;
-    m_PositionChanged = false;
+    m_PositionChanged      = false;
 }
 
 void CGameConsole::ChangeConsoleMessage(bool next)
@@ -411,8 +410,8 @@ void CGameConsole::ChangeConsoleMessage(bool next)
 
 void CGameConsole::ClearStack()
 {
-    m_ConsoleStack[0] = {};
-    m_ConsoleStackCount = 0;
+    m_ConsoleStack[0]      = {};
+    m_ConsoleStackCount    = 0;
     m_ConsoleSelectedIndex = 0;
-    m_PositionChanged = false;
+    m_PositionChanged      = false;
 }

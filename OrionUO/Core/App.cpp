@@ -6,6 +6,7 @@
 #if defined(ORION_WITH_SDL2)
 #include "Core/SDL2/SDL2App.h"
 #endif // defined(ORION_WITH_SDL2)
+#include <cstring>
 
 namespace Core
 {

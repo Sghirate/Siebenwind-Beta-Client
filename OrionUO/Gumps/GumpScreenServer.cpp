@@ -2,13 +2,13 @@
 #include "Core/StringUtils.h"
 #include "GameVars.h"
 #include "Globals.h"
-#include "../Config.h"
-#include "../ToolTip.h"
-#include "../ServerList.h"
-#include "../SelectedObject.h"
-#include "../Managers/ClilocManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/ServerScreen.h"
+#include "Config.h"
+#include "ToolTip.h"
+#include "ServerList.h"
+#include "SelectedObject.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/ServerScreen.h"
 
 enum
 {

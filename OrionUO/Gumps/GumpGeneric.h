@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Gump.h"
-#include "../Platform.h"
+#include "Platform.h"
 
 class CGumpGeneric : public CGump
 {
@@ -25,6 +25,6 @@ public:
     GUMP_DIRECT_HTML_LINK_EVENT_H;
 
     virtual bool OnLeftMouseButtonDoubleClick();
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 };

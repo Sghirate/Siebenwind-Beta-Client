@@ -1,6 +1,6 @@
 #include "GumpSelectFont.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
 
 CGumpSelectFont::CGumpSelectFont(u32 serial, short x, short y, SELECT_FONT_GUMP_STATE state)
     : CGump(GT_SELECT_FONT, serial, x, y)

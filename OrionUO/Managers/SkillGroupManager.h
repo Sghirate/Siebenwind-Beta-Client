@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 class CSkillGroupObject;
 
 class CSkillGroupManager
@@ -16,15 +18,15 @@ private:
     void MakeDefaultBard();
 
 public:
-    CSkillGroupObject *m_Groups{ nullptr };
+    CSkillGroupObject* m_Groups{ nullptr };
 
     CSkillGroupManager();
     ~CSkillGroupManager();
 
     void MakeDefault();
     void Clear();
-    void Add(CSkillGroupObject *group);
-    bool Remove(CSkillGroupObject *group);
+    void Add(CSkillGroupObject* group);
+    bool Remove(CSkillGroupObject* group);
     bool Load(const std::filesystem::path& a_path);
     void Save(const std::filesystem::path& a_path);
 };

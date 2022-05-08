@@ -2,10 +2,10 @@
 #include "ConnectionScreen.h"
 #include "GameWindow.h"
 #include "MainScreen.h"
-#include "../OrionUO.h"
-#include "../ServerList.h"
-#include "../CharacterList.h"
-#include "../Managers/ScreenEffectManager.h"
+#include "OrionUO.h"
+#include "ServerList.h"
+#include "CharacterList.h"
+#include "Managers/ScreenEffectManager.h"
 #include "SiebenwindClient.h"
 
 CCharacterListScreen g_CharacterListScreen;
@@ -21,10 +21,10 @@ CCharacterListScreen::~CCharacterListScreen()
 
 void CCharacterListScreen::Init()
 {
+    std::string title =
+        SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str();
 
-    std::string title = SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str();
-
-    CServer *server = g_ServerList.GetSelectedServer();
+    CServer* server = g_ServerList.GetSelectedServer();
 
     if (server != nullptr)
     {
@@ -82,13 +82,10 @@ void CCharacterListScreen::ProcessSmoothAction(u8 action)
     }
 }
 
-void CCharacterListScreen::OnKeyDown(const KeyEvent &ev)
+void CCharacterListScreen::OnKeyDown(const Core::KeyEvent& ev)
 {
-
     m_Gump.OnKeyDown(ev);
-
-    const auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2)
     {
         CreateSmoothAction(ID_SMOOTH_CLS_SELECT_CHARACTER);
     }

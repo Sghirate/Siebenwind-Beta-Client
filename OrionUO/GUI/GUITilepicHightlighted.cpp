@@ -1,22 +1,17 @@
 #include "GUITilepicHightlighted.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/ColorManager.h"
-#include "../Gumps/Gump.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/ColorManager.h"
+#include "Gumps/Gump.h"
 
 CGUITilepicHightlighted::CGUITilepicHightlighted(
-    int serial,
-    u16 graphic,
-    u16 color,
-    u16 selectedColor,
-    int x,
-    int y,
-    bool doubleDraw)
+    int serial, u16 graphic, u16 color, u16 selectedColor, int x, int y, bool doubleDraw)
     : CGUITilepic(graphic, color, x, y)
     , SelectedColor(selectedColor)
     , DoubleDraw(doubleDraw)
 {
-    Type = GOT_TILEPICHIGHTLIGHTED;
+    Type   = GOT_TILEPICHIGHTLIGHTED;
     Serial = serial;
 }
 
@@ -26,7 +21,6 @@ CGUITilepicHightlighted::~CGUITilepicHightlighted()
 
 void CGUITilepicHightlighted::SetShaderMode()
 {
-
     if (g_SelectedObject.Object == this)
     {
         glUniform1iARB(g_ShaderDrawMode, SDM_COLORED);
@@ -54,7 +48,7 @@ void CGUITilepicHightlighted::SetShaderMode()
 
 void CGUITilepicHightlighted::Draw(bool checktrans)
 {
-    CGLTexture *th = g_Orion.ExecuteStaticArt(Graphic);
+    CGLTexture* th = g_Orion.ExecuteStaticArt(Graphic);
 
     if (th != nullptr)
     {
@@ -71,11 +65,11 @@ void CGUITilepicHightlighted::Draw(bool checktrans)
 
 bool CGUITilepicHightlighted::Select()
 {
-    CGLTexture *th = g_Orion.m_StaticDataIndex[Graphic].Texture;
+    CGLTexture* th = g_Orion.m_StaticDataIndex[Graphic].Texture;
 
     if (th != nullptr)
     {
-        int count = 1 + static_cast<int>(DoubleDraw);
+        int count  = 1 + static_cast<int>(DoubleDraw);
         int offset = 0;
 
         for (int i = 0; i < count; i++)

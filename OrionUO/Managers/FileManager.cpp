@@ -3,10 +3,10 @@
 #include "ClilocManager.h"
 #include "Core/Log.h"
 #include "GameVars.h"
-#include "../OrionUO.h"
-#include "../OrionApplication.h"
-#include "../Config.h"
-#include "../Network/PluginPackets.h"
+#include "OrionUO.h"
+#include "OrionApplication.h"
+#include "Config.h"
+#include "Network/PluginPackets.h"
 #include "plugin/enumlist.h"
 
 #define MINIZ_IMPLEMENTATION

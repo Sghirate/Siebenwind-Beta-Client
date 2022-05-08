@@ -3,11 +3,11 @@
 #include "Globals.h"
 #include "GitRevision.h"
 #include "SiebenwindClient.h"
-#include "../Config.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/MainScreen.h"
+#include "Config.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/MainScreen.h"
 
 enum
 {

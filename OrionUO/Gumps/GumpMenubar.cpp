@@ -1,9 +1,10 @@
 #include "GumpMenubar.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Managers/ClilocManager.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Managers/ClilocManager.h"
+#include "Network/Packets.h"
 
 enum
 {
@@ -32,8 +33,8 @@ CGumpMenubar::CGumpMenubar(short x, short y)
     Add(new CGUIButton(ID_GMB_MINIMIZE, 0x15A1, 0x15A1, 0x15A1, 5, 3));
 
     Add(new CGUIPage(2));
-    CGLTexture *th1 = g_Orion.ExecuteGump(0x098B);
-    CGLTexture *th2 = g_Orion.ExecuteGump(0x098D);
+    CGLTexture* th1 = g_Orion.ExecuteGump(0x098B);
+    CGLTexture* th2 = g_Orion.ExecuteGump(0x098D);
 
     int smallWidth = 50;
     if (th1 != nullptr)
@@ -80,7 +81,7 @@ CGumpMenubar::CGumpMenubar(short x, short y)
             textPosTable[i][1],
             1));
 
-        CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
+        CGUITextEntry* entry = (CGUITextEntry*)Add(new CGUITextEntry(
             textPosTable[i][4],
             0,
             0x0036,
@@ -92,8 +93,8 @@ CGumpMenubar::CGumpMenubar(short x, short y)
             1,
             TS_CENTER));
         entry->m_Entry.SetTextW(text[i]);
-        entry->CheckOnSerial = true;
-        entry->ReadOnly = true;
+        entry->CheckOnSerial  = true;
+        entry->ReadOnly       = true;
         entry->FocusedOffsetY = 2;
     }
 }
@@ -171,8 +172,7 @@ void CGumpMenubar::InitToolTip()
                 g_ToolTip.Set(L"This option is not work now");
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
     else
@@ -189,7 +189,7 @@ void CGumpMenubar::GUMP_BUTTON_EVENT_C
         {
             m_Opened = !m_Opened;
 
-            Page = 1 + (int)m_Opened;
+            Page              = 1 + (int)m_Opened;
             WantUpdateContent = true;
 
             break;
@@ -240,19 +240,18 @@ void CGumpMenubar::GUMP_BUTTON_EVENT_C
         {
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
 void CGumpMenubar::GUMP_TEXT_ENTRY_EVENT_C
 {
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_TEXTENTRY)
         {
-            CGUITextEntry *entry = (CGUITextEntry *)item;
-            entry->Focused = (entry->Serial == serial);
+            CGUITextEntry* entry = (CGUITextEntry*)item;
+            entry->Focused       = (entry->Serial == serial);
         }
     }
 
@@ -263,12 +262,12 @@ void CGumpMenubar::OnLeftMouseButtonUp()
 {
     CGump::OnLeftMouseButtonUp();
 
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_TEXTENTRY)
         {
-            CGUITextEntry *entry = (CGUITextEntry *)item;
-            entry->Focused = false;
+            CGUITextEntry* entry = (CGUITextEntry*)item;
+            entry->Focused       = false;
         }
     }
 

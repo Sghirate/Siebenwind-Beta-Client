@@ -1,7 +1,7 @@
 #include "GumpBaseScroll.h"
 #include "Core/Platform.h"
-#include "../OrionUO.h"
-#include "../Managers/MouseManager.h"
+#include "OrionUO.h"
+#include "Managers/MouseManager.h"
 
 CGumpBaseScroll::CGumpBaseScroll(
     GUMP_TYPE type,

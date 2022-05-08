@@ -1,14 +1,14 @@
 #include "GumpMinimap.h"
 #include "Core/Time.h"
 #include "Globals.h"
-#include "../OrionUO.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/MapManager.h"
-#include "../Managers/UOFileReader.h"
-#include "../GameObjects/GameItem.h"
-#include "../GameObjects/MapBlock.h"
-#include "../GameObjects/GamePlayer.h"
+#include "OrionUO.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/MapManager.h"
+#include "Managers/UOFileReader.h"
+#include "GameObjects/GameItem.h"
+#include "GameObjects/MapBlock.h"
+#include "GameObjects/GamePlayer.h"
 
 using namespace Core::TimeLiterals;
 

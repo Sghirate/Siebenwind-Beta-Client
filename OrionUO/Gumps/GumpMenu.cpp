@@ -1,7 +1,8 @@
 #include "GumpMenu.h"
-#include "../DefinitionMacro.h"
-#include "../PressedObject.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "DefinitionMacro.h"
+#include "PressedObject.h"
+#include "Network/Packets.h"
 
 CGumpMenu::CGumpMenu(u32 serial, u32 id, short x, short y)
     : CGump(GT_MENU, serial, x, y)

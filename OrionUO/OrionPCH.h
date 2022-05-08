@@ -52,10 +52,6 @@ using std::wstring;
 #define ToColorB(x) ((x >> 16) & 0xff)
 #define ToColorA(x) ((x >> 24) & 0xff)
 
-struct SoundInfo;
-typedef SoundInfo *SoundHandle;
-#define SOUND_NULL nullptr
-
 #if defined(ORION_WINDOWS)
 
 #define HAVE_M_PI // SDL conflicting with winsdk10

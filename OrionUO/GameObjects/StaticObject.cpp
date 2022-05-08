@@ -1,7 +1,7 @@
 #include "StaticObject.h"
 #include "GameCharacter.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
 
 CStaticObject::CStaticObject(int serial, u16 graphic, u16 color, short x, short y, char z)
     : CRenderStaticObject(ROT_STATIC_OBJECT, serial, graphic, color, x, y, z)

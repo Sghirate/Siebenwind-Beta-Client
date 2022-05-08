@@ -1,8 +1,14 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GameObject.h"
-#include "../Walker/WalkData.h"
-#include "../TextEngine/TextContainer.h"
+#include "GLEngine/GLTextTexture.h"
+#include "Globals.h"
+#include "Walker/WalkData.h"
+#include "TextEngine/TextContainer.h"
+#include "plugin/enumlist.h"
+#include <deque>
+#include <string>
 
 class CGameCharacter : public CGameObject
 {
@@ -83,7 +89,7 @@ public:
     u32 LastStepTime = 0;
 
     //!Character's title
-    string Title = "";
+    std::string Title = "";
 
     //!Percent of hits
     u8 HitsPercent = 0;

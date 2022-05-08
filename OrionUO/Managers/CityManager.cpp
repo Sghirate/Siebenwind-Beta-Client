@@ -3,11 +3,11 @@
 #include "Core/StringUtils.h"
 #include "ClilocManager.h"
 #include "Globals.h"
-#include "../OrionApplication.h"
+#include "OrionApplication.h"
 
 CCityManager g_CityManager;
 
-CCity::CCity(const std::string &name, const std::wstring &description)
+CCity::CCity(const std::string& name, const std::wstring& description)
     : Name(name)
     , Description(description)
 {
@@ -33,7 +33,7 @@ void CCityManager::Init()
             {
                 file.Move(4);
                 u8* startBlock = file.GetPtr() + 4;
-                u8* ptrBlock = startBlock;
+                u8* ptrBlock   = startBlock;
                 std::string name{};
                 while (ptrBlock < end)
                 {
@@ -89,10 +89,9 @@ CCityManager::~CCityManager()
     Clear();
 }
 
-CCity CCityManager::GetCity(const std::string &name)
+CCity CCityManager::GetCity(const std::string& name)
 {
-
-    for (auto &city : m_CityList)
+    for (auto& city : m_CityList)
     {
         if (city.Name == name)
         {

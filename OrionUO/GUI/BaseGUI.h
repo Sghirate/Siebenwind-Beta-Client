@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../RenderObject.h"
-#include "../plugin/enumlist.h"
+#include "RenderObject.h"
+#include "plugin/enumlist.h"
 
 class CTextData;
 

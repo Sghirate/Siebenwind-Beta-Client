@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
 #include "Core/TextFileParser.h"
 
 class CBaseProfession;

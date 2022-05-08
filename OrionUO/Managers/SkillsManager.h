@@ -2,6 +2,7 @@
 
 #include "Core/Minimal.h"
 #include <string>
+#include <vector>
 
 class CSkill
 {

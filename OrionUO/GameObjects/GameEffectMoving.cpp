@@ -1,10 +1,10 @@
 #include "GameEffectMoving.h"
 #include "GameWorld.h"
 #include "Globals.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../Managers/EffectManager.h"
-#include "../Managers/MapManager.h"
-#include "../GameObjects/GamePlayer.h"
+#include "ScreenStages/GameScreen.h"
+#include "Managers/EffectManager.h"
+#include "Managers/MapManager.h"
+#include "GameObjects/GamePlayer.h"
 
 CGameEffectMoving::CGameEffectMoving()
 {

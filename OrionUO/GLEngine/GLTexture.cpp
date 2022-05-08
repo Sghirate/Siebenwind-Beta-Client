@@ -1,4 +1,6 @@
-#include "../Managers/MouseManager.h"
+#include "GLTexture.h"
+#include "GLEngine/GLEngine.h"
+#include "Managers/MouseManager.h"
 
 CGLTexture::CGLTexture()
 {
@@ -90,7 +92,7 @@ void CGLTexture::DrawTransparent(int x, int y, bool stencil)
 
 void CGLTexture::Clear()
 {
-    Width = 0;
+    Width  = 0;
     Height = 0;
     m_hitMap.Reset();
 
@@ -116,8 +118,8 @@ void CGLTexture::Clear()
 bool CGLTexture::Select(int x, int y, bool pixelCheck)
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    x = pos.x - x;
-    y = pos.y - y;
+    x                   = pos.x - x;
+    y                   = pos.y - y;
     if (x >= 0 && y >= 0 && x < Width && y < Height)
         return !pixelCheck || m_hitMap.Get((y * Width) + x);
     return false;

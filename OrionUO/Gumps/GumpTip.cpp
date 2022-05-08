@@ -1,5 +1,5 @@
 #include "GumpTip.h"
-#include "../Network/Packets.h"
+#include "Network/Packets.h"
 
 enum
 {

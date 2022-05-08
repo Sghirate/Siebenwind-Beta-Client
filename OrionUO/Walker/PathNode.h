@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Minimal.h"
+
 struct PATH_POINT
 {
     int X;

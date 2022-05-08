@@ -4,19 +4,19 @@
 
 int Main(int argc, char** argv)
 {
-    Core::ScopedCore core(argc, argv);
-    g_app.Init(argc, argv);
-    g_ConfigManager.Init();
+    return 0;
+    // Core::ScopedCore core(argc, argv);
+    // g_app.Init(argc, argv);
+    // g_ConfigManager.Init();
 
-    if (!g_sotWindow.Create("SoT", "SoT", true, 640, 480))
-    {
-        LOG_F(ERROR, "Could not create game window!");
-        return -1;
-    }
+    // if (!g_sotWindow.Create("SoT", "SoT", true, 640, 480))
+    // {
+    //     LOG_F(ERROR, "Could not create game window!");
+    //     return -1;
+    // }
 
-    int result = g_app.Run();
-    SDL_Quit();
-    return result;
+    // int result = g_app.Run();
+    // return result;
 }
 
 #if (_WIN32)

@@ -20,12 +20,12 @@ public:
     CGUIText *m_NameText{ nullptr };
 
     void SendList();
-    virtual void PrepareContent() override;
+     void PrepareContent()  override;
     virtual bool CanBeDisplayed() override { return Visible; }
 
     GUMP_BUTTON_EVENT_H;
     GUMP_SCROLL_BUTTON_EVENT_H;
 
-    virtual void OnLeftMouseButtonUp() override;
-    virtual bool OnLeftMouseButtonDoubleClick() override;
+     void OnLeftMouseButtonUp()  override;
+     bool OnLeftMouseButtonDoubleClick()  override;
 };

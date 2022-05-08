@@ -1,6 +1,3 @@
-// GPLv3 License
-// Copyright (C) 2019 Danny Angelo Carminati Grein
-
 #include "Config.h"
 #include "GameWindow.h"
 #include "OrionUO.h"
@@ -12,22 +9,9 @@
 #include "Core/Log.h"
 #include "SiebenwindClient.h"
 
-#if !defined(ORION_WINDOWS)
-#include <dlfcn.h>
-#define ORION_EXPORT extern "C" __attribute__((visibility("default")))
-#else
-#define ORION_EXPORT
-#endif
-
-#include "plugin/plugininterface.h"
-
 static bool g_isHeadless = false;
 
-#if !defined(ORION_WINDOWS)
-ORION_EXPORT int plugin_main(int argc, char **argv)
-#else
 int main(int argc, char **argv)
-#endif
 {
     Core::ScopedCore core(argc, argv);
     if (!g_App.Init())
@@ -70,10 +54,3 @@ int main(int argc, char **argv)
     g_App.Shutdown();
     return ret;
 }
-
-#if !defined(ORION_WINDOWS)
-ORION_EXPORT void set_install(REVERSE_PLUGIN_INTERFACE *p)
-{
-    g_oaReverse.Install = p->Install;
-}
-#endif

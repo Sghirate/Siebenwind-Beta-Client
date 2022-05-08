@@ -1,4 +1,6 @@
 #include "GUILine.h"
+#include "GLEngine/GLEngine.h"
+#include <GL/glew.h>
 
 CGUILine::CGUILine(int startX, int startY, int targetX, int targetY, int polygoneColor)
     : CBaseGUI(GOT_LINE, 0, 0, 0, startX, startY)

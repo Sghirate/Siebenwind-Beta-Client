@@ -14,5 +14,5 @@ public:
     GUMP_BUTTON_EVENT_H;
     GUMP_TEXT_ENTRY_EVENT_H;
 
-    virtual bool OnLeftMouseButtonDoubleClick() override;
+     bool OnLeftMouseButtonDoubleClick()  override;
 };

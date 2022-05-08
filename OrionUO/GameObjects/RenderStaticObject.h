@@ -1,7 +1,8 @@
 #pragma once
 
 #include "MapObject.h"
-#include "../plugin/mulstruct.h"
+#include "plugin/enumlist.h"
+#include "plugin/mulstruct.h"
 
 class CTextContainer;
 class CTextData;

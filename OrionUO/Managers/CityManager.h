@@ -1,12 +1,15 @@
 #pragma once
 
+#include <deque>
+#include <string>
+
 class CCity
 {
 public:
-    string Name = {};
+    std::string Name         = {};
     std::wstring Description = {};
 
-    CCity(const std::string &name, const std::wstring &description);
+    CCity(const std::string& name, const std::wstring& description);
     CCity() = default;
     virtual ~CCity();
 };
@@ -21,7 +24,7 @@ public:
 
     void Init();
     void Clear();
-    CCity GetCity(const std::string &name);
+    CCity GetCity(const std::string& name);
 };
 
 extern CCityManager g_CityManager;

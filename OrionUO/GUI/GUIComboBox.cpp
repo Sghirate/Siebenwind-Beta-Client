@@ -1,9 +1,9 @@
 #include "GUIComboBox.h"
 #include "GUIText.h"
-#include "../OrionUO.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
+#include "OrionUO.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
 
 CGUIComboBox::CGUIComboBox(
     int serial,
@@ -23,21 +23,21 @@ CGUIComboBox::CGUIComboBox(
     , ShowMaximizedCenter(showMaximizedCenter)
     , OpenedWidth(width)
 {
-    MoveOnDrag = false;
-    m_ArrowX = 0;
-    m_OffsetY = 0;
-    m_StepY = 0;
+    MoveOnDrag        = false;
+    m_ArrowX          = 0;
+    m_OffsetY         = 0;
+    m_StepY           = 0;
     m_MinimizedArrowX = Width - 16;
-    m_WorkWidth = Width - 6;
-    m_WorkHeight = m_ShowItemsCount * 15;
+    m_WorkWidth       = Width - 6;
+    m_WorkHeight      = m_ShowItemsCount * 15;
 
     if (CompositeBackground)
     {
-        CGLTexture *th = g_Orion.ExecuteGump(OpenGraphic);
+        CGLTexture* th = g_Orion.ExecuteGump(OpenGraphic);
 
         if (th != nullptr)
         {
-            m_ArrowX = th->Width - 24;
+            m_ArrowX  = th->Width - 24;
             m_OffsetY = th->Height;
         }
 
@@ -45,7 +45,7 @@ CGUIComboBox::CGUIComboBox(
 
         if (th != nullptr)
         {
-            m_StepY = th->Height;
+            m_StepY     = th->Height;
             m_WorkWidth = th->Width - 12;
         }
 
@@ -73,11 +73,11 @@ void CGUIComboBox::RecalculateWidth()
     {
         OpenedWidth = 0;
 
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item->Type == GOT_TEXT)
             {
-                CGUIText *text = (CGUIText *)item;
+                CGUIText* text = (CGUIText*)item;
 
                 if (OpenedWidth < text->m_Texture.Width)
                 {
@@ -99,13 +99,12 @@ void CGUIComboBox::RecalculateWidth()
 
 void CGUIComboBox::SetShowItemsCount(int val)
 {
-    m_WorkHeight = val * 15;
+    m_WorkHeight     = val * 15;
     m_ShowItemsCount = val;
 }
 
 Core::Vec2<i32> CGUIComboBox::GetSize()
 {
-
     return Core::Vec2<i32>(m_WorkWidth, m_WorkHeight);
 }
 
@@ -126,19 +125,19 @@ void CGUIComboBox::PrepareTextures()
     }
 }
 
-CBaseGUI *CGUIComboBox::SkipToStart()
+CBaseGUI* CGUIComboBox::SkipToStart()
 {
-    CBaseGUI *start = (CBaseGUI *)m_Items;
+    CBaseGUI* start = (CBaseGUI*)m_Items;
 
     int index = 0;
 
-    QFOR(item, m_Items, CBaseGUI *)
+    QFOR(item, m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_TEXT)
         {
             if (index == StartIndex)
             {
-                start = (CBaseGUI *)item;
+                start = (CBaseGUI*)item;
                 break;
             }
 
@@ -168,7 +167,7 @@ void CGUIComboBox::Draw(bool checktrans)
 
         if (CompositeBackground)
         {
-            int bodyY = m_Y + m_OffsetY;
+            int bodyY    = m_Y + m_OffsetY;
             int bodyStep = m_StepY;
 
             currentX = m_X + 12;
@@ -204,10 +203,10 @@ void CGUIComboBox::Draw(bool checktrans)
 
         g_GL.PushScissor(currentX, currentY, m_WorkWidth, m_WorkHeight);
 
-        CBaseGUI *start = SkipToStart();
-        int count = 0;
+        CBaseGUI* start = SkipToStart();
+        int count       = 0;
 
-        QFOR(item, start, CBaseGUI *)
+        QFOR(item, start, CBaseGUI*)
         {
             if (item->Type == GOT_TEXT)
             {
@@ -218,7 +217,7 @@ void CGUIComboBox::Draw(bool checktrans)
                     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
                 }
 
-                CGUIText *text = (CGUIText *)item;
+                CGUIText* text = (CGUIText*)item;
 
                 text->m_Texture.Draw(currentX, currentY + TextOffsetY);
                 currentY += 15;
@@ -236,16 +235,16 @@ void CGUIComboBox::Draw(bool checktrans)
     }
     else
     {
-        CGUIText *selected = nullptr;
-        int index = 0;
+        CGUIText* selected = nullptr;
+        int index          = 0;
 
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item->Type == GOT_TEXT)
             {
                 if (index == SelectedIndex)
                 {
-                    selected = (CGUIText *)item;
+                    selected = (CGUIText*)item;
                     break;
                 }
 
@@ -292,7 +291,7 @@ void CGUIComboBox::Draw(bool checktrans)
 bool CGUIComboBox::Select()
 {
     ListingDirection = 0;
-    bool select = false;
+    bool select      = false;
 
     if (g_PressedObject.LeftObject == this) //maximized
     {
@@ -342,9 +341,9 @@ bool CGUIComboBox::Select()
     return select;
 }
 
-CBaseGUI *CGUIComboBox::SelectedItem()
+CBaseGUI* CGUIComboBox::SelectedItem()
 {
-    CBaseGUI *select = this;
+    CBaseGUI* select = this;
 
     if (g_PressedObject.LeftObject == this) //maximized
     {
@@ -362,10 +361,10 @@ CBaseGUI *CGUIComboBox::SelectedItem()
             currentY -= m_WorkHeight / 2;
         }
 
-        CBaseGUI *start = SkipToStart();
-        int count = 0;
+        CBaseGUI* start = SkipToStart();
+        int count       = 0;
 
-        QFOR(item, start, CBaseGUI *)
+        QFOR(item, start, CBaseGUI*)
         {
             if (item->Type == GOT_TEXT)
             {
@@ -396,10 +395,10 @@ int CGUIComboBox::IsSelectedItem()
 
     if (g_PressedObject.LeftObject == this) //maximized
     {
-        CBaseGUI *start = SkipToStart();
-        int count = 0;
+        CBaseGUI* start = SkipToStart();
+        int count       = 0;
 
-        QFOR(item, start, CBaseGUI *)
+        QFOR(item, start, CBaseGUI*)
         {
             if (item->Type == GOT_TEXT)
             {

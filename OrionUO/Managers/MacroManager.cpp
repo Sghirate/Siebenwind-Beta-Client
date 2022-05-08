@@ -44,18 +44,18 @@ MacroManager::~MacroManager()
 {
 }
 
-Keycode MacroManager::ConvertStringToKeyCode(const std::vector<std::string>& a_strings)
+Core::EKey MacroManager::ConvertStringToKeyCode(const std::vector<std::string>& a_strings)
 {
     std::string str = a_strings[0];
 
     for (int i = 1; i < (int)a_strings.size() - 3; i++)
         str += " " + a_strings[i];
 
-    Keycode key = 0;
+    Core::EKey key = Core::EKey::Key_Unknown;
 
     if (str.length() == 1)
     {
-        key = *str.c_str();
+        key = (Core::EKey)*str.c_str();
     }
     else if (str.length() != 0u)
     {
@@ -63,151 +63,151 @@ Keycode MacroManager::ConvertStringToKeyCode(const std::vector<std::string>& a_s
 
         if (str == "ESC")
         {
-            key = KEY_ESCAPE;
+            key = Core::EKey::Key_Escape;
         }
         else if (str == "BACKSPACE")
         {
-            key = KEY_BACK;
+            key = Core::EKey::Key_Backspace;
         }
         else if (str == "TAB")
         {
-            key = KEY_TAB;
+            key = Core::EKey::Key_Tab;
         }
         else if (str == "ENTER")
         {
-            key = KEY_RETURN;
+            key = Core::EKey::Key_Return;
         }
         else if (str == "CTRL")
         {
-            key = KEY_CONTROL;
+            key = Core::EKey::Key_LCtrl;
         }
         else if (str == "ALT")
         {
-            key = KEY_MENU;
+            key = Core::EKey::Key_LAlt;
         }
         else if (str == "SHIFT")
         {
-            key = KEY_SHIFT;
+            key = Core::EKey::Key_LShift;
         }
         else if (str == "SPACE")
         {
-            key = KEY_SPACE;
+            key = Core::EKey::Key_Space;
         }
         else if (str == "CAPS LOCK")
         {
-            key = KEY_CAPITAL;
+            key = Core::EKey::Key_CapsLock;
         }
         else if (str == "F1")
         {
-            key = KEY_F1;
+            key = Core::EKey::Key_F1;
         }
         else if (str == "F2")
         {
-            key = KEY_F2;
+            key = Core::EKey::Key_F2;
         }
         else if (str == "F3")
         {
-            key = KEY_F3;
+            key = Core::EKey::Key_F3;
         }
         else if (str == "F4")
         {
-            key = KEY_F4;
+            key = Core::EKey::Key_F4;
         }
         else if (str == "F5")
         {
-            key = KEY_F5;
+            key = Core::EKey::Key_F5;
         }
         else if (str == "F6")
         {
-            key = KEY_F6;
+            key = Core::EKey::Key_F6;
         }
         else if (str == "F7")
         {
-            key = KEY_F7;
+            key = Core::EKey::Key_F7;
         }
         else if (str == "F8")
         {
-            key = KEY_F8;
+            key = Core::EKey::Key_F8;
         }
         else if (str == "F9")
         {
-            key = KEY_F9;
+            key = Core::EKey::Key_F9;
         }
         else if (str == "F10")
         {
-            key = KEY_F10;
+            key = Core::EKey::Key_F10;
         }
         else if (str == "F11")
         {
-            key = KEY_F11;
+            key = Core::EKey::Key_F11;
         }
         else if (str == "F12")
         {
-            key = KEY_F12;
+            key = Core::EKey::Key_F12;
         }
         else if (str == "PAUSE")
         {
-            key = KEY_PAUSE;
+            key = Core::EKey::Key_Pause;
         }
         else if (str == "SCROLL LOCK")
         {
-            key = KEY_SCROLL;
+            key = Core::EKey::Key_ScrollLock;
         }
         else if (str == "NUM 0")
         {
-            key = KEY_NUMPAD0;
+            key = Core::EKey::Key_Kp0;
         }
         else if (str == "NUM 1")
         {
-            key = KEY_NUMPAD1;
+            key = Core::EKey::Key_Kp1;
         }
         else if (str == "NUM 2")
         {
-            key = KEY_NUMPAD2;
+            key = Core::EKey::Key_Kp2;
         }
         else if (str == "NUM 3")
         {
-            key = KEY_NUMPAD3;
+            key = Core::EKey::Key_Kp3;
         }
         else if (str == "NUM 4")
         {
-            key = KEY_NUMPAD4;
+            key = Core::EKey::Key_Kp4;
         }
         else if (str == "NUM 5")
         {
-            key = KEY_NUMPAD5;
+            key = Core::EKey::Key_Kp5;
         }
         else if (str == "NUM 6")
         {
-            key = KEY_NUMPAD6;
+            key = Core::EKey::Key_Kp6;
         }
         else if (str == "NUM 7")
         {
-            key = KEY_NUMPAD7;
+            key = Core::EKey::Key_Kp7;
         }
         else if (str == "NUM 8")
         {
-            key = KEY_NUMPAD8;
+            key = Core::EKey::Key_Kp8;
         }
         else if (str == "NUM 9")
         {
-            key = KEY_NUMPAD9;
+            key = Core::EKey::Key_Kp9;
         }
         else if (str == "NUM *")
         {
-            key = 42;
+            key = Core::EKey::Key_KpMultiply;
         }
         else if (str == "NUM -")
         {
-            key = 45;
+            key = Core::EKey::Key_KpMinus;
         }
         else if (str == "NUM +")
         {
-            key = 43;
+            key = Core::EKey::Key_KpPlus;
         }
         else if (str == "NUM DEL")
         {
-            key = 46;
+            key = Core::EKey::Key_KpBackspace;
         }
     }
 
@@ -390,7 +390,7 @@ void MacroManager::Save(const std::filesystem::path& a_path)
     file.Write(writer.GetBuffer(), writer.GetSize(), 1);
 }
 
-Macro* MacroManager::FindMacro(Keycode a_key, bool a_alt, bool a_ctrl, bool a_shift)
+Macro* MacroManager::FindMacro(Core::EKey a_key, bool a_alt, bool a_ctrl, bool a_shift)
 {
     Macro* obj = (Macro*)m_Items;
     while (obj != nullptr)

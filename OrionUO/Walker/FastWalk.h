@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include "Constants.h"
+#include <cstring>
+
 class CFastWalkStack
 {
 private:

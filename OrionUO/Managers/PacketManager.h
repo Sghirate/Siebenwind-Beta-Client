@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/PacketReader.h"
+#include "Core/Thread.h"
 #include <deque>
 #include <string>
 #include <unordered_map>
@@ -63,7 +64,7 @@ public:
     u32 ConfigSerial = 0;
 
 private:
-    ProtectedSection m_Mutex;
+    Core::Mutex m_Mutex;
 
     static CPacketInfo m_Packets[0x100];
     std::unordered_map<u32, GumpCoords> m_GumpsCoordsCache;

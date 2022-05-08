@@ -3,7 +3,7 @@
 #include "GameWindow.h"
 #include "Globals.h"
 #include "ConfigManager.h"
-#include "../OrionUO.h"
+#include "OrionUO.h"
 #include <unordered_map>
 #include <assert.h>
 

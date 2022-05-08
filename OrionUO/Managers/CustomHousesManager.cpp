@@ -2,8 +2,8 @@
 #include "Core/DataStream.h"
 #include "Core/File.h"
 #include "Core/MappedFile.h"
-#include "../Gumps/GumpCustomHouse.h"
-#include "../GameObjects/GameItem.h"
+#include "Gumps/GumpCustomHouse.h"
+#include "GameObjects/GameItem.h"
 
 CustomHousesManager g_CustomHousesManager;
 
@@ -36,7 +36,8 @@ CustomHousesManager::~CustomHousesManager()
 
 void CustomHousesManager::Clear()
 {
-    for (std::unordered_map<u32, CCustomHouse*>::iterator i = m_Items.begin(); i != m_Items.end(); ++i)
+    for (std::unordered_map<u32, CCustomHouse*>::iterator i = m_Items.begin(); i != m_Items.end();
+         ++i)
     {
         CCustomHouse* house = i->second;
         delete house;
@@ -46,7 +47,8 @@ void CustomHousesManager::Clear()
 
 CCustomHouse* CustomHousesManager::Get(int serial)
 {
-    for (std::unordered_map<u32, CCustomHouse*>::iterator i = m_Items.begin(); i != m_Items.end(); ++i)
+    for (std::unordered_map<u32, CCustomHouse*>::iterator i = m_Items.begin(); i != m_Items.end();
+         ++i)
     {
         CCustomHouse* house = i->second;
 
@@ -86,7 +88,11 @@ void CustomHousesManager::Load(const std::filesystem::path& a_path)
 
             CCustomHouse* house = Get(serial);
 
-            LOG_INFO("CustomHouseManager", "Load house from cache file: 0x%08X 0x%08X", serial, revision);
+            LOG_INFO(
+                "CustomHouseManager",
+                "Load house from cache file: 0x%08X 0x%08X",
+                serial,
+                revision);
 
             if (house == nullptr)
             {

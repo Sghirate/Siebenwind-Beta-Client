@@ -139,60 +139,6 @@ static const char *GetClientTypeString(u16 clientFlag)
     return "";
 }
 
-static const char *GetClientTypeName(CLIENT_FLAG clientFlag)
-{
-    switch (clientFlag)
-    {
-        case CF_T2A:
-            return "The Second Age (T2A)";
-        case CF_RE:
-            return "Renaissance";
-        case CF_TD:
-            return "Third Dawn";
-        case CF_LBR:
-            return "Lord Blackthorn's Revenge";
-        case CF_AOS:
-            return "Age Of Shadows";
-        case CF_SE:
-            return "Samurai Empire";
-        case CF_SA:
-            return "Stygian Abyss";
-        default:
-            return "";
-    }
-    return "";
-}
-
-static CLIENT_FLAG GetClientType(u32 version)
-{
-    if (version < CV_200)
-    {
-        return CF_T2A;
-    }
-    if (version < CV_300)
-    {
-        return CF_RE;
-    }
-    if (version < CV_308)
-    {
-        return CF_TD;
-    }
-    if (version < CV_308Z)
-    {
-        return CF_LBR;
-    }
-    if (version < CV_405A)
-    {
-        // >=3.0.8z
-        return CF_AOS;
-    }
-    if (version < CV_60144)
-    {
-        return CF_SE;
-    }
-    return CF_SA;
-}
-
 // Reference: https://github.com/polserver/polserver/blob/5c747bb88123945bb892d3d793b89afcb1dc645a/pol-core/pol/crypt/cryptkey.cpp
 static void SetClientCrypt(u32 version)
 {

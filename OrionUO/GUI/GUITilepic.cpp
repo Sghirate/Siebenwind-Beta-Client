@@ -1,5 +1,5 @@
 #include "GUITilepic.h"
-#include "../OrionUO.h"
+#include "OrionUO.h"
 
 CGUITilepic::CGUITilepic(u16 graphic, u16 color, int x, int y)
     : CGUIDrawObject(GOT_TILEPIC, 0, graphic, color, x, y)

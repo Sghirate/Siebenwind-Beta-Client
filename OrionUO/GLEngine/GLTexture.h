@@ -2,17 +2,18 @@
 
 #include "GLHeaders.h"
 #include "Core/BitSet.h"
+#include <GL/glew.h>
 
 class CGLTexture
 {
 public:
-    short Width = 0;
-    short Height = 0;
-    short ImageOffsetX = 0;
-    short ImageOffsetY = 0;
-    short ImageWidth = 0;
-    short ImageHeight = 0;
-    GLuint VertexBuffer = 0;
+    short Width                 = 0;
+    short Height                = 0;
+    short ImageOffsetX          = 0;
+    short ImageOffsetY          = 0;
+    short ImageWidth            = 0;
+    short ImageHeight           = 0;
+    GLuint VertexBuffer         = 0;
     GLuint MirroredVertexBuffer = 0;
 
     CGLTexture();

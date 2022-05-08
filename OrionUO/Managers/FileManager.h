@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/MappedFile.h"
-#include "../Utility/AutoResetEvent.h"
+#include "Utility/AutoResetEvent.h"
 #include <fstream>
 #include <unordered_map>
 #include <vector>

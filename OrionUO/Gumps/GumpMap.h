@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Gump.h"
 
 class CGumpMap : public CGump
@@ -39,12 +40,12 @@ public:
     int GetPlotState() { return m_PlotState; };
     void SetPlotState(int val);
 
-    virtual void PrepareContent() override;
-    virtual void GenerateFrame(bool stop) override;
-    virtual CRenderObject *Select() override;
+     void PrepareContent()  override;
+     void GenerateFrame(bool stop)  override;
+     CRenderObject *Select()  override;
 
     GUMP_BUTTON_EVENT_H;
 
-    virtual void OnLeftMouseButtonDown() override;
-    virtual void OnLeftMouseButtonUp() override;
+     void OnLeftMouseButtonDown()  override;
+     void OnLeftMouseButtonUp()  override;
 };

@@ -1,11 +1,11 @@
 #include "GumpConsoleType.h"
 #include "Core/StringUtils.h"
 #include "Globals.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../TextEngine/GameConsole.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/GameScreen.h"
+#include "TextEngine/GameConsole.h"
 #include <string>
 
 CGumpConsoleType *g_GumpConsoleType = nullptr;

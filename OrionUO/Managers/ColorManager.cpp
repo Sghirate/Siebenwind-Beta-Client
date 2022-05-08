@@ -17,7 +17,7 @@ CColorManager::~CColorManager()
 void CColorManager::Init()
 {
     intptr_t addr = (intptr_t)g_FileManager.m_HuesMul.GetBuffer();
-    size_t size = g_FileManager.m_HuesMul.GetSize();
+    size_t size   = g_FileManager.m_HuesMul.GetSize();
 
     if (addr > 0 && size > 0 && addr != -1 && size != -1)
     {
@@ -26,7 +26,7 @@ void CColorManager::Init()
         m_HuesCount = (int)entryCount * 8;
         m_HuesRange.resize(entryCount);
 
-        memcpy(&m_HuesRange[0], (void *)addr, entryCount * sizeof(HUES_GROUP));
+        memcpy(&m_HuesRange[0], (void*)addr, entryCount * sizeof(HUES_GROUP));
     }
     else
     {
@@ -38,12 +38,12 @@ void CColorManager::Init()
         m_Radarcol.resize(g_FileManager.m_RadarcolMul.GetSize() / 2);
         memcpy(
             &m_Radarcol[0],
-            (void *)g_FileManager.m_RadarcolMul.GetBuffer(),
+            (void*)g_FileManager.m_RadarcolMul.GetBuffer(),
             g_FileManager.m_RadarcolMul.GetSize());
     }
 }
 
-void CColorManager::SetHuesBlock(int index, VERDATA_HUES_GROUP *group)
+void CColorManager::SetHuesBlock(int index, VERDATA_HUES_GROUP* group)
 {
     if (index < 0 || index >= m_HuesCount)
     {
@@ -69,7 +69,7 @@ void CColorManager::CreateHuesPalette()
     {
         for (int j = 0; j < 8; j++)
         {
-            FLOAT_HUES &fh = m_HuesFloat[(i * 8) + j];
+            FLOAT_HUES& fh = m_HuesFloat[(i * 8) + j];
 
             for (int h = 0; h < 32; h++)
             {
@@ -77,7 +77,7 @@ void CColorManager::CreateHuesPalette()
 
                 u16 c = m_HuesRange[i].Entries[j].ColorTable[h];
 
-                fh.Palette[idx] = (((c >> 10) & 0x1F) / 31.0f);
+                fh.Palette[idx]     = (((c >> 10) & 0x1F) / 31.0f);
                 fh.Palette[idx + 1] = (((c >> 5) & 0x1F) / 31.0f);
                 fh.Palette[idx + 2] = ((c & 0x1F) / 31.0f);
             }
@@ -113,8 +113,8 @@ void CColorManager::SendColorsToShader(u16 color)
 u32 CColorManager::Color16To32(u16 c)
 {
     const u8 table[32] = { 0x00, 0x08, 0x10, 0x18, 0x20, 0x29, 0x31, 0x39, 0x41, 0x4A, 0x52,
-                                0x5A, 0x62, 0x6A, 0x73, 0x7B, 0x83, 0x8B, 0x94, 0x9C, 0xA4, 0xAC,
-                                0xB4, 0xBD, 0xC5, 0xCD, 0xD5, 0xDE, 0xE6, 0xEE, 0xF6, 0xFF };
+                           0x5A, 0x62, 0x6A, 0x73, 0x7B, 0x83, 0x8B, 0x94, 0x9C, 0xA4, 0xAC,
+                           0xB4, 0xBD, 0xC5, 0xCD, 0xD5, 0xDE, 0xE6, 0xEE, 0xF6, 0xFF };
 
     return (table[(c >> 10) & 0x1F] | (table[(c >> 5) & 0x1F] << 8) | (table[c & 0x1F] << 16));
 
@@ -175,7 +175,7 @@ u32 CColorManager::GetPolygoneColor(u16 c, u16 color)
     return 0xFF010101; //Black
 }
 
-u32 CColorManager::GetUnicodeFontColor(u16 &c, u16 color)
+u32 CColorManager::GetUnicodeFontColor(u16& c, u16 color)
 {
     if (color != 0 && color < m_HuesCount)
     {
@@ -189,7 +189,7 @@ u32 CColorManager::GetUnicodeFontColor(u16 &c, u16 color)
     return Color16To32(c);
 }
 
-u32 CColorManager::GetColor(u16 &c, u16 color)
+u32 CColorManager::GetColor(u16& c, u16 color)
 {
     if (color != 0 && color < m_HuesCount)
     {
@@ -203,7 +203,7 @@ u32 CColorManager::GetColor(u16 &c, u16 color)
     return Color16To32(c);
 }
 
-u32 CColorManager::GetPartialHueColor(u16 &c, u16 color)
+u32 CColorManager::GetPartialHueColor(u16& c, u16 color)
 {
     if (color != 0 && color < m_HuesCount)
     {

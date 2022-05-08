@@ -1,6 +1,6 @@
 #include "GUIVirtueGump.h"
-#include "../OrionUO.h"
-#include "../Managers/MouseManager.h"
+#include "OrionUO.h"
+#include "Managers/MouseManager.h"
 
 CGUIVirtueGump::CGUIVirtueGump(u16 graphic, int x, int y)
     : CGUIDrawObject(GOT_VIRTUE_GUMP, graphic, graphic, 0, x, y)

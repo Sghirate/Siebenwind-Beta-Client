@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include <string>
+
 class CPartyObject
 {
 public:
@@ -7,6 +10,6 @@ public:
 
     CPartyObject();
     ~CPartyObject() {}
-    class CGameCharacter *Character{ nullptr };
-    string GetName(int index);
+    class CGameCharacter* Character{ nullptr };
+    std::string GetName(int index);
 };

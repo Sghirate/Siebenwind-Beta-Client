@@ -1,9 +1,9 @@
 #include "GUIMenuObject.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Gumps/Gump.h"
-#include "../Gumps/GumpMenu.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Gumps/Gump.h"
+#include "Gumps/GumpMenu.h"
 
 CGUIMenuObject::CGUIMenuObject(
     int serial, u16 graphic, u16 color, int x, int y, const std::string &text)

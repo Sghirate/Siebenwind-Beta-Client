@@ -1,4 +1,6 @@
 #include "CustomHouseObjects.h"
+#include <cstring>
+#include <stdio.h>
 
 bool CCustomHouseObjectWall::Parse(const char* text)
 {

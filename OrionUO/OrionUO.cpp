@@ -38,11 +38,10 @@
 #include "CharacterList.h"
 #include "DateTimeStamp.h"
 #include "OrionApplication.h"
+#include "SiebenwindClient.h"
 
 #include "Utility/Pinger.h"
 #include "Crypt/CryptEntry.h"
-
-#include "plugin/commoninterfaces.h"
 
 #include "Profiler.h"
 
@@ -160,10 +159,6 @@
 
 #include <deque>
 
-#if !defined(ORION_WINDOWS)
-REVERSE_PLUGIN_INTERFACE g_oaReverse;
-#endif
-
 namespace
 {
 enum { kGameServerId = 0xFFFFFFFF };
@@ -198,14 +193,6 @@ static void TickGameServerPing(const std::string& a_gameServerIp)
 }
 
 } // namespace <anonymous>
-
-PLUGIN_CLIENT_INTERFACE g_PluginClientInterface = {};
-
-bool CDECL PluginRecvFunction(u8* buf, size_t size);
-bool CDECL PluginSendFunction(u8* buf, size_t size);
-
-typedef void CDECL PLUGIN_INIT_TYPE(PLUGIN_INFO*);
-static PLUGIN_INIT_TYPE* g_PluginInit = nullptr;
 
 COrion g_Orion;
 
@@ -1230,51 +1217,6 @@ void COrion::Process(bool rendering)
                     CGump::ProcessListing();
                     g_GameScreen.PrepareContent();
                     g_GameScreen.Render();
-
-                    UOI_SELECTED_TILE uoiSelectedObject;
-                    if (g_SelectedObject.Object != nullptr &&
-                        g_SelectedObject.Object->IsWorldObject())
-                    {
-                        CRenderWorldObject* rwo = (CRenderWorldObject*)g_SelectedObject.Object;
-                        if (rwo->IsLandObject())
-                        {
-                            uoiSelectedObject.Serial = 0xFFFFFFFF;
-                        }
-                        else if (!rwo->IsGameObject())
-                        {
-                            uoiSelectedObject.Serial = 0;
-                        }
-                        else
-                        {
-                            uoiSelectedObject.Serial = rwo->Serial;
-                        }
-
-                        uoiSelectedObject.Graphic = rwo->Graphic;
-                        uoiSelectedObject.Color   = rwo->Color;
-                        uoiSelectedObject.X       = rwo->GetX();
-                        uoiSelectedObject.Y       = rwo->GetY();
-                        uoiSelectedObject.Z       = rwo->GetZ();
-
-                        rwo = rwo->GetLand();
-                        if (rwo != nullptr)
-                        {
-                            uoiSelectedObject.LandGraphic = rwo->Graphic;
-                            uoiSelectedObject.LandX       = rwo->GetX();
-                            uoiSelectedObject.LandY       = rwo->GetY();
-                            uoiSelectedObject.LandZ       = rwo->GetZ();
-                        }
-                        else
-                        {
-                            uoiSelectedObject.LandGraphic = 0;
-                            uoiSelectedObject.LandX       = 0;
-                            uoiSelectedObject.LandY       = 0;
-                            uoiSelectedObject.LandZ       = 0;
-                        }
-                    }
-                    else
-                    {
-                        memset(&uoiSelectedObject, 0, sizeof(uoiSelectedObject));
-                    }
                 }
                 g_Target.UnloadMulti();
                 g_GameScreen.RenderListInitalized = false;
@@ -1591,7 +1533,7 @@ void COrion::Connect()
     g_ConnectionManager.Disconnect();
     g_ConnectionManager.Init(); //Configure
 
-    string login{};
+    std::string login{};
     int port;
     LoadLogin(login, port);
     if (g_ConnectionManager.Connect(login, port, g_GameSeed))
@@ -1693,7 +1635,7 @@ void COrion::RelayServer(const char* ip, int port, u8* gameSeed)
     memcpy(&g_GameSeed[0], &gameSeed[0], 4);
     g_ConnectionManager.Init(gameSeed);
     m_GameServerIP = ip;
-    memset(&g_gameServerPingInfo, 0, sizeof(g_gameServerPingInfo));
+    g_gameServerPingInfo.reset();
     if (g_ConnectionManager.Connect(ip, port, gameSeed))
     {
         g_ConnectionScreen.SetConnected(true);
@@ -2910,7 +2852,7 @@ int COrion::ValueInt(const VALUE_KEY_INT& key, int value)
     return value;
 }
 
-std::string COrion::ValueString(const VALUE_KEY_STRING& key, string value)
+std::string COrion::ValueString(const VALUE_KEY_STRING& key, std::string value)
 {
     switch (key)
     {
@@ -3152,12 +3094,12 @@ void COrion::GoToWebLink(const std::string& url)
     if (url.length() != 0u)
     {
         std::size_t found = url.find("http://");
-        if (found == string::npos)
+        if (found == std::string::npos)
         {
             found = url.find("https://");
         }
         const std::string header = "http://";
-        if (found != string::npos)
+        if (found != std::string::npos)
         {
             Platform::OpenBrowser(url.c_str());
         }
@@ -3245,7 +3187,7 @@ void COrion::ReadUOPIndexFile(
     std::string p = uopFileName;
     std::transform(p.begin(), p.end(), p.begin(), ::tolower);
 
-    bool isGump        = (string("gumpartlegacymul") == p);
+    bool isGump        = (std::string("gumpartlegacymul") == p);
     char basePath[200] = { 0 };
     sprintf_s(basePath, "build/%s/%%0%ii%s", p.c_str(), padding, extesion);
 
@@ -3369,6 +3311,7 @@ u64 COrion::CreateHash(const char* s)
             case_1:
                 ebx += s[i];
                 break;
+            default: break;
         }
 
         esi = (esi ^ edi) - ((edi >> 18) ^ (edi << 14));
@@ -3993,7 +3936,7 @@ void COrion::ProcessStaticAnimList()
         bool noAnimateFields = g_ConfigManager.GetNoAnimateFields();
         u32 nextTime         = g_Ticks + 500;
 
-        for (deque<CIndexObjectStatic*>::iterator i = m_StaticAnimList.begin();
+        for (std::deque<CIndexObjectStatic*>::iterator i = m_StaticAnimList.begin();
              i != m_StaticAnimList.end();
              ++i)
         {
@@ -5547,17 +5490,17 @@ bool COrion::LandPixelsInXY(u16 a_id, int a_x, int a_y)
     return texture ? texture->Select(a_x - 22, a_y - 22) : false;
 }
 
-bool COrion::LandTexturePixelsInXY(int a_x, int a_y, const SDL_Rect& a_r)
+bool COrion::LandTexturePixelsInXY(int a_x, int a_y, const Core::Rect<int>& a_r)
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
     a_y -= 22;
     int testX = pos.x - a_x;
     int testY = pos.y;
 
-    int y0 = -a_r.x;
-    int y1 = 22 - a_r.y;
-    int y2 = 44 - a_r.w;
-    int y3 = 22 - a_r.h;
+    int y0 = -a_r.pos.x;
+    int y1 = 22 - a_r.pos.y;
+    int y2 = 44 - a_r.size.x;
+    int y3 = 22 - a_r.size.y;
 
     bool result =
         ((testY >= testX * (y1 - y0) / -22 + a_y + y0) &&
@@ -5720,6 +5663,7 @@ void COrion::CreateTextMessage(
 
             break;
         }
+        default: break;
     }
 }
 
@@ -5840,6 +5784,7 @@ void COrion::CreateUnicodeTextMessage(
             g_WorldTextRenderer.AddText(td);
             break;
         }
+        default: break;
     }
 }
 
@@ -6214,7 +6159,11 @@ void COrion::ClearWorld()
     g_SkillsManager.SkillsTotal     = 0.0f;
     g_SkillsManager.SkillsRequested = false;
 
-    RELEASE_POINTER(g_World)
+    if (g_World)
+    {
+        delete g_World;
+        g_World = nullptr;
+    }
     LOG_INFO("Client", "\tWorld removed?");
 
     g_PopupMenu = nullptr;
@@ -6328,7 +6277,7 @@ void COrion::OpenStatus(u32 a_serial)
 void COrion::DisplayStatusbarGump(int a_serial, int a_x, int a_y)
 {
     CPacketStatusRequest packet(a_serial);
-    UOMsg_Send(packet.GetData().data(), packet.GetData().size());
+    // TODO: reimplement: UOMsg_Send(packet.GetData().data(), packet.GetData().size());
 
     CGump* gump = g_GumpManager.GetGump(a_serial, 0, GT_STATUSBAR);
 

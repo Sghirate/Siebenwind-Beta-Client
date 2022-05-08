@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenSelectTown.h"
+#include "Gumps/GumpScreenSelectTown.h"
 
 class CCityItem;
 

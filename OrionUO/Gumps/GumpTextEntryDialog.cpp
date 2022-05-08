@@ -1,11 +1,11 @@
-#include <utility>
-
 #include "GumpTextEntryDialog.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/GumpManager.h"
-#include "../ScreenStages/GameBlockedScreen.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/GumpManager.h"
+#include "ScreenStages/GameBlockedScreen.h"
+#include "Network/Packets.h"
+#include <utility>
 
 CGumpTextEntryDialog::CGumpTextEntryDialog(
     u32 serial,
@@ -13,8 +13,8 @@ CGumpTextEntryDialog::CGumpTextEntryDialog(
     short y,
     u8 variant,
     int maxLength,
-    string text,
-    string description)
+    std::string text,
+    std::string description)
     : CGump(GT_TEXT_ENTRY_DIALOG, serial, x, y)
     , Text(std::move(text))
     , m_Description(std::move(description))
@@ -109,10 +109,10 @@ void CGumpTextEntryDialog::GUMP_BUTTON_EVENT_C
     }
 }
 
-void CGumpTextEntryDialog::OnTextInput(const TextEvent &ev)
+void CGumpTextEntryDialog::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (Variant == 2) // Only numbers
     {
         if (ch >= '0' && ch <= '9')
@@ -139,27 +139,25 @@ void CGumpTextEntryDialog::OnTextInput(const TextEvent &ev)
     }
 }
 
-void CGumpTextEntryDialog::OnKeyDown(const KeyEvent &ev)
+void CGumpTextEntryDialog::OnKeyDown(const Core::KeyEvent &ev)
 {
-
-    const auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
-        case KEY_ESCAPE:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
+        case Core::EKey::Key_Escape:
         {
-            SendTextEntryDialogResponse(key == KEY_RETURN);
+            SendTextEntryDialogResponse(ev.key == Core::EKey::Key_Return);
             break;
         }
-        case KEY_HOME:
-        case KEY_END:
-        case KEY_LEFT:
-        case KEY_RIGHT:
-        case KEY_BACK:
-        case KEY_DELETE:
+        case Core::EKey::Key_Home:
+        case Core::EKey::Key_End:
+        case Core::EKey::Key_Left:
+        case Core::EKey::Key_Right:
+        case Core::EKey::Key_Backspace:
+        case Core::EKey::Key_Delete:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
             WantRedraw = true;
             break;
         }

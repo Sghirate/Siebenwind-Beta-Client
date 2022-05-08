@@ -1,8 +1,8 @@
 #include "BaseScreen.h"
-#include "../Profiler.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ScreenEffectManager.h"
+#include "Profiler.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ScreenEffectManager.h"
 
 CBaseScreen *g_CurrentScreen = nullptr;
 

@@ -2,20 +2,20 @@
 #include "Globals.h"
 #include "GumpSkill.h"
 #include "Platform.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../SkillGroup.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/SkillsManager.h"
-#include "../Managers/SkillGroupManager.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "SkillGroup.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/MouseManager.h"
+#include "Managers/SkillsManager.h"
+#include "Managers/SkillGroupManager.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 enum
 {
@@ -750,10 +750,10 @@ bool CGumpSkills::OnLeftMouseButtonDoubleClick()
     return false;
 }
 
-void CGumpSkills::OnTextInput(const TextEvent &ev)
+void CGumpSkills::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     g_EntryPointer->Insert(ch);
     int val = g_FontManager.GetWidthA(6, g_EntryPointer->c_str());
     if (val > 170)
@@ -766,13 +766,11 @@ void CGumpSkills::OnTextInput(const TextEvent &ev)
     }
 }
 
-void CGumpSkills::OnKeyDown(const KeyEvent &ev)
+void CGumpSkills::OnKeyDown(const Core::KeyEvent &ev)
 {
-
-    const auto key = EvKey(ev);
     if (!EntryPointerHere())
     {
-        if (key == KEY_DELETE)
+        if (ev.key == Core::EKey::Key_Delete)
         {
             int index = 0;
             CSkillGroupObject *groupItem = g_SkillGroupManager.m_Groups;
@@ -840,10 +838,10 @@ void CGumpSkills::OnKeyDown(const KeyEvent &ev)
         return;
     }
 
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             SetGroupTextFromEntry();
             if (g_ConfigManager.GetConsoleNeedEnter())
@@ -857,14 +855,14 @@ void CGumpSkills::OnKeyDown(const KeyEvent &ev)
             WantRedraw = true;
             break;
         }
-        case KEY_HOME:
-        case KEY_END:
-        case KEY_LEFT:
-        case KEY_RIGHT:
-        case KEY_BACK:
-        case KEY_DELETE:
+        case Core::EKey::Key_Home:
+        case Core::EKey::Key_End:
+        case Core::EKey::Key_Left:
+        case Core::EKey::Key_Right:
+        case Core::EKey::Key_Backspace:
+        case Core::EKey::Key_Delete:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
             break;
         }
         default:

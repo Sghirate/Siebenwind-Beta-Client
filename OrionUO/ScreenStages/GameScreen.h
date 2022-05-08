@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../Platform.h"
+#include "Platform.h"
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenGame.h"
+#include "Constants.h"
+#include "Gumps/GumpScreenGame.h"
 
 class CGameObject;
 
@@ -126,8 +127,8 @@ public:
     void
     AddLight(class CRenderWorldObject *rwo, class CRenderWorldObject *lightObject, int x, int y);
     virtual void PrepareContent();
-    virtual void Render() override;
-    virtual void SelectObject() override;
+     void Render()  override;
+     void SelectObject()  override;
     virtual void OnLeftMouseButtonDown();
     virtual void OnLeftMouseButtonUp();
     virtual bool OnLeftMouseButtonDoubleClick();
@@ -139,9 +140,9 @@ public:
     virtual bool OnMidMouseButtonDoubleClick() { return false; }
     virtual void OnMidMouseButtonScroll(bool up);
     virtual void OnDragging();
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
-    virtual void OnKeyUp(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
+     void OnKeyUp(const Core::KeyEvent &ev)  override;
     void SetZoom(const bool zommed);
 };
 

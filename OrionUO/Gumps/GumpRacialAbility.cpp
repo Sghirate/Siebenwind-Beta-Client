@@ -1,8 +1,8 @@
 #include "GumpRacialAbility.h"
-#include "../ToolTip.h"
-#include "../Managers/ClilocManager.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "ToolTip.h"
+#include "Managers/ClilocManager.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 CGumpRacialAbility::CGumpRacialAbility(int serial, int x, int y)
     : CGump(GT_RACIAL_ABILITY, serial, x, y)

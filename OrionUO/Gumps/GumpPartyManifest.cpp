@@ -1,8 +1,9 @@
 #include "GumpPartyManifest.h"
-#include "../OrionUO.h"
-#include "../Party.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Party.h"
+#include "TextEngine/GameConsole.h"
+#include "Network/Packets.h"
 
 enum
 {

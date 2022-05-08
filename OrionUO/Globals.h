@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Constants.h"
+#include "Core/Minimal.h"
 #include "plugin/enumlist.h"
 #include "Backend.h" // CGLTexture, GLuint
+#include <assert.h>
 
 class CGump;
 
@@ -23,7 +25,6 @@ extern bool g_AbyssPacket03First;
 
 bool CanBeDraggedByOffset(const Core::Vec2<i32> &point);
 void TileOffsetOnMonitorToXY(int &ofsX, int &ofsY, int &x, int &y);
-std::string ToCamelCase(string text);
 
 class CGameObject;
 int GetDistance(CGameObject *current, CGameObject *target);
@@ -65,7 +66,7 @@ extern u32 g_Ticks;
 extern GLuint ShaderColorTable;
 extern GLuint g_ShaderDrawMode;
 
-extern string g_Language;
+extern std::string g_Language;
 
 extern GAME_STATE g_GameState;
 
@@ -147,7 +148,7 @@ extern u32 g_DeathScreenTimer;
 
 extern float g_AnimCharactersDelayValue;
 
-typedef std::vector<pair<u32, u32>> UINTS_PAIR_LIST;
+typedef std::vector<std::pair<u32, u32>> UINTS_PAIR_LIST;
 
 extern Core::Vec2<i32> g_RemoveRangeXY;
 
@@ -377,7 +378,7 @@ template <typename T, typename U>
 static inline T checked_cast(U *value)
 {
     auto result = checked_cast<T>((intptr_t)value);
-    assert(static_cast<intptr_t>(result) == (intptr_t)value && "Type conversion loses information");
+    assert((static_cast<intptr_t>(result) == (intptr_t)value) && "Type conversion loses information");
     return result;
 }
 

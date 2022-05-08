@@ -1,23 +1,16 @@
 #include "GUIShopItem.h"
 #include "Core/StringUtils.h"
-#include <SDL_timer.h>
-#include "../OrionUO.h"
-#include "../Managers/AnimationManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/FontsManager.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Managers/AnimationManager.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/FontsManager.h"
 
 using namespace Core::TimeLiterals;
 
 CGUIShopItem::CGUIShopItem(
-    int serial,
-    u16 graphic,
-    u16 color,
-    int count,
-    int price,
-    const std::string &name,
-    int x,
-    int y)
+    int serial, u16 graphic, u16 color, int count, int price, const std::string& name, int x, int y)
     : CBaseGUI(GOT_SHOPITEM, serial, graphic, color, x, y)
     , Count(count)
     , Price(price)
@@ -40,7 +33,7 @@ void CGUIShopItem::UpdateOffsets()
 {
     if (Serial >= 0x40000000)
     {
-        CGLTexture *th = g_Orion.ExecuteStaticArt(Graphic);
+        CGLTexture* th = g_Orion.ExecuteStaticArt(Graphic);
 
         if (th != nullptr)
         {
@@ -68,8 +61,7 @@ void CGUIShopItem::UpdateOffsets()
                 group = PAG_STAND;
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
         ANIMATION_DIMENSIONS dims =
@@ -86,7 +78,7 @@ void CGUIShopItem::UpdateOffsets()
     if (m_MaxOffset < m_NameText.Height)
     {
         m_ImageOffset = ((m_NameText.Height - m_MaxOffset) / 2);
-        m_MaxOffset = m_NameText.Height;
+        m_MaxOffset   = m_NameText.Height;
     }
     else
     {
@@ -98,21 +90,21 @@ void CGUIShopItem::OnClick()
 {
     Selected = false;
 
-    for (CBaseGUI *item = this; item != nullptr; item = (CBaseGUI *)item->m_Next)
+    for (CBaseGUI* item = this; item != nullptr; item = (CBaseGUI*)item->m_Next)
     {
-        if (item->Type == GOT_SHOPITEM && ((CGUIShopItem *)item)->Selected)
+        if (item->Type == GOT_SHOPITEM && ((CGUIShopItem*)item)->Selected)
         {
-            ((CGUIShopItem *)item)->Selected = false;
-            ((CGUIShopItem *)item)->CreateNameText();
+            ((CGUIShopItem*)item)->Selected = false;
+            ((CGUIShopItem*)item)->CreateNameText();
         }
     }
 
-    for (CBaseGUI *item = this; item != nullptr; item = (CBaseGUI *)item->m_Prev)
+    for (CBaseGUI* item = this; item != nullptr; item = (CBaseGUI*)item->m_Prev)
     {
-        if (item->Type == GOT_SHOPITEM && ((CGUIShopItem *)item)->Selected)
+        if (item->Type == GOT_SHOPITEM && ((CGUIShopItem*)item)->Selected)
         {
-            ((CGUIShopItem *)item)->Selected = false;
-            ((CGUIShopItem *)item)->CreateNameText();
+            ((CGUIShopItem*)item)->Selected = false;
+            ((CGUIShopItem*)item)->CreateNameText();
         }
     }
 
@@ -150,7 +142,6 @@ void CGUIShopItem::CreateCountText(int lostCount)
 
 void CGUIShopItem::PrepareTextures()
 {
-
     if (Serial >= 0x40000000)
     {
         g_Orion.ExecuteStaticArt(Graphic);
@@ -176,14 +167,13 @@ void CGUIShopItem::PrepareTextures()
                 group = PAG_STAND;
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
-        CTextureAnimationDirection &direction =
+        CTextureAnimationDirection& direction =
             g_AnimationManager.m_DataIndex[Graphic].m_Groups[group].m_Direction[1];
-        direction.LastAccessed =  Core::FrameTimer::Now() + 60_s;
-        g_AnimationManager.AnimID = Graphic;
+        direction.LastAccessed       = Core::FrameTimer::Now() + 60_s;
+        g_AnimationManager.AnimID    = Graphic;
         g_AnimationManager.AnimGroup = group;
         g_AnimationManager.Direction = 1;
 
@@ -200,7 +190,6 @@ void CGUIShopItem::PrepareTextures()
 
 void CGUIShopItem::SetShaderMode()
 {
-
     if (Color != 0)
     {
         if (PartialHue)
@@ -222,7 +211,7 @@ void CGUIShopItem::SetShaderMode()
 
 void CGUIShopItem::Draw(bool checktrans)
 {
-    CGLTexture *th = nullptr;
+    CGLTexture* th = nullptr;
 
     glTranslatef((GLfloat)m_X, (GLfloat)m_Y, 0.0f);
 
@@ -263,16 +252,15 @@ void CGUIShopItem::Draw(bool checktrans)
                 group = PAG_STAND;
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
-        CTextureAnimationDirection &direction =
+        CTextureAnimationDirection& direction =
             g_AnimationManager.m_DataIndex[Graphic].m_Groups[group].m_Direction[1];
 
         if (direction.FrameCount != 0)
         {
-            CGLTexture &originalTexture = direction.m_Frames[0];
+            CGLTexture& originalTexture = direction.m_Frames[0];
 
             if (originalTexture.Texture != 0u)
             {
@@ -335,7 +323,7 @@ void CGUIShopItem::Draw(bool checktrans)
 bool CGUIShopItem::Select()
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     return (x >= 0 && y >= -10 && x < 200 && y < m_MaxOffset);
 }

@@ -13,6 +13,10 @@ struct PingResult
     int max = 0;
     int avg = 0;
     int lost = 0;
+
+    PingResult() { reset(); }
+
+    inline void reset() { serverId = max = avg = lost = 0; min = 9999; }
 };
 typedef void(*PingCallback)(const PingResult&);
 struct Pinger

@@ -1,4 +1,5 @@
-#include "../Managers/MouseManager.h"
+#include "GLHTMLTextTexture.h"
+#include "Managers/MouseManager.h"
 
 CGLHTMLTextTexture::CGLHTMLTextTexture()
 {
@@ -12,8 +13,8 @@ CGLHTMLTextTexture::~CGLHTMLTextTexture()
 u16 CGLHTMLTextTexture::WebLinkUnderMouse(int x, int y)
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    x = pos.x - x;
-    y = pos.y - y;
+    x                   = pos.x - x;
+    y                   = pos.y - y;
     for (auto it = m_WebLinkRect.begin(); it != m_WebLinkRect.end(); ++it)
     {
         if (y >= (*it).StartY && y < (*it).StartY + (*it).EndY)

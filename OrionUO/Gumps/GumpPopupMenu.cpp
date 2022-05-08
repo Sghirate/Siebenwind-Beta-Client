@@ -1,12 +1,12 @@
 #include "GumpPopupMenu.h"
 #include "Core/PacketReader.h"
 #include "Globals.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/IntlocManager.h"
-#include "../Network/Packets.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/IntlocManager.h"
+#include "Network/Packets.h"
 
 CGumpPopupMenu* g_PopupMenu = nullptr;
 

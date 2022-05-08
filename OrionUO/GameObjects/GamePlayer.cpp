@@ -1,8 +1,8 @@
 #include "GamePlayer.h"
 #include "GameItem.h"
-#include "../OrionUO.h"
-#include "../Managers/GumpManager.h"
-#include "../Network/Packets.h"
+#include "OrionUO.h"
+#include "Managers/GumpManager.h"
+#include "Network/Packets.h"
 
 CPlayer *g_Player = nullptr;
 

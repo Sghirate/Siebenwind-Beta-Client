@@ -2,11 +2,11 @@
 #include "CreateCharacterScreen.h"
 #include "GameVars.h"
 #include "GameWindow.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../CityList.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Network/Packets.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "CityList.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Network/Packets.h"
 
 CSelectTownScreen g_SelectTownScreen;
 

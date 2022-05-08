@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../plugin/mulstruct.h"
+#include "Core/Minimal.h"
+#include "plugin/mulstruct.h"
+#include <vector>
 
 struct FLOAT_HUES
 {
@@ -21,9 +23,9 @@ public:
 
     void Init();
 
-    HUES_GROUP *GetHuesRangePointer() { return &m_HuesRange[0]; }
+    HUES_GROUP* GetHuesRangePointer() { return &m_HuesRange[0]; }
     int GetHuesCount() const { return m_HuesCount; }
-    void SetHuesBlock(int index, VERDATA_HUES_GROUP *group);
+    void SetHuesBlock(int index, VERDATA_HUES_GROUP* group);
     void CreateHuesPalette();
     void SendColorsToShader(u16 color);
     u16 Color32To16(int c);
@@ -32,9 +34,9 @@ public:
     u16 GetColor16(u16 c, u16 color);
     u16 GetRadarColorData(int c);
     u32 GetPolygoneColor(u16 c, u16 color);
-    u32 GetUnicodeFontColor(u16 &c, u16 color);
-    u32 GetColor(u16 &c, u16 color);
-    u32 GetPartialHueColor(u16 &c, u16 color);
+    u32 GetUnicodeFontColor(u16& c, u16 color);
+    u32 GetColor(u16& c, u16 color);
+    u32 GetPartialHueColor(u16& c, u16 color);
     u16 FixColor(u16 color, u16 defaultColor = 0);
 };
 

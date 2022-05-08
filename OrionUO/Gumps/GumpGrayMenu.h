@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Gump.h"
 
 class CGumpGrayMenu : public CGump
@@ -7,7 +8,7 @@ class CGumpGrayMenu : public CGump
 public:
     enum
     {
-        ID_GGM_CANCEL = 1000,
+        ID_GGM_CANCEL   = 1000,
         ID_GGM_CONTINUE = 1001
     };
 
@@ -15,6 +16,5 @@ public:
     virtual ~CGumpGrayMenu();
 
     void SendMenuResponse(int index);
-
     GUMP_BUTTON_EVENT_H;
 };

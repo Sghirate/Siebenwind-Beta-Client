@@ -1,9 +1,9 @@
 #include "GameEffect.h"
 #include "GameEffectMoving.h"
 #include "Globals.h"
-#include "../OrionUO.h"
-#include "../Managers/EffectManager.h"
-#include "../Managers/FileManager.h"
+#include "OrionUO.h"
+#include "Managers/EffectManager.h"
+#include "Managers/FileManager.h"
 #include "plugin/enumlist.h"
 
 CGameEffect::CGameEffect()

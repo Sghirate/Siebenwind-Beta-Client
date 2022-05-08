@@ -1,10 +1,10 @@
 #include "TextRenderer.h"
 #include "TextData.h"
-#include "../SelectedObject.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../GameObjects/GameWorld.h"
+#include "SelectedObject.h"
+#include "Managers/ColorManager.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/GameScreen.h"
+#include "GameObjects/GameWorld.h"
 
 CTextRenderer g_WorldTextRenderer;
 

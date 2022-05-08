@@ -1,16 +1,16 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GUIButton.h"
 
 class CGUIHTMLButton : public CGUIButton
 {
 private:
-    //!Ссылка на гамп-родитель
-    class CGUIHTMLGump *m_HTMLGump{ nullptr };
+    class CGUIHTMLGump* m_HTMLGump{ nullptr };
 
 public:
     CGUIHTMLButton(
-        class CGUIHTMLGump *htmlGump,
+        class CGUIHTMLGump* htmlGump,
         int serial,
         u16 graphic,
         u16 graphicSelected,
@@ -20,9 +20,6 @@ public:
     virtual ~CGUIHTMLButton();
 
     virtual void SetShaderMode();
-
-    //!Обработка прокрутки
     void Scroll(bool up, int delay);
-
     virtual bool IsControlHTML() { return true; }
 };

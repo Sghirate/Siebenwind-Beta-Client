@@ -1,6 +1,7 @@
 #include "Profession.h"
 #include "Core/StringUtils.h"
 #include "Managers/FontsManager.h"
+#include <cstring>
 
 CBaseProfession::CBaseProfession()
 {

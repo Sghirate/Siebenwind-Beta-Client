@@ -1,6 +1,7 @@
 #include "Connection.h"
 #include "Core/Log.h"
-#include "../Crypt/CryptEntry.h"
+#include "Crypt/CryptEntry.h"
+#include <cstring>
 
 CSocket::CSocket(bool gameSocket)
     : GameSocket(gameSocket)

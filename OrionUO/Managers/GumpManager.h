@@ -1,8 +1,13 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Core/DataStream.h"
 #include "Platform.h"
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
+#include "plugin/enumlist.h"
+#include <filesystem>
+
+namespace Core { struct KeyEvent; struct TextEvent; }
 
 class CGumpManager : public CBaseQueue
 {
@@ -44,8 +49,8 @@ public:
     void OnDragging(bool blocked);
     void Load(const std::filesystem::path& a_path);
     void Save(const std::filesystem::path& a_path);
-    virtual bool OnTextInput(const TextEvent& ev, bool blocked);
-    virtual bool OnKeyDown(const KeyEvent& ev, bool blocked);
+    virtual bool OnTextInput(const Core::TextEvent& ev, bool blocked);
+    virtual bool OnKeyDown(const Core::KeyEvent& ev, bool blocked);
 };
 
 extern CGumpManager g_GumpManager;

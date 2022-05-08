@@ -1,9 +1,9 @@
 #include "GumpSkill.h"
 #include "Core/StringUtils.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/SkillsManager.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/SkillsManager.h"
 
 CGumpSkill::CGumpSkill(int serial, int x, int y)
     : CGump(GT_SKILL, serial, x, y)

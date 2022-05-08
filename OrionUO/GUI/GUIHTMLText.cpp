@@ -1,6 +1,6 @@
 #include "GUIHTMLText.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/MouseManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/MouseManager.h"
 
 CGUIHTMLText::CGUIHTMLText(
     int index,
@@ -43,7 +43,7 @@ void CGUIHTMLText::Draw(bool checktrans)
 bool CGUIHTMLText::Select()
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < m_Texture.Width && y < m_Texture.Height);
 }

@@ -1,6 +1,6 @@
 #include "Walker.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 CWalker g_Walker;
 

@@ -1,6 +1,6 @@
 #include "GUIComboboxText.h"
-#include "../SelectedObject.h"
-#include "../Gumps/Gump.h"
+#include "SelectedObject.h"
+#include "Gumps/Gump.h"
 
 CGUIComboboxText::CGUIComboboxText(
     u16 color,

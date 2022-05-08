@@ -1,6 +1,6 @@
 #include "GameEffectDrag.h"
-#include "../Managers/EffectManager.h"
-#include "../GameObjects/GameEffectMoving.h"
+#include "Managers/EffectManager.h"
+#include "GameObjects/GameEffectMoving.h"
 
 CGameEffectDrag::CGameEffectDrag()
 {

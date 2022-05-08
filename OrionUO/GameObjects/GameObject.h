@@ -1,8 +1,12 @@
 #pragma once
 
+#include "GLEngine/GLTexture.h"
 #include "RenderStaticObject.h"
+#include <string>
+#include <vector>
 
 class CGameEffect;
+class CGameItem;
 
 struct DRAW_FRAME_INFORMATION
 {
@@ -27,15 +31,15 @@ public:
     void SetFlags(u8 val);
 
 protected:
-    string m_Name = "";
+    std::string m_Name = "";
 
 public:
-    string GetName() { return m_Name; };
+    std::string GetName() { return m_Name; };
     void SetName(const std::string &newName);
     bool NPC = false;
     bool Clicked = false;
     char AnimIndex = 0;
-    string JournalPrefix = "";
+    std::string JournalPrefix = "";
     u32 LastAnimationChangeTime = 0;
     bool SA_Poisoned = false;
     bool ClosedObjectHandle = false;

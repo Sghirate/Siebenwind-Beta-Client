@@ -1,6 +1,7 @@
 #include "GUIDrawObject.h"
-#include "../OrionUO.h"
-#include "../Managers/ColorManager.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Managers/ColorManager.h"
 
 CGUIDrawObject::CGUIDrawObject(
     GUMP_OBJECT_TYPE type, int serial, u16 graphic, u16 color, int x, int y)

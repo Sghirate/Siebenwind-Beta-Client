@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Gump.h"
-#include "../TextEngine/TextRenderer.h"
-#include "../TextEngine/TextContainer.h"
+#include "TextEngine/TextRenderer.h"
+#include "TextEngine/TextContainer.h"
 
 class CGumpPaperdoll : public CGump
 {
@@ -15,7 +15,7 @@ protected:
     CGUIText *m_Description{ nullptr };
     bool m_WantTransparentContent = false;
 
-    virtual void CalculateGumpState() override;
+     void CalculateGumpState()  override;
 
 public:
     static const int ID_GP_ITEMS = 20;
@@ -29,14 +29,14 @@ public:
 
     CTextRenderer *GetTextRenderer() { return &m_TextRenderer; }
     void UpdateDescription(const std::string &text);
-    virtual void DelayedClick(CRenderObject *obj) override;
-    virtual void PrepareContent() override;
-    virtual void UpdateContent() override;
-    virtual void InitToolTip() override;
-    virtual void Draw() override;
-    virtual CRenderObject *Select() override;
+     void DelayedClick(CRenderObject *obj)  override;
+     void PrepareContent()  override;
+     void UpdateContent()  override;
+     void InitToolTip()  override;
+     void Draw()  override;
+     CRenderObject *Select()  override;
 
     GUMP_BUTTON_EVENT_H;
-    virtual void OnLeftMouseButtonUp() override;
-    virtual bool OnLeftMouseButtonDoubleClick() override;
+     void OnLeftMouseButtonUp()  override;
+     bool OnLeftMouseButtonDoubleClick()  override;
 };

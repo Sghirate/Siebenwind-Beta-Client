@@ -1,10 +1,10 @@
 #include "SelectProfessionScreen.h"
 #include "ConnectionScreen.h"
 #include "GameWindow.h"
-#include "../ToolTip.h"
-#include "../OrionUO.h"
-#include "../Managers/ProfessionManager.h"
-#include "../Managers/ScreenEffectManager.h"
+#include "ToolTip.h"
+#include "OrionUO.h"
+#include "Managers/ProfessionManager.h"
+#include "Managers/ScreenEffectManager.h"
 
 CSelectProfessionScreen g_SelectProfessionScreen;
 

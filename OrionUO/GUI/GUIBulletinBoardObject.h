@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "BaseGUI.h"
+#include "GLEngine/GLTextTexture.h"
+#include <string>
 
 class CGUIBulletinBoardObject : public CBaseGUI
 {
@@ -10,7 +13,7 @@ private:
     CGLTextTexture m_Texture;
 
 public:
-    CGUIBulletinBoardObject(int serial, int x, int y, const std::wstring &text);
+    CGUIBulletinBoardObject(int serial, int x, int y, const std::wstring& text);
     virtual ~CGUIBulletinBoardObject();
 
     virtual void PrepareTextures();

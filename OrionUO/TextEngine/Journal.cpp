@@ -1,7 +1,7 @@
 #include "Journal.h"
 #include "TextData.h"
-#include "../Managers/GumpManager.h"
-#include "../Gumps/GumpJournal.h"
+#include "Managers/GumpManager.h"
+#include "Gumps/GumpJournal.h"
 
 CJournal g_Journal(150);
 

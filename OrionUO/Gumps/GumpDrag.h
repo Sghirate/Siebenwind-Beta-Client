@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Gump.h"
-#include "../Platform.h"
+#include "Platform.h"
 
 class CGumpDrag : public CGump
 {
@@ -20,8 +20,8 @@ public:
     GUMP_SLIDER_CLICK_EVENT_H;
     GUMP_SLIDER_MOVE_EVENT_H;
 
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 
     void OnOkayPressed();
 };

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "Audio/AudioTypes.h"
 #include "Core/Time.h"
 #include "TextureObject.h"
+#include "plugin/enumlist.h"
 #include "plugin/mulstruct.h"
+#include <string>
 
 class CUopBlockHeader;
 
@@ -65,7 +68,7 @@ public:
 
     CIndexMulti();
     virtual ~CIndexMulti();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id) override;
+     void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id)  override;
 };
 
 class CIndexGump : public CIndexObject
@@ -73,7 +76,7 @@ class CIndexGump : public CIndexObject
 public:
     CIndexGump();
     virtual ~CIndexGump();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id) override;
+     void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id)  override;
 };
 
 class CIndexLight : public CIndexObject
@@ -81,7 +84,7 @@ class CIndexLight : public CIndexObject
 public:
     CIndexLight();
     virtual ~CIndexLight();
-    virtual void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id) override;
+     void ReadIndexFile(size_t address, BASE_IDX_BLOCK* ptr, const u16 id)  override;
 };
 
 class CIndexAnimation
@@ -103,7 +106,7 @@ public:
 class CIndexMusic
 {
 public:
-    string FilePath;
+    std::string FilePath;
     bool Loop = false;
 
     CIndexMusic();

@@ -3,8 +3,9 @@
 #include "Core/Minimal.h"
 #include "GameWindow.h"
 #include "GLEngine/GLTextTexture.h"
-#include "../Managers/GumpManager.h"
-#include "../GameObjects/LandObject.h"
+#include "Globals.h"
+#include "Managers/GumpManager.h"
+#include "GameObjects/LandObject.h"
 
 CGLEngine g_GL;
 
@@ -492,7 +493,7 @@ void CGLEngine::GL1_DrawLandTexture(const CGLTexture& texture, int x, int y, CLa
     float translateX = x - 22.0f;
     float translateY = y - 22.0f;
 
-    const auto& rc              = land->m_Rect;
+    const auto& rc              = land->m_rect;
     Core::Vec3<double>* normals = land->m_Normals;
 
     glTranslatef(translateX, translateY, 0.0f);

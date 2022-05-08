@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Managers/CityManager.h"
+#include <string>
+#include <vector>
 
 class CCityItem
 {

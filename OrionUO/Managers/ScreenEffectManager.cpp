@@ -48,11 +48,11 @@ int CScreenEffectManager::Process()
 
                         if (ColorR <= 0.0f)
                         {
-                            mode = true;
+                            mode   = true;
                             ColorR = 0.0f;
                             ColorG = 0.0f;
                             ColorB = 0.0f;
-                            timer = g_Ticks + 500;
+                            timer  = g_Ticks + 500;
                         }
                         else
                         {
@@ -68,7 +68,7 @@ int CScreenEffectManager::Process()
             }
             else
             {
-                mode = false;
+                mode  = false;
                 timer = 0;
             }
         }
@@ -106,7 +106,7 @@ void CScreenEffectManager::Draw()
     }
 }
 bool CScreenEffectManager::Use(
-    const SCREEN_EFFECT_MODE &mode, const SCREEN_EFFECT_TYPE &type, bool ignoreEnabled)
+    const SCREEN_EFFECT_MODE& mode, const SCREEN_EFFECT_TYPE& type, bool ignoreEnabled)
 {
     if (Enabled || ignoreEnabled)
     {
@@ -126,7 +126,7 @@ bool CScreenEffectManager::Use(
         static const float speedTable[5] = { 0.02f, 0.02f, 0.08f, 0.02f, 0.15f };
 
         ColorR = ColorG = ColorB = colorTable[type];
-        Step = speedTable[type];
+        Step                     = speedTable[type];
     }
     else
     {
@@ -139,13 +139,13 @@ bool CScreenEffectManager::Use(
 bool CScreenEffectManager::UseSunrise()
 {
     bool result = Use(SEM_SUNRISE);
-    Step = 0.05f;
+    Step        = 0.05f;
     return result;
 }
 
 bool CScreenEffectManager::UseSunset()
 {
     bool result = Use(SEM_SUNSET);
-    Step = 0.05f;
+    Step        = 0.05f;
     return result;
 }

@@ -39,7 +39,7 @@ void CNewTargetSystem::Draw()
 {
     if (!g_ConfigManager.DisableNewTargetSystem && ColorGump != 0)
     {
-        CIndexObject &top = g_Orion.m_GumpDataIndex[GumpTop];
+        CIndexObject& top = g_Orion.m_GumpDataIndex[GumpTop];
 
         int x = X - (top.Width / 2);
 

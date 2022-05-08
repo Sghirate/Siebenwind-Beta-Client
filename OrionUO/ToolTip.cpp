@@ -5,6 +5,7 @@
 #include "Managers/ConfigManager.h"
 #include "Managers/MouseManager.h"
 #include "Managers/ClilocManager.h"
+#include "SiebenwindClient.h"
 
 CToolTip g_ToolTip;
 

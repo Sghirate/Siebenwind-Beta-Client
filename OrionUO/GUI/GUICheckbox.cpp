@@ -1,9 +1,10 @@
 #include "GUICheckbox.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Gumps/Gump.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/FontsManager.h"
+#include "Managers/MouseManager.h"
+#include "Gumps/Gump.h"
+#include "SiebenwindClient.h"
 
 CGUICheckbox::CGUICheckbox(
     int serial, u16 graphic, u16 graphicChecked, u16 graphicDisabled, int x, int y)
@@ -21,7 +22,7 @@ CGUICheckbox::~CGUICheckbox()
 
 void CGUICheckbox::SetTextParameters(
     u8 font,
-    const std::wstring &text,
+    const std::wstring& text,
     u16 color,
     SLIDER_TEXT_POSITION textPosition,
     int textWidth,
@@ -35,7 +36,7 @@ void CGUICheckbox::SetTextParameters(
 
 void CGUICheckbox::SetTextParameters(
     u8 font,
-    const std::string &text,
+    const std::string& text,
     u16 color,
     SLIDER_TEXT_POSITION textPosition,
     int textWidth,
@@ -43,7 +44,8 @@ void CGUICheckbox::SetTextParameters(
     u16 textFlags)
 {
     TextPosition = textPosition;
-    g_FontManager.GenerateA(font, Text, SiebenwindClient::LocalizeA(text), color, textWidth, align, textFlags);
+    g_FontManager.GenerateA(
+        font, Text, SiebenwindClient::LocalizeA(text), color, textWidth, align, textFlags);
     UpdateTextPosition();
 }
 
@@ -52,7 +54,7 @@ void CGUICheckbox::UpdateTextPosition()
     int textX = m_X;
     int textY = m_Y;
 
-    CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+    CGLTexture* th = g_Orion.ExecuteGump(Graphic);
 
     if (th != nullptr)
     {
@@ -88,8 +90,7 @@ void CGUICheckbox::UpdateTextPosition()
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
         switch (TextPosition)
@@ -97,7 +98,7 @@ void CGUICheckbox::UpdateTextPosition()
             case STP_TOP_CENTER:
             case STP_BOTTOM_CENTER:
             {
-                int textWidth = Text.Width;
+                int textWidth   = Text.Width;
                 int sliderWidth = th->Width;
 
                 int deltaX = abs(sliderWidth - textWidth) / 2;
@@ -116,7 +117,7 @@ void CGUICheckbox::UpdateTextPosition()
             case STP_LEFT_CENTER:
             case STP_RIGHT_CENTER:
             {
-                int textHeight = Text.Height;
+                int textHeight   = Text.Height;
                 int sliderHeight = th->Height;
 
                 int deltaY = abs(sliderHeight - textHeight) / 2;
@@ -132,8 +133,7 @@ void CGUICheckbox::UpdateTextPosition()
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
 
@@ -181,9 +181,9 @@ bool CGUICheckbox::Select()
     if (!result && !Text.Empty())
     {
         Core::TMousePos pos = g_MouseManager.GetPosition();
-        int x = pos.x - TextX;
-        int y = pos.y - TextY;
-        result = (x >= 0 && y >= 0 && x < Text.Width && y < Text.Height);
+        int x               = pos.x - TextX;
+        int y               = pos.y - TextY;
+        result              = (x >= 0 && y >= 0 && x < Text.Width && y < Text.Height);
     }
     return result;
 }

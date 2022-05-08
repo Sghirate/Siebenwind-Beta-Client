@@ -1,11 +1,10 @@
-#include <SDL_rect.h>
-#include "Globals.h"
 #include "GumpMap.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../PressedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "PressedObject.h"
+#include "Managers/MouseManager.h"
+#include "Network/Packets.h"
 
 enum
 {
@@ -119,19 +118,15 @@ int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
     offsX = (int)((tempX * cosA) - (tempY * sinA));
     offsY = (int)((tempX * sinA) + (tempY * cosA));
 
-    SDL_Point mousePoint = { x1 + offsX, y1 + offsY };
-
+    Core::Vec2<int> mousePos(x1 + offsX, y1 + offsY);
     const int polyOffset = 5;
 
     int result = 0;
 
     if (!inverseCheck)
     {
-        SDL_Rect lineRect = {
-            x1 - polyOffset, y1 - polyOffset, endX2 + polyOffset, endY2 + polyOffset
-        };
-
-        if (SDL_PointInRect(&mousePoint, &lineRect) != 0u)
+        Core::Rect<int> lineRect(x1 - polyOffset, y1 - polyOffset, endX2 + polyOffset, endY2 + polyOffset);
+        if (lineRect.contains(mousePos))
         {
             x1 = x1 + ((x2 - x1) / 2);
             y1 = y1 + ((y2 - y1) / 2);
@@ -141,11 +136,8 @@ int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
     }
     else
     {
-        SDL_Rect lineRect = {
-            endX2 - polyOffset, endY2 - polyOffset, x1 + polyOffset, y1 + polyOffset
-        };
-
-        if (SDL_PointInRect(&mousePoint, &lineRect) != 0u)
+        Core::Rect<int> lineRect(endX2 - polyOffset, endY2 - polyOffset, x1 + polyOffset, y1 + polyOffset);
+        if (lineRect.contains(mousePos))
         {
             x1 = x2 + ((x1 - x2) / 2);
             y1 = y2 + ((y1 - y2) / 2);

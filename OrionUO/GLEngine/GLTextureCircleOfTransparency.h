@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GLTexture.h"
+#include <vector>
 
 class CGLTextureCircleOfTransparency : public CGLTexture
 {

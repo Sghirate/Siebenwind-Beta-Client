@@ -1,6 +1,10 @@
 #pragma once
 
-#include "../Backend.h"
+#include "Backend.h"
+#include "Core/Minimal.h"
+#include "Core/Input.h"
+#include "plugin/enumlist.h"
+#include <string>
 
 class CGump;
 
@@ -56,7 +60,7 @@ public:
         TEXT_ALIGN_TYPE align = TS_LEFT,
         u16 flags             = 0);
 
-    void OnKey(CGump* gump, Keycode key);
+    void OnKey(CGump* gump, Core::EKey key);
     int Pos() const { return m_Position; }
     size_t Length() const { return Text.length(); }
     std::string CheckMaxWidthA(u8 font, std::string str);

@@ -1,24 +1,23 @@
 #include <utility>
 
 #include "GumpNotify.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/GameScreen.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/GameScreen.h"
 
-CGumpNotify::CGumpNotify(short x, short y, u8 variant, short width, short height, string text)
+CGumpNotify::CGumpNotify(short x, short y, u8 variant, short width, short height, std::string text)
     : CGump(GT_NOTIFY, 0, x, y)
     , Variant(variant)
     , Width(width)
     , Height(height)
     , Text(std::move(text))
 {
-
     Blocked = true;
     g_GrayMenuCount++;
 
     Add(new CGUIResizepic(0, 0x0A28, 0, 0, Width, Height));
 
-    CGUIText *obj = (CGUIText *)Add(new CGUIText(0x0386, 40, 45));
+    CGUIText* obj = (CGUIText*)Add(new CGUIText(0x0386, 40, 45));
     obj->CreateTextureA(1, Text, Width - 90);
 
     Add(new CGUIButton(ID_GN_BUTTON_OK, 0x0481, 0x0482, 0x0483, (Width / 2) - 13, Height - 45));
@@ -30,18 +29,15 @@ CGumpNotify::~CGumpNotify()
 
 void CGumpNotify::GUMP_BUTTON_EVENT_C
 {
-
     if (serial == ID_GN_BUTTON_OK)
     {
         Process();
     }
 }
 
-void CGumpNotify::OnKeyDown(const KeyEvent &ev)
+void CGumpNotify::OnKeyDown(const Core::KeyEvent& ev)
 {
-
-    const auto key = EvKey(ev);
-    if (key != KEY_RETURN && key != KEY_RETURN2)
+    if (ev.key != Core::EKey::Key_Return && ev.key != Core::EKey::Key_Return2)
     {
         return;
     }
@@ -54,13 +50,11 @@ void CGumpNotify::OnKeyDown(const KeyEvent &ev)
     {
         g_EntryPointer = &g_GameConsole;
     }
-
     Process();
 }
 
 void CGumpNotify::Process()
 {
-
     if (Variant == ID_GN_STATE_LOGOUT)
     {
         g_GameScreen.CreateSmoothAction(CGameScreen::ID_SMOOTH_GS_LOGOUT);

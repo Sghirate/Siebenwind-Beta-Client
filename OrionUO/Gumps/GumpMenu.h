@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Gump.h"
+#include <string>
 
 class CGumpMenu : public CGump
 {
 public:
-    string Text = "";
+    std::string Text = "";
     bool TextChanged = false;
 
 protected:
@@ -17,7 +19,7 @@ public:
 
     static const int ID_GM_HTMLGUMP = 1000;
 
-    CGUIText *m_TextObject{ nullptr };
+    CGUIText* m_TextObject{ nullptr };
 
     void SendMenuResponse(int index);
 

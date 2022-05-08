@@ -1,7 +1,7 @@
 #include "PluginPackets.h"
-#include "../Macro.h"
-#include "../Managers/SkillsManager.h"
-#include "../Gumps/GumpSpellbook.h"
+#include "Macro.h"
+#include "Managers/SkillsManager.h"
+#include "Gumps/GumpSpellbook.h"
 
 CPluginPacket::CPluginPacket()
 {

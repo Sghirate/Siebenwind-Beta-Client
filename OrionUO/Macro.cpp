@@ -67,7 +67,7 @@ MacroObjectString::~MacroObjectString()
 {
 }
 
-Macro::Macro(Keycode a_key, bool a_alt, bool a_ctrl, bool a_shift)
+Macro::Macro(Core::EKey a_key, bool a_alt, bool a_ctrl, bool a_shift)
     : m_key(a_key)
     , m_alt(a_alt)
     , m_ctrl(a_ctrl)
@@ -81,7 +81,7 @@ Macro::~Macro()
 
 Macro *Macro::CreateBlankMacro()
 {
-    auto obj = new Macro(0, false, false, false);
+    auto obj = new Macro(Core::EKey::Key_Unknown, false, false, false);
     obj->Add(new MacroObject(MC_NONE, MSC_NONE));
     return obj;
 }
@@ -135,7 +135,7 @@ Macro* Macro::Load(Core::MappedFile& a_file)
     short size = a_file.ReadLE<i16>();
     next += size;
 
-    auto key = a_file.ReadLE<i32>();
+    i32 key = a_file.ReadLE<i32>();
     bool alt = false;
     if ((key & MODKEY_ALT) != 0)
     {
@@ -158,7 +158,7 @@ Macro* Macro::Load(Core::MappedFile& a_file)
     }
 
     int count = a_file.ReadLE<i16>();
-    auto macro = new Macro(key, alt, ctrl, shift);
+    auto macro = new Macro((Core::EKey)key, alt, ctrl, shift);
     for (int i = 0; i < count; i++)
     {
         auto type = a_file.ReadBE<u8>();
@@ -207,7 +207,7 @@ void Macro::Save(Core::StreamWriter& a_writer)
     }
 
     a_writer.WriteLE<u16>(size);
-    auto key = m_key;
+    auto key = (i32)m_key;
     if (m_alt)
         key += MODKEY_ALT;
 

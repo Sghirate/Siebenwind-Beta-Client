@@ -1,17 +1,20 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "BaseGUI.h"
+#include "GLEngine/GLHTMLTextTexture.h"
+#include <string>
 
 class CGUIHTMLText : public CBaseGUI
 {
 public:
-    u32 TextID = 0;
-    u32 HTMLStartColor = 0;
-    std::wstring Text = {};
-    u8 Font = 0;
+    u32 TextID            = 0;
+    u32 HTMLStartColor    = 0;
+    std::wstring Text     = {};
+    u8 Font               = 0;
     TEXT_ALIGN_TYPE Align = TS_LEFT;
-    u16 TextFlags = 0;
-    int Width = 0;
+    u16 TextFlags         = 0;
+    int Width             = 0;
 
     CGUIHTMLText(
         int index,
@@ -19,10 +22,10 @@ public:
         u16 color,
         int x,
         int y,
-        int width = 0,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        u16 textFlags = 0,
-        int htmlStartColor = 0xFFFFFFFF);
+        u16 textFlags         = 0,
+        int htmlStartColor    = 0xFFFFFFFF);
     virtual ~CGUIHTMLText();
 
     CGLHTMLTextTexture m_Texture{ CGLHTMLTextTexture() };

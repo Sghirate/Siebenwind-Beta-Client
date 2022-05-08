@@ -1,5 +1,6 @@
 #include "GameVars.h"
 #include "plugin/enumlist.h"
+#include <cstring>
 
 namespace 
 {

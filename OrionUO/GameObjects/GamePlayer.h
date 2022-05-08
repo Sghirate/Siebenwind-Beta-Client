@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GameCharacter.h"
-#include "../Walker/FastWalk.h"
+#include "Walker/FastWalk.h"
 
 class CPlayer : public CGameCharacter
 {

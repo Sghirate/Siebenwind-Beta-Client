@@ -84,13 +84,13 @@ public:
     void UpdateGraphic(u16 parentGraphic);
     void ChangePage(int newPage);
 
-    virtual void InitToolTip() override;
-    virtual void PrepareContent() override;
-    virtual void UpdateContent() override;
-    virtual void DelayedClick(CRenderObject *obj) override;
+     void InitToolTip()  override;
+     void PrepareContent()  override;
+     void UpdateContent()  override;
+     void DelayedClick(CRenderObject *obj)  override;
 
     GUMP_BUTTON_EVENT_H;
     GUMP_TEXT_ENTRY_EVENT_H;
 
-    virtual bool OnLeftMouseButtonDoubleClick() override;
+     bool OnLeftMouseButtonDoubleClick()  override;
 };

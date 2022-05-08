@@ -1,7 +1,7 @@
 #include "SkillsManager.h"
 #include "Core/Log.h"
 #include "FileManager.h"
-#include "../plugin/mulstruct.h"
+#include "plugin/mulstruct.h"
 
 CSkillsManager g_SkillsManager;
 

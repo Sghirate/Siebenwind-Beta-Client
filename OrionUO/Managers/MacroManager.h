@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include "Core/Keys.h"
 #include "BaseQueue.h"
 #include "Platform.h"
 #include "plugin/enumlist.h"
@@ -19,13 +21,13 @@ private:
     static u8 m_SkillIndexTable[24];
 
     void ProcessSubMenu();
-    Keycode ConvertStringToKeyCode(const std::vector<std::string>& a_strings);
+    Core::EKey ConvertStringToKeyCode(const std::vector<std::string>& a_strings);
 
 public:
     MacroManager();
     virtual ~MacroManager();
 
-    class Macro* FindMacro(Keycode key, bool alt, bool ctrl, bool shift);
+    class Macro* FindMacro(Core::EKey key, bool alt, bool ctrl, bool shift);
     bool Convert(const std::filesystem::path& a_path);
     bool Load(const std::filesystem::path& a_path, const std::filesystem::path& a_originalPath);
     void Save(const std::filesystem::path& a_path);

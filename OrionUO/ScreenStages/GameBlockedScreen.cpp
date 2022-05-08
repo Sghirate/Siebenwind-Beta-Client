@@ -1,10 +1,10 @@
 #include "GameBlockedScreen.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Gumps/GumpNotify.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/GumpManager.h"
+#include "Managers/MouseManager.h"
+#include "Gumps/GumpNotify.h"
 
 CGameBlockedScreen g_GameBlockedScreen;
 
@@ -66,7 +66,7 @@ void CGameBlockedScreen::OnLeftMouseButtonUp()
     }
 }
 
-void CGameBlockedScreen::OnTextInput(const TextEvent &ev)
+void CGameBlockedScreen::OnTextInput(const Core::TextEvent &ev)
 {
 
     if (g_EntryPointer == nullptr || g_EntryPointer == &g_GameConsole)
@@ -77,14 +77,12 @@ void CGameBlockedScreen::OnTextInput(const TextEvent &ev)
     g_GumpManager.OnTextInput(ev, true);
 }
 
-void CGameBlockedScreen::OnKeyDown(const KeyEvent &ev)
+void CGameBlockedScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
-
     CGumpNotify *notify = (CGumpNotify *)g_GumpManager.GetGump(0, 0, GT_NOTIFY);
-    const auto key = EvKey(ev);
     if (g_EntryPointer == nullptr || g_EntryPointer == &g_GameConsole)
     {
-        if ((key == KEY_RETURN || key == KEY_RETURN2) && notify != nullptr)
+        if ((ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2) && notify != nullptr)
         {
             notify->OnKeyDown(ev);
         }

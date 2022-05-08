@@ -1,7 +1,9 @@
 #pragma once
 
+#include <GL/glew.h>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #pragma pack(push, 1)
 
@@ -132,7 +134,7 @@ struct LAND_TILES
 {
     u64 Flags;
     unsigned short TexID;
-    string Name;
+    std::string Name;
 };
 
 struct LAND_GROUP
@@ -151,7 +153,7 @@ struct STATIC_TILES
     unsigned short Hue;
     unsigned short LightIndex;
     unsigned char Height;
-    string Name;
+    std::string Name;
 };
 
 struct STATIC_GROUP

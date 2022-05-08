@@ -1,12 +1,13 @@
-#include "OrionUO.h"
 #include "UseItemsList.h"
+#include "Globals.h"
+#include "OrionUO.h"
 #include "GameObjects/GameWorld.h"
 
 CUseItemActions g_UseItemActions;
 
 void CUseItemActions::Add(int serial)
 {
-    for (deque<u32>::iterator i = m_List.begin(); i != m_List.end(); ++i)
+    for (std::deque<u32>::iterator i = m_List.begin(); i != m_List.end(); ++i)
     {
         if (*i == serial)
         {

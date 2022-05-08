@@ -1,7 +1,8 @@
 #include "GUIGumppicHightlighted.h"
-#include "../SelectedObject.h"
-#include "../Gumps/Gump.h"
-#include "../Managers/ColorManager.h"
+#include "Globals.h"
+#include "Gumps/Gump.h"
+#include "Managers/ColorManager.h"
+#include "SelectedObject.h"
 
 CGUIGumppicHightlighted::CGUIGumppicHightlighted(
     int serial, u16 graphic, u16 color, u16 selectedColor, int x, int y)
@@ -16,7 +17,6 @@ CGUIGumppicHightlighted::~CGUIGumppicHightlighted()
 
 void CGUIGumppicHightlighted::SetShaderMode()
 {
-
     if (g_SelectedObject.Object == this)
     {
         glUniform1iARB(g_ShaderDrawMode, SDM_COLORED);

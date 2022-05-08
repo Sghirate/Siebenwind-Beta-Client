@@ -1,11 +1,11 @@
 #include "GumpGeneric.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Network/Packets.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
+#include "Network/Packets.h"
 
 CGumpGeneric::CGumpGeneric(u32 serial, short x, short y, u32 id)
     : CGump(GT_GENERIC, serial, x, y)
@@ -173,19 +173,17 @@ bool CGumpGeneric::OnLeftMouseButtonDoubleClick()
     return false;
 }
 
-void CGumpGeneric::OnTextInput(const TextEvent &ev)
+void CGumpGeneric::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     g_EntryPointer->Insert(ch);
     WantRedraw = true;
 }
 
-void CGumpGeneric::OnKeyDown(const KeyEvent &ev)
+void CGumpGeneric::OnKeyDown(const Core::KeyEvent &ev)
 {
-
-    auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2)
     {
         if (g_ConfigManager.GetConsoleNeedEnter())
         {
@@ -200,6 +198,6 @@ void CGumpGeneric::OnKeyDown(const KeyEvent &ev)
     }
     else
     {
-        g_EntryPointer->OnKey(this, key);
+        g_EntryPointer->OnKey(this, ev.key);
     }
 }

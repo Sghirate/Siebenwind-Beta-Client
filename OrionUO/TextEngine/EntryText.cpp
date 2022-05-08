@@ -2,12 +2,12 @@
 
 #include "EntryText.h"
 #include "Core/StringUtils.h"
-#include "../DefinitionMacro.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Gumps/Gump.h"
+#include "DefinitionMacro.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/GumpManager.h"
+#include "Gumps/Gump.h"
 
 CEntryText* g_EntryPointer = nullptr;
 
@@ -87,36 +87,36 @@ void CEntryText::OnClick(
     }
 }
 
-void CEntryText::OnKey(CGump* gump, Keycode key)
+void CEntryText::OnKey(CGump* gump, Core::EKey key)
 {
     switch (key)
     {
-        case KEY_HOME:
+        case Core::EKey::Key_Home:
         {
             SetPos(0, gump);
             break;
         }
-        case KEY_END:
+        case Core::EKey::Key_End:
         {
             SetPos((int)Length(), gump);
             break;
         }
-        case KEY_LEFT:
+        case Core::EKey::Key_Left:
         {
             AddPos(-1, gump);
             break;
         }
-        case KEY_RIGHT:
+        case Core::EKey::Key_Right:
         {
             AddPos(1, gump);
             break;
         }
-        case KEY_BACK:
+        case Core::EKey::Key_Backspace:
         {
             Remove(true, gump);
             break;
         }
-        case KEY_DELETE:
+        case Core::EKey::Key_Delete:
         {
             Remove(false, gump);
             break;

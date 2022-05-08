@@ -1,8 +1,8 @@
 #include "UOFileReader.h"
 #include "ColorManager.h"
 #include "Core/Log.h"
-#include "../OrionUO.h"
-#include "../StumpsData.h"
+#include "OrionUO.h"
+#include "StumpsData.h"
 
 UOFileReader g_UOFileReader;
 

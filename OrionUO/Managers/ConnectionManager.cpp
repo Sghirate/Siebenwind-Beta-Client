@@ -4,12 +4,12 @@
 #include "Globals.h"
 #include "PacketManager.h"
 #include <SDL_stdinc.h>
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../Profiler.h"
-#include "../ScreenStages/ConnectionScreen.h"
-#include "../ScreenStages/GameBlockedScreen.h"
-#include "../Crypt/CryptEntry.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "Profiler.h"
+#include "ScreenStages/ConnectionScreen.h"
+#include "ScreenStages/GameBlockedScreen.h"
+#include "Crypt/CryptEntry.h"
 
 CConnectionManager g_ConnectionManager;
 

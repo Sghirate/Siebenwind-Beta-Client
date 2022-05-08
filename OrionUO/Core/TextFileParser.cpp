@@ -1,4 +1,5 @@
 #include "Core/TextFileParser.h"
+#include <cstring>
 
 namespace Core
 {

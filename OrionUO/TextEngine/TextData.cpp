@@ -1,6 +1,6 @@
 #include "TextData.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
 
 CTextData::CTextData()
 {

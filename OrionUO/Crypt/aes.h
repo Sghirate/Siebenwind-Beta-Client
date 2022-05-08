@@ -23,6 +23,7 @@ INCLUDE IMPLEMENTATION SPECIFIC INFORMATION.
 */
 #pragma once
 
+#include "Core/Minimal.h"
 #include <stdio.h>
 #include "platform.h"
 

@@ -1,9 +1,10 @@
 #include "GUISlider.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Gumps/Gump.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/FontsManager.h"
+#include "Managers/MouseManager.h"
+#include "Gumps/Gump.h"
 
 CGUISlider::CGUISlider(
     int serial,
@@ -53,7 +54,7 @@ void CGUISlider::UpdateText()
                 Font, Text, std::to_string(Value), TextColor, TextWidth, Align, TextFlags);
         }
 
-        CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+        CGLTexture* th = g_Orion.ExecuteGump(Graphic);
 
         if (th != nullptr)
         {
@@ -106,8 +107,7 @@ void CGUISlider::UpdateText()
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             switch (TextPosition)
@@ -115,7 +115,7 @@ void CGUISlider::UpdateText()
                 case STP_TOP_CENTER:
                 case STP_BOTTOM_CENTER:
                 {
-                    int textWidth = Text.Width;
+                    int textWidth   = Text.Width;
                     int sliderWidth = Length;
 
                     if (Vertical)
@@ -139,7 +139,7 @@ void CGUISlider::UpdateText()
                 case STP_LEFT_CENTER:
                 case STP_RIGHT_CENTER:
                 {
-                    int textHeight = Text.Height;
+                    int textHeight   = Text.Height;
                     int sliderHeight = Length;
 
                     if (!Vertical)
@@ -160,8 +160,7 @@ void CGUISlider::UpdateText()
 
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             TextX = textX;
@@ -173,7 +172,7 @@ void CGUISlider::UpdateText()
 Core::Vec2<i32> CGUISlider::GetSize()
 {
     Core::Vec2<i32> size;
-    CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+    CGLTexture* th = g_Orion.ExecuteGump(Graphic);
     if (th != nullptr)
     {
         if (Vertical)
@@ -214,13 +213,13 @@ void CGUISlider::OnScroll(bool up, int delay)
 
 void CGUISlider::OnClick(int x, int y)
 {
-    int length = Length;
-    int maxValue = MaxValue - MinValue;
-    CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+    int length     = Length;
+    int maxValue   = MaxValue - MinValue;
+    CGLTexture* th = g_Orion.ExecuteGump(Graphic);
     if (th != nullptr)
         length -= (Vertical ? (th->Height / 2) : th->Width);
     float percents = ((Vertical ? y : x) / (float)length) * 100.0f;
-    Value = (int)((maxValue * percents) / 100.0f) + MinValue;
+    Value          = (int)((maxValue * percents) / 100.0f) + MinValue;
     CalculateOffset();
     UpdateText();
 }
@@ -232,10 +231,10 @@ void CGUISlider::CalculateOffset()
     else if (Value > MaxValue)
         Value = MaxValue;
 
-    int value = Value - MinValue;
-    int maxValue = MaxValue - MinValue;
-    int length = Length;
-    CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+    int value      = Value - MinValue;
+    int maxValue   = MaxValue - MinValue;
+    int length     = Length;
+    CGLTexture* th = g_Orion.ExecuteGump(Graphic);
 
     if (th != nullptr)
         length -= (Vertical ? th->Height : th->Width);
@@ -260,14 +259,14 @@ void CGUISlider::SetTextParameters(
     TEXT_ALIGN_TYPE align,
     u16 textFlags)
 {
-    HaveText = haveText;
+    HaveText     = haveText;
     TextPosition = textPosition;
-    Font = font;
-    TextColor = color;
-    Unicode = unicode;
-    TextWidth = textWidth;
-    Align = align;
-    TextFlags = textFlags;
+    Font         = font;
+    TextColor    = color;
+    Unicode      = unicode;
+    TextWidth    = textWidth;
+    Align        = align;
+    TextFlags    = textFlags;
 
     UpdateText();
 }
@@ -317,7 +316,7 @@ void CGUISlider::Draw(bool checktrans)
     {
         if (CompositeBackground)
         {
-            CGLTexture *th[3] = { nullptr };
+            CGLTexture* th[3] = { nullptr };
 
             for (int i = 0; i < 3; i++)
             {
@@ -354,7 +353,7 @@ void CGUISlider::Draw(bool checktrans)
         }
         else
         {
-            CGLTexture *th = g_Orion.ExecuteGump(BackgroundGraphic);
+            CGLTexture* th = g_Orion.ExecuteGump(BackgroundGraphic);
 
             if (th != nullptr)
             {
@@ -370,7 +369,7 @@ void CGUISlider::Draw(bool checktrans)
         }
     }
 
-    CGLTexture *th = g_Orion.ExecuteGump(GetDrawGraphic());
+    CGLTexture* th = g_Orion.ExecuteGump(GetDrawGraphic());
 
     if (th != nullptr)
     {
@@ -392,7 +391,7 @@ void CGUISlider::Draw(bool checktrans)
 
 bool CGUISlider::Select()
 {
-    CGLTexture *th = g_Orion.ExecuteGump(Graphic);
+    CGLTexture* th = g_Orion.ExecuteGump(Graphic);
     if (th != nullptr)
     {
         int buttonX = m_X;
@@ -415,8 +414,8 @@ bool CGUISlider::Select()
         if (BackgroundGraphic != 0u)
         {
             Core::TMousePos pos = g_MouseManager.GetPosition();
-            int x = pos.x - m_X;
-            int y = pos.y - m_Y;
+            int x               = pos.x - m_X;
+            int y               = pos.y - m_Y;
             if (x >= 0 && y >= 0)
             {
                 if (Vertical)

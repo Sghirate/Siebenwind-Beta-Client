@@ -1,7 +1,8 @@
 #include "GUIButton.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Gumps/Gump.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Gumps/Gump.h"
 
 CGUIButton::CGUIButton(
     int serial, u16 graphic, u16 graphicSelected, u16 graphicPressed, int x, int y)

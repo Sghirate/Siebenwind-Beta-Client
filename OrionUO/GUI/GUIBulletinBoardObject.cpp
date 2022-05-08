@@ -1,12 +1,12 @@
 #include "GUIBulletinBoardObject.h"
 #include "Core/StringUtils.h"
 #include "GameVars.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/MouseManager.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "Managers/FontsManager.h"
+#include "Managers/MouseManager.h"
 
-CGUIBulletinBoardObject::CGUIBulletinBoardObject(int serial, int x, int y, const std::wstring &text)
+CGUIBulletinBoardObject::CGUIBulletinBoardObject(int serial, int x, int y, const std::wstring& text)
     : CBaseGUI(GOT_BB_OBJECT, serial, 0, 0, x, y)
     , Text(text)
 {
@@ -29,7 +29,7 @@ void CGUIBulletinBoardObject::PrepareTextures()
 
 void CGUIBulletinBoardObject::Draw(bool checktrans)
 {
-    CGLTexture *th = g_Orion.ExecuteGump(0x1523);
+    CGLTexture* th = g_Orion.ExecuteGump(0x1523);
     if (th != nullptr)
     {
         th->Draw(m_X, m_Y, checktrans);
@@ -40,7 +40,7 @@ void CGUIBulletinBoardObject::Draw(bool checktrans)
 bool CGUIBulletinBoardObject::Select()
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < 230 && y < 18);
 }

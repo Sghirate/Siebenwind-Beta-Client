@@ -3,33 +3,33 @@
 #include <type_traits>
 
 template <class T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
-inline T operator~(T a)
+inline constexpr T operator~(T a)
 {
     return static_cast<T>(~static_cast<typename std::underlying_type<T>::type>(a));
 }
 template <class T>
-inline T operator|(T a, T b)
+inline constexpr T operator|(T a, T b)
 {
     return static_cast<T>(
         static_cast<typename std::underlying_type<T>::type>(a) |
         static_cast<typename std::underlying_type<T>::type>(b));
 }
 template <class T>
-inline T operator&(T a, T b)
+inline constexpr T operator&(T a, T b)
 {
     return static_cast<T>(
         static_cast<typename std::underlying_type<T>::type>(a) &
         static_cast<typename std::underlying_type<T>::type>(b));
 }
 template <class T>
-inline T operator^(T a, T b)
+inline constexpr T operator^(T a, T b)
 {
     return static_cast<T>(
         static_cast<typename std::underlying_type<T>::type>(a) ^
         static_cast<typename std::underlying_type<T>::type>(b));
 }
 template <class T>
-inline T& operator|=(T& a, T b)
+inline constexpr T& operator|=(T& a, T b)
 {
     a = static_cast<T>(
         static_cast<typename std::underlying_type<T>::type>(a) |
@@ -37,7 +37,7 @@ inline T& operator|=(T& a, T b)
     return a;
 }
 template <class T>
-inline T& operator&=(T& a, T b)
+inline constexpr T& operator&=(T& a, T b)
 {
     a = static_cast<T>(
         static_cast<typename std::underlying_type<T&>::type>(a) &
@@ -45,10 +45,30 @@ inline T& operator&=(T& a, T b)
     return a;
 }
 template <class T>
-inline T& operator^=(T& a, T b)
+inline constexpr T& operator^=(T& a, T b)
 {
     a = static_cast<T>(
         static_cast<typename std::underlying_type<T>::type&>(a) ^
         static_cast<typename std::underlying_type<T>::type>(b));
     return a;
+}
+template<class T>
+inline constexpr bool operator==(const T a, const typename std::underlying_type<T>::type b)
+{
+    return static_cast<const typename std::underlying_type<T>::type>(a) == b;
+}
+template<class T>
+inline constexpr bool operator!=(const T a, const typename std::underlying_type<T>::type b)
+{
+    return static_cast<const typename std::underlying_type<T>::type>(a) != b;
+}
+template<class T>
+inline constexpr bool operator==(const typename std::underlying_type<T>::type b, const T a)
+{
+    return static_cast<const typename std::underlying_type<T>::type>(a) == b;
+}
+template<class T>
+inline constexpr bool operator!=(const typename std::underlying_type<T>::type b, const T a)
+{
+    return static_cast<const typename std::underlying_type<T>::type>(a) != b;
 }

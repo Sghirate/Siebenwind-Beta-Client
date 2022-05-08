@@ -2,7 +2,8 @@
 
 #include "IndexObject.h"
 #include "GameObjects/GameWorld.h"
-#include "plugin/plugininterface.h"
+#include <functional>
+#include <string>
 
 class CUopMappedFile;
 
@@ -10,7 +11,7 @@ class COrion
 {
 public:
     int TexturesDataCount = 0;
-    string m_OverrideServerAddress;
+    std::string m_OverrideServerAddress;
     int m_OverrideServerPort = 0;
 
 private:
@@ -21,18 +22,18 @@ private:
     std::vector<u16> m_StumpTiles;
     std::vector<u16> m_CaveTiles;
 
-    std::deque<CIndexObjectStatic *> m_StaticAnimList;
+    std::deque<CIndexObjectStatic*> m_StaticAnimList;
 
-    std::deque<CIndexObject *> m_UsedLandList;
-    std::deque<CIndexObject *> m_UsedStaticList;
-    std::deque<CIndexObject *> m_UsedGumpList;
-    std::deque<CIndexObject *> m_UsedTextureList;
-    std::deque<CIndexSound *> m_UsedSoundList;
-    std::deque<CIndexObject *> m_UsedLightList;
+    std::deque<CIndexObject*> m_UsedLandList;
+    std::deque<CIndexObject*> m_UsedStaticList;
+    std::deque<CIndexObject*> m_UsedGumpList;
+    std::deque<CIndexObject*> m_UsedTextureList;
+    std::deque<CIndexSound*> m_UsedSoundList;
+    std::deque<CIndexObject*> m_UsedLightList;
 
     std::vector<u8> m_AnimData;
 
-    string m_GameServerIP = "";
+    std::string m_GameServerIP = "";
 
     void LoadAutoLoginNames();
     void LoadTiledata(int landSize, int staticsSize);
@@ -50,21 +51,21 @@ private:
     void ClearUnusedTextures();
     void ReadMulIndexFile(
         size_t indexMaxCount,
-        const std::function<CIndexObject *(int index)> &getIdxObj,
+        const std::function<CIndexObject*(int index)>& getIdxObj,
         size_t address,
-        BASE_IDX_BLOCK *ptr,
-        const std::function<BASE_IDX_BLOCK *()> &getNewPtrValue);
+        BASE_IDX_BLOCK* ptr,
+        const std::function<BASE_IDX_BLOCK*()>& getNewPtrValue);
     void ReadUOPIndexFile(
         size_t indexMaxCount,
-        const std::function<CIndexObject *(int index)> &getIdxObj,
-        const char *uopFileName,
+        const std::function<CIndexObject*(int index)>& getIdxObj,
+        const char* uopFileName,
         int padding,
-        const char *extesion,
-        CUopMappedFile &uopFile,
+        const char* extesion,
+        CUopMappedFile& uopFile,
         int startIndex = 0);
-    u16 TextToGraphic(const char *text);
+    u16 TextToGraphic(const char* text);
     void CheckStaticTileFilterFiles();
-    std::string DecodeArgumentString(const char *text, int length);
+    std::string DecodeArgumentString(const char* text, int length);
     void ParseCommandLine();
     void LoadContainerOffsets();
 
@@ -72,7 +73,7 @@ public:
     COrion();
     ~COrion();
 
-    static u64 CreateHash(const char *s);
+    static u64 CreateHash(const char* s);
 
     std::vector<LAND_TILES> m_LandData;
     std::vector<STATIC_TILES> m_StaticData;
@@ -107,13 +108,13 @@ public:
 
     void Connect();
     void Disconnect();
-    int Send(u8 *buf, int size);
-    int Send(const std::vector<u8> &buf) { return Send((u8 *)&buf[0], int(buf.size())); }
+    int Send(u8* buf, int size);
+    int Send(const std::vector<u8>& buf) { return Send((u8*)&buf[0], int(buf.size())); }
     void ServerSelection(int pos);
-    void RelayServer(const char *ip, int port, u8 *gameSeed);
+    void RelayServer(const char* ip, int port, u8* gameSeed);
     void CharacterSelection(int pos);
     void LoginComplete(bool reload);
-    void ChangeSeason(const SEASON_TYPE &season, int music);
+    void ChangeSeason(const SEASON_TYPE& season, int music);
 
     u16 GetLandSeasonGraphic(u16 graphic);
     u16 GetSeasonGraphic(u16 graphic);
@@ -123,12 +124,12 @@ public:
     u16 GetWinterGraphic(u16 graphic);
     u16 GetDesolationGraphic(u16 graphic);
 
-    int ValueInt(const VALUE_KEY_INT &key, int value = -1);
-    string ValueString(const VALUE_KEY_STRING &key, string value = "");
+    int ValueInt(const VALUE_KEY_INT& key, int value = -1);
+    std::string ValueString(const VALUE_KEY_STRING& key, std::string value = "");
 
     void ClearRemovedStaticsTextures();
     void ClearTreesTextures();
-    bool IsTreeTile(u16 graphic, int &index);
+    bool IsTreeTile(u16 graphic, int& index);
     void ClearCaveTextures();
     bool IsCaveTile(u16 graphic);
     bool IsVegetation(u16 graphic);
@@ -137,33 +138,30 @@ public:
     u16 GetLightColor(u16 id) { return m_StaticDataIndex[id].LightColor; }
     Core::Vec2<i32> GetStaticArtDimension(u16 id);
     Core::Vec2<i32> GetGumpDimension(u16 id);
-    CGLTexture *ExecuteGump(u16 id);
-    CGLTexture *ExecuteLandArt(u16 id);
-    CGLTexture *ExecuteStaticArt(u16 id);
-    CGLTexture *ExecuteStaticArtAnimated(u16 id);
-    CGLTexture *ExecuteTexture(u16 id);
-    CGLTexture *ExecuteLight(u8 &id);
+    CGLTexture* ExecuteGump(u16 id);
+    CGLTexture* ExecuteLandArt(u16 id);
+    CGLTexture* ExecuteStaticArt(u16 id);
+    CGLTexture* ExecuteStaticArtAnimated(u16 id);
+    CGLTexture* ExecuteTexture(u16 id);
+    CGLTexture* ExecuteLight(u8& id);
     std::pair<CGLTexture*, Core::Vec2<i16>> ExecuteCursor(u16 a_id);
     bool ExecuteGumpPart(u16 id, int count);
     bool ExecuteResizepic(u16 id) { return ExecuteGumpPart(id, 9); }
     bool ExecuteButton(u16 id) { return ExecuteGumpPart(id, 3); }
     void DrawGump(u16 id, u16 color, int x, int y, bool partialHue = false);
-    void DrawGump(
-        u16 id, u16 color, int x, int y, int width, int height, bool partialHue = false);
+    void DrawGump(u16 id, u16 color, int x, int y, int width, int height, bool partialHue = false);
     void DrawResizepicGump(u16 id, int x, int y, int width, int height);
-    void DrawLandTexture(class CLandObject *land, u16 color, int x, int y);
+    void DrawLandTexture(class CLandObject* land, u16 color, int x, int y);
     void DrawLandArt(u16 id, u16 color, int x, int y);
     void DrawStaticArt(u16 id, u16 color, int x, int y, bool selection = false);
     void DrawStaticArtAnimated(u16 id, u16 color, int x, int y, bool selection = false);
     void DrawStaticArtRotated(u16 id, u16 color, int x, int y, float angle);
     void DrawStaticArtAnimatedRotated(u16 id, u16 color, int x, int y, float angle);
-    void
-    DrawStaticArtTransparent(u16 id, u16 color, int x, int y, bool selection = false);
-    void DrawStaticArtAnimatedTransparent(
-        u16 id, u16 color, int x, int y, bool selection = false);
+    void DrawStaticArtTransparent(u16 id, u16 color, int x, int y, bool selection = false);
+    void DrawStaticArtAnimatedTransparent(u16 id, u16 color, int x, int y, bool selection = false);
     void DrawStaticArtInContainer(
         u16 id, u16 color, int x, int y, bool selection = false, bool onMouse = false);
-    void DrawLight(struct LIGHT_DATA &light);
+    void DrawLight(struct LIGHT_DATA& light);
     bool PolygonePixelsInXY(int x, int y, int width, int height);
     bool GumpPixelsInXY(u16 id, int x, int y);
     bool GumpPixelsInXY(u16 id, int x, int y, int width, int height);
@@ -172,27 +170,27 @@ public:
     bool StaticPixelsInXYAnimated(u16 id, int x, int y);
     bool StaticPixelsInXYInContainer(u16 id, int x, int y);
     bool LandPixelsInXY(u16 id, int x, int y);
-    bool LandTexturePixelsInXY(int x, int y, const SDL_Rect &r);
-    void CreateTextMessageF(u8 font, u16 color, const char *format, ...);
-    void CreateUnicodeTextMessageF(u8 font, u16 color, const char *format, ...);
+    bool LandTexturePixelsInXY(int x, int y, const Core::Rect<int>& r);
+    void CreateTextMessageF(u8 font, u16 color, const char* format, ...);
+    void CreateUnicodeTextMessageF(u8 font, u16 color, const char* format, ...);
     void CreateTextMessage(
-        const TEXT_TYPE &type,
+        const TEXT_TYPE& type,
         int serial,
         u8 font,
         u16 color,
-        const std::string &text,
-        class CRenderWorldObject *clientObj = nullptr);
+        const std::string& text,
+        class CRenderWorldObject* clientObj = nullptr);
     void CreateUnicodeTextMessage(
-        const TEXT_TYPE &type,
+        const TEXT_TYPE& type,
         int serial,
         u8 font,
         u16 color,
-        const std::wstring &text,
-        class CRenderWorldObject *clientObj = nullptr);
-    void AddSystemMessage(class CTextData *msg);
-    void AddJournalMessage(class CTextData *msg, const std::string &name);
+        const std::wstring& text,
+        class CRenderWorldObject* clientObj = nullptr);
+    void AddSystemMessage(class CTextData* msg);
+    void AddJournalMessage(class CTextData* msg, const std::string& name);
     void ChangeMap(u8 newmap);
-    void PickupItem(class CGameItem *obj, int count = 0, bool isGameFigure = false);
+    void PickupItem(class CGameItem* obj, int count = 0, bool isGameFigure = false);
     void DropItem(int container, u16 x, u16 y, char z);
     void EquipItem(u32 container = 0);
     void ChangeWarmode(u8 status = 0xFF);
@@ -201,16 +199,16 @@ public:
     void PaperdollReq(u32 serial);
     void Attack(u32 serial);
     void AttackReq(u32 serial);
-    void SendASCIIText(const char *str, SPEECH_TYPE type);
+    void SendASCIIText(const char* str, SPEECH_TYPE type);
     void CastSpell(int index);
     void CastSpellFromBook(int index, u32 serial);
     void UseSkill(int index);
     void OpenDoor();
-    void EmoteAction(const char *action);
+    void EmoteAction(const char* action);
     void AllNames();
-    u32 GetFileHashCode(u8 *ptr, size_t size);
-    void LoadLogin(std::string &login, int &port);
-    void GoToWebLink(const std::string &url);
+    u32 GetFileHashCode(u8* ptr, size_t size);
+    void LoadLogin(std::string& login, int& port);
+    void GoToWebLink(const std::string& url);
     void RemoveRangedObjects();
     void ClearWorld();
     void LogOut();

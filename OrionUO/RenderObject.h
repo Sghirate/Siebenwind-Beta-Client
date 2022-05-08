@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "BaseQueue.h"
 
 class CRenderObject : public CBaseQueueItem

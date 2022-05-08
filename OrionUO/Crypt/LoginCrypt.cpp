@@ -1,6 +1,7 @@
 #include "LoginCrypt.h"
 #include "aes.h"
-#include "../Config.h"
+#include "Config.h"
+#include <cstring>
 
 CLoginCrypt g_LoginCrypt;
 

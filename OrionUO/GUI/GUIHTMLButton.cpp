@@ -1,8 +1,10 @@
 #include "GUIHTMLButton.h"
 #include "GUIHTMLGump.h"
+#include "Globals.h"
+#include <GL/glew.h>
 
 CGUIHTMLButton::CGUIHTMLButton(
-    CGUIHTMLGump *htmlGump,
+    CGUIHTMLGump* htmlGump,
     int serial,
     u16 graphic,
     u16 graphicSelected,

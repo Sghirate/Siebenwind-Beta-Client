@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../Platform.h"
-#include "../GUI/GUI.h"
-#include "../RenderObject.h"
+#include "Core/Input.h"
+#include "Platform.h"
+#include "GUI/GUI.h"
+#include "RenderObject.h"
 
 class CBaseGUI;
 
@@ -35,24 +36,24 @@ class CBaseGUI;
 class CGump : public CRenderObject
 {
 public:
-    GUMP_TYPE GumpType = GT_NONE;
-    u32 ID = 0;
-    int MinimizedX = 0;
-    int MinimizedY = 0;
-    bool NoMove = false;
-    bool NoClose = false;
-    bool Minimized = false;
-    bool FrameCreated = false;
-    bool WantRedraw = false;
-    bool WantUpdateContent = true;
-    bool Blocked = false;
-    bool LockMoving = false;
-    int Page = 0;
-    int Draw2Page = 0;
-    bool Transparent = false;
-    bool RemoveMark = false;
-    bool NoProcess = false;
-    bool Visible = true;
+    GUMP_TYPE GumpType       = GT_NONE;
+    u32 ID                   = 0;
+    int MinimizedX           = 0;
+    int MinimizedY           = 0;
+    bool NoMove              = false;
+    bool NoClose             = false;
+    bool Minimized           = false;
+    bool FrameCreated        = false;
+    bool WantRedraw          = false;
+    bool WantUpdateContent   = true;
+    bool Blocked             = false;
+    bool LockMoving          = false;
+    int Page                 = 0;
+    int Draw2Page            = 0;
+    bool Transparent         = false;
+    bool RemoveMark          = false;
+    bool NoProcess           = false;
+    bool Visible             = true;
     Core::Rect<i32> GumpRect = Core::Rect<i32>();
 
 protected:
@@ -69,37 +70,37 @@ public:
     CGump(GUMP_TYPE type, u32 serial, int x, int y);
     virtual ~CGump();
 
-    virtual void PasteClipboardData(std::wstring &data);
+    virtual void PasteClipboardData(std::wstring& data);
     static void ProcessListing();
 
     static bool
-    ApplyTransparent(CBaseGUI *item, int page, int currentPage, const int draw2Page = 0);
+    ApplyTransparent(CBaseGUI* item, int page, int currentPage, const int draw2Page = 0);
 
-    static void DrawItems(CBaseGUI *start, int currentPage, int draw2Page = 0);
-    static class CRenderObject *SelectItems(CBaseGUI *start, int currentPage, int draw2Page = 0);
+    static void DrawItems(CBaseGUI* start, int currentPage, int draw2Page = 0);
+    static class CRenderObject* SelectItems(CBaseGUI* start, int currentPage, int draw2Page = 0);
 
     static void GetItemsSize(
-        CGump *gump,
-        CBaseGUI *start,
-        Core::Vec2<i32> &minPosition,
-        Core::Vec2<i32> &maxPosition,
-        Core::Vec2<i32> &offset,
+        CGump* gump,
+        CBaseGUI* start,
+        Core::Vec2<i32>& minPosition,
+        Core::Vec2<i32>& maxPosition,
+        Core::Vec2<i32>& offset,
         int count,
         int currentPage,
         int draw2Page);
     static void TestItemsLeftMouseDown(
-        CGump *gump, CBaseGUI *start, int currentPage, int draw2Page = 0, int count = -1);
+        CGump* gump, CBaseGUI* start, int currentPage, int draw2Page = 0, int count = -1);
     static void
-    TestItemsLeftMouseUp(CGump *gump, CBaseGUI *start, int currentPage, int draw2Page = 0);
+    TestItemsLeftMouseUp(CGump* gump, CBaseGUI* start, int currentPage, int draw2Page = 0);
     static void TestItemsDragging(
-        CGump *gump, CBaseGUI *start, int currentPage, int draw2Page = 0, int count = -1);
+        CGump* gump, CBaseGUI* start, int currentPage, int draw2Page = 0, int count = -1);
     static void
-    TestItemsScrolling(CGump *gump, CBaseGUI *start, bool up, int currentPage, int draw2Page = 0);
+    TestItemsScrolling(CGump* gump, CBaseGUI* start, bool up, int currentPage, int draw2Page = 0);
 
-    virtual void DelayedClick(class CRenderObject *obj) {}
+    virtual void DelayedClick(class CRenderObject* obj) {}
     virtual void PrepareContent() {}
     virtual void UpdateContent() {}
-    virtual class CTextRenderer *GetTextRenderer() { return nullptr; }
+    virtual class CTextRenderer* GetTextRenderer() { return nullptr; }
     virtual void PrepareTextures();
     virtual void GenerateFrame(bool stop);
     virtual bool CanBeDisplayed() { return true; }
@@ -112,7 +113,7 @@ public:
 
     virtual bool EntryPointerHere();
     virtual void Draw();
-    virtual class CRenderObject *Select();
+    virtual class CRenderObject* Select();
     virtual void InitToolTip() {}
 
     GUMP_BUTTON_EVENT_H {}
@@ -139,10 +140,10 @@ public:
     virtual bool OnMidMouseButtonDoubleClick() { return false; }
     virtual void OnMidMouseButtonScroll(bool up);
     virtual void OnDragging();
-    virtual void OnTextInput(const TextEvent &ev) {}
-    virtual void OnKeyDown(const KeyEvent &ev) {}
-    virtual void OnKeyUp(const KeyEvent &ev) {}
+    virtual void OnTextInput(const Core::TextEvent& ev) {}
+    virtual void OnKeyDown(const Core::KeyEvent& ev) {}
+    virtual void OnKeyUp(const Core::KeyEvent& ev) {}
 };
 
-extern CGump *g_ResizedGump;
-extern CGump *g_CurrentCheckGump;
+extern CGump* g_ResizedGump;
+extern CGump* g_CurrentCheckGump;

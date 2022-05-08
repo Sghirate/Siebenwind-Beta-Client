@@ -2,13 +2,13 @@
 #include "Globals.h"
 #include "GumpManager.h"
 #include "FileManager.h"
-#include "../OrionUO.h"
-#include "../Profiler.h"
-#include "../Gumps/GumpMinimap.h"
-#include "../GameObjects/MapBlock.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../GameObjects/LandObject.h"
-#include "../GameObjects/StaticObject.h"
+#include "OrionUO.h"
+#include "Profiler.h"
+#include "Gumps/GumpMinimap.h"
+#include "GameObjects/MapBlock.h"
+#include "GameObjects/GamePlayer.h"
+#include "GameObjects/LandObject.h"
+#include "GameObjects/StaticObject.h"
 #include "plugin/enumlist.h"
 
 CMapManager g_MapManager;
@@ -741,7 +741,7 @@ CMapBlock* CMapManager::GetBlock(u32 index)
 CMapBlock* CMapManager::AddBlock(u32 index)
 {
     CMapBlock* block = (CMapBlock*)Add(new CMapBlock(index));
-    m_Blocks[index] = block;
+    m_Blocks[index]  = block;
     return block;
 }
 

@@ -4,8 +4,10 @@
 #include <algorithm>
 #include <charconv>
 #include <codecvt>
+#include <cassert>
 #include <cstring>
 #include <locale>
+#include <vector>
 #if defined(ORION_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #define NOWINMESSAGES
@@ -47,10 +49,11 @@
 #define NOMCX
 #include <windows.h>
 #endif
-#include <vector>
 
 namespace Core
 {
+
+const std::string EmpyString;
 
 // Convert ISO 8859-1 to UTF-8.
 std::string Iso8859ToUtf8(const std::string& a_iso8859)
@@ -86,7 +89,6 @@ std::wstring Utf8ToUtf16(const std::string& a_utf8)
     {
         unsigned long uni;
         size_t todo;
-        bool error       = false;
         unsigned char ch = a_utf8[i++];
         if (ch <= 0x7F)
         {

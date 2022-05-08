@@ -1,18 +1,19 @@
 #include "GUIShopResult.h"
 #include "GUIMinMaxButtons.h"
 #include "GUIShopItem.h"
-#include "../OrionUO.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/FontsManager.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Managers/MouseManager.h"
+#include "Managers/FontsManager.h"
 
-CGUIShopResult::CGUIShopResult(CGUIShopItem *shopItem, int x, int y)
+CGUIShopResult::CGUIShopResult(CGUIShopItem* shopItem, int x, int y)
     : CBaseGUI(GOT_SHOPRESULT, shopItem->Serial, shopItem->Graphic, shopItem->Color, x, y)
     , Price(shopItem->Price)
     , Name(shopItem->Name)
 {
     MoveOnDrag = true;
 
-    string name = Name + "\n" + "at " + std::to_string(Price) + " g.p.";
+    std::string name = Name + "\n" + "at " + std::to_string(Price) + " g.p.";
     g_FontManager.GenerateA(9, m_NameText, name, 0x021F, 100);
 
     int maxCount = shopItem->Count;
@@ -31,12 +32,16 @@ CGUIShopResult::CGUIShopResult(CGUIShopItem *shopItem, int x, int y)
 CGUIShopResult::~CGUIShopResult()
 {
     m_NameText.Clear();
-    RELEASE_POINTER(m_MinMaxButtons);
+    if (m_MinMaxButtons)
+    {
+        delete m_MinMaxButtons;
+        m_MinMaxButtons = nullptr;
+    }
 }
 
-CBaseGUI *CGUIShopResult::SelectedItem()
+CBaseGUI* CGUIShopResult::SelectedItem()
 {
-    CBaseGUI *result = this;
+    CBaseGUI* result     = this;
     Core::Vec2<i32> size = m_MinMaxButtons->GetSize();
 
     if (g_Orion.PolygonePixelsInXY(
@@ -68,7 +73,7 @@ void CGUIShopResult::Draw(bool checktrans)
 bool CGUIShopResult::Select()
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < 200 && y < m_NameText.Height);
 }

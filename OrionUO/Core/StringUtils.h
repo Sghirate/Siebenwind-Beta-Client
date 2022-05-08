@@ -1,9 +1,12 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include <string>
 
 namespace Core
 {
+
+extern const std::string EmptyString;
 
 std::string Iso8859ToUtf8(const std::string& iso8859);
 std::wstring Utf8ToUtf16(const std::string& utf8);

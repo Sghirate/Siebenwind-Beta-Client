@@ -1,7 +1,7 @@
 #include "GumpProfile.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../Network/Packets.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "Network/Packets.h"
 
 CGumpProfile::CGumpProfile(
     u32 serial,
@@ -133,21 +133,19 @@ bool CGumpProfile::OnLeftMouseButtonDoubleClick()
     return false;
 }
 
-void CGumpProfile::OnTextInput(const TextEvent &ev)
+void CGumpProfile::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     g_EntryPointer->Insert(ch);
     RecalculateHeight();
     Changed = true;
     WantRedraw = true;
 }
 
-void CGumpProfile::OnKeyDown(const KeyEvent &ev)
+void CGumpProfile::OnKeyDown(const Core::KeyEvent &ev)
 {
-
-    const auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return)
     {
         g_EntryPointer->Insert(0x000D);
         RecalculateHeight();
@@ -155,7 +153,7 @@ void CGumpProfile::OnKeyDown(const KeyEvent &ev)
     }
     else
     {
-        g_EntryPointer->OnKey(this, key);
+        g_EntryPointer->OnKey(this, ev.key);
         if (WantRedraw)
         {
             RecalculateHeight();

@@ -1,19 +1,13 @@
 #pragma once
 
 #include "BaseGUI.h"
+#include <GL/glew.h>
 
 class CGUIGlobalColor : public CBaseGUI
 {
-    //!R компонента цвета
     GLfloat R = 0.0f;
-
-    //!G компонента цвета
     GLfloat G = 0.0f;
-
-    //!B компонента цвета
     GLfloat B = 0.0f;
-
-    //!A компонента цвета
     GLfloat A = 0.0f;
 
 public:

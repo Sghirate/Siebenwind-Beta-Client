@@ -1,8 +1,8 @@
 #include "ConnectionScreen.h"
-#include "../OrionUO.h"
-#include "../CharacterList.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Network/Packets.h"
+#include "OrionUO.h"
+#include "CharacterList.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Network/Packets.h"
 
 CConnectionScreen g_ConnectionScreen;
 
@@ -92,14 +92,12 @@ void CConnectionScreen::ProcessSmoothAction(u8 action)
     }
 }
 
-void CConnectionScreen::OnKeyDown(const KeyEvent &ev)
+void CConnectionScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
-
-    const auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             if (m_Type == CST_CHARACTER_LIST)
             {
@@ -123,7 +121,7 @@ void CConnectionScreen::OnKeyDown(const KeyEvent &ev)
 
             break;
         }
-        case KEY_ESCAPE:
+        case Core::EKey::Key_Escape:
         {
             if (m_Type == CST_CHARACTER_LIST)
             {

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../Platform.h"
+#include "Platform.h"
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenConnection.h"
+#include "Gumps/GumpScreenConnection.h"
+#include <string>
 
 class CConnectionScreen : public CBaseScreen
 {
@@ -42,10 +43,10 @@ public:
     void SetType(CONNECTION_SCREEN_TYPE val);
 
 protected:
-    string m_Text = "";
+    std::string m_Text = "";
 
 public:
-    string GetTextA() { return m_Text; };
+    std::string GetTextA() { return m_Text; };
     void SetTextA(const std::string &val);
 
 private:
@@ -63,7 +64,7 @@ public:
     void Init();
     void ProcessSmoothAction(u8 action = 0xFF);
 
-    virtual void OnKeyDown(const KeyEvent &ev);
+    virtual void OnKeyDown(const Core::KeyEvent &ev);
 };
 
 extern CConnectionScreen g_ConnectionScreen;

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "GameItem.h"
+#include "plugin/enumlist.h"
+#include <map>
 
-typedef std::map<u32, CGameObject *> WORLD_MAP;
+typedef std::map<u32, CGameObject*> WORLD_MAP;
 
 class CGameWorld
 {
@@ -18,47 +20,47 @@ public:
     ~CGameWorld();
 
     WORLD_MAP m_Map;
-    CGameObject *m_Items{ nullptr };
+    CGameObject* m_Items{ nullptr };
 
     void ResetObjectHandlesState();
     void ProcessAnimation();
-    void ProcessSound(int ticks, CGameCharacter *gc);
+    void ProcessSound(int ticks, CGameCharacter* gc);
     void SetPlayer(int serial);
-    CGameItem *GetWorldItem(int serial);
-    CGameCharacter *GetWorldCharacter(int serial);
-    CGameObject *FindWorldObject(int serial);
-    CGameItem *FindWorldItem(int serial);
-    CGameCharacter *FindWorldCharacter(int serial);
-    void ReplaceObject(CGameObject *obj, int newSerial);
-    void RemoveObject(CGameObject *obj);
-    void RemoveFromContainer(CGameObject *obj);
-    void ClearContainer(CGameObject *obj);
+    CGameItem* GetWorldItem(int serial);
+    CGameCharacter* GetWorldCharacter(int serial);
+    CGameObject* FindWorldObject(int serial);
+    CGameItem* FindWorldItem(int serial);
+    CGameCharacter* FindWorldCharacter(int serial);
+    void ReplaceObject(CGameObject* obj, int newSerial);
+    void RemoveObject(CGameObject* obj);
+    void RemoveFromContainer(CGameObject* obj);
+    void ClearContainer(CGameObject* obj);
 
-    void PutContainer(CGameObject *obj, int containerSerial)
+    void PutContainer(CGameObject* obj, int containerSerial)
     {
-        CGameObject *cnt = FindWorldObject(containerSerial);
+        CGameObject* cnt = FindWorldObject(containerSerial);
         if (cnt != nullptr)
             PutContainer(obj, cnt);
     }
 
-    void PutContainer(CGameObject *obj, CGameObject *container);
+    void PutContainer(CGameObject* obj, CGameObject* container);
 
-    void PutEquipment(CGameItem *obj, int containerSerial, int layer)
+    void PutEquipment(CGameItem* obj, int containerSerial, int layer)
     {
-        CGameObject *cnt = FindWorldObject(containerSerial);
+        CGameObject* cnt = FindWorldObject(containerSerial);
         if (cnt != nullptr)
             PutEquipment(obj, cnt, layer);
     }
 
-    void PutEquipment(CGameItem *obj, CGameObject *container, int layer)
+    void PutEquipment(CGameItem* obj, CGameObject* container, int layer)
     {
         PutContainer(obj, container);
         obj->Layer = layer;
     }
 
-    void MoveToTop(CGameObject *obj);
+    void MoveToTop(CGameObject* obj);
     void Dump(u8 tCount = 0, u32 serial = 0xFFFFFFFF);
-    CGameObject *SearchWorldObject(
+    CGameObject* SearchWorldObject(
         int serialStart, int scanDistance, SCAN_TYPE_OBJECT scanType, SCAN_MODE_OBJECT scanMode);
 
     void UpdateContainedItem(
@@ -71,7 +73,7 @@ public:
         int containerSerial,
         u16 color);
 
-    void UpdateItemInContainer(CGameObject *obj, CGameObject *container, int x, int y);
+    void UpdateItemInContainer(CGameObject* obj, CGameObject* container, int x, int y);
 
     void UpdateGameObject(
         int serial,
@@ -101,4 +103,4 @@ public:
         char z);
 };
 
-extern CGameWorld *g_World;
+extern CGameWorld* g_World;

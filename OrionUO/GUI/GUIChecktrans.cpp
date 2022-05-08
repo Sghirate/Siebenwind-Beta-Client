@@ -1,4 +1,6 @@
 #include "GUIChecktrans.h"
+#include "GLEngine/GLEngine.h"
+#include <GL/glew.h>
 
 CGUIChecktrans::CGUIChecktrans(int x, int y, int width, int height)
     : CGUIPolygonal(GOT_CHECKTRANS, x, y, width, height)

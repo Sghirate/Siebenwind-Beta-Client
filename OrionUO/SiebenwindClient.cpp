@@ -1,7 +1,6 @@
 #include "SiebenwindClient.h"
 #include "Core/CommandLine.h"
 #include "Core/Platform.h"
-#include "plugin/plugininterface.h"
 #include <vector>
 
 namespace

@@ -1,12 +1,12 @@
 #include "GumpScreenSelectTown.h"
 #include "GameVars.h"
 #include "Globals.h"
-#include "../Config.h"
-#include "../CityList.h"
-#include "../DefinitionMacro.h"
-#include "../Managers/ClilocManager.h"
-#include "../Managers/FontsManager.h"
-#include "../ScreenStages/SelectTownScreen.h"
+#include "Config.h"
+#include "CityList.h"
+#include "DefinitionMacro.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/FontsManager.h"
+#include "ScreenStages/SelectTownScreen.h"
 
 enum
 {

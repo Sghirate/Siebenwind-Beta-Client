@@ -26,61 +26,61 @@
 #include "ConnectionManager.h"
 #include "FileManager.h"
 #include "MultiMap.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../Macro.h"
-#include "../CityList.h"
-#include "../ToolTip.h"
-#include "../Target.h"
-#include "../Weather.h"
-#include "../TargetGump.h"
-#include "../Party.h"
-#include "../ServerList.h"
-#include "../QuestArrow.h"
-#include "../Multi.h"
-#include "../ContainerStack.h"
-#include "../Container.h"
-#include "../CharacterList.h"
-#include "../TextEngine/GameConsole.h"
-#include "../GameObjects/GameItem.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../GameObjects/GameEffectMoving.h"
-#include "../Gumps/Gump.h"
-#include "../Gumps/GumpAbility.h"
-#include "../Gumps/GumpSecureTrading.h"
-#include "../Gumps/GumpStatusbar.h"
-#include "../Gumps/GumpShop.h"
-#include "../Gumps/GumpBook.h"
-#include "../Gumps/GumpMap.h"
-#include "../Gumps/GumpTip.h"
-#include "../Gumps/GumpProfile.h"
-#include "../Gumps/GumpDye.h"
-#include "../Gumps/GumpGeneric.h"
-#include "../Gumps/GumpMenu.h"
-#include "../Gumps/GumpBuff.h"
-#include "../Gumps/GumpGrayMenu.h"
-#include "../Gumps/GumpPopupMenu.h"
-#include "../Gumps/GumpSpellbook.h"
-#include "../Gumps/GumpPaperdoll.h"
-#include "../Gumps/GumpTextEntryDialog.h"
-#include "../Gumps/GumpBulletinBoard.h"
-#include "../Gumps/GumpBulletinBoardItem.h"
-#include "../Gumps/GumpCustomHouse.h"
-#include "../Gumps/GumpContainer.h"
-#include "../Gumps/GumpSkills.h"
-#include "../GUI/GUIShopItem.h"
-#include "../GUI/GUIHTMLGump.h"
-#include "../Profiler.h"
-#include "../ScreenStages/MainScreen.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../ScreenStages/ConnectionScreen.h"
-#include "../ScreenStages/CharacterListScreen.h"
-#include "../Network/Packets.h"
-#include "../Walker/Walker.h"
-#include "../Walker/PathFinder.h"
-#include "../TextEngine/TextData.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "Macro.h"
+#include "CityList.h"
+#include "ToolTip.h"
+#include "Target.h"
+#include "Weather.h"
+#include "TargetGump.h"
+#include "Party.h"
+#include "ServerList.h"
+#include "QuestArrow.h"
+#include "Multi.h"
+#include "ContainerStack.h"
+#include "Container.h"
+#include "CharacterList.h"
+#include "TextEngine/GameConsole.h"
+#include "GameObjects/GameItem.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "GameObjects/GamePlayer.h"
+#include "GameObjects/GameEffectMoving.h"
+#include "Gumps/Gump.h"
+#include "Gumps/GumpAbility.h"
+#include "Gumps/GumpSecureTrading.h"
+#include "Gumps/GumpStatusbar.h"
+#include "Gumps/GumpShop.h"
+#include "Gumps/GumpBook.h"
+#include "Gumps/GumpMap.h"
+#include "Gumps/GumpTip.h"
+#include "Gumps/GumpProfile.h"
+#include "Gumps/GumpDye.h"
+#include "Gumps/GumpGeneric.h"
+#include "Gumps/GumpMenu.h"
+#include "Gumps/GumpBuff.h"
+#include "Gumps/GumpGrayMenu.h"
+#include "Gumps/GumpPopupMenu.h"
+#include "Gumps/GumpSpellbook.h"
+#include "Gumps/GumpPaperdoll.h"
+#include "Gumps/GumpTextEntryDialog.h"
+#include "Gumps/GumpBulletinBoard.h"
+#include "Gumps/GumpBulletinBoardItem.h"
+#include "Gumps/GumpCustomHouse.h"
+#include "Gumps/GumpContainer.h"
+#include "Gumps/GumpSkills.h"
+#include "GUI/GUIShopItem.h"
+#include "GUI/GUIHTMLGump.h"
+#include "Profiler.h"
+#include "ScreenStages/MainScreen.h"
+#include "ScreenStages/GameScreen.h"
+#include "ScreenStages/ConnectionScreen.h"
+#include "ScreenStages/CharacterListScreen.h"
+#include "Network/Packets.h"
+#include "Walker/Walker.h"
+#include "Walker/PathFinder.h"
+#include "TextEngine/TextData.h"
 
 const int PACKET_VARIABLE_SIZE = 0;
 
@@ -397,14 +397,11 @@ CPacketInfo CPacketManager::m_Packets[0x100] = {
 };
 
 CPacketManager::CPacketManager()
-
 {
-    CREATE_MUTEX(m_Mutex);
 }
 
 CPacketManager::~CPacketManager()
 {
-    RELEASE_MUTEX(m_Mutex);
 }
 
 bool CPacketManager::AutoLoginNameExists(const std::string& name)
@@ -717,16 +714,16 @@ void CPacketManager::SavePluginReceivePacket(u8* buf, int size)
     std::vector<u8> packet(size);
     memcpy(&packet[0], &buf[0], size);
 
-    LOCK(m_Mutex);
+    m_Mutex.Lock();
     m_PluginData.push_front(packet);
-    UNLOCK(m_Mutex);
+    m_Mutex.Unlock();
 }
 
 void CPacketManager::ProcessPluginPackets()
 {
     PROFILER_EVENT();
 
-    LOCK(m_Mutex);
+    m_Mutex.Lock();
     while (!m_PluginData.empty())
     {
         std::vector<u8>& packet = m_PluginData.back();
@@ -736,7 +733,7 @@ void CPacketManager::ProcessPluginPackets()
 
         m_PluginData.pop_back();
     }
-    UNLOCK(m_Mutex);
+    m_Mutex.Unlock();
 }
 
 void CPacketManager::PluginReceiveHandler(u8* buf, int size)
@@ -6432,7 +6429,7 @@ PACKET_HANDLER(OrionMessages)
         case OCT_PLAY_MACRO:
         {
             int count = ReadBE<u16>();
-            static Macro existsMacros(0, false, false, false);
+            static Macro existsMacros(Core::EKey::Key_Unknown, false, false, false);
             existsMacros.Clear();
 
             g_MacroPointer                          = nullptr;

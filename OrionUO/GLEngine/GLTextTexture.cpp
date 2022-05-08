@@ -1,3 +1,6 @@
+#include "GLTextTexture.h"
+#include "GLEngine/GLEngine.h"
+
 CGLTextTexture::CGLTextTexture()
 
 {

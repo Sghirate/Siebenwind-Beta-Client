@@ -1,6 +1,7 @@
 #include "LandObject.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
 
 CLandObject::CLandObject(int serial, u16 graphic, u16 color, short x, short y, char z)
     : CMapObject(ROT_LAND_OBJECT, serial, 0, color, x, y, z)
@@ -16,8 +17,8 @@ CLandObject::CLandObject(int serial, u16 graphic, u16 color, short x, short y, c
 
     IsStretched = ((tile.TexID == 0u) && ::IsWet(tile.Flags));
 
-    memset(&m_Rect, 0, sizeof(m_Rect));
-    memset(&m_Normals[0], 0, sizeof(m_Normals));
+    m_rect.set(0, 0, 0, 0);
+    m_Normals->set(0.0, 0.0, 0.0);
 
 #if UO_DEBUG_INFO != 0
     g_LandObjectsCount++;
@@ -56,11 +57,11 @@ int CLandObject::GetDirectionZ(int direction)
     switch (direction)
     {
         case 1:
-            return (m_Rect.h / 4);
+            return (m_rect.h / 4);
         case 2:
-            return (m_Rect.w / 4);
+            return (m_rect.w / 4);
         case 3:
-            return (m_Rect.y / 4);
+            return (m_rect.y / 4);
         default:
             break;
     }
@@ -86,10 +87,10 @@ void CLandObject::UpdateZ(int zTop, int zRight, int zBottom)
     {
         Serial = ((m_Z + zTop + zRight + zBottom) / 4);
 
-        m_Rect.x = m_Z * 4 + 1;
-        m_Rect.y = zTop * 4;
-        m_Rect.w = zRight * 4;
-        m_Rect.h = zBottom * 4 + 1;
+        m_rect.x = m_Z * 4 + 1;
+        m_rect.y = zTop * 4;
+        m_rect.w = zRight * 4;
+        m_rect.h = zBottom * 4 + 1;
 
         if (abs(m_Z - zRight) <= abs(zBottom - zTop))
         {
@@ -158,7 +159,7 @@ void CLandObject::Select(int x, int y)
         }
         else
         {
-            if (g_Orion.LandTexturePixelsInXY(x, y + (m_Z * 4), m_Rect))
+            if (g_Orion.LandTexturePixelsInXY(x, y + (m_Z * 4), m_rect))
             {
                 g_SelectedObject.Init(this);
             }

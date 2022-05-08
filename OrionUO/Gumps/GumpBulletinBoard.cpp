@@ -1,10 +1,10 @@
 #include "GumpBulletinBoard.h"
 #include "Core/StringUtils.h"
 #include "GumpBulletinBoardItem.h"
-#include "../PressedObject.h"
-#include "../Managers/GumpManager.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "PressedObject.h"
+#include "Managers/GumpManager.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 enum
 {

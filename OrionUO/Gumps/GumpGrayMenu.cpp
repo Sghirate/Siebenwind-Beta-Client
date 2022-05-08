@@ -1,12 +1,13 @@
 #include "GumpGrayMenu.h"
-#include "../OrionUO.h"
-#include "../ScreenStages/GameBlockedScreen.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "ScreenStages/GameBlockedScreen.h"
+#include "Network/Packets.h"
 
 CGumpGrayMenu::CGumpGrayMenu(u32 serial, u32 id, short x, short y)
     : CGump(GT_GRAY_MENU, serial, x, y)
 {
-    NoMove = true;
+    NoMove  = true;
     Blocked = true;
 
     ID = id;
@@ -32,11 +33,11 @@ void CGumpGrayMenu::GUMP_BUTTON_EVENT_C
     }
     else if (serial == ID_GGM_CONTINUE)
     {
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item->Type == GOT_RADIO)
             {
-                if (((CGUIRadio *)item)->Checked)
+                if (((CGUIRadio*)item)->Checked)
                 {
                     SendMenuResponse(item->Serial);
 

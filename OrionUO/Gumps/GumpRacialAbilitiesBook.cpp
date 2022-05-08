@@ -1,15 +1,15 @@
 #include "GumpRacialAbilitiesBook.h"
 #include "Globals.h"
 #include "GumpRacialAbility.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../ClickObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ClilocManager.h"
-#include "../Managers/GumpManager.h"
-#include "../GameObjects/GamePlayer.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "ClickObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/GumpManager.h"
+#include "GameObjects/GamePlayer.h"
 
 CGumpRacialAbilitiesBook::CGumpRacialAbilitiesBook(int x, int y)
     : CGump(GT_RACIAL_ABILITIES_BOOK, 0, x, y)
@@ -232,7 +232,7 @@ void CGumpRacialAbilitiesBook::UpdateContent()
         page++;
 
         bool passive = true;
-        string spellName = GetAbilityName((int)i, passive);
+        std::string spellName = GetAbilityName((int)i, passive);
 
         CGUIText *text = (CGUIText *)Add(new CGUIText(0x0288, iconTextX, 34));
         text->CreateTextureA(6, spellName, 100);

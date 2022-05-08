@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../IndexObject.h"
+#include "IndexObject.h"
 #include "Core/Minimal.h"
 #include <vector>
 

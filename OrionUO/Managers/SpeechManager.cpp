@@ -6,7 +6,7 @@
 #include "GameVars.h"
 #include "Globals.h"
 #include "FileManager.h"
-#include "../Config.h"
+#include "Config.h"
 #include <assert.h>
 
 CSpeechManager g_SpeechManager;

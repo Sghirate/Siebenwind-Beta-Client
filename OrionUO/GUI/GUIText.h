@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "BaseGUI.h"
+#include "GLEngine/GLTextTexture.h"
+#include <string>
 
 class CGUIText : public CBaseGUI
 {
@@ -14,18 +17,18 @@ public:
 
     void CreateTextureA(
         u8 font,
-        const std::string &str,
-        int width = 0,
+        const std::string& str,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        u16 flags = 0);
+        u16 flags             = 0);
 
     void CreateTextureW(
         u8 font,
-        const std::wstring &str,
-        u8 cell = 30,
-        int width = 0,
+        const std::wstring& str,
+        u8 cell               = 30,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        u16 flags = 0);
+        u16 flags             = 0);
 
     virtual void Draw(bool checktrans = false);
     virtual bool Select();

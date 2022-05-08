@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BaseGUI.h"
-#include "../Backend.h"
+#include "Backend.h"
 
 class CGUIBlending : public CBaseGUI
 {

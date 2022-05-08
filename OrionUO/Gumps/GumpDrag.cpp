@@ -1,10 +1,10 @@
 #include "GumpDrag.h"
-#include "../OrionUO.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/GumpManager.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../TextEngine/GameConsole.h"
+#include "OrionUO.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/GumpManager.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "TextEngine/GameConsole.h"
 
 enum
 {
@@ -106,10 +106,10 @@ void CGumpDrag::OnOkayPressed()
     }
 }
 
-void CGumpDrag::OnTextInput(const TextEvent &ev)
+void CGumpDrag::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (ch >= '0' && ch <= '9')
     {
         if (m_StartText)
@@ -133,7 +133,7 @@ void CGumpDrag::OnTextInput(const TextEvent &ev)
     }
 }
 
-void CGumpDrag::OnKeyDown(const KeyEvent &ev)
+void CGumpDrag::OnKeyDown(const Core::KeyEvent &ev)
 {
 
     CGameItem *item = g_World->FindWorldItem(Serial);
@@ -141,12 +141,10 @@ void CGumpDrag::OnKeyDown(const KeyEvent &ev)
     {
         return;
     }
-
-    auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             OnOkayPressed();
             if (g_ConfigManager.GetConsoleNeedEnter())
@@ -159,12 +157,12 @@ void CGumpDrag::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_HOME:
-        case KEY_END:
-        case KEY_LEFT:
-        case KEY_RIGHT:
+        case Core::EKey::Key_Home:
+        case Core::EKey::Key_End:
+        case Core::EKey::Key_Left:
+        case Core::EKey::Key_Right:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
 
             if (m_StartText)
             {
@@ -174,10 +172,10 @@ void CGumpDrag::OnKeyDown(const KeyEvent &ev)
             WantRedraw = true;
             break;
         }
-        case KEY_DELETE:
-        case KEY_BACK:
+        case Core::EKey::Key_Delete:
+        case Core::EKey::Key_Backspace:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
 
             if (m_StartText)
             {

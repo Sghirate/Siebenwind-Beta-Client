@@ -137,7 +137,7 @@ void OpenBrowser(const std::string &url)
 #define OPEN_CMD "xdg-open "
 #endif
 
-    auto cmd = string(OPEN_CMD) + url;
+    auto cmd = std::string(OPEN_CMD) + url;
     system(cmd.c_str()); // orion adds http in the url, we're a bit safer.
 
 #undef OPEN_CMD

@@ -62,3 +62,6 @@ inline float rad2degf(float radians)
 {
     return (float)(radians * 180.0f / M_PI);
 }
+
+#define IN_RANGE(name, id1, id2) ((name) >= (id1) && (name) <= (id2))
+#define OUT_RANGE(name, id1, id2) ((name) < (id1) || (name) > (id2))

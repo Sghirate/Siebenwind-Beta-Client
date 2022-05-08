@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../RenderWorldObject.h"
+#include "Core/Minimal.h"
+#include "RenderWorldObject.h"
+#include "plugin/enumlist.h"
 
 class CMapObject : public CRenderWorldObject
 {

@@ -1,16 +1,16 @@
 #include "GUISkillItem.h"
 #include "GUIButton.h"
-#include "../OrionUO.h"
-#include "../PressedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/SkillsManager.h"
-#include "../Managers/FontsManager.h"
+#include "OrionUO.h"
+#include "PressedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/SkillsManager.h"
+#include "Managers/FontsManager.h"
 
 CGUISkillItem::CGUISkillItem(int serial, int useSerial, int statusSerial, int index, int x, int y)
     : CBaseGUI(GOT_SKILLITEM, serial, 0, 0, x, y)
     , Index(index)
 {
-    CSkill *skill = g_SkillsManager.Get(Index);
+    CSkill* skill = g_SkillsManager.Get(Index);
 
     if (skill != nullptr)
     {
@@ -25,7 +25,7 @@ CGUISkillItem::CGUISkillItem(int serial, int useSerial, int statusSerial, int in
 
         m_Status = skill->Status;
 
-        u16 graphic = GetStatusButtonGraphic();
+        u16 graphic    = GetStatusButtonGraphic();
         m_ButtonStatus = new CGUIButton(statusSerial, graphic, graphic, graphic, 251, 0);
         m_ButtonStatus->CheckPolygone = true;
 
@@ -40,8 +40,16 @@ CGUISkillItem::~CGUISkillItem()
     m_NameText.Clear();
     m_ValueText.Clear();
 
-    RELEASE_POINTER(m_ButtonUse);
-    RELEASE_POINTER(m_ButtonStatus);
+    if (m_ButtonUse)
+    {
+        delete m_ButtonUse;
+        m_ButtonUse = nullptr;
+    }
+    if (m_ButtonStatus)
+    {
+        delete m_ButtonStatus;
+        m_ButtonStatus = nullptr;
+    }
 }
 
 void CGUISkillItem::SetStatus(u8 val)
@@ -50,9 +58,9 @@ void CGUISkillItem::SetStatus(u8 val)
 
     u16 graphic = GetStatusButtonGraphic();
 
-    m_ButtonStatus->Graphic = graphic;
+    m_ButtonStatus->Graphic         = graphic;
     m_ButtonStatus->GraphicSelected = graphic;
-    m_ButtonStatus->GraphicPressed = graphic;
+    m_ButtonStatus->GraphicPressed  = graphic;
 }
 
 u16 CGUISkillItem::GetStatusButtonGraphic()
@@ -73,7 +81,7 @@ u16 CGUISkillItem::GetStatusButtonGraphic()
 
 void CGUISkillItem::CreateValueText(bool showReal, bool showCap)
 {
-    CSkill *skill = g_SkillsManager.Get(Index);
+    CSkill* skill = g_SkillsManager.Get(Index);
 
     if (skill != nullptr)
     {
@@ -105,9 +113,9 @@ void CGUISkillItem::PrepareTextures()
     m_ButtonStatus->PrepareTextures();
 }
 
-CBaseGUI *CGUISkillItem::SelectedItem()
+CBaseGUI* CGUISkillItem::SelectedItem()
 {
-    CBaseGUI *selected = this;
+    CBaseGUI* selected = this;
 
     if (g_Orion.PolygonePixelsInXY(
             m_X + m_ButtonStatus->GetX(), m_Y + m_ButtonStatus->GetY(), 14, 14))
@@ -152,7 +160,7 @@ void CGUISkillItem::Draw(bool checktrans)
 bool CGUISkillItem::Select()
 {
     Core::TMousePos pos = g_MouseManager.GetPosition();
-    int x = pos.x - m_X;
-    int y = pos.y - m_Y;
+    int x               = pos.x - m_X;
+    int y               = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < 255 && y < 17);
 }

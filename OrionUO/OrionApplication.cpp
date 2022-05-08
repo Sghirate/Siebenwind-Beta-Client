@@ -1,6 +1,7 @@
 #include <SDL_timer.h>
 #include "OrionApplication.h"
 #include "OrionUO.h"
+#include "Globals.h"
 #include "Managers/ConnectionManager.h"
 #include "Managers/PacketManager.h"
 

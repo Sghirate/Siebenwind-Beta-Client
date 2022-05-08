@@ -1,5 +1,5 @@
 #include "GumpDye.h"
-#include "../Network/Packets.h"
+#include "Network/Packets.h"
 
 CGumpDye::CGumpDye(u32 serial, i16 x, i16 y, u16 graphic)
     : CGumpSelectColor(serial, x, y, SCGS_OPT_TOOLTIP_TEXT)

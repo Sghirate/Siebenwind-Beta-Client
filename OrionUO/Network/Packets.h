@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/DataStream.h"
+#include "plugin/enumlist.h"
 
 class CPacket : public Core::StreamWriter
 {

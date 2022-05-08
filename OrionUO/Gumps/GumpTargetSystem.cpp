@@ -1,14 +1,14 @@
 #include "GumpTargetSystem.h"
-#include "../OrionUO.h"
-#include "../Target.h"
-#include "../TargetGump.h"
-#include "../PressedObject.h"
-#include "../DefinitionMacro.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/ClilocManager.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/GamePlayer.h"
+#include "OrionUO.h"
+#include "Target.h"
+#include "TargetGump.h"
+#include "PressedObject.h"
+#include "DefinitionMacro.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/ClilocManager.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/GamePlayer.h"
 
 CGumpTargetSystem::CGumpTargetSystem(u32 serial, short x, short y)
     : CGump(GT_TARGET_SYSTEM, serial, x, y)
@@ -48,22 +48,22 @@ void CGumpTargetSystem::UpdateContent()
 
     if (m_Items == nullptr)
     {
-        m_Body = (CGUIGumppic *)Add(new CGUIGumppic(0x0804, 0, 0));
+        m_Body             = (CGUIGumppic*)Add(new CGUIGumppic(0x0804, 0, 0));
         m_Body->SelectOnly = true;
-        m_DataBox = (CGUIDataBox *)Add(new CGUIDataBox());
+        m_DataBox          = (CGUIDataBox*)Add(new CGUIDataBox());
     }
 
-    CGameObject *obj = g_World->FindWorldObject(g_NewTargetSystem.Serial);
+    CGameObject* obj = g_World->FindWorldObject(g_NewTargetSystem.Serial);
 
     if (obj != nullptr)
     {
         //Вычисляем цвет статусбара
-        u16 color = 0;
-        CGameCharacter *character = nullptr;
+        u16 color                 = 0;
+        CGameCharacter* character = nullptr;
 
         if (obj->NPC)
         {
-            character = obj->GameCharacterPtr();
+            character           = obj->GameCharacterPtr();
             NOTORIETY_TYPE noto = (NOTORIETY_TYPE)character->Notoriety;
 
             color = g_ConfigManager.GetColorByNotoriety(noto);
@@ -80,8 +80,8 @@ void CGumpTargetSystem::UpdateContent()
         }
 
         //Гамп статус бара
-        CGUIGumppic *gumppic = (CGUIGumppic *)m_DataBox->Add(new CGUIGumppic(0x0804, 0, 0));
-        gumppic->Color = color;
+        CGUIGumppic* gumppic = (CGUIGumppic*)m_DataBox->Add(new CGUIGumppic(0x0804, 0, 0));
+        gumppic->Color       = color;
 
         if (color != 0u)
         {
@@ -92,13 +92,13 @@ void CGumpTargetSystem::UpdateContent()
 
         if (!obj->NPC && (OldName.length() == 0u))
         {
-            STATIC_TILES *st = obj->StaticGroupObjectPtr()->GetStaticData();
+            STATIC_TILES* st = obj->StaticGroupObjectPtr()->GetStaticData();
 
             OldName =
                 g_ClilocManager.GetCliloc(g_Language)->GetA(1020000 + obj->Graphic, true, st->Name);
         }
 
-        CGUIText *text = (CGUIText *)m_DataBox->Add(new CGUIText(0x0386, 16, 14));
+        CGUIText* text = (CGUIText*)m_DataBox->Add(new CGUIText(0x0386, 16, 14));
         text->CreateTextureA(1, OldName, 150, TS_LEFT, UOFONT_FIXED);
 
         //Hits
@@ -129,16 +129,16 @@ void CGumpTargetSystem::UpdateContent()
         m_DataBox->Add(new CGUIShader(&g_ColorizerShader, true));
 
         //Гамп статус бара
-        CGUIGumppic *gumppic = (CGUIGumppic *)m_DataBox->Add(new CGUIGumppic(0x0804, 0, 0));
-        gumppic->Color = 0x0386;
+        CGUIGumppic* gumppic = (CGUIGumppic*)m_DataBox->Add(new CGUIGumppic(0x0804, 0, 0));
+        gumppic->Color       = 0x0386;
 
         //Hits
-        gumppic = (CGUIGumppic *)m_DataBox->Add(new CGUIGumppic(0x0805, 34, 38));
+        gumppic        = (CGUIGumppic*)m_DataBox->Add(new CGUIGumppic(0x0805, 34, 38));
         gumppic->Color = 0x0386;
 
         m_DataBox->Add(new CGUIShader(&g_ColorizerShader, false));
 
-        CGUIText *text = (CGUIText *)m_DataBox->Add(new CGUIText(0x0386, 16, 14));
+        CGUIText* text = (CGUIText*)m_DataBox->Add(new CGUIText(0x0386, 16, 14));
         text->CreateTextureA(1, OldName, 150, TS_LEFT, UOFONT_FIXED);
     }
 }
@@ -170,7 +170,7 @@ void CGumpTargetSystem::GUMP_BUTTON_EVENT_C
 
     if (serial == ID_GSB_LOCK_MOVING)
     {
-        LockMoving = !LockMoving;
+        LockMoving                       = !LockMoving;
         g_MouseManager.CancelDoubleClick = true;
     }
 }

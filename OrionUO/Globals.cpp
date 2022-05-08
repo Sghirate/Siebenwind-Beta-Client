@@ -230,23 +230,6 @@ void TileOffsetOnMonitorToXY(int& ofsX, int& ofsY, int& x, int& y)
     }
 }
 
-std::string ToCamelCase(std::string text)
-{
-    bool lastSpace = true;
-
-    for (char& c : text)
-    {
-        if (lastSpace && (c >= 'a' && c <= 'z'))
-        {
-            c = 'A' + (c - 'a');
-        }
-
-        lastSpace = (c == ' ');
-    }
-
-    return text;
-}
-
 int GetDistance(CGameObject* current, CGameObject* target)
 {
     if (current != nullptr && target != nullptr)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GumpBaseScroll.h"
-#include "../Platform.h"
+#include "Platform.h"
 
 class CGumpSkills : public CGumpBaseScroll
 {
@@ -49,6 +49,6 @@ public:
 
     virtual void OnLeftMouseButtonUp();
     virtual bool OnLeftMouseButtonDoubleClick();
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 };

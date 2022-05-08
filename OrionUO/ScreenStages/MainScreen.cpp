@@ -5,15 +5,15 @@
 #include "GameWindow.h"
 #include "Platform.h"
 #include "SiebenwindClient.h"
-#include "../Config.h"
-#include "../Definitions.h"
-#include "../OrionUO.h"
-#include "../QuestArrow.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Managers/AnimationManager.h"
-#include "../GUI/GUITextEntry.h"
-#include "../TextEngine/EntryText.h"
+#include "Config.h"
+#include "Definitions.h"
+#include "OrionUO.h"
+#include "QuestArrow.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Managers/AnimationManager.h"
+#include "GUI/GUITextEntry.h"
+#include "TextEngine/EntryText.h"
 
 CMainScreen g_MainScreen;
 
@@ -112,10 +112,10 @@ void CMainScreen::Paste()
     }
 }
 
-void CMainScreen::OnTextInput(const TextEvent &ev)
+void CMainScreen::OnTextInput(const Core::TextEvent &ev)
 {
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {
         return;
@@ -143,18 +143,16 @@ void CMainScreen::OnTextInput(const TextEvent &ev)
     m_Gump.WantRedraw = true;
 }
 
-void CMainScreen::OnKeyDown(const KeyEvent &ev)
+void CMainScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
 
     if (g_EntryPointer == nullptr)
     {
         g_EntryPointer = m_MainGump.m_PasswordFake;
     }
-
-    const auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_TAB:
+        case Core::EKey::Key_Tab:
         {
             if (g_EntryPointer == m_Account)
             {
@@ -166,8 +164,8 @@ void CMainScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             CreateSmoothAction(ID_SMOOTH_MS_CONNECT);
             break;
@@ -176,10 +174,10 @@ void CMainScreen::OnKeyDown(const KeyEvent &ev)
         {
             if (g_EntryPointer == m_MainGump.m_PasswordFake)
             {
-                m_Password->OnKey(nullptr, key);
+                m_Password->OnKey(nullptr, ev.key);
             }
 
-            g_EntryPointer->OnKey(nullptr, key);
+            g_EntryPointer->OnKey(nullptr, ev.key);
             break;
         }
     }

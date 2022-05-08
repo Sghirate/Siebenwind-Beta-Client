@@ -278,7 +278,6 @@ set(orion_src
   CharacterList.cpp
   CityList.cpp
   ClickObject.cpp
-  CommonInterfaces.cpp
   Container.cpp
   ContainerStack.cpp
   DateTimeStamp.cpp
@@ -347,7 +346,6 @@ file(GLOB core_headers Core/*.h)
 macro(orion_library TARGET SRCS)
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
   set(headers "${headers}" "${core_headers}")
   add_library(${TARGET} ${SRCS} ${headers})
   set_target_properties(${TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")
@@ -370,7 +368,6 @@ if(ORION_BUILD_MODULES)
 
   string(REPLACE ".cpp" ".h" orion_hdr "${orion_src}")
   string(REPLACE "Crypt/twofish.h" "" orion_hdr "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" orion_hdr "${headers}")
   set(orion_hdr "${orion_hdr}" "${core_headers}")
 
   add_executable(OrionUO ${orion_src} ${orion_hdr})
@@ -381,7 +378,6 @@ else()
   set(SRCS ${orion_src} ${core_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src})
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
   set(headers "${headers}" "${core_headers}")
 
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0") 
@@ -390,25 +386,7 @@ else()
     source_group(TREE "${PROJECT_SOURCE_DIR}/OrionUO" FILES ${SRCS} ${headers})
   endif()
 
-  if(NOT ORION_WINDOWS)
-    add_library(orion SHARED ${SRCS} ${headers})
-    target_link_libraries(orion PUBLIC ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${THREAD})
-    set_target_properties(orion PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")
-    cotire(orion)
-    if(ORION_OSX)
-      add_custom_command(TARGET orion POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/liborion.dylib" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-      add_custom_command(TARGET orion_unity POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/unity/liborion.dylib" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-    else()
-      add_custom_command(TARGET orion POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/liborion.so" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-      add_custom_command(TARGET orion_unity POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/unity/liborion.so" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-    endif()
-    add_executable(OrionUO OrionApp.cpp)
-    target_link_libraries(OrionUO PUBLIC -ldl ${THREAD})
-    add_dependencies(orion OrionUO)
-    add_dependencies(orion_unity OrionUO)
-  else()
     add_executable(OrionUO ${SRCS} ${headers})
-  endif()
 endif()
 
 # Link correct libraries
@@ -447,4 +425,8 @@ if(ORION_WINDOWS)
   cotire(OrionUO)
   set_target_properties(OrionUO PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
   set_target_properties(OrionUO_unity PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+endif()
+
+if(ORION_WITH_TRACY)
+  target_link_libraries(OrionUO PUBLIC Tracy::TracyClient)
 endif()

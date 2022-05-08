@@ -1,6 +1,10 @@
 #pragma once
 
+#include "Core/Minimal.h"
+#include "GLEngine/GLTextTexture.h"
 #include "RenderTextObject.h"
+#include "plugin/enumlist.h"
+#include <string>
 
 class CRenderWorldObject;
 

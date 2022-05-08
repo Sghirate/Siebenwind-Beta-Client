@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../RenderObject.h"
+#include "RenderObject.h"
 
 class CRenderTextObject : public CRenderObject
 {

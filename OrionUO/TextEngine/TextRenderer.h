@@ -2,6 +2,7 @@
 
 #include "RenderTextObject.h"
 #include "ImageBounds.h"
+#include <deque>
 
 class CRenderWorldObject;
 

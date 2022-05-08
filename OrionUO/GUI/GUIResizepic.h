@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GUIPolygonal.h"
 
 class CGUIResizepic : public CGUIPolygonal

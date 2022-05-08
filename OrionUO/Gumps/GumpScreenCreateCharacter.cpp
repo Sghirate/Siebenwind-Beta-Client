@@ -1,12 +1,12 @@
 #include "GumpScreenCreateCharacter.h"
 #include "GameVars.h"
-#include "../Config.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Managers/CreateCharacterManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/ColorManager.h"
-#include "../ScreenStages/CreateCharacterScreen.h"
+#include "Config.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Managers/CreateCharacterManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/ColorManager.h"
+#include "ScreenStages/CreateCharacterScreen.h"
 
 enum
 {

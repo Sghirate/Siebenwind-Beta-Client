@@ -1,5 +1,6 @@
 #include "PacketMessage.h"
 #include "Core/PacketReader.h"
+#include <cstring>
 
 namespace Core
 {
@@ -16,8 +17,8 @@ PacketMessage::PacketMessage(u8* a_data, int a_dataSize, bool a_bigEndian)
 }
 
 PacketMessage::PacketMessage(const std::vector<u8>& a_data, bool a_bigEndian)
-    : m_bigEndian(a_bigEndian)
-    , m_data(a_data)
+    : m_data(a_data)
+    , m_bigEndian(a_bigEndian)
 {
 }
 

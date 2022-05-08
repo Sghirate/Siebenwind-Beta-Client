@@ -1,6 +1,7 @@
 #include "GUIColoredPolygone.h"
-#include "../SelectedObject.h"
-#include "../Gumps/Gump.h"
+#include "Globals.h"
+#include "SelectedObject.h"
+#include "Gumps/Gump.h"
 
 CGUIColoredPolygone::CGUIColoredPolygone(
     int serial, u16 color, int x, int y, int width, int height, int polygoneColor)

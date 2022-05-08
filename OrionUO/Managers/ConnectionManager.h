@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../Network/Connection.h"
+#include "Network/Connection.h"
+#include <string>
 
 class CConnectionManager
 {
@@ -12,10 +13,10 @@ public:
     void SetUseProxy(bool val);
 
 protected:
-    string m_ProxyAddress = "";
+    std::string m_ProxyAddress = "";
 
 public:
-    string GetProxyAddress() { return m_ProxyAddress; };
+    std::string GetProxyAddress() { return m_ProxyAddress; };
     void SetProxyAddress(const std::string &val);
 
 protected:
@@ -33,17 +34,17 @@ public:
     void SetProxySocks5(bool val);
 
 protected:
-    string m_ProxyAccount = "";
+    std::string m_ProxyAccount = "";
 
 public:
-    string GetProxyAccount() { return m_ProxyAccount; };
+    std::string GetProxyAccount() { return m_ProxyAccount; };
     void SetProxyAccount(const std::string &val);
 
 protected:
-    string m_ProxyPassword = "";
+    std::string m_ProxyPassword = "";
 
 public:
-    string GetProxyPassword() { return m_ProxyPassword; };
+    std::string GetProxyPassword() { return m_ProxyPassword; };
     void SetProxyPassword(const std::string &val);
 
 private:

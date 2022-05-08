@@ -1,11 +1,11 @@
-#include <SDL_timer.h>
 #include "MapBlock.h"
 #include "LandObject.h"
 #include "CustomHouseMultiObject.h"
-#include "../OrionUO.h"
-#include "../Managers/MapManager.h"
-#include "../Managers/CustomHousesManager.h"
-#include "../Gumps/GumpCustomHouse.h"
+#include "OrionUO.h"
+#include "Managers/MapManager.h"
+#include "Managers/CustomHousesManager.h"
+#include "Gumps/GumpCustomHouse.h"
+#include <cassert>
 
 CMapBlock::CMapBlock(int index)
     : Index(index)
@@ -26,18 +26,18 @@ CMapBlock::~CMapBlock()
     {
         for (int j = 0; j < 8; j++)
         {
-            CMapObject *obj = Block[i][j];
+            CMapObject* obj = Block[i][j];
 
             if (obj != nullptr)
             {
-                CRenderWorldObject *render = GetRender((int)i, (int)j);
+                CRenderWorldObject* render = GetRender((int)i, (int)j);
 
                 while (render != nullptr)
                 {
-                    CRenderWorldObject *next = render->m_NextXY;
-                    render->m_PrevXY = nullptr;
-                    render->m_NextXY = nullptr;
-                    render = next;
+                    CRenderWorldObject* next = render->m_NextXY;
+                    render->m_PrevXY         = nullptr;
+                    render->m_NextXY         = nullptr;
+                    render                   = next;
                 }
 
                 delete obj;
@@ -55,8 +55,8 @@ bool CMapBlock::HasNoExternalData()
     {
         for (int y = 0; y < 8; y++)
         {
-            for (CRenderWorldObject *obj = GetRender((int)x, (int)y); obj != nullptr;
-                 obj = obj->m_NextXY)
+            for (CRenderWorldObject* obj = GetRender((int)x, (int)y); obj != nullptr;
+                 obj                     = obj->m_NextXY)
             {
                 if (!obj->IsLandObject() && !obj->IsStaticObject())
                 {
@@ -71,7 +71,7 @@ bool CMapBlock::HasNoExternalData()
 
 u16 CMapBlock::GetRadarColor(int x, int y)
 {
-    CRenderWorldObject *obj = Block[x][y];
+    CRenderWorldObject* obj = Block[x][y];
 
     while (obj != nullptr && obj->m_NextXY != nullptr)
     {
@@ -88,12 +88,9 @@ u16 CMapBlock::GetRadarColor(int x, int y)
         switch (obj->RenderType)
         {
             case ROT_LAND_OBJECT:
-            case ROT_STATIC_OBJECT:
-                return 0;
-            case ROT_MULTI_OBJECT:
-                return obj->Graphic;
-            default:
-                break;
+            case ROT_STATIC_OBJECT: return 0;
+            case ROT_MULTI_OBJECT: return obj->Graphic;
+            default: break;
         }
     }
     return 0;
@@ -106,14 +103,14 @@ void CMapBlock::CreateLandTextureRect()
     {
         for (int y = 0; y < 8; y++)
         {
-            CLandObject *obj = GetLand((int)x, (int)y);
+            CLandObject* obj = GetLand((int)x, (int)y);
             if (obj != nullptr)
             {
-                int tileX = obj->GetX();
-                int tileY = obj->GetY();
+                int tileX   = obj->GetX();
+                int tileY   = obj->GetY();
                 char tileZ1 = obj->GetZ();
 
-                CGLTexture *th = g_Orion.ExecuteTexture(obj->Graphic);
+                CGLTexture* th = g_Orion.ExecuteTexture(obj->Graphic);
                 if (obj->IsStretched || th == nullptr ||
                     !TestStretched(tileX, tileY, tileZ1, map, true))
                 {
@@ -143,9 +140,9 @@ void CMapBlock::CreateLandTextureRect()
                             int curJ = (int)j + 1;
 
                             char currentZ = GetLandZ(curX, curY, map);
-                            char leftZ = GetLandZ(curX, curY + 1, map);
-                            char rightZ = GetLandZ(curX + 1, curY, map);
-                            char bottomZ = GetLandZ(curX + 1, curY + 1, map);
+                            char leftZ    = GetLandZ(curX, curY + 1, map);
+                            char rightZ   = GetLandZ(curX + 1, curY, map);
+                            char bottomZ  = GetLandZ(curX + 1, curY + 1, map);
 
                             if (currentZ == leftZ && currentZ == rightZ && currentZ == bottomZ)
                             {
@@ -191,8 +188,8 @@ void CMapBlock::CreateLandTextureRect()
                     if (g_GL.CanUseBuffer)
                     {
                         GLuint positionBuffer = obj->PositionBuffer;
-                        GLuint vertexBuffer = obj->VertexBuffer;
-                        GLuint normalBuffer = obj->NormalBuffer;
+                        GLuint vertexBuffer   = obj->VertexBuffer;
+                        GLuint normalBuffer   = obj->NormalBuffer;
 
                         if ((positionBuffer == 0u) || (vertexBuffer == 0u) || (normalBuffer == 0u))
                         {
@@ -200,14 +197,14 @@ void CMapBlock::CreateLandTextureRect()
                             glGenBuffers(3, &vbo[0]);
 
                             positionBuffer = vbo[0];
-                            vertexBuffer = vbo[1];
-                            normalBuffer = vbo[2];
+                            vertexBuffer   = vbo[1];
+                            normalBuffer   = vbo[2];
 
                             obj->PositionBuffer = positionBuffer;
-                            obj->VertexBuffer = vertexBuffer;
-                            obj->NormalBuffer = normalBuffer;
+                            obj->VertexBuffer   = vertexBuffer;
+                            obj->NormalBuffer   = normalBuffer;
 
-                            const auto &rc = obj->m_Rect;
+                            const auto& rc              = obj->m_rect;
                             Core::Vec3<double>* normals = obj->m_Normals;
 
                             int positionArray[] = { 0, 0, 0, 1, 1, 0, 1, 1 };
@@ -276,13 +273,12 @@ bool CMapBlock::TestStretched(int x, int y, char z, int map, bool recurse)
 
 char CMapBlock::GetLandZ(int x, int y, int map)
 {
-
     if (x < 0 || y < 0)
     {
         return -125;
     }
 
-    CIndexMap *blockIndex = g_MapManager.GetIndex(map, x / 8, y / 8);
+    CIndexMap* blockIndex = g_MapManager.GetIndex(map, x / 8, y / 8);
     if (blockIndex == nullptr || blockIndex->MapAddress == 0)
     {
         return -125;
@@ -291,12 +287,12 @@ char CMapBlock::GetLandZ(int x, int y, int map)
     int mX = x % 8;
     int mY = y % 8;
 
-    return ((MAP_BLOCK *)blockIndex->MapAddress)->Cells[mY * 8 + mX].Z;
+    return ((MAP_BLOCK*)blockIndex->MapAddress)->Cells[mY * 8 + mX].Z;
 }
 
-CLandObject *CMapBlock::GetLand(int x, int y)
+CLandObject* CMapBlock::GetLand(int x, int y)
 {
-    CMapObject *obj = Block[x][y];
+    CMapObject* obj = Block[x][y];
     while (obj != nullptr)
     {
         if (obj->IsLandObject())
@@ -304,13 +300,13 @@ CLandObject *CMapBlock::GetLand(int x, int y)
             break;
         }
 
-        obj = (CMapObject *)obj->m_Next;
+        obj = (CMapObject*)obj->m_Next;
     }
 
-    return (CLandObject *)obj;
+    return (CLandObject*)obj;
 }
 
-void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
+void CMapBlock::AddRender(CRenderWorldObject* item, int x, int y)
 {
     item->RemoveRender();
 
@@ -318,9 +314,9 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
 
     if (item->IsLandObject())
     {
-        if (((CLandObject *)item)->IsStretched)
+        if (((CLandObject*)item)->IsStretched)
         {
-            priorityZ = ((CLandObject *)item)->AverageZ - 1;
+            priorityZ = ((CLandObject*)item)->AverageZ - 1;
         }
         else
         {
@@ -332,7 +328,7 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
         if (item->IsGameObject())
         {
             //priorityZ++;
-            if (((CGameObject *)item)->NPC || ((CGameObject *)item)->IsCorpse())
+            if (((CGameObject*)item)->NPC || ((CGameObject*)item)->IsCorpse())
             {
                 priorityZ++;
             }
@@ -342,8 +338,7 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
             }
         }
         else if (
-            item->IsMultiObject() &&
-            ((((CMultiObject *)item)->State & CHMOF_GENERIC_INTERNAL) != 0))
+            item->IsMultiObject() && ((((CMultiObject*)item)->State & CHMOF_GENERIC_INTERNAL) != 0))
         {
             priorityZ--;
         }
@@ -355,7 +350,7 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
                 priorityZ--;
             }
 
-            if (((CRenderStaticObject *)item)->GetStaticHeight() != 0u)
+            if (((CRenderStaticObject*)item)->GetStaticHeight() != 0u)
             {
                 priorityZ++;
             }
@@ -368,16 +363,16 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
 
     item->PriorityZ = priorityZ;
 
-    CRenderWorldObject *obj = Block[x][y];
+    CRenderWorldObject* obj = Block[x][y];
     if (obj == item)
     {
         if (obj->m_Prev != nullptr)
         {
-            obj = (CRenderWorldObject *)obj->m_Prev;
+            obj = (CRenderWorldObject*)obj->m_Prev;
         }
         else if (obj->m_Next != nullptr)
         {
-            obj = (CRenderWorldObject *)obj->m_Next;
+            obj = (CRenderWorldObject*)obj->m_Next;
         }
         else
         {
@@ -390,8 +385,8 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
         obj = obj->m_PrevXY;
     }
 
-    CRenderWorldObject *found = nullptr;
-    CRenderWorldObject *start = obj;
+    CRenderWorldObject* found = nullptr;
+    CRenderWorldObject* start = obj;
     while (obj != nullptr)
     {
         int testPriorityZ = obj->PriorityZ;
@@ -403,15 +398,15 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
         }
 
         found = obj;
-        obj = obj->m_NextXY;
+        obj   = obj->m_NextXY;
     }
 
     if (found != nullptr)
     {
-        item->m_PrevXY = found;
-        CRenderWorldObject *next = found->m_NextXY;
-        item->m_NextXY = next;
-        found->m_NextXY = item;
+        item->m_PrevXY           = found;
+        CRenderWorldObject* next = found->m_NextXY;
+        item->m_NextXY           = next;
+        found->m_NextXY          = item;
 
         if (next != nullptr)
         {
@@ -420,15 +415,15 @@ void CMapBlock::AddRender(CRenderWorldObject *item, int x, int y)
     }
     else if (start != nullptr)
     {
-        item->m_NextXY = start;
+        item->m_NextXY  = start;
         start->m_PrevXY = item;
-        item->m_PrevXY = nullptr;
+        item->m_PrevXY  = nullptr;
     }
 }
 
-CRenderWorldObject *CMapBlock::GetRender(int x, int y)
+CRenderWorldObject* CMapBlock::GetRender(int x, int y)
 {
-    CRenderWorldObject *obj = Block[x][y];
+    CRenderWorldObject* obj = Block[x][y];
     while (obj != nullptr && obj->m_PrevXY != nullptr)
     {
         obj = obj->m_PrevXY;
@@ -436,24 +431,24 @@ CRenderWorldObject *CMapBlock::GetRender(int x, int y)
     return obj;
 }
 
-CMapObject *CMapBlock::AddObject(CMapObject *obj, int x, int y)
+CMapObject* CMapBlock::AddObject(CMapObject* obj, int x, int y)
 {
     if (Block[x][y] != nullptr)
     {
-        CMapObject *item = Block[x][y];
+        CMapObject* item = Block[x][y];
         while (item != nullptr)
         {
             if (!item->IsLandObject() && item->GetZ() > obj->GetZ())
             {
                 if (item->m_Prev != nullptr)
                 {
-                    item = (CMapObject *)item->m_Prev;
+                    item = (CMapObject*)item->m_Prev;
                     break;
                 }
 
-                m_Items = obj;
-                obj->m_Prev = nullptr;
-                obj->m_Next = item;
+                m_Items      = obj;
+                obj->m_Prev  = nullptr;
+                obj->m_Next  = item;
                 item->m_Prev = obj;
                 AddRender(obj, x, y);
                 return obj;
@@ -463,14 +458,14 @@ CMapObject *CMapBlock::AddObject(CMapObject *obj, int x, int y)
                 break;
             }
 
-            item = (CMapObject *)item->m_Next;
+            item = (CMapObject*)item->m_Next;
         }
 
         assert(item != nullptr);
-        CMapObject *next = (CMapObject *)item->m_Next;
-        item->m_Next = obj;
-        obj->m_Next = next;
-        obj->m_Prev = item;
+        CMapObject* next = (CMapObject*)item->m_Next;
+        item->m_Next     = obj;
+        obj->m_Next      = next;
+        obj->m_Prev      = item;
         if (next != nullptr)
         {
             next->m_Prev = obj;
@@ -479,9 +474,9 @@ CMapObject *CMapBlock::AddObject(CMapObject *obj, int x, int y)
     }
     else
     {
-        Block[x][y] = obj;
-        obj->m_Next = nullptr;
-        obj->m_Prev = nullptr;
+        Block[x][y]   = obj;
+        obj->m_Next   = nullptr;
+        obj->m_Prev   = nullptr;
         obj->m_NextXY = nullptr;
         obj->m_PrevXY = nullptr;
     }

@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GUITilepic.h"
+#include <string>
 
 class CGUIMenuObject : public CGUITilepic
 {
-    string Text = "";
+    std::string Text = "";
 
 public:
     CGUIMenuObject(int serial, u16 graphic, u16 color, int x, int y, const std::string &text);

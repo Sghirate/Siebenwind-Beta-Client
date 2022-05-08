@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <stdarg.h>
 
 enum class LogVerbosity

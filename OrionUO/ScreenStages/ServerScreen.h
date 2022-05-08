@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Platform.h"
+#include "Platform.h"
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenServer.h"
+#include "Gumps/GumpScreenServer.h"
 
 class CServerScreen : public CBaseScreen
 {
@@ -23,7 +23,7 @@ public:
     void Init();
     void ProcessSmoothAction(u8 action = 0xFF);
 
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 };
 
 extern CServerScreen g_ServerScreen;

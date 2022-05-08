@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/DataStream.h"
-#include "../IndexObject.h"
+#include "IndexObject.h"
 #include <deque>
 #include <unordered_map>
 #include <vector>

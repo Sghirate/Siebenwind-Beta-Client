@@ -1,7 +1,7 @@
 #include "GumpSelectColor.h"
 #include "GumpOptions.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/GumpManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/GumpManager.h"
 
 CGumpSelectColor::CGumpSelectColor(u32 serial, short x, short y, SELECT_COLOR_GUMP_STATE state)
     : CGump(GT_SELECT_COLOR, serial, x, y)
