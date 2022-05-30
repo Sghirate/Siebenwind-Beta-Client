@@ -97,7 +97,6 @@ void File::Print(const char* a_format, ...)
     va_list args;
     va_start(args, a_format);
     PrintV(a_format, args);
-    vfprintf(m_file, a_format, args);
     va_end(args);
 }
 
