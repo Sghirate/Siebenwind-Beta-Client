@@ -17,6 +17,9 @@ struct Console
     static void Shutdown();
     static void RegisterConsoleListener(IConsoleListener* a_listener);
     static void UnregisterConsoleListener(IConsoleListener* a_listener);
+
+private:
+    static void ApplyFileVariables(const std::filesystem::path& a_path);
 };
 struct IConsoleListener
 {
@@ -36,10 +39,8 @@ enum class ConsoleFlags : u8
 {
     None       = 0x00,
     Registered = 0x01,
-    Persistent = 0x02,
-    Disabled   = 0x04,
-    Editor     = 0x08,
-    Cheat      = 0x10,
+    Disabled   = 0x02,
+    User       = 0x04,
 };
 inline ConsoleFlags operator|(ConsoleFlags lhs, ConsoleFlags rhs)
 {

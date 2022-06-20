@@ -1,6 +1,6 @@
 #include "Pinger.h"
 
-Core::ConsoleVariable<u8> ping_disable("ping_disable", 0, Core::ConsoleFlags::Persistent);
+Core::ConsoleVariable<u8> ping_disable("ping_disable", 0);
 
 Pinger& Pinger::Get()
 {

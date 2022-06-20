@@ -7,26 +7,50 @@
 #include "Core/StringUtils.h"
 #include <vector>
 
+namespace
+{
+static const char* CLIENT_VARS_FILENAME = "client.cfg";
+static const char* USER_VARS_FILENAME = "user.cfg";
+static struct VarFiles
+{
+    VarFiles()
+    {
+        DeterminePath(CLIENT_VARS_FILENAME, m_clientPath);
+        DeterminePath(USER_VARS_FILENAME, m_userPath);
+    }
+
+    const std::filesystem::path& client() const { return m_clientPath; }
+    const std::filesystem::path& user() const { return m_userPath; }
+
+private:
+    void DeterminePath(const char* a_fileName, std::filesystem::path& out_path)
+    {
+        out_path = Core::Platform::GetBinaryPath().parent_path() / a_fileName;
+        if (!std::filesystem::exists(out_path))
+            out_path = std::filesystem::current_path() / a_fileName;
+    }
+
+    std::filesystem::path m_clientPath;
+    std::filesystem::path m_userPath;
+} g_varFiles;
+
+    
+} // namespace
+
 namespace Core
 {
 
-static const char* CVARS_FILENAME = "cvars.cfg";
 // Console State
 static ConsoleInteraction* g_coreConsoleRegistry;
 static std::vector<IConsoleListener*> g_coreConsoleListeners;
 // ~Console State
 
 // Console
-void Console::Init()
+void Console::ApplyFileVariables(const std::filesystem::path& a_path)
 {
-    g_coreConsoleListeners.reserve(8);
-
-    std::filesystem::path path = Platform::GetBinaryPath().parent_path() / CVARS_FILENAME;
-    if (!std::filesystem::exists(path))
-        path = std::filesystem::current_path() / CVARS_FILENAME;
-    if (std::filesystem::exists(path))
+    if (std::filesystem::exists(a_path))
     {
-        Core::TextFileParser file(path, "=,", "#;", "");
+        Core::TextFileParser file(a_path, "=,", "#;", "");
         while (!file.IsEOF())
         {
             auto strings = file.ReadTokens(false); // Trim remove spaces from paths
@@ -50,6 +74,14 @@ void Console::Init()
             }
         }
     }
+}
+
+void Console::Init()
+{
+    g_coreConsoleListeners.reserve(8);
+
+    ApplyFileVariables(g_varFiles.client());
+    ApplyFileVariables(g_varFiles.user());
 
     ConsoleInteraction* cur = g_coreConsoleRegistry;
     while (cur)
@@ -79,14 +111,13 @@ void Console::Init()
 
 void Console::Shutdown()
 {
-    std::filesystem::path path = Platform::GetBinaryPath().parent_path() / CVARS_FILENAME;
-    Core::File file(path, "w");
+    Core::File file(g_varFiles.user(), "w");
     std::string value;
 
     ConsoleInteraction* cur = g_coreConsoleRegistry;
     while (cur)
     {
-        if (cur->HasFlag(ConsoleFlags::Registered))
+        if (cur->HasFlag(ConsoleFlags::Registered) && cur->HasFlag(ConsoleFlags::User))
         {
             if (cur->GetInteractionType() == ConsoleInteractionType::Variable)
             {

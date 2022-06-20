@@ -1405,7 +1405,7 @@ void COrion::SaveLocalConfig(int serial)
         std::filesystem::create_directory(path);
     }
     char serbuf[20] = { 0 };
-    sprintf_s(serbuf, "/0x%08X", g_PlayerSerial);
+    sprintf_s(serbuf, "0x%08X", g_PlayerSerial);
     path /= serbuf;
     if (!std::filesystem::exists(path))
     {
@@ -2206,19 +2206,6 @@ int COrion::ValueInt(const VALUE_KEY_INT& key, int value)
                 }
 
                 g_ConfigManager.SetClientFPS(value);
-            }
-
-            break;
-        }
-        case VKI_USE_SCALING_GAME_WINDOW:
-        {
-            if (value == -1)
-            {
-                value = static_cast<int>(g_ConfigManager.GetUseScaling());
-            }
-            else
-            {
-                g_ConfigManager.SetUseScaling((value != 0));
             }
 
             break;

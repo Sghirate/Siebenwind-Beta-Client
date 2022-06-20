@@ -1143,7 +1143,7 @@ void CGameScreen::CalculateGameWindowBounds()
     g_RenderBounds.WindowDrawOffsetY =
         ((g_Player->GetX() + g_Player->GetY()) * 22) - g_RenderBounds.GameWindowCenterY;
 
-    if (g_ConfigManager.GetUseScaling())
+    if (uo_use_scaling.GetValue() > 0)
     {
         GLdouble left   = (GLdouble)g_RenderBounds.GameWindowPosX;
         GLdouble right  = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
@@ -1173,8 +1173,8 @@ void CGameScreen::CalculateGameWindowBounds()
         g_RenderBounds.GameWindowScaledHeight = 0;
     }
 
-    int rangeX = (int)(((g_RenderBounds.GameWindowWidth / 44) + 1) * g_GlobalScale);
-    int rangeY = (int)(((g_RenderBounds.GameWindowHeight / 44) + 1) * g_GlobalScale);
+    int rangeX = (int)(((g_RenderBounds.GameWindowWidth / 44) + uo_render_border.GetValue()) * g_GlobalScale);
+    int rangeY = (int)(((g_RenderBounds.GameWindowHeight / 44) + uo_render_border.GetValue()) * g_GlobalScale);
 
     if (rangeX < rangeY)
     {
@@ -1269,7 +1269,7 @@ void CGameScreen::CalculateGameWindowBounds()
         int testWidth  = g_RenderBounds.GameWindowWidth;
         int testHeight = g_RenderBounds.GameWindowHeight;
 
-        if (g_ConfigManager.GetUseScaling())
+        if (uo_use_scaling.GetValue() > 0)
         {
             testWidth  = g_RenderBounds.GameWindowScaledWidth;
             testHeight = g_RenderBounds.GameWindowScaledHeight;
@@ -1543,7 +1543,7 @@ void CGameScreen::DrawGameWindowLight()
             int offsetX = 0;
             int offsetY = 0;
 
-            if (g_ConfigManager.GetUseScaling())
+            if (uo_use_scaling.GetValue() > 0)
             {
                 offsetX = g_RenderBounds.GameWindowPosX - g_RenderBounds.GameWindowScaledOffsetX;
                 offsetY = g_RenderBounds.GameWindowPosY - g_RenderBounds.GameWindowScaledOffsetY;
@@ -1575,7 +1575,7 @@ void CGameScreen::DrawGameWindowLight()
 
             glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 
-            if (g_ConfigManager.GetUseScaling())
+            if (uo_use_scaling.GetValue() > 0)
             {
                 g_LightBuffer.Draw(
                     g_RenderBounds.GameWindowScaledOffsetX, g_RenderBounds.GameWindowScaledOffsetY);
@@ -2587,7 +2587,7 @@ void CGameScreen::OnMidMouseButtonScroll(bool up)
     {
         g_GumpManager.OnMidMouseButtonScroll(up, false);
     }
-    else if (g_ConfigManager.GetUseScaling())
+    else if (uo_use_scaling.GetValue() > 0)
     {
         int gameWindowPosX = g_ConfigManager.GameWindowX - 4;
         int gameWindowPosY = g_ConfigManager.GameWindowY - 4;
