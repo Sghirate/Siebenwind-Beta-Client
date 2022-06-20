@@ -76,8 +76,8 @@ void CGump::GUMP_DIRECT_HTML_LINK_EVENT_C
 
 void CGump::FixCoordinates()
 {
-    const int gumpOffsetX = 40;
-    const int gumpOffsetY = 40;
+    const int gumpOffsetX = Core::Min(40, GumpRect.size.x);
+    const int gumpOffsetY = Core::Min(40, GumpRect.size.y);
     int maxX              = g_gameWindow.GetSize().x - gumpOffsetX;
     int maxY              = g_gameWindow.GetSize().y - gumpOffsetY;
 

@@ -17,7 +17,6 @@ enum
     ID_GMB_JOURNAL,
     ID_GMB_CHAT,
     ID_GMB_HELP,
-    ID_GMB_WORLD_MAP,
     ID_GMB_INFO,
 
     ID_GMB_COUNT,
@@ -48,30 +47,28 @@ CGumpMenubar::CGumpMenubar(short x, short y)
         largeWidth = th2->Width;
     }
 
-    static const int textPosTable[8][5] = { { 0x098B, 30, 32, smallWidth, ID_GMB_MAP },
+    static const int textPosTable[7][5] = { { 0x098B, 30, 32, smallWidth, ID_GMB_MAP },
                                             { 0x098D, 93, 96, largeWidth, ID_GMB_PAPERDOLL },
                                             { 0x098D, 201, 204, largeWidth, ID_GMB_INVENTORY },
                                             { 0x098D, 309, 312, largeWidth, ID_GMB_JOURNAL },
                                             { 0x098B, 417, 422, smallWidth, ID_GMB_CHAT },
                                             { 0x098B, 480, 482, smallWidth, ID_GMB_HELP },
-                                            { 0x098D, 543, 546, largeWidth, ID_GMB_WORLD_MAP },
-                                            { 0x098B, 651, 654, smallWidth, ID_GMB_INFO } };
+                                            { 0x098B, 543, 546, smallWidth, ID_GMB_INFO } };
 
-    static const std::wstring text[8] = {
+    static const std::wstring text[7] = {
         g_ClilocManager.GetCliloc(g_Language)->GetW(3000430, false, "Map"),
         g_ClilocManager.GetCliloc(g_Language)->GetW(3002133, false, "Paperdoll"),
         g_ClilocManager.GetCliloc(g_Language)->GetW(3000431, false, "Inventory"),
         g_ClilocManager.GetCliloc(g_Language)->GetW(3002135, false, "Journal"),
         L"Chat",
         g_ClilocManager.GetCliloc(g_Language)->GetW(3000134, false, "Help"),
-        L"World Map",
         L"< ? >"
     };
 
-    Add(new CGUIResizepic(0, 0x13BE, 0, 0, 718, 27));
+    Add(new CGUIResizepic(0, 0x13BE, 0, 0, 601, 27));
     Add(new CGUIButton(ID_GMB_MINIMIZE, 0x15A4, 0x15A4, 0x15A4, 5, 3));
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 7; i++)
     {
         Add(new CGUIButton(
             textPosTable[i][4],
@@ -162,11 +159,6 @@ void CGumpMenubar::InitToolTip()
                 g_ToolTip.Set(L"Open server's help menu gump");
                 break;
             }
-            case ID_GMB_WORLD_MAP:
-            {
-                g_ToolTip.Set(L"Open Orion's world map gump");
-                break;
-            }
             case ID_GMB_INFO:
             {
                 g_ToolTip.Set(L"This option is not work now");
@@ -227,12 +219,6 @@ void CGumpMenubar::GUMP_BUTTON_EVENT_C
         case ID_GMB_HELP:
         {
             CPacketHelpRequest().Send();
-
-            break;
-        }
-        case ID_GMB_WORLD_MAP:
-        {
-            g_Orion.OpenWorldMap();
 
             break;
         }
