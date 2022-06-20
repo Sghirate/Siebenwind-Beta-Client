@@ -42,13 +42,13 @@ struct BitSet
     inline void Reset() { memset(m_bytes, 0, sizeof(u8) * kByteCount); }
     inline bool Get(int a_bit) const
     {
-        const u8 idx  = a_bit / 8;
+        const u16 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
         return (m_bytes[idx] & mask) == mask;
     }
     inline void Set(int a_bit, bool a_value)
     {
-        const u8 idx  = a_bit / 8;
+        const u16 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
         if (a_value)
             m_bytes[idx] |= mask;
@@ -57,7 +57,7 @@ struct BitSet
     }
     inline void Flip(int a_bit)
     {
-        const u8 idx  = a_bit / 8;
+        const u16 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
         m_bytes[idx] ^= mask;
     }
@@ -140,13 +140,13 @@ struct DynamicBitSet
     }
     inline bool Get(int a_bit) const
     {
-        const u8 idx  = a_bit / 8;
+        const u16 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
         return (m_bytes && idx < m_byteCount) ? ((m_bytes[idx] & mask) == mask) : false;
     }
     inline void Set(int a_bit, bool a_value)
     {
-        const u8 idx  = a_bit / 8;
+        const u16 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
         if (!m_bytes || idx >= m_byteCount)
             return;
@@ -157,7 +157,7 @@ struct DynamicBitSet
     }
     inline void Flip(int a_bit)
     {
-        const u8 idx  = a_bit / 8;
+        const u16 idx  = a_bit / 8;
         const u8 mask = 1 << (a_bit % 8);
         if (m_bytes && idx < m_byteCount)
             m_bytes[idx] ^= mask;

@@ -121,6 +121,6 @@ bool CGLTexture::Select(int x, int y, bool pixelCheck)
     x                   = pos.x - x;
     y                   = pos.y - y;
     if (x >= 0 && y >= 0 && x < Width && y < Height)
-        return !pixelCheck || m_hitMap.Get((y * Width) + x);
+        return (!pixelCheck) || m_hitMap.Get((y * Width) + x);
     return false;
 }
