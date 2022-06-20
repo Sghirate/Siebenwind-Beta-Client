@@ -74,7 +74,7 @@ void CMainScreen::ProcessSmoothAction(u8 action)
     }
     else if (action == ID_SMOOTH_MS_QUIT)
     {
-        g_gameWindow.Destroy();
+        g_gameWindow.Close();
     }
 }
 

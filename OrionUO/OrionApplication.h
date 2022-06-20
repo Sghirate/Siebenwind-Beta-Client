@@ -15,6 +15,7 @@ public:
 
 protected:
     void TickFrame() override;
+    bool IsTerminating() const override;
 };
 
 extern COrionApplication g_App;

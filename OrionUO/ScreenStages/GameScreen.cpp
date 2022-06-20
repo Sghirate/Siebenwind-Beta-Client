@@ -1809,7 +1809,6 @@ void CGameScreen::Render()
 
     if (lastRender < g_Ticks)
     {
-        LOG_DEBUG("GameScreen", "FPS=%i", FPScount);
         FPScount   = currentFPS;
         currentFPS = 1;
         lastRender = g_Ticks + 1000;

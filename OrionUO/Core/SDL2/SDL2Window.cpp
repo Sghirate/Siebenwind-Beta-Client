@@ -16,6 +16,7 @@ Window::Window()
 
 Window::~Window()
 {
+    Destroy();
 }
 
 bool Window::Create(
@@ -216,7 +217,7 @@ void Window::Restore()
         SDL_RestoreWindow(static_cast<SDL_Window*>(m_handle));
 }
 
-void Window::Destroy()
+void Window::Close()
 {
     if (m_handle)
     {
@@ -232,6 +233,19 @@ void Window::Destroy()
     }
 }
 
+void Window::Destroy()
+{
+    if (m_handle)
+    {
+        OnDestroy();
+
+        SDL_Window* handle = static_cast<SDL_Window*>(m_handle);
+        SDL_SetWindowData(handle, CORE_WINDOW_DATA_NAME, nullptr);
+        SDL_DestroyWindow(handle);
+        m_handle = nullptr;
+    }
+}
+
 void Window::OnCreated()
 {
     if (m_handle)
@@ -239,11 +253,6 @@ void Window::OnCreated()
 }
 void Window::OnDestroy()
 {
-    if (m_handle)
-    {
-        SDL_SetWindowData(static_cast<SDL_Window*>(m_handle), CORE_WINDOW_DATA_NAME, nullptr);
-        m_handle = nullptr;
-    }
 }
 void Window::OnResized()
 {
@@ -301,7 +310,7 @@ namespace SDL2Window
                         if (a_event->user.data1 && a_event->user.data2)
                         {
                             Window* window = (Window*)a_event->user.data1;
-                            window->OnDestroy();
+                            window->Destroy();
                         }
                     }
                     break;
@@ -321,7 +330,7 @@ namespace SDL2Window
                     {
                         case SDL_WINDOWEVENT_CLOSE:
                         {
-                            window->OnDestroy();
+                            window->Destroy();
                         }
                         break;
                         case SDL_WINDOWEVENT_SHOWN:

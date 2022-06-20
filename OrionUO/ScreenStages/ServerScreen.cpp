@@ -52,7 +52,7 @@ void CServerScreen::ProcessSmoothAction(u8 action)
     }
     else if (action == ID_SMOOTH_SS_QUIT)
     {
-        g_gameWindow.Destroy();
+        g_gameWindow.Close();
     }
     else if (action == ID_SMOOTH_SS_GO_SCREEN_MAIN)
     {

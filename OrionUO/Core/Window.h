@@ -16,6 +16,7 @@ struct Window
     bool Create(const char* a_title, const TWindowPosition& a_initialPosition, const TWindowSize& a_initialSize);
     void* GetHandle() const { return m_handle; }
     void SetHandle(void* a_handle) { m_handle = a_handle; }
+    bool IsOpen() const { return m_handle != nullptr; }
 
     TWindowSize GetSize() const;
     void SetSize(const TWindowSize& a_size);
@@ -42,6 +43,7 @@ struct Window
     void Hide();
     void BringToFront();
     void Restore();
+    void Close();
     void Destroy();
 
     virtual void OnCreated();

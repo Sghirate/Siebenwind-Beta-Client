@@ -44,7 +44,7 @@ void CSelectProfessionScreen::ProcessSmoothAction(u8 action)
 
     if (action == ID_SMOOTH_SPS_QUIT)
     {
-        g_gameWindow.Destroy();
+        g_gameWindow.Close();
     }
     else if (action == ID_SMOOTH_SPS_GO_SCREEN_CHARACTER)
     {

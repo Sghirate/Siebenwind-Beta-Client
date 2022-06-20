@@ -21,8 +21,7 @@ App::~App()
 
 int App::Run()
 {
-    bool quit = false;
-    while(!quit)
+    while (!IsTerminating())
     {
         Core::BeginFrame();
         BeginFrame();

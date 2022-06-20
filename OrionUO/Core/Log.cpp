@@ -60,7 +60,7 @@ static struct FileLogListener : public ILogListener
     {
         if (m_file.IsOpen())
         {
-            Log::Print(LogVerbosity::Info, "Core", "Closing Log File: %s", m_path.c_str());
+            Log::Print(LogVerbosity::Info, "Core", "Closing Log File: %s", m_path.string().c_str());
             Log::UnregisterLogListener(this);
             m_file.Close();
         }

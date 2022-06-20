@@ -22,6 +22,7 @@ struct App
     virtual void TickFrame();
     virtual void EndFrame();
     virtual void Shutdown();
+    virtual bool IsTerminating() const { return false; }
 
 protected:
     std::filesystem::path m_exeDir;
