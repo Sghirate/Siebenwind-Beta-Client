@@ -8,6 +8,7 @@
 #include "Managers/ConfigManager.h"
 #include "Network/Packets.h"
 #include "GameObjects/GamePlayer.h"
+#include "Profiler.h"
 #include "plugin/enumlist.h"
 
 CGameConsole g_GameConsole;
@@ -310,6 +311,8 @@ bool CGameConsole::InChat() const
 
 void CGameConsole::DrawW(u8 font, u16 color, int x, int y, TEXT_ALIGN_TYPE align, u16 flags)
 {
+    PROFILER_EVENT();
+
     int posOffset      = 0;
     std::wstring wtext = Data();
     if (wtext.empty())

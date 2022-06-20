@@ -13,6 +13,7 @@
 #include "OrionUO.h"
 #include "Party.h"
 #include "PressedObject.h"
+#include "Profiler.h"
 #include "SelectedObject.h"
 #include "UseItemsList.h"
 #include "ContainerStack.h"
@@ -532,6 +533,8 @@ void CGumpManager::PrepareTextures()
 
 void CGumpManager::Draw(bool blocked)
 {
+    PROFILER_EVENT();
+
     CGump* gump        = (CGump*)m_Items;
     CGump* menuBarGump = nullptr;
 
@@ -1366,7 +1369,7 @@ void CGumpManager::Load(const std::filesystem::path& a_path)
                 gump->MinimizedX = gumpMinimizedX;
                 gump->MinimizedY = gumpMinimizedY;
                 gump->LockMoving = (gumpLockMoving != 0u);
-                //gump->FixCoordinates();
+                gump->FixCoordinates();
                 AddGump(gump);
                 assert(gump != nullptr && "AddGump should not delete obj here");
                 gump->WantUpdateContent = true;

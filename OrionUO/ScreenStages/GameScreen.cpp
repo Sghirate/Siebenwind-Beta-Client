@@ -2112,6 +2112,7 @@ void CGameScreen::Render()
 
 void CGameScreen::SelectObject()
 {
+    PROFILER_EVENT();
     GLdouble oldScale = g_GlobalScale;
     g_GlobalScale     = 1.0;
     g_SelectedObject.Clear();

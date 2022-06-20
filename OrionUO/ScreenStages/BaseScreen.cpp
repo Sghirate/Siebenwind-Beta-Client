@@ -68,6 +68,7 @@ int CBaseScreen::DrawSmoothMonitor()
 
 void CBaseScreen::DrawSmoothMonitorEffect()
 {
+    PROFILER_EVENT();
     g_ScreenEffectManager.Draw();
 }
 

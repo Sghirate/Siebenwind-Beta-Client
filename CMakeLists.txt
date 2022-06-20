@@ -75,9 +75,9 @@ if (ORION_WINDOWS OR ORION_LINUX)
 	option(TRACY_ENABLE "" ON)
 	option(TRACY_ON_DEMAND "" ON)
 	add_subdirectory("${EXTERNAL_DIR}/tracy")
-	# set(INC_BASE
-	# 	"${INC_BASE}"
-	# 	"${EXTERNAL_DIR}/tracy/tracy")
+	set(LIBS_BASE
+		"${LIBS_BASE}"
+		"TracyClient")
 	set(DEFINES_BASE
 		"${DEFINES_BASE}"
 		"ORION_WITH_TRACY")
