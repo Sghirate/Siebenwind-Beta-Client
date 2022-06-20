@@ -132,7 +132,6 @@ using std::wstring;
 #include "RenderWorldObject.h"
 #include "ScreenshotBuilder.h"
 #include "ServerList.h"
-#include "ShaderData.h"
 #include "SkillGroup.h"
 #include "StumpsData.h"
 #include "TargetGump.h"

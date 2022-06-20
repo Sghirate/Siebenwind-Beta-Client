@@ -324,6 +324,17 @@ if(ORION_WINDOWS)
   )
 endif()
 
+res_add_library(shaders
+  NAMESPACE shaders
+  WHENCE shaders
+  shaders/ColorizerShader.frag
+  shaders/DeathShader.frag
+  shaders/FontColorizerShader.frag
+  shaders/LightColorizerShader.frag
+  shaders/Shader.vert
+)
+set(LIBS_BASE ${LIBS_BASE} shaders)
+
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/GameObjects")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/GLEngine")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/GUI")

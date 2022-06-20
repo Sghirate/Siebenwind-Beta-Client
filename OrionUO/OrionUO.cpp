@@ -27,7 +27,6 @@
 #include "TargetGump.h"
 #include "StumpsData.h"
 #include "Party.h"
-#include "ShaderData.h"
 #include "ServerList.h"
 #include "PressedObject.h"
 #include "SelectedObject.h"
@@ -157,6 +156,7 @@
 #include "Gumps/GumpProperty.h"
 #include "Gumps/GumpPropertyIcon.h"
 
+#include <resources/shaders.hpp>
 #include <deque>
 
 namespace
@@ -4563,43 +4563,10 @@ void COrion::CreateObjectHandlesBackground()
 
 void COrion::LoadShaders()
 {
-#if UO_USE_SHADER_FILES == 1
-    Core::MappedFile frag;
-    Core::MappedFile vert;
-
-    if (vert.Load(g_App.FilePath("shaders/Shader.vert")))
-    {
-        frag.Load(g_App.FilePath("shaders/DeathShader.frag"));
-
-        g_DeathShader.Init((char*)vert.Start, (char*)frag.Start);
-
-        frag.Unload();
-
-        frag.Load(g_App.FilePath("shaders/ColorizerShader.frag"));
-
-        g_ColorizerShader.Init((char*)vert.Start, (char*)frag.Start);
-
-        frag.Unload();
-
-        frag.Load(g_App.FilePath("shaders/FontColorizerShader.frag"));
-
-        g_FontColorizerShader.Init((char*)vert.Start, (char*)frag.Start);
-
-        frag.Unload();
-
-        frag.Load(g_App.FilePath("shaders/LightColorizerShader.frag"));
-
-        g_LightColorizerShader.Init((char*)vert.Start, (char*)frag.Start);
-
-        frag.Unload();
-        vert.Unload();
-    }
-#else
-    g_DeathShader.Init(g_Vert_ShaderData, g_Frag_DeathShaderData);
-    g_ColorizerShader.Init(g_Vert_ShaderData, g_Frag_ColorizerShaderData);
-    g_FontColorizerShader.Init(g_Vert_ShaderData, g_Frag_FontShaderData);
-    g_LightColorizerShader.Init(g_Vert_ShaderData, g_Frag_LightShaderData);
-#endif
+    g_DeathShader.Init(resources::shaders::Shader_vert_data, resources::shaders::DeathShader_frag_data);
+    g_ColorizerShader.Init(resources::shaders::Shader_vert_data, resources::shaders::ColorizerShader_frag_data);
+    g_FontColorizerShader.Init(resources::shaders::Shader_vert_data, resources::shaders::FontColorizerShader_frag_data);
+    g_LightColorizerShader.Init(resources::shaders::Shader_vert_data, resources::shaders::LightColorizerShader_frag_data);
 }
 
 void COrion::LoadClientStartupConfig()
