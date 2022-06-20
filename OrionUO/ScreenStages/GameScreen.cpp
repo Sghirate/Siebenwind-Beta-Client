@@ -1173,8 +1173,8 @@ void CGameScreen::CalculateGameWindowBounds()
         g_RenderBounds.GameWindowScaledHeight = 0;
     }
 
-    int rangeX = (int)(((g_RenderBounds.GameWindowWidth / 44) + uo_render_border.GetValue()) * g_GlobalScale);
-    int rangeY = (int)(((g_RenderBounds.GameWindowHeight / 44) + uo_render_border.GetValue()) * g_GlobalScale);
+    int rangeX = (int)(((g_RenderBounds.GameWindowWidth / 44) + 1) * g_GlobalScale);
+    int rangeY = (int)(((g_RenderBounds.GameWindowHeight / 44) + 1) * g_GlobalScale);
 
     if (rangeX < rangeY)
     {
@@ -1242,8 +1242,8 @@ void CGameScreen::CalculateGameWindowBounds()
 
     GLdouble maxX    = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth + drawOffset;
     GLdouble maxY    = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight + drawOffset;
-    GLdouble newMaxX = maxX * g_GlobalScale;
-    GLdouble newMaxY = maxY * g_GlobalScale;
+    GLdouble newMaxX = maxX * g_GlobalScale + uo_render_extra_pixels.GetValue();
+    GLdouble newMaxY = maxY * g_GlobalScale + uo_render_extra_pixels.GetValue();
 
     g_RenderBounds.MinPixelsX =
         (int)(((g_RenderBounds.GameWindowPosX - drawOffset) * g_GlobalScale) - (newMaxX - maxX));
@@ -1939,13 +1939,17 @@ void CGameScreen::Render()
 
         sprintf_s(
             dbf,
-            "FPS=%i (%ims) scale=%.1f\n%s\nX=%i , Y=%i\nX=%f , Y = %f",
+            "FPS=%i (%ims) scale=%.1f\n%s\nX=%i , Y=%i\nL=%i M=%i R=%i\nX=%i Y=%i",
             FPScount,
             g_FrameDelay[WINDOW_ACTIVE],
             g_GlobalScale,
             g_Orion.GetPingString().c_str(),
             pos.x, pos.y,
-            leftStick.x, leftStick.y);
+            g_MouseManager.IsLeftButtonDown() ? 1 : 0,
+            g_MouseManager.IsMiddleButtonDown() ? 1 : 0,
+            g_MouseManager.IsRightButtonDown() ? 1 : 0,
+            g_MouseManager.GetLeftDroppedOffset().x,
+            g_MouseManager.GetLeftDroppedOffset().y);
 
         g_FontManager.DrawA(
             3,
@@ -2235,7 +2239,7 @@ void CGameScreen::OnLeftMouseButtonUp()
         m_GameScreenGump.OnLeftMouseButtonUp();
         return;
     }
-    if (g_MouseManager.LeftButtonPressed &&
+    if (g_MouseManager.IsLeftButtonDown() &&
         (g_PressedObject.LeftGump != nullptr || g_ObjectInHand.Enabled))
     {
         if (g_GumpManager.OnLeftMouseButtonUp(false))

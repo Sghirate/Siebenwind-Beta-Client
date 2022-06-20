@@ -18,5 +18,5 @@ extern Core::ConsoleVariable<u16> uo_server_port;
 extern Core::ConsoleVariable<u8> uo_save_password;
 extern Core::ConsoleVariable<u8> uo_auto_login;
 extern Core::ConsoleVariable<u8> uo_use_scaling;
-extern Core::ConsoleVariable<u8> uo_render_border;
+extern Core::ConsoleVariable<u8> uo_render_extra_pixels;
 //extern Core::ConsoleVariable uo_client_flag;

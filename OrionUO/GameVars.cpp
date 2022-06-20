@@ -67,5 +67,5 @@ Core::ConsoleVariable<std::string> uo_password("uo_password", "", Core::ConsoleF
 Core::ConsoleVariable<u8> uo_save_password("uo_save_password", 0, Core::ConsoleFlags::User);
 Core::ConsoleVariable<u8> uo_auto_login("uo_auto_login", 0, Core::ConsoleFlags::User);
 Core::ConsoleVariable<u8> uo_use_scaling("uo_use_scaling", 0, Core::ConsoleFlags::User);
-Core::ConsoleVariable<u8> uo_render_border("uo_render_border", 2, Core::ConsoleFlags::User);
+Core::ConsoleVariable<u8> uo_render_extra_pixels("uo_render_extra_pixels", 100, Core::ConsoleFlags::User);
 //Core::ConsoleVariable uo_client_flag("uo_client_flag", "", Core::ConsoleFlags::Persistent);
