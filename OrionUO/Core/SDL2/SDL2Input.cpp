@@ -49,6 +49,11 @@ i32 SDL2Keyboard::CoreKeyToSDLKey(EKey a_key)
     return (i32)a_key;
 }
 
+const char* SDL2Keyboard::GetCoreKeyName(EKey a_key)
+{
+    return SDL_GetKeyName(CoreKeyToSDLKey(a_key));
+}
+
 EGamepadAxis SDL2Gamepad::SDLAxisToCoreAxis(int a_axis)
 {
     switch(a_axis)
@@ -383,6 +388,7 @@ void Input::Shutdown() { SDL2Input::Get().Shutdown(); }
 IMouse* Input::GetMouse(u8 a_index) { return &SDL2Input::Get().GetMouse(); }
 IKeyboard* Input::GetKeyboard(u8 a_index) { return &SDL2Input::Get().GetKeyboard(); }
 IGamepad* Input::GetGamepad(u8 a_index) { return a_index < SDL2Input::kMaxGamepads ? &SDL2Input::Get().GetGamepad(a_index) : nullptr; }
+const char* Input::GetKeyName(EKey a_key) { return SDL2Keyboard::GetCoreKeyName(a_key); }
 void Input::RegisterMouseListener(IMouseListener* a_listener) { SDL2Input::Get().RegisterMouseListener(a_listener); }
 void Input::UnregisterMouseListener(IMouseListener* a_listener) { SDL2Input::Get().UnregisterMouseListener(a_listener); }
 void Input::RegisterKeyboardListener(IKeyboardListener* a_listener) { SDL2Input::Get().RegisterKeyboardListener(a_listener); }

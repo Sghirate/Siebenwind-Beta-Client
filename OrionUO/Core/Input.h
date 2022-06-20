@@ -209,7 +209,7 @@ struct IGamepad
 
     virtual Vec2<float> GetStickValues(EGamepadStick a_stick) const = 0;
     virtual float GetTriggerValue(EGamepadTrigger a_trigger) const  = 0;
-    virtual bool IsButtonPressed(EGamepadButton a_button) const   = 0;
+    virtual bool IsButtonPressed(EGamepadButton a_button) const     = 0;
 };
 // ~GAMEPAD
 
@@ -222,7 +222,7 @@ struct Input
     static IKeyboard* GetKeyboard(u8 a_index = 0);
     static IGamepad* GetGamepad(u8 a_index = 0);
 
-    static const char* GetKeyName(EKey a_key) { return nullptr; } // TODO: IMPLEMENT!
+    static const char* GetKeyName(EKey a_key);
 
     static void RegisterMouseListener(IMouseListener* a_listener);
     static void UnregisterMouseListener(IMouseListener* a_listener);

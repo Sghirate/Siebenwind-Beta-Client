@@ -39,6 +39,7 @@ struct SDL2Keyboard : public IKeyboard
     static i32 CoreScanCodeToSDLScanCode(EScanCode a_scanCode);
     static EKey SDLKeyToCoreKey(i32 a_key);
     static i32 CoreKeyToSDLKey(EKey a_key);
+    static const char* GetCoreKeyName(EKey a_key);
 
     SDL2Keyboard() {}
     ~SDL2Keyboard() {}
