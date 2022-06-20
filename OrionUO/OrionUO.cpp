@@ -4872,7 +4872,7 @@ std::pair<CGLTexture*, Core::Vec2<i16>> COrion::ExecuteCursor(u16 a_id)
             m_UsedStaticList.push_back(&m_StaticDataIndex[a_id]);
         }
     }
-    io.LastAccessed = Core::FrameTimer::Now();
+    io.LastAccessed = Core::TimeStamp::Max();
     return cursor;
 }
 

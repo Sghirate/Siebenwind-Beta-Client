@@ -2101,7 +2101,7 @@ void CGameScreen::Render()
     else
     {
         InitToolTip();
-        g_MouseManager.Draw(g_MouseManager.GetGameCursor()); //Game Gump mouse cursor
+        g_MouseManager.Draw(MouseCursors::Directional);
     }
     g_GL.EndDraw();
 }

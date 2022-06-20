@@ -38,6 +38,7 @@ int Main(int argc, char** argv)
             LOG_WARNING("Game", "Failed to create client window. Fallbacking to headless mode.");
             g_isHeadless = true;
         }
+        g_gameWindow.HideCursor();
     }
     g_ConfigManager.Init();
 

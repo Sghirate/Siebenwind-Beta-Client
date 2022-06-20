@@ -39,6 +39,8 @@ struct Window
     bool IsBorderless() const;
     void SetBorderless(bool a_borderless);
     bool IsVisible() const;
+    void ShowCursor();
+    void HideCursor();
     void Show();
     void Hide();
     void BringToFront();

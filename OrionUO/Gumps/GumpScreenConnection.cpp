@@ -42,7 +42,7 @@ void CGumpScreenConnection::UpdateContent()
         Add(new CGUIResizepic(0, 0x0A28, 142, 134, 356, 212));
     }
 
-    g_ConnectionScreen.CursorGraphic = 0x2073; //Main Gump mouse cursor
+    g_ConnectionScreen.Cursor = MouseCursors::Default;
 
     if (g_ConnectionScreen.GetType() == CST_CHARACTER_LIST)
     {
@@ -120,7 +120,7 @@ void CGumpScreenConnection::UpdateContent()
                     ->GetA(3000001, false, "Entering Britannia..."),
                 2);
 
-            g_ConnectionScreen.CursorGraphic = 0x2077; //Waiting mouse cursor
+            g_ConnectionScreen.Cursor = MouseCursors::Wait;
         }
     }
     else if (g_ConnectionScreen.GetType() == CST_GAME_LOGIN)
@@ -185,7 +185,7 @@ void CGumpScreenConnection::UpdateContent()
 
         Add(new CGUIButton(ID_CS_OK, 0x0481, 0x0482, 0x0483, 297, 257));
 
-        g_ConnectionScreen.CursorGraphic = 0x2077; //Waiting mouse cursor
+        g_ConnectionScreen.Cursor = MouseCursors::Wait;
     }
     else
     {
@@ -228,7 +228,7 @@ void CGumpScreenConnection::UpdateContent()
 
             CreateText(189, 178, text[g_ConnectionScreen.GetConnected()], 2);
 
-            g_ConnectionScreen.CursorGraphic = 0x2077; //Waiting mouse cursor
+            g_ConnectionScreen.Cursor = MouseCursors::Wait;
         }
     }
 }

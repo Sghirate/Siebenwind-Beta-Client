@@ -3,12 +3,13 @@
 #include "Platform.h"
 #include "BaseQueue.h"
 #include "Gumps/Gump.h"
+#include "MouseManager.h"
 
 class CBaseScreen : public CBaseQueue
 {
 public:
     u8 SmoothScreenAction = 0;
-    u16 CursorGraphic     = 0x2073;
+    MouseCursors Cursor   = MouseCursors::Default;
 
 protected:
     CGump& m_Gump;

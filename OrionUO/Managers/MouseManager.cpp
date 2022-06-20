@@ -23,37 +23,39 @@ static struct CursorData
 {
     u16 graphicDefault;
     u16 graphicCombat;
+    CGLTexture* thDefault;
+    CGLTexture* thCombat;
     Core::Vec2<i16> offset;
 } g_cursors[16] = {
     // clang-format off
-    { 0x206A, 0x2053, {} },
-    { 0x206B, 0x2054, {} },
-    { 0x206C, 0x2055, {} },
-    { 0x206D, 0x2056, {} },
-    { 0x206E, 0x2057, {} },
-    { 0x206F, 0x2058, {} },
-    { 0x2070, 0x2059, {} },
-    { 0x2071, 0x205A, {} },
-    { 0x2072, 0x205B, {} },
-    { 0x2073, 0x205C, {} },
-    { 0x2074, 0x205D, {} },
-    { 0x2075, 0x205E, {} },
-    { 0x2076, 0x205F, {} },
-    { 0x2077, 0x2060, {} },
-    { 0x2078, 0x2061, {} },
-    { 0x2079, 0x2062, {} },
+    { 0x206A, 0x2053, {} }, // N
+    { 0x206B, 0x2054, {} }, // NE
+    { 0x206C, 0x2055, {} }, // E
+    { 0x206D, 0x2056, {} }, // SE
+    { 0x206E, 0x2057, {} }, // S
+    { 0x206F, 0x2058, {} }, // SW
+    { 0x2070, 0x2059, {} }, // W
+    { 0x2071, 0x205A, {} }, // NW
+    { 0x2072, 0x205B, {} }, // Fist
+    { 0x2073, 0x205C, {} }, // Default
+    { 0x2074, 0x205D, {} }, // Pick
+    { 0x2075, 0x205E, {} }, // Open
+    { 0x2076, 0x205F, {} }, // Target
+    { 0x2077, 0x2060, {} }, // Wait
+    { 0x2078, 0x2061, {} }, // Write
+    { 0x2079, 0x2062, {} }, // Pin
     // clang-format on
 };
 } // namespace
 
 MouseManager g_MouseManager;
 
-int MouseManager::Sgn(int val)
+int MouseManager::Sgn(int val) const
 {
     return static_cast<int>(0 < val) - static_cast<int>(val < 0);
 }
 
-int MouseManager::GetFacing(int x1, int y1, int to_x, int to_y, int current_facing)
+int MouseManager::GetFacing(int x1, int y1, int to_x, int to_y, int current_facing) const
 {
     int shiftX = to_x - x1;
     int shiftY = to_y - y1;
@@ -107,15 +109,12 @@ int MouseManager::GetFacing(int x1, int y1, int to_x, int to_y, int current_faci
     return current_facing;
 }
 
-u16 MouseManager::GetGameCursor()
+MouseCursors MouseManager::DetermineCursor() const
 {
-    Core::TMousePos pos = GetPosition();
-    int war             = (int)(g_Player != nullptr && g_Player->Warmode);
-    u16 result          = war ? g_cursors[9].graphicCombat : g_cursors[9].graphicDefault;
-
     if (g_Target.IsTargeting() && !g_ObjectInHand.Enabled)
-        return war ? g_cursors[12].graphicCombat : g_cursors[12].graphicDefault;
+        return MouseCursors::Target; // target cursor
 
+    Core::TMousePos pos = GetPosition();
     bool mouseInWindow =
         !(pos.x < g_ConfigManager.GameWindowX || pos.y < g_ConfigManager.GameWindowY ||
           pos.x > (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth) ||
@@ -124,12 +123,11 @@ u16 MouseManager::GetGameCursor()
     //bool gumpChecked = (g_LastSelectedGump || (g_LastSelectedObject && g_LastObjectType != SOT_GAME_OBJECT && g_LastObjectType != SOT_STATIC_OBJECT && g_LastObjectType != SOT_LAND_OBJECT && g_LastObjectType != SOT_TEXT_OBJECT));
 
     if (!mouseInWindow || g_SelectedObject.Gump != nullptr || g_PressedObject.LeftGump != nullptr)
-        return result;
+        return MouseCursors::Default; // default
 
     int gameWindowCenterX = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2);
     int gameWindowCenterY = g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2);
-    int cursorId          = GetFacing(gameWindowCenterX, gameWindowCenterY, pos.x, pos.y, 1);
-    return war ? g_cursors[cursorId].graphicCombat : g_cursors[cursorId].graphicDefault;
+    return (MouseCursors)GetFacing(gameWindowCenterX, gameWindowCenterY, pos.x, pos.y, 1);
 }
 
 void MouseManager::ProcessWalking()
@@ -152,10 +150,12 @@ void MouseManager::ProcessWalking()
         int gameWindowCenterY =
             g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2);
 
-        int facing = GetFacing(gameWindowCenterX, gameWindowCenterY, GetPosition().x, GetPosition().y, 1);
+        int facing =
+            GetFacing(gameWindowCenterX, gameWindowCenterY, GetPosition().x, GetPosition().y, 1);
 
         float mouse_range = std::hypotf(
-            (float)(gameWindowCenterX - GetPosition().x), (float)(gameWindowCenterY - GetPosition().y));
+            (float)(gameWindowCenterX - GetPosition().x),
+            (float)(gameWindowCenterY - GetPosition().y));
 
         int dir = facing;
 
@@ -178,15 +178,19 @@ bool MouseManager::LoadCursorTextures()
     bool result = true;
     for (CursorData& cursorData : g_cursors)
     {
-        auto defaultCursor = g_Orion.ExecuteCursor(cursorData.graphicDefault);
-        auto combatCursor  = g_Orion.ExecuteCursor(cursorData.graphicCombat);
-        cursorData.offset  = defaultCursor.second;
+        auto defaultCursor   = g_Orion.ExecuteCursor(cursorData.graphicDefault);
+        auto combatCursor    = g_Orion.ExecuteCursor(cursorData.graphicCombat);
+        cursorData.thDefault = defaultCursor.first;
+        cursorData.thCombat  = combatCursor.first;
+        cursorData.offset    = defaultCursor.second;
     }
     return result;
 }
 
-void MouseManager::Draw(u16 id)
+void MouseManager::Draw(MouseCursors a_cursor)
 {
+    MouseCursors cursor =
+        (int)a_cursor >= 0 && a_cursor < MouseCursors::COUNT ? a_cursor : DetermineCursor();
     PROFILER_EVENT();
     if (g_GameState >= GS_GAME)
     {
@@ -236,8 +240,8 @@ void MouseManager::Draw(u16 id)
         }
         else if (g_ObjectInHand.Enabled)
         {
-            bool doubleDraw    = false;
-            u16 ohGraphic = g_ObjectInHand.GetDrawGraphic(doubleDraw);
+            bool doubleDraw = false;
+            u16 ohGraphic   = g_ObjectInHand.GetDrawGraphic(doubleDraw);
 
             u16 ohColor = g_ObjectInHand.Color;
             doubleDraw =
@@ -293,87 +297,70 @@ void MouseManager::Draw(u16 id)
         }
     }
 
-    CGLTexture* th = g_Orion.ExecuteStaticArt(id);
-
+    int war   = (int)(g_Player != nullptr && g_Player->Warmode);
+    u16 color = (!war) && g_GameState >= GS_GAME && (g_MapManager.GetActualMap() != 0) ? 0x0033 : 0;
+    CGLTexture* th     = war ? g_cursors[(int)cursor].thCombat : g_cursors[(int)cursor].thDefault;
+    const auto& offset = g_cursors[(int)cursor].offset;
     if (th != nullptr)
     {
-        u16 color = 0;
+        g_ToolTip.Draw(th->Width, th->Height);
 
-        if (id < 0x206A)
-        {
-            id -= 0x2053;
-        }
-        else
-        {
-            id -= 0x206A;
+        int x = GetPosition().x - offset.x;
+        int y = GetPosition().y - offset.y;
 
-            if (g_GameState >= GS_GAME && (g_MapManager.GetActualMap() != 0))
-            {
-                color = 0x0033;
-            }
+        if (color != 0u)
+        {
+            g_ColorizerShader.Use();
+
+            g_ColorManager.SendColorsToShader(color);
+
+            glUniform1iARB(g_ShaderDrawMode, SDM_COLORED);
         }
 
-        if (id < 16)
+        th->Draw(x, y);
+
+        if (color != 0u)
         {
-            g_ToolTip.Draw(th->Width, th->Height);
+            UnuseShader();
+        }
 
-            int x = GetPosition().x + m_CursorOffset[0][id];
-            int y = GetPosition().y + m_CursorOffset[1][id];
+        if (g_Target.Targeting && g_ConfigManager.HighlightTargetByType)
+        {
+            u32 auraColor = 0;
 
-            if (color != 0u)
+            if (g_Target.CursorType == 0)
             {
-                g_ColorizerShader.Use();
-
-                g_ColorManager.SendColorsToShader(color);
-
-                glUniform1iARB(g_ShaderDrawMode, SDM_COLORED);
+                auraColor = g_ColorManager.GetPolygoneColor(16, 0x03B2);
+            }
+            else if (g_Target.CursorType == 1)
+            {
+                auraColor = g_ColorManager.GetPolygoneColor(16, 0x0023);
+            }
+            else if (g_Target.CursorType == 2)
+            {
+                auraColor = g_ColorManager.GetPolygoneColor(16, 0x005A);
             }
 
-            th->Draw(x, y);
-
-            if (color != 0u)
+            if (auraColor != 0u)
             {
-                UnuseShader();
-            }
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-            if (g_Target.Targeting && g_ConfigManager.HighlightTargetByType)
-            {
-                u32 auraColor = 0;
+                glColor4ub(ToColorR(auraColor), ToColorG(auraColor), ToColorB(auraColor), 0xFF);
 
-                if (g_Target.CursorType == 0)
-                {
-                    auraColor = g_ColorManager.GetPolygoneColor(16, 0x03B2);
-                }
-                else if (g_Target.CursorType == 1)
-                {
-                    auraColor = g_ColorManager.GetPolygoneColor(16, 0x0023);
-                }
-                else if (g_Target.CursorType == 2)
-                {
-                    auraColor = g_ColorManager.GetPolygoneColor(16, 0x005A);
-                }
+                glUniform1iARB(g_ShaderDrawMode, SDM_NO_COLOR);
 
-                if (auraColor != 0u)
-                {
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                CGLTexture tex;
+                tex.Texture = g_AuraTexture.Texture;
+                tex.Width   = 35;
+                tex.Height  = 35;
 
-                    glColor4ub(ToColorR(auraColor), ToColorG(auraColor), ToColorB(auraColor), 0xFF);
+                g_GL.GL1_Draw(tex, x - 6, y - 2);
 
-                    glUniform1iARB(g_ShaderDrawMode, SDM_NO_COLOR);
+                tex.Texture = 0;
 
-                    CGLTexture tex;
-                    tex.Texture = g_AuraTexture.Texture;
-                    tex.Width   = 35;
-                    tex.Height  = 35;
-
-                    g_GL.GL1_Draw(tex, x - 6, y - 2);
-
-                    tex.Texture = 0;
-
-                    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-                    glDisable(GL_BLEND);
-                }
+                glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                glDisable(GL_BLEND);
             }
         }
     }

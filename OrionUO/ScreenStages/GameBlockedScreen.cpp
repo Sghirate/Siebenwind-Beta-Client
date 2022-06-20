@@ -26,7 +26,7 @@ void CGameBlockedScreen::Render()
 {
     g_GumpManager.Draw(true);
     InitToolTip();
-    g_MouseManager.Draw(0x2073); //Main Gump mouse cursor
+    g_MouseManager.Draw(MouseCursors::Default);
 }
 
 void CGameBlockedScreen::SelectObject()

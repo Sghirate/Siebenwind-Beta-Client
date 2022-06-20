@@ -193,6 +193,18 @@ bool Window::IsVisible() const
                       false;
 }
 
+void Window::ShowCursor()
+{
+    if (m_handle)
+        SDL_ShowCursor(SDL_TRUE);
+}
+
+void Window::HideCursor()
+{
+    if (m_handle)
+        SDL_ShowCursor(SDL_FALSE);
+}
+
 void Window::Show()
 {
     if (m_handle)

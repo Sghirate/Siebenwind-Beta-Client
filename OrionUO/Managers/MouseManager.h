@@ -2,6 +2,29 @@
 
 #include "Core/Input.h"
 
+enum class MouseCursors
+{
+    N,
+    NE,
+    E,
+    SE,
+    S,
+    SW,
+    W,
+    NW,
+    Fist,
+    Default,
+    Pick,
+    Open,
+    Target,
+    Wait,
+    Write,
+    Pin,
+
+    COUNT,
+    Directional = -1,
+};
+
 class MouseManager
 {
 private:
@@ -27,11 +50,11 @@ public:
     ~MouseManager() {}
 
     bool LoadCursorTextures();
-    int Sgn(int val);
-    int GetFacing(int x1, int y1, int to_x, int to_y, int current_facing);
-    u16 GetGameCursor();
+    int Sgn(int val) const;
+    int GetFacing(int x1, int y1, int to_x, int to_y, int current_facing) const;
+    MouseCursors DetermineCursor() const;
     void ProcessWalking();
-    void Draw(u16 id);
+    void Draw(MouseCursors a_cursor);
     Core::TMousePos GetPosition() const { return Core::Input::GetMouse()->GetPosition(); }
     void SetPosition(const Core::TMousePos& a_pos) { Core::Input::GetMouse()->SetPosition(a_pos); }
     Core::TMousePos GetLeftDroppedOffset() const { return GetPosition() - LeftDropPosition; }

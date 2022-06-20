@@ -2,6 +2,8 @@
 #include "Core/Minimal.h"
 #include <chrono>
 #include <thread>
+#undef max
+#undef min
 
 namespace Core
 {
@@ -81,6 +83,20 @@ TimeStamp TimeStamp::Now()
 {
     TimeStamp result;
     reinterpret_cast<TTimePoint&>(result.m_data) = TClock::now();
+    return result;
+}
+
+TimeStamp TimeStamp::Max()
+{
+    TimeStamp result;
+    reinterpret_cast<TTimePoint&>(result.m_data) = TTimePoint::max();
+    return result;
+}
+
+TimeStamp TimeStamp::Min()
+{
+    TimeStamp result;
+    reinterpret_cast<TTimePoint&>(result.m_data) = TTimePoint::min();
     return result;
 }
 

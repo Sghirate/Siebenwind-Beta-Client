@@ -288,7 +288,7 @@ void GameInput::OnMidMouseButtonScroll(const Core::Vec2<i32>& a_pos, i8 a_delta)
     if (IsInputPossible())
     {
         g_CurrentScreen->SelectObject();
-        g_CurrentScreen->OnMidMouseButtonScroll(a_delta > 0);
+        g_CurrentScreen->OnMidMouseButtonScroll(a_delta < 0);
     }
 }
 

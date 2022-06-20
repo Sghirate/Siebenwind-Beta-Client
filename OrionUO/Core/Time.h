@@ -14,6 +14,8 @@ struct TimeStamp
     ~TimeStamp();
 
     static TimeStamp Now();
+    static TimeStamp Max();
+    static TimeStamp Min();
 
     void Reset();
     bool IsSet() const;

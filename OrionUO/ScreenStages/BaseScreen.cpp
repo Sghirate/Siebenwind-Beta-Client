@@ -25,7 +25,7 @@ void CBaseScreen::Render()
     m_Gump.Draw();
     InitToolTip();
     DrawSmoothMonitorEffect();
-    g_MouseManager.Draw(CursorGraphic);
+    g_MouseManager.Draw(Cursor);
     g_GL.EndDraw();
 }
 

@@ -512,7 +512,7 @@ UOFileReader::ReadCursor(u16 a_id, CIndexObject& a_io, bool a_run)
     {
         for (int i = 0; i < width; i++)
         {
-            u8 g = (u8)((pixels[i] >> 8) & 0xFF);
+            u8 g = (u8)((pixels[i] >> 5) & 0x1f);
             if (g > 0)
                 hotspot.x = i;
 
@@ -522,7 +522,7 @@ UOFileReader::ReadCursor(u16 a_id, CIndexObject& a_io, bool a_run)
 
         for (int i = 0; i < height; i++)
         {
-            u8 g = (u8)((pixels[i * width] >> 8) & 0xFF);
+            u8 g = (u8)((pixels[i * width] >> 5) & 0x1f);
             if (g > 0)
                 hotspot.y = i;
 
