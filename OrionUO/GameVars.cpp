@@ -62,9 +62,8 @@ void GameVars::GetClientVersion(u32 *major, u32 *minor, u32 *rev, u32 *proto)
 Core::ConsoleVariable<std::string> uo_login("uo_login", "", Core::ConsoleFlags::Persistent);
 Core::ConsoleVariable<std::string> uo_password("uo_password", "", Core::ConsoleFlags::Persistent);
 Core::ConsoleVariable<std::string> uo_client_version("uo_client_version", "7.0.33.1", "UltimaOnline client version; Used to determine feature set.", Core::ConsoleFlags::Persistent, OnClientVersionChanged, OnClientVersionChanged);
-Core::ConsoleVariable<std::string> uo_game_dir("uo_game_dir", "", Core::ConsoleFlags::Persistent);
 Core::ConsoleVariable<std::string> uo_server_address("uo_server_address", "", Core::ConsoleFlags::Persistent);
 Core::ConsoleVariable<u16> uo_server_port("uo_server_port", 0, Core::ConsoleFlags::Persistent);
 Core::ConsoleVariable<u8> uo_save_password("uo_save_password", 0, Core::ConsoleFlags::Persistent);
-Core::ConsoleVariable<u8> uo_auto_login("uo_save_password", 0, Core::ConsoleFlags::Persistent);
+Core::ConsoleVariable<u8> uo_auto_login("uo_auto_login", 0, Core::ConsoleFlags::Persistent);
 //Core::ConsoleVariable uo_client_flag("uo_client_flag", "", Core::ConsoleFlags::Persistent);

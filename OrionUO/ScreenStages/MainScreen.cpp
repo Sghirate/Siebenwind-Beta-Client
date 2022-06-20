@@ -186,18 +186,18 @@ void CMainScreen::OnKeyDown(const Core::KeyEvent &ev)
 
 void CMainScreen::Load()
 {
-    m_AutoLogin->Checked = g_Config.AutoLogin;
+    m_AutoLogin->Checked = uo_auto_login.GetValue() > 0;
 
-    m_Account->SetTextA(g_Config.Login);
-    m_Account->SetPos(checked_cast<int>(g_Config.Login.length()));
+    m_Account->SetTextA(uo_login.GetValue());
+    m_Account->SetPos(checked_cast<int>(uo_login.GetValue().length()));
 
     m_MainGump.m_PasswordFake->SetTextA("");
     m_MainGump.m_PasswordFake->SetPos(0);
 
-    const size_t len = g_Config.Password.length();
+    const size_t len = uo_password.GetValue().length();
     if (len != 0)
     {
-        m_Password->SetTextA(g_Config.Password);
+        m_Password->SetTextA(uo_password.GetValue());
         for (int zv = 0; zv < len; zv++)
         {
             m_MainGump.m_PasswordFake->Insert(L'*');
@@ -210,7 +210,7 @@ void CMainScreen::Load()
         m_Password->SetPos(0);
     }
 
-    m_SavePassword->Checked = g_Config.SavePassword;
+    m_SavePassword->Checked = uo_save_password.GetValue() > 0;
     if (!m_SavePassword->Checked)
     {
         m_Password->SetTextW({});
@@ -220,11 +220,6 @@ void CMainScreen::Load()
 
 void CMainScreen::Save()
 {
-    g_Config.AutoLogin = m_AutoLogin->Checked;
-    g_Config.SavePassword = m_SavePassword->Checked;
-    g_Config.Password = m_Password->GetTextA();
-    g_Config.Login = m_Account->GetTextA();
-
     uo_auto_login.SetValue(m_AutoLogin->Checked ? 1 : 0);
     uo_save_password.SetValue(m_SavePassword->Checked ? 1 : 0);
     uo_password.SetValue(uo_save_password.GetValue() > 0 ? m_Password->GetTextA() : "");

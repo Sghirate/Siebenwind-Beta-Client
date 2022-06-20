@@ -3073,6 +3073,13 @@ void COrion::LoadLogin(std::string& login, int& port)
         return;
     }
 
+    login = uo_server_address.GetValue();
+    port = uo_server_port.GetValue();
+    if (uo_server_port.GetValue() > 0)
+    {
+        return;
+    }
+
     Core::TextFileParser file(g_App.GetGameDir() / "login.cfg", "=,", "#;", "");
     while (!file.IsEOF())
     {
