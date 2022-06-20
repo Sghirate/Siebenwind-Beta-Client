@@ -6,7 +6,6 @@ class CGumpBaseScroll : public CGump
 {
 public:
     int Height = 0;
-    int StartResizeHeight = 0;
     int ScrollerOffsetY = 0;
     int ScissorOffsetHeight = 0;
     bool HaveBackgroundLines = false;
@@ -42,4 +41,8 @@ public:
     GUMP_RESIZE_START_EVENT_H;
     GUMP_RESIZE_EVENT_H;
     GUMP_RESIZE_END_EVENT_H;
+
+private:
+    int m_resizeStartHeight = 0;
+    Core::Vec2<i32> m_resizeStartMouse;
 };

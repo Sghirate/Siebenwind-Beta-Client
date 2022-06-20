@@ -314,7 +314,7 @@ CGumpSpell *CGumpSpell::GetNearSpell(int &x, int &y)
 
 bool CGumpSpell::GetSpellGroupOffset(int &x, int &y)
 {
-    if (InGroup() && g_MouseManager.LeftButtonPressed && g_PressedObject.LeftGump != nullptr &&
+    if (InGroup() && g_MouseManager.IsLeftButtonDown() && g_PressedObject.LeftGump != nullptr &&
         (g_PressedObject.LeftSerial == 0u))
     {
         CGumpSpell *gump = GetTopSpell();

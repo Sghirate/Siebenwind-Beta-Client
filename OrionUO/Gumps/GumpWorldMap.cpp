@@ -738,7 +738,7 @@ bool CGumpWorldMap::OnLeftMouseButtonDoubleClick()
 
 void CGumpWorldMap::OnMidMouseButtonScroll(bool up)
 {
-    if (!Minimized && !g_MouseManager.LeftButtonPressed && !g_MouseManager.RightButtonPressed &&
+    if (!Minimized && !g_MouseManager.IsLeftButtonDown() && !g_MouseManager.RightButtonPressed &&
         g_Orion.PolygonePixelsInXY(m_X + 8, m_Y + 31, Width - 16, Height - 16))
     {
         int ofs = 0;

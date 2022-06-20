@@ -174,7 +174,7 @@ void Log::Print(enum LogVerbosity a_verbosity, const char* a_category, const cha
         a_category);
 
     va_list args;
-    va_start(args, a_format);    
+    va_start(args, a_format);
     const int messageLength = vsnprintf(
         logBuffer + timeLength + prefixLength,
         LOG_BUFFER_SIZE - timeLength - prefixLength,

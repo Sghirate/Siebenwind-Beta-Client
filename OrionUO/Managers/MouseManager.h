@@ -38,10 +38,8 @@ public:
     u32 LastLeftButtonClickTimer = 0;
     u32 LastRightButtonClickTimer = 0;
     u32 LastMidButtonClickTimer = 0;
-    bool LeftButtonPressed = false;
     bool RightButtonPressed = false;
     bool MidButtonPressed = false;
-    bool Dragging = false;
     int DoubleClickDelay = 350;
     bool CancelDoubleClick = false;
     // ~TODO
@@ -60,6 +58,9 @@ public:
     Core::TMousePos GetLeftDroppedOffset() const { return GetPosition() - LeftDropPosition; }
     Core::TMousePos GetRightDroppedOffset() const { return GetPosition() - RightDropPosition; }
     Core::TMousePos GetMidDroppedOffset() const { return GetPosition() - MidDropPosition; }
+    bool IsLeftButtonDown() const { return Core::Input::GetMouse()->IsButtonDown(Core::EMouseButton::Button_Left); }
+    bool IsMiddleButtonDown() const { return Core::Input::GetMouse()->IsButtonDown(Core::EMouseButton::Button_Middle); }
+    bool IsRightButtonDown() const { return Core::Input::GetMouse()->IsButtonDown(Core::EMouseButton::Button_Right); }
 
     void EmulateOnLeftMouseButtonDown();
 };

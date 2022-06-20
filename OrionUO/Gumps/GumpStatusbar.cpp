@@ -339,7 +339,7 @@ CGumpStatusbar* CGumpStatusbar::GetNearStatusbar(int& x, int& y)
 
 bool CGumpStatusbar::GetStatusbarGroupOffset(int& x, int& y)
 {
-    if (InGroup() && Minimized && g_MouseManager.LeftButtonPressed &&
+    if (InGroup() && Minimized && g_MouseManager.IsLeftButtonDown() &&
         g_PressedObject.LeftGump != nullptr &&
         (g_PressedObject.LeftObject == nullptr ||
          (g_PressedObject.LeftObject->IsGUI() &&

@@ -222,14 +222,15 @@ void SDL2Input::HandleEvent(SDL_Event* a_event)
             mouseEvent.button.button = SDL2Mouse::SDLButtonToCoreButton(a_event->button.button);
             mouseEvent.button.clicks = a_event->button.clicks;
             mouseEvent.button.state = a_event->button.state == SDL_PRESSED;
-            u8 buttonMask = static_cast<u8>(mouseEvent.button.button);
+            u8 buttonMask = 1 << static_cast<u8>(mouseEvent.button.button);
             if (a_event->button.state == SDL_PRESSED)
                 m_mouse.m_buttons |= buttonMask;
-            else
-                m_mouse.m_buttons &=- ~buttonMask;
 
             for (IMouseListener* listener : m_mouseListeners)
                 listener->OnMouseEvent(mouseEvent);
+
+            if (a_event->button.state == SDL_RELEASED)
+                m_mouse.m_buttons &= ~buttonMask;
         } break;
         case SDL_MOUSEWHEEL:
         {

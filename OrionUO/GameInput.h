@@ -15,7 +15,7 @@ struct GameInput
     void OnMouseMove(const Core::Vec2<i32>& pos);
     void OnLeftMouseButtonDown(const Core::Vec2<i32>& a_pos);
     void OnLeftMouseButtonUp(const Core::Vec2<i32>& a_pos);
-    void OnLeftMouseButtonDoubleClick(const Core::Vec2<i32>& a_pos);
+    bool OnLeftMouseButtonDoubleClick(const Core::Vec2<i32>& a_pos);
     void OnRightMouseButtonDown(const Core::Vec2<i32>& a_pos);
     void OnRightMouseButtonUp(const Core::Vec2<i32>& a_pos);
     void OnRightMouseButtonDoubleClick(const Core::Vec2<i32>& a_pos);

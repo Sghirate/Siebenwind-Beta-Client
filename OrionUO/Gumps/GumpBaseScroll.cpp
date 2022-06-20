@@ -119,15 +119,14 @@ CGumpBaseScroll::~CGumpBaseScroll()
 
 void CGumpBaseScroll::UpdateHeight()
 {
-    Height = StartResizeHeight + g_MouseManager.GetLeftDroppedOffset().y;
-
+    Height = m_resizeStartHeight + (g_MouseManager.GetPosition() - m_resizeStartMouse).y;
     if (Height < m_MinHeight)
     {
         Height = m_MinHeight;
     }
 
     Core::Rect<int> display = Core::Platform::GetDisplayArea();
-    int maxHeight = display.size.y;
+    int maxHeight           = display.size.y;
     maxHeight -= 50;
 
     if (Height >= maxHeight)
@@ -160,12 +159,13 @@ void CGumpBaseScroll::UpdateHeight()
 
 void CGumpBaseScroll::GUMP_RESIZE_START_EVENT_C
 {
-    StartResizeHeight = Height;
+    m_resizeStartMouse  = g_MouseManager.GetPosition();
+    m_resizeStartHeight = Height;
 }
 
 void CGumpBaseScroll::GUMP_RESIZE_EVENT_C
 {
-    if (StartResizeHeight != 0)
+    if (m_resizeStartHeight != 0)
     {
         UpdateHeight();
         RecalculateSize();
@@ -174,8 +174,5 @@ void CGumpBaseScroll::GUMP_RESIZE_EVENT_C
 
 void CGumpBaseScroll::GUMP_RESIZE_END_EVENT_C
 {
-    if (StartResizeHeight != 0)
-    {
-        StartResizeHeight = 0;
-    }
+    m_resizeStartHeight = 0;
 }
