@@ -2680,6 +2680,7 @@ void CGameScreen::OnKeyDown(const Core::KeyEvent& ev)
     {
         case Core::EKey::Key_Return:
         case Core::EKey::Key_Return2:
+        case Core::EKey::Key_KpEnter:
         {
             if (g_EntryPointer != nullptr)
             {
