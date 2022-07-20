@@ -1,32 +1,27 @@
-// MIT License
-// Copyright (C) October 2017 Hotride
-
 #pragma once
+
+#include "Core/Time.h"
+#include <map>
+#include <string>
 
 class CObjectProperty
 {
 public:
-    uint32_t Serial = 0;
-    uint32_t Revision = 0;
-    wstring Name = {};
-    wstring Data = {};
+    u32 Serial        = 0;
+    u32 Revision      = 0;
+    std::wstring Name = {};
+    std::wstring Data = {};
 
     CObjectProperty() {}
-    CObjectProperty(int serial, int revision, const wstring &name, const wstring &data);
+    CObjectProperty(int serial, int revision, const std::wstring& name, const std::wstring& data);
     bool Empty();
-    wstring CreateTextData(bool extended);
+    std::wstring CreateTextData(bool extended);
 };
 
-typedef map<uint32_t, CObjectProperty> OBJECT_PROPERTIES_MAP;
+typedef std::map<u32, CObjectProperty> OBJECT_PROPERTIES_MAP;
 
 class CObjectPropertiesManager
 {
-    uint32_t Timer = 0;
-
-private:
-    OBJECT_PROPERTIES_MAP m_Map;
-    class CRenderObject *m_Object{ nullptr };
-
 public:
     CObjectPropertiesManager() {}
     virtual ~CObjectPropertiesManager();
@@ -35,7 +30,17 @@ public:
     bool RevisionCheck(int serial, int revision);
     void OnItemClicked(int serial);
     void Display(int serial);
-    void Add(int serial, const CObjectProperty &objectProperty);
+    void Add(int serial, const CObjectProperty& objectProperty);
+    void SetDuration(const Core::TimeDiff& a_duration)
+    {
+        m_showUntil = Core::FrameTimer::Now() + a_duration;
+    }
+    bool IsElapsed() const { return m_showUntil < Core::FrameTimer::Now(); }
+
+private:
+    OBJECT_PROPERTIES_MAP m_Map;
+    class CRenderObject* m_Object{ nullptr };
+    Core::TimeStamp m_showUntil;
 };
 
 extern CObjectPropertiesManager g_ObjectPropertiesManager;

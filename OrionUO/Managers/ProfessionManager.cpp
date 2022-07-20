@@ -1,19 +1,18 @@
-﻿
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ProfessionManager.h"
-#include "SkillsManager.h"
 #include "ClilocManager.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../OrionApplication.h"
-#include "../Profession.h"
-#include "../OrionWindow.h"
+#include "Core/Log.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
+#include "Globals.h"
+#include "SkillsManager.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "OrionApplication.h"
+#include "Profession.h"
 
 CProfessionManager g_ProfessionManager;
 
-const string CProfessionManager::m_Keys[m_KeyCount] = {
+const std::string CProfessionManager::m_Keys[m_KeyCount] = {
     "begin", "name", "truename", "desc", "toplevel", "gump", "type",     "children", "skill",
     "stat",  "str",  "int",      "dex",  "end",      "true", "category", "nameid",   "descid"
 };
@@ -27,10 +26,9 @@ CProfessionManager::~CProfessionManager()
 {
 }
 
-int CProfessionManager::GetKeyCode(const string &key)
+int CProfessionManager::GetKeyCode(const std::string &key)
 {
-    DEBUG_TRACE_FUNCTION;
-    string str = ToLowerA(key);
+    std::string str = Core::ToLowerA(key);
     int result = 0;
 
     for (int i = 0; i < m_KeyCount && (result == 0); i++)
@@ -44,17 +42,16 @@ int CProfessionManager::GetKeyCode(const string &key)
     return result;
 }
 
-bool CProfessionManager::ParseFilePart(Wisp::CTextFileParser &file)
+bool CProfessionManager::ParseFilePart(Core::TextFileParser &file)
 {
-    DEBUG_TRACE_FUNCTION;
     PROFESSION_TYPE type = PT_NO_PROF;
-    vector<string> childrens;
-    string name{};
-    string trueName{};
-    uint32_t nameClilocID = 0;
-    uint32_t descriptionClilocID = 0;
+    std::vector<std::string> childrens;
+    std::string name{};
+    std::string trueName{};
+    u32 nameClilocID = 0;
+    u32 descriptionClilocID = 0;
     int descriptionIndex = 0;
-    uint16_t gump = 0;
+    u16 gump = 0;
     bool topLevel = false;
     int skillCount = 0;
     int skillIndex[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -64,7 +61,7 @@ bool CProfessionManager::ParseFilePart(Wisp::CTextFileParser &file)
     bool exit = false;
     while (!file.IsEOF() && !exit)
     {
-        vector<string> strings = file.ReadTokens();
+        std::vector<std::string> strings = file.ReadTokens();
 
         if (strings.empty())
         {
@@ -136,7 +133,7 @@ bool CProfessionManager::ParseFilePart(Wisp::CTextFileParser &file)
                 {
                     for (int j = 0; j < 54; j++)
                     {
-                        CSkill *skillPtr = g_SkillsManager.Get((uint32_t)j);
+                        CSkill *skillPtr = g_SkillsManager.Get((u32)j);
 
                         if (skillPtr != nullptr && strings[1] == skillPtr->Name)
                         {
@@ -177,7 +174,7 @@ bool CProfessionManager::ParseFilePart(Wisp::CTextFileParser &file)
             case PM_CODE_NAME_CLILOC_ID:
             {
                 nameClilocID = atoi(strings[1].c_str());
-                name = ToUpperA(g_ClilocManager.Cliloc(g_Language)->GetA(nameClilocID, true, name));
+                name = Core::ToUpperA(g_ClilocManager.GetCliloc(g_Language)->GetA(nameClilocID, true, name));
                 break;
             }
             case PM_CODE_DESCRIPTION_CLILOC_ID:
@@ -213,8 +210,8 @@ bool CProfessionManager::ParseFilePart(Wisp::CTextFileParser &file)
 
         for (int i = 0; i < 4; i++)
         {
-            temp->SetSkillIndex((int)i, (uint8_t)skillIndex[i]);
-            temp->SetSkillValue((int)i, (uint8_t)skillValue[i]);
+            temp->SetSkillIndex((int)i, (u8)skillIndex[i]);
+            temp->SetSkillValue((int)i, (u8)skillValue[i]);
         }
 
         obj = temp;
@@ -263,16 +260,15 @@ bool CProfessionManager::ParseFilePart(Wisp::CTextFileParser &file)
 
 bool CProfessionManager::AddChild(CBaseProfession *parent, CBaseProfession *child)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (parent->Type == PT_CATEGORY)
     {
         CProfessionCategory *cat = (CProfessionCategory *)parent;
 
-        string check = string("|") + child->Name + "|";
+        std::string check = std::string("|") + child->Name + "|";
 
-        if (cat->Childrens.find(check) != string::npos)
+        if (cat->Childrens.find(check) != std::string::npos)
         {
             cat->Add(child);
             result = true;
@@ -300,7 +296,6 @@ bool CProfessionManager::AddChild(CBaseProfession *parent, CBaseProfession *chil
 
 bool CProfessionManager::Load()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     CProfessionCategory *head = new CProfessionCategory();
@@ -312,8 +307,7 @@ bool CProfessionManager::Load()
     head->TopLevel = true;
     Add(head);
 
-    Wisp::CTextFileParser file(g_App.UOFilesPath("Prof.txt"), " \t,", "#;", "\"\"");
-
+    Core::TextFileParser file(g_App.GetGameDir() / "Prof.txt", " \t,", "#;", "\"\"");
     if (!file.IsEOF())
     {
         while (!file.IsEOF())
@@ -321,7 +315,7 @@ bool CProfessionManager::Load()
             auto strings = file.ReadTokens();
             if (!strings.empty())
             {
-                if (ToLowerA(strings[0]) == string("begin"))
+                if (Core::ToLowerA(strings[0]) == std::string("begin"))
                 {
                     result = ParseFilePart(file);
 
@@ -347,7 +341,7 @@ bool CProfessionManager::Load()
         apc->SetSkillIndex(2, 0xFF);
         apc->SetSkillIndex(3, 0xFF);
 
-        if (g_Config.ClientVersion >= CV_70160)
+        if (GameVars::GetClientVersion() >= CV_70160)
         {
             apc->Str = 45;
             apc->Int = 35;
@@ -376,7 +370,7 @@ bool CProfessionManager::Load()
     }
     else
     {
-        LOG("Could not find prof.txt in your UO directory. Character creation professions loading failed.\n");
+        LOG_ERROR("ProfessionManager", "Could not find prof.txt in your UO directory. Character creation professions loading failed.");
     }
 
     return result;
@@ -384,16 +378,12 @@ bool CProfessionManager::Load()
 
 void CProfessionManager::LoadProfessionDescription()
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CMappedFile file;
-
-    if (file.Load(g_App.UOFilesPath("Professn.enu")))
+    Core::MappedFile file;
+    if (file.Load(g_App.GetGameDir() / "Professn.enu"))
     {
-        char *ptr = (char *)file.Start;
-        char *end = (char *)((uintptr_t)file.Start + file.Size);
-
-        vector<string> list;
-
+        char *ptr = (char *)file.GetBuffer();
+        char *end = (char *)((uintptr_t)file.GetBuffer() + file.GetSize());
+        std::vector<std::string> list;
         while (ptr < end)
         {
             if (memcmp(ptr, "TEXT", 4) == 0)
@@ -437,14 +427,12 @@ void CProfessionManager::LoadProfessionDescription()
     }
     else
     {
-        LOG("Failed to load professn.enu\n");
-        g_OrionWindow.ShowMessage("Failed to load professn.enu", "Failed to load");
+        LOG_ERROR("ProfessionManager", "Failed to load professn.enu");
     }
 }
 
 CBaseProfession *CProfessionManager::GetParent(CBaseProfession *obj, CBaseProfession *check)
 {
-    DEBUG_TRACE_FUNCTION;
     if (check == nullptr)
     {
         check = (CBaseProfession *)m_Items;

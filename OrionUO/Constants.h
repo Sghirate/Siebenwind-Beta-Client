@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
 
 const int MAX_MOBILE_DIRECTIONS = 5;
 
@@ -81,7 +80,7 @@ const int ORION_ITEMS_ANIMATION_DELAY = 50;
 const int ORIGINAL_CHARACTERS_ANIMATION_DELAY = 100;
 const int ORION_CHARACTERS_ANIMATION_DELAY = 70;
 
-const uint16_t FIELD_REPLACE_GRAPHIC = 0x1826;
+const u16 FIELD_REPLACE_GRAPHIC = 0x1826;
 
 const int MAX_LIGHT_SOURCES = 100;
 
@@ -112,9 +111,9 @@ const int MAX_ANIMATIONS_DATA_INDEX_COUNT = 2048;
 
 const int MAX_LIGHTS_DATA_INDEX_COUNT = 100;
 
-const uint16_t SPECTRAL_COLOR_FLAG = 0x4000;
+const u16 SPECTRAL_COLOR_FLAG = 0x4000;
 
-const uint16_t SPECTRAL_COLOR_SPECIAL = 0x4666;
+const u16 SPECTRAL_COLOR_SPECIAL = 0x4666;
 
 const int UNICODE_SPACE_WIDTH = 8;
 
@@ -132,13 +131,13 @@ const int TEXT_MESSAGE_MAX_WIDTH = 200;
 
 const int TEXT_SYSTEM_MESSAGE_MAX_WIDTH = 320;
 
-const uint32_t DEATH_SCREEN_DELAY = 3000;
+const u32 DEATH_SCREEN_DELAY = 3000;
 
-const uint16_t SELECT_LAND_COLOR = 0x0044;
+const u16 SELECT_LAND_COLOR = 0x0044;
 
-const uint16_t SELECT_STATIC_COLOR = 0x0077;
+const u16 SELECT_STATIC_COLOR = 0x0077;
 
-const uint16_t SELECT_MULTI_COLOR = 0x0066;
+const u16 SELECT_MULTI_COLOR = 0x0066;
 
 const int MALE_GUMP_OFFSET = 50000;
 
@@ -203,8 +202,8 @@ static const bool LAYER_UNSAFE[30] = { false, //0
 
 struct TREE_UNIONS
 {
-    uint16_t GraphicStart;
-    uint16_t GraphicEnd;
+    u16 GraphicStart;
+    u16 GraphicEnd;
 };
 
 const int TREE_COUNT = 9;
@@ -220,7 +219,7 @@ const int SITTING_OFFSET_X = 8;
 
 struct SITTING_INFO_DATA
 {
-    uint16_t Graphic;
+    u16 Graphic;
 
     // Anim/Character direction
     // 7, 0

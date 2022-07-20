@@ -1,14 +1,13 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "SkillGroupManager.h"
+#include "Core/File.h"
+#include "Core/MappedFile.h"
 #include "GumpManager.h"
 #include "SkillsManager.h"
 #include "ConfigManager.h"
-#include "../OrionUO.h"
-#include "../SkillGroup.h"
-#include "../Gumps/GumpNotify.h"
-#include "../ScreenStages/GameBlockedScreen.h"
+#include "OrionUO.h"
+#include "SkillGroup.h"
+#include "Gumps/GumpNotify.h"
+#include "ScreenStages/GameBlockedScreen.h"
 
 CSkillGroupManager g_SkillGroupManager;
 
@@ -22,7 +21,6 @@ CSkillGroupManager::~CSkillGroupManager()
 
 void CSkillGroupManager::MakeDefault()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     MakeDefaultMiscellaneous();
@@ -33,7 +31,7 @@ void CSkillGroupManager::MakeDefault()
     MakeDefaultThieving();
     MakeDefaultBard();
 
-    CSkillGroupObject *group = m_Groups;
+    CSkillGroupObject* group = m_Groups;
 
     while (group != nullptr)
     {
@@ -45,9 +43,8 @@ void CSkillGroupManager::MakeDefault()
 
 void CSkillGroupManager::MakeDefaultMiscellaneous()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Miscellaneous";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Miscellaneous";
     group->Add(4);
     group->Add(6);
     group->Add(10);
@@ -61,11 +58,10 @@ void CSkillGroupManager::MakeDefaultMiscellaneous()
 
 void CSkillGroupManager::MakeDefaultCombat()
 {
-    DEBUG_TRACE_FUNCTION;
     int cnt = g_SkillsManager.Count;
 
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Combat";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Combat";
     group->Add(1);
     group->Add(31);
     group->Add(42);
@@ -103,9 +99,8 @@ void CSkillGroupManager::MakeDefaultCombat()
 
 void CSkillGroupManager::MakeDefaultTradeSkills()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Trade Skills";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Trade Skills";
     group->Add(0);
     group->Add(7);
     group->Add(8);
@@ -122,11 +117,10 @@ void CSkillGroupManager::MakeDefaultTradeSkills()
 
 void CSkillGroupManager::MakeDefaultMagic()
 {
-    DEBUG_TRACE_FUNCTION;
     int cnt = g_SkillsManager.Count;
 
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Magic";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Magic";
     group->Add(16);
     if (cnt > 56)
     {
@@ -154,9 +148,8 @@ void CSkillGroupManager::MakeDefaultMagic()
 
 void CSkillGroupManager::MakeDefaultWilderness()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Wilderness";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Wilderness";
     group->Add(2);
     group->Add(35);
     group->Add(18);
@@ -169,9 +162,8 @@ void CSkillGroupManager::MakeDefaultWilderness()
 
 void CSkillGroupManager::MakeDefaultThieving()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Thieving";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Thieving";
     group->Add(14);
     group->Add(21);
     group->Add(24);
@@ -186,9 +178,8 @@ void CSkillGroupManager::MakeDefaultThieving()
 
 void CSkillGroupManager::MakeDefaultBard()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSkillGroupObject *group = new CSkillGroupObject();
-    group->Name = "Bard";
+    CSkillGroupObject* group = new CSkillGroupObject();
+    group->Name              = "Bard";
     group->Add(15);
     group->Add(29);
     group->Add(9);
@@ -199,58 +190,55 @@ void CSkillGroupManager::MakeDefaultBard()
 
 void CSkillGroupManager::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSkillGroupObject *item = m_Groups;
+    CSkillGroupObject* item = m_Groups;
 
     while (item != nullptr)
     {
-        CSkillGroupObject *next = item->m_Next;
+        CSkillGroupObject* next = item->m_Next;
 
         delete item;
 
         item = next;
     }
 
-    Count = 0;
+    Count    = 0;
     m_Groups = nullptr;
 }
 
-void CSkillGroupManager::Add(CSkillGroupObject *group)
+void CSkillGroupManager::Add(CSkillGroupObject* group)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Groups == nullptr)
     {
-        m_Groups = group;
+        m_Groups         = group;
         m_Groups->m_Next = nullptr;
         m_Groups->m_Prev = nullptr;
-        Count = 1;
+        Count            = 1;
 
         return;
     }
 
-    CSkillGroupObject *item = m_Groups;
+    CSkillGroupObject* item = m_Groups;
 
     while (item->m_Next != nullptr)
     {
         item = item->m_Next;
     }
 
-    item->m_Next = group;
+    item->m_Next  = group;
     group->m_Next = nullptr;
     group->m_Prev = item;
 
     Count++;
 }
 
-bool CSkillGroupManager::Remove(CSkillGroupObject *group)
+bool CSkillGroupManager::Remove(CSkillGroupObject* group)
 {
-    DEBUG_TRACE_FUNCTION;
     if (group->m_Prev == nullptr) //Miscellaneous
     {
         int x = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2) - 100;
         int y = g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2) - 62;
 
-        CGumpNotify *gump = new CGumpNotify(
+        CGumpNotify* gump = new CGumpNotify(
             x, y, CGumpNotify::ID_GN_STATE_NOTIFICATION, 200, 125, "Cannot delete this group.");
 
         g_GumpManager.AddGump(gump);
@@ -281,38 +269,36 @@ bool CSkillGroupManager::Remove(CSkillGroupObject *group)
     return true;
 }
 
-bool CSkillGroupManager::Load(const os_path &path)
+bool CSkillGroupManager::Load(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     Clear();
 
-    Wisp::CMappedFile file;
-
-    if (file.Load(path))
+    Core::MappedFile file;
+    if (file.Load(a_path))
     {
-        uint8_t version = file.ReadUInt8();
+        u8 version = file.ReadLE<u8>();
 
-        short count = file.ReadUInt16LE();
+        short count = file.ReadLE<u16>();
 
         for (int i = 0; i < count; i++)
         {
-            uint8_t *next = file.Ptr;
-            short size = file.ReadUInt16LE();
+            u8* next   = file.GetPtr();
+            short size = file.ReadLE<u16>();
             next += size;
 
-            CSkillGroupObject *group = new CSkillGroupObject();
+            CSkillGroupObject* group = new CSkillGroupObject();
 
-            short length = file.ReadUInt16LE();
-            string str = file.ReadString(length);
-            group->Name = str;
+            short length    = file.ReadLE<u16>();
+            std::string str = file.ReadString(length);
+            group->Name     = str;
 
-            short skills = file.ReadUInt16LE();
+            short skills = file.ReadLE<u16>();
 
             for (int j = 0; j < skills; j++)
             {
-                uint8_t skill = file.ReadUInt8();
+                u8 skill = file.ReadLE<u8>();
 
                 if (skill != 0xFF)
                 {
@@ -324,7 +310,7 @@ bool CSkillGroupManager::Load(const os_path &path)
 
             Add(group);
 
-            file.Ptr = next;
+            file.SetPtr(next);
         }
 
         file.Unload();
@@ -339,52 +325,41 @@ bool CSkillGroupManager::Load(const os_path &path)
     return result;
 }
 
-void CSkillGroupManager::Save(const os_path &path)
+void CSkillGroupManager::Save(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CBinaryFileWriter writer;
+    Core::StreamWriter writer;
 
-    writer.Open(path);
+    writer.WriteLE<u8>(0); //version
 
-    writer.WriteUInt8(0); //version
-
-    Count = 0;
-    CSkillGroupObject *group = m_Groups;
+    Count                    = 0;
+    CSkillGroupObject* group = m_Groups;
     while (group != nullptr)
     {
         Count++;
         group = group->m_Next;
     }
-
-    writer.WriteUInt16LE(Count); //Count
-
+    writer.WriteLE<u16>(Count); //Count
     group = m_Groups;
-
     for (int i = 0; i < Count; i++)
     {
-        string str = group->Name;
-        size_t len = str.length() + 1;
+        std::string str = group->Name;
+        size_t len      = str.length() + 1;
 
         short size = (short)len + 2 + 2 + 2 + group->Count;
-        writer.WriteUInt16LE(size); //Block size
+        writer.WriteLE<u16>(size); //Block size
 
-        writer.WriteUInt16LE((short)len); //Name length
-        writer.WriteString(str, 0u);      //Name
+        writer.WriteLE<u16>((short)len); //Name length
+        writer.WriteString(str, 0u);     //Name
 
         short count = group->Count;
-
-        writer.WriteUInt16LE(count); //Skills count
-
+        writer.WriteLE<u16>(count); //Skills count
         for (int j = 0; j < count; j++)
         {
-            uint8_t skill = group->GetItem(j);
-            writer.WriteUInt8(skill); //Skill
+            u8 skill = group->GetItem(j);
+            writer.WriteLE<u8>(skill); //Skill
         }
-
-        writer.WriteBuffer();
-
         group = group->m_Next;
     }
-
-    writer.Close();
+    Core::File file(a_path, "wb");
+    file.Write(writer.GetBuffer(), writer.GetSize(), 1);
 }

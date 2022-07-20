@@ -1,14 +1,12 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "CharacterListScreen.h"
 #include "ConnectionScreen.h"
+#include "GameWindow.h"
 #include "MainScreen.h"
-#include "../OrionUO.h"
-#include "../ServerList.h"
-#include "../OrionWindow.h"
-#include "../CharacterList.h"
-#include "../Managers/ScreenEffectManager.h"
+#include "OrionUO.h"
+#include "ServerList.h"
+#include "CharacterList.h"
+#include "Managers/ScreenEffectManager.h"
+#include "SiebenwindClient.h"
 
 CCharacterListScreen g_CharacterListScreen;
 
@@ -23,18 +21,17 @@ CCharacterListScreen::~CCharacterListScreen()
 
 void CCharacterListScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
+    std::string title =
+        SiebenwindClient::GetWindowTitle() + " - " + g_MainScreen.m_Account->c_str();
 
-    string title = SiebenwindClient::WindowTitle + " - " + g_MainScreen.m_Account->c_str();
-
-    CServer *server = g_ServerList.GetSelectedServer();
+    CServer* server = g_ServerList.GetSelectedServer();
 
     if (server != nullptr)
     {
         title += "(" + server->Name + ")";
     }
 
-    g_OrionWindow.SetTitle(title);
+    g_gameWindow.SetTitle(title.c_str());
 
     g_CharacterList.Selected = 0;
 
@@ -45,9 +42,8 @@ void CCharacterListScreen::Init()
     m_Gump.WantUpdateContent = true;
 }
 
-void CCharacterListScreen::ProcessSmoothAction(uint8_t action)
+void CCharacterListScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -55,7 +51,7 @@ void CCharacterListScreen::ProcessSmoothAction(uint8_t action)
 
     if (action == ID_SMOOTH_CLS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Close();
     }
     else if (action == ID_SMOOTH_CLS_CONNECT)
     {
@@ -86,14 +82,10 @@ void CCharacterListScreen::ProcessSmoothAction(uint8_t action)
     }
 }
 
-void CCharacterListScreen::OnKeyDown(const KeyEvent &ev)
+void CCharacterListScreen::OnKeyDown(const Core::KeyEvent& ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_Gump.OnKeyDown(ev);
-
-    const auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2)
     {
         CreateSmoothAction(ID_SMOOTH_CLS_SELECT_CHARACTER);
     }

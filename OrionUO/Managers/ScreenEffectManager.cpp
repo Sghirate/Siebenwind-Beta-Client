@@ -1,8 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ScreenEffectManager.h"
-#include "../OrionWindow.h"
+#include "GameWindow.h"
+#include "Globals.h"
+#include "plugin/enumlist.h"
 
 CScreenEffectManager g_ScreenEffectManager;
 
@@ -16,7 +15,6 @@ CScreenEffectManager::~CScreenEffectManager()
 
 int CScreenEffectManager::Process()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Mode == SEM_SUNRISE)
     {
         Alpha -= Step;
@@ -29,7 +27,7 @@ int CScreenEffectManager::Process()
     else if (Mode == SEM_SUNSET)
     {
         static bool mode = false;
-        static uint32_t timer = 0;
+        static u32 timer = 0;
         Alpha += Step;
 
         if (Type == SET_TO_WHITE_THEN_BLACK)
@@ -50,11 +48,11 @@ int CScreenEffectManager::Process()
 
                         if (ColorR <= 0.0f)
                         {
-                            mode = true;
+                            mode   = true;
                             ColorR = 0.0f;
                             ColorG = 0.0f;
                             ColorB = 0.0f;
-                            timer = g_Ticks + 500;
+                            timer  = g_Ticks + 500;
                         }
                         else
                         {
@@ -70,7 +68,7 @@ int CScreenEffectManager::Process()
             }
             else
             {
-                mode = false;
+                mode  = false;
                 timer = 0;
             }
         }
@@ -86,21 +84,20 @@ int CScreenEffectManager::Process()
 
 void CScreenEffectManager::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Mode != SEM_NONE)
     {
         glColor4f(ColorR, ColorG, ColorB, Alpha);
 
         if (Type == SET_TO_WHITE_THEN_BLACK && Alpha >= 1.0f)
         {
-            g_GL.DrawPolygone(0, 0, g_OrionWindow.GetSize().Width, g_OrionWindow.GetSize().Height);
+            g_GL.DrawPolygone(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
         }
         else
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            g_GL.DrawPolygone(0, 0, g_OrionWindow.GetSize().Width, g_OrionWindow.GetSize().Height);
+            g_GL.DrawPolygone(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
 
             glDisable(GL_BLEND);
         }
@@ -109,9 +106,8 @@ void CScreenEffectManager::Draw()
     }
 }
 bool CScreenEffectManager::Use(
-    const SCREEN_EFFECT_MODE &mode, const SCREEN_EFFECT_TYPE &type, bool ignoreEnabled)
+    const SCREEN_EFFECT_MODE& mode, const SCREEN_EFFECT_TYPE& type, bool ignoreEnabled)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled || ignoreEnabled)
     {
         Mode = mode;
@@ -130,7 +126,7 @@ bool CScreenEffectManager::Use(
         static const float speedTable[5] = { 0.02f, 0.02f, 0.08f, 0.02f, 0.15f };
 
         ColorR = ColorG = ColorB = colorTable[type];
-        Step = speedTable[type];
+        Step                     = speedTable[type];
     }
     else
     {
@@ -142,16 +138,14 @@ bool CScreenEffectManager::Use(
 
 bool CScreenEffectManager::UseSunrise()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = Use(SEM_SUNRISE);
-    Step = 0.05f;
+    Step        = 0.05f;
     return result;
 }
 
 bool CScreenEffectManager::UseSunset()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = Use(SEM_SUNSET);
-    Step = 0.05f;
+    Step        = 0.05f;
     return result;
 }

@@ -1,11 +1,9 @@
-// MIT License
-// Copyright (C) November 2017 Hotride
-
 #include "GumpProperty.h"
-#include "../ToolTip.h"
-#include "../Managers/MouseManager.h"
+#include "Globals.h"
+#include "ToolTip.h"
+#include "Managers/MouseManager.h"
 
-CGumpProperty::CGumpProperty(const wstring &text)
+CGumpProperty::CGumpProperty(const std::wstring &text)
     : CGump(GT_PROPERTY, 0, 0, 0)
 {
     Timer = g_Ticks + 5000;
@@ -13,19 +11,13 @@ CGumpProperty::CGumpProperty(const wstring &text)
     int width = 0;
     g_ToolTip.CreateTextTexture(m_Texture, text, width, 0);
 
-    m_X = g_MouseManager.Position.X - (m_Texture.Width + 8);
-
+    m_X = g_MouseManager.GetPosition().x - (m_Texture.Width + 8);
     if (m_X < 0)
-    {
         m_X = 0;
-    }
 
-    m_Y = g_MouseManager.Position.Y - (m_Texture.Height + 8);
-
+    m_Y = g_MouseManager.GetPosition().y - (m_Texture.Height + 8);
     if (m_Y < 0)
-    {
         m_Y = 0;
-    }
 
     Add(new CGUIColoredPolygone(
         0, 0, 0, 0, m_Texture.Width + 12, m_Texture.Height + 8, 0x7F000000));

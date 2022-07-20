@@ -1,9 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../RenderObject.h"
+#include "RenderObject.h"
 
 class CRenderTextObject : public CRenderObject
 {

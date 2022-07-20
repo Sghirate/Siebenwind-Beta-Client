@@ -1,12 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpJournal.h"
-#include "../DefinitionMacro.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/TextData.h"
-#include "../TextEngine/Journal.h"
+#include "DefinitionMacro.h"
+#include "Globals.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "TextEngine/TextData.h"
+#include "TextEngine/Journal.h"
 
 enum
 {
@@ -24,13 +22,12 @@ enum
 CGumpJournal::CGumpJournal(short x, short y, bool minimized, int height)
     : CGumpBaseScroll(GT_JOURNAL, 0, 0x0820, height, x, y, true, 0, true)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Locker.Serial = ID_GJ_LOCK_MOVING;
 
     if (minimized)
     {
-        Page = 1;
-        Minimized = true;
+        Page       = 1;
+        Minimized  = true;
         MinimizedX = x;
         MinimizedY = y;
     }
@@ -43,33 +40,33 @@ CGumpJournal::CGumpJournal(short x, short y, bool minimized, int height)
     Add(new CGUIGumppic(0x0830, 0, 0));
 
     Add(new CGUIPage(2));
-    Add(new CGUIGumppic(0x082A, 111, 32));                                       //Journal text gump
-    Add(new CGUIGumppic(0x082B, 30, 58));                                        //Top line
-    m_BottomLine = (CGUIGumppic *)Add(new CGUIGumppic(0x082B, 31, Height - 26)); //Bottom line
+    Add(new CGUIGumppic(0x082A, 111, 32));                                      //Journal text gump
+    Add(new CGUIGumppic(0x082B, 30, 58));                                       //Top line
+    m_BottomLine = (CGUIGumppic*)Add(new CGUIGumppic(0x082B, 31, Height - 26)); //Bottom line
 
-    m_TextLocker = (CGUIButton *)Add(
+    m_TextLocker = (CGUIButton*)Add(
         new CGUIButton(ID_GJ_BUTTON_LOCK, 0x082C, 0x082C, 0x082C, 242, Height - 27));
     m_TextLocker->CheckPolygone = true;
-    m_TextLocker->Visible = false;
+    m_TextLocker->Visible       = false;
 
-    m_CheckboxShowSystem = (CGUICheckbox *)Add(
+    m_CheckboxShowSystem = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GJ_SHOW_SYSTEM, 0x00D2, 0x00D3, 0x00D2, 40, Height - 5));
     m_CheckboxShowSystem->Checked = g_JournalShowSystem;
-    m_CheckboxShowObjects = (CGUICheckbox *)Add(
+    m_CheckboxShowObjects         = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GJ_SHOW_OBJECTS, 0x00D2, 0x00D3, 0x00D2, 126, Height - 5));
     m_CheckboxShowObjects->Checked = g_JournalShowObjects;
-    m_CheckboxShowClient = (CGUICheckbox *)Add(
+    m_CheckboxShowClient           = (CGUICheckbox*)Add(
         new CGUICheckbox(ID_GJ_SHOW_CLIENT, 0x00D2, 0x00D3, 0x00D2, 210, Height - 5));
     m_CheckboxShowClient->Checked = g_JournalShowClient;
 
-    m_TextShowSystem = (CGUIText *)Add(new CGUIText(0x0386, 63, Height - 2));
+    m_TextShowSystem = (CGUIText*)Add(new CGUIText(0x0386, 63, Height - 2));
     m_TextShowSystem->CreateTextureA(1, "System");
-    m_TextShowObjects = (CGUIText *)Add(new CGUIText(0x0386, 149, Height - 2));
+    m_TextShowObjects = (CGUIText*)Add(new CGUIText(0x0386, 149, Height - 2));
     m_TextShowObjects->CreateTextureA(1, "Objects");
-    m_TextShowClient = (CGUIText *)Add(new CGUIText(0x0386, 233, Height - 2));
+    m_TextShowClient = (CGUIText*)Add(new CGUIText(0x0386, 233, Height - 2));
     m_TextShowClient->CreateTextureA(1, "Client");
 
-    QFOR(item, g_Journal.m_Items, CTextData *)
+    QFOR(item, g_Journal.m_Items, CTextData*)
     AddText(item);
 }
 
@@ -79,8 +76,7 @@ CGumpJournal::~CGumpJournal()
 
 void CGumpJournal::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     if (!Minimized)
     {
@@ -121,8 +117,7 @@ void CGumpJournal::InitToolTip()
                 g_ToolTip.Set(L"Lock moving/closing the journal gump");
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
     else
@@ -133,7 +128,6 @@ void CGumpJournal::InitToolTip()
 
 void CGumpJournal::UpdateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     CGumpBaseScroll::UpdateHeight();
 
     m_BottomLine->SetY(Height - 26); //Bottom line
@@ -156,10 +150,9 @@ void CGumpJournal::UpdateHeight()
 
 int CGumpJournal::RecalculateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     int height = 0;
 
-    QFOR(item, m_HTMLGump->m_Items, CBaseGUI *)
+    QFOR(item, m_HTMLGump->m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_TEXT)
         {
@@ -184,7 +177,7 @@ int CGumpJournal::RecalculateHeight()
 
             if (visible)
             {
-                height += ((CGUIText *)item)->m_Texture.Height;
+                height += ((CGUIText*)item)->m_Texture.Height;
             }
         }
     }
@@ -192,16 +185,15 @@ int CGumpJournal::RecalculateHeight()
     return height;
 }
 
-void CGumpJournal::AddText(CTextData *obj)
+void CGumpJournal::AddText(CTextData* obj)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGUIText *text = (CGUIText *)m_HTMLGump->Add(new CGUIText(obj->Color, 4, RecalculateHeight()));
+    CGUIText* text   = (CGUIText*)m_HTMLGump->Add(new CGUIText(obj->Color, 4, RecalculateHeight()));
     text->MoveOnDrag = true;
-    text->Serial = 0;
-    text->TextData = obj;
-    text->Graphic = (uint16_t)obj->Type;
+    text->Serial     = 0;
+    text->TextData   = obj;
+    text->Graphic    = (u16)obj->Type;
 
-    uint16_t flags = UOFONT_INDENTION;
+    u16 flags = UOFONT_INDENTION;
 
     if (obj->Type == TT_OBJECT || obj->Unicode)
     {
@@ -226,10 +218,9 @@ void CGumpJournal::AddText(CTextData *obj)
     }
 }
 
-void CGumpJournal::DeleteText(CTextData *obj)
+void CGumpJournal::DeleteText(CTextData* obj)
 {
-    DEBUG_TRACE_FUNCTION;
-    QFOR(item, m_HTMLGump->m_Items, CBaseGUI *)
+    QFOR(item, m_HTMLGump->m_Items, CBaseGUI*)
     {
         if (item->Type == GOT_TEXT && item->TextData == obj)
         {
@@ -244,11 +235,10 @@ void CGumpJournal::DeleteText(CTextData *obj)
 
 void CGumpJournal::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GBS_BUTTON_MINIMIZE)
     {
         Minimized = true;
-        Page = 1;
+        Page      = 1;
     }
     else if (serial == ID_GJ_LOCK_MOVING)
     {
@@ -264,7 +254,6 @@ void CGumpJournal::GUMP_BUTTON_EVENT_C
 
 void CGumpJournal::GUMP_CHECKBOX_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GJ_SHOW_SYSTEM)
     {
         g_JournalShowSystem = !g_JournalShowSystem;
@@ -305,12 +294,11 @@ void CGumpJournal::GUMP_CHECKBOX_EVENT_C
 
 bool CGumpJournal::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized)
     {
-        Minimized = false;
+        Minimized  = false;
         WantRedraw = true;
-        Page = 2;
+        Page       = 2;
 
         return true;
     }

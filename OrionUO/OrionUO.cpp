@@ -1,15 +1,24 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "OrionUO.h"
 
 #include <SDL.h>
 
 #include "GitRevision.h"
 #include "Config.h"
-#include "Misc.h"
+#include "GameVars.h"
+#include "Globals.h"
 
-#include "Point.h"
+#include "Core/CommandLine.h"
+#include "Core/File.h"
+#include "Core/Input.h"
+#include "Core/Log.h"
+#include "Core/Minimal.h"
+#include "Core/MappedFile.h"
+#include "Core/Platform.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
+#include "Core/Time.h"
+
+#include "GameWindow.h"
 #include "Macro.h"
 #include "DefinitionMacro.h"
 #include "CityList.h"
@@ -18,23 +27,20 @@
 #include "TargetGump.h"
 #include "StumpsData.h"
 #include "Party.h"
-#include "ShaderData.h"
 #include "ServerList.h"
 #include "PressedObject.h"
 #include "SelectedObject.h"
 #include "ClickObject.h"
-#include "OrionWindow.h"
 #include "UseItemsList.h"
 #include "ContainerStack.h"
 #include "Container.h"
 #include "CharacterList.h"
 #include "DateTimeStamp.h"
 #include "OrionApplication.h"
+#include "SiebenwindClient.h"
 
-#include "Utility/PingThread.h"
+#include "Utility/Pinger.h"
 #include "Crypt/CryptEntry.h"
-
-#include "plugin/commoninterfaces.h"
 
 #include "Profiler.h"
 
@@ -78,7 +84,6 @@
 #include "Managers/MouseManager.h"
 #include "Managers/OptionsMacroManager.h"
 #include "Managers/PacketManager.h"
-#include "Managers/PluginManager.h"
 #include "Managers/ProfessionManager.h"
 #include "Managers/ScreenEffectManager.h"
 #include "Managers/SkillGroupManager.h"
@@ -151,17 +156,43 @@
 #include "Gumps/GumpProperty.h"
 #include "Gumps/GumpPropertyIcon.h"
 
-#if !defined(ORION_WINDOWS)
-REVERSE_PLUGIN_INTERFACE g_oaReverse;
-#endif
+#include <resources/shaders.hpp>
+#include <deque>
 
-PLUGIN_CLIENT_INTERFACE g_PluginClientInterface = {};
+namespace
+{
+enum { kGameServerId = 0xFFFFFFFF };
+Core::TimeStamp g_nextGameServerPing = Core::TimeStamp::Now();
+PingResult g_gameServerPingInfo;
+std::string g_pingString;
 
-bool CDECL PluginRecvFunction(uint8_t *buf, size_t size);
-bool CDECL PluginSendFunction(uint8_t *buf, size_t size);
+static void OnPingResult(const PingResult& a_pingResult)
+{
+    if (a_pingResult.serverId == kGameServerId)
+    {
+        memcpy(&g_gameServerPingInfo, &a_pingResult, sizeof(g_gameServerPingInfo));
+        char ping[50] = { 0 };
+        sprintf_s(
+            ping,
+            "ping(min:%i max:%i avg:%i lost:%i) ",
+            g_gameServerPingInfo.min,
+            g_gameServerPingInfo.max,
+            g_gameServerPingInfo.avg,
+            g_gameServerPingInfo.lost);
+        g_pingString = ping;
+    }
+}
+static void TickGameServerPing(const std::string& a_gameServerIp)
+{
+    if (ping_disable.GetValue() == 0 && g_ConfigManager.CheckPing && g_nextGameServerPing < Core::TimeStamp::Now())
+    {
+        enum { kGameServerId = 0xFFFFFFFF };
+        Pinger::Get().Ping(kGameServerId, a_gameServerIp, 10, OnPingResult);
+        g_nextGameServerPing = Core::TimeStamp::Now() + Core::TimeDiff::FromSeconds(g_ConfigManager.GetPingTimer());
+    }
+}
 
-typedef void CDECL PLUGIN_INIT_TYPE(PLUGIN_INFO *);
-static PLUGIN_INIT_TYPE *g_PluginInit = nullptr;
+} // namespace <anonymous>
 
 COrion g_Orion;
 
@@ -173,10 +204,9 @@ COrion::~COrion()
 {
 }
 
-uint32_t Reflect(uint32_t source, int c)
+u32 Reflect(u32 source, int c)
 {
-    //DEBUG_TRACE_FUNCTION;
-    uint32_t value = 0;
+    u32 value = 0;
 
     for (int i = 1; i < c + 1; i++)
     {
@@ -191,10 +221,9 @@ uint32_t Reflect(uint32_t source, int c)
     return value;
 }
 
-uint32_t COrion::GetFileHashCode(uint8_t *ptr, size_t size)
+u32 COrion::GetFileHashCode(u8* ptr, size_t size)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t crc = 0xFFFFFFFF;
+    u32 crc = 0xFFFFFFFF;
 
     while (size > 0)
     {
@@ -207,16 +236,15 @@ uint32_t COrion::GetFileHashCode(uint8_t *ptr, size_t size)
     return (crc & 0xFFFFFFFF);
 }
 
-string COrion::DecodeArgumentString(const char *text, int length)
+std::string COrion::DecodeArgumentString(const char* text, int length)
 {
-    DEBUG_TRACE_FUNCTION;
-    string result{};
+    std::string result{};
 
     for (int i = 0; i < length; i += 2)
     {
         char buf[5] = { '0', 'x', text[i], text[i + 1], 0 };
 
-        char *end = nullptr;
+        char* end = nullptr;
         result += (char)strtoul(buf, &end, 16);
     }
 
@@ -225,46 +253,38 @@ string COrion::DecodeArgumentString(const char *text, int length)
 
 void COrion::ParseCommandLine() // FIXME: move this out
 {
-    DEBUG_TRACE_FUNCTION;
+    bool fastLogin         = false;
+    u32 defaultPluginFlags = 0xFFFFFFFF;
 
-    bool fastLogin = false;
-    uint32_t defaultPluginFlags = 0xFFFFFFFF;
-
-#if defined(ORION_WINDOWS)
-    int argc = 0;
-    auto *args = CommandLineToArgvW(GetCommandLineW(), &argc);
-    auto defaultPluginPath{ g_App.ExeFilePath("OrionAssistant.dll") };
-    string defaultPluginFunction = "Install";
-#else
-    // FIXME: again, move this out! and receive args from the real main
-    int argc = 0;
-    const char *args[] = { nullptr };
-#endif
+    int argc                                = Core::CommandLine::GetArgc();
+    char** argv                             = Core::CommandLine::GetArgv();
+    std::filesystem::path defaultPluginPath = g_App.GetExeDir() / "OrionAssistant.dll";
+    std::string defaultPluginFunction       = "Install";
 
     for (int i = 0; i < argc; i++)
     {
-        if ((args[i] == nullptr) || *args[i] != L'-')
+        if ((argv[i] == nullptr) || *argv[i] != '-')
         {
             continue;
         }
 
-        string str = ToString(args[i] + 1);
-        Wisp::CTextFileParser parser({}, " ,:", "", "''");
-        vector<string> strings = parser.GetTokens(str.c_str());
+        std::string str = std::string(argv[i] + 1);
+        Core::TextFileParser parser({}, " ,:", "", "''");
+        std::vector<std::string> strings = parser.GetTokens(str.c_str());
         if (strings.empty())
         {
             continue;
         }
 
-        str = ToLowerA(strings[0]);
-        bool haveParam = (strings.size() > 1);
+        str             = Core::ToLowerA(strings[0]);
+        bool haveParam  = (strings.size() > 1);
         bool have2Param = (strings.size() > 2);
         if (have2Param)
         {
             if (str == "login")
             {
                 m_OverrideServerAddress = strings[1];
-                m_OverrideServerPort = atoi(strings[2].c_str());
+                m_OverrideServerPort    = atoi(strings[2].c_str());
             }
             else if (str == "proxyhost")
             {
@@ -289,21 +309,20 @@ void COrion::ParseCommandLine() // FIXME: move this out
 #if defined(ORION_WINDOWS)
             else if (str == "plugin")
             {
-                strings = Wisp::CTextFileParser({}, ",:", "", "")
-                              .GetTokens(ToString(args[i] + 1).c_str(), false);
+                strings = Core::TextFileParser({}, ",:", "", "").GetTokens(argv[i] + 1, false);
                 if (strings.size() > 4)
                 {
                     defaultPluginFlags = 0;
-                    if (ToLowerA(strings[4]).find("0x") == 0)
+                    if (Core::ToLowerA(strings[4]).find("0x") == 0)
                     {
-                        char *end = nullptr;
+                        char* end          = nullptr;
                         defaultPluginFlags = strtoul(strings[4].c_str(), &end, 16);
                     }
                     else
                     {
                         defaultPluginFlags = atoi(strings[4].c_str());
                     }
-                    defaultPluginPath = ToPath(strings[1]) + ToPath(":") + ToPath(strings[2]);
+                    defaultPluginPath     = strings[1] + ":" + strings[2];
                     defaultPluginFunction = strings[3];
                 }
             }
@@ -336,14 +355,14 @@ void COrion::ParseCommandLine() // FIXME: move this out
             if (g_PacketManager.AutoLoginNames.length() != 0u)
             {
                 g_PacketManager.AutoLoginNames =
-                    string("|") +
+                    std::string("|") +
                     DecodeArgumentString(strings[1].c_str(), (int)strings[1].length()) +
                     g_PacketManager.AutoLoginNames;
             }
             else
             {
                 g_PacketManager.AutoLoginNames =
-                    string("|") +
+                    std::string("|") +
                     DecodeArgumentString(strings[1].c_str(), (int)strings[1].length());
             }
         }
@@ -356,31 +375,15 @@ void COrion::ParseCommandLine() // FIXME: move this out
             g_Config.EncryptionType = ET_NOCRYPT;
         }
     }
-
-#if defined(ORION_WINDOWS)
-    LocalFree(args);
-    LoadPlugin(defaultPluginPath, defaultPluginFunction, defaultPluginFlags);
-#else
-    InstallPlugin(g_oaReverse.Install, defaultPluginFlags);
-#endif
-
-    if (fastLogin)
-    {
-        g_OrionWindow.CreateTimer(FASTLOGIN_TIMER_ID, 50);
-    }
 }
 
 bool COrion::Install()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    LOG("COrion::Install()\n");
-#if USE_WISP
-    SetUnhandledExceptionFilter(OrionUnhandledExceptionFilter);
-#endif
+    LOG_INFO("Client", "COrion::Install()");
     auto buildStamp = GetBuildDateTimeStamp();
-    LOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
-    CRASHLOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
+    LOG_INFO(
+        "Client", "Orion version is: %s (build %s)", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
+    //CRASHLOG("Orion version is: %s (build %s)\n", RC_PRODUCE_VERSION_STR, buildStamp.c_str());
 
     for (int i = 0; i < 256; i++)
     {
@@ -395,17 +398,17 @@ bool COrion::Install()
 
     for (int i = 0; i < MAX_MAPS_COUNT; i++)
     {
-        g_MapBlockSize[i].Width = g_MapSize[i].Width / 8;
-        g_MapBlockSize[i].Height = g_MapSize[i].Height / 8;
+        g_MapBlockSize[i].x = g_MapSize[i].x / 8;
+        g_MapBlockSize[i].y = g_MapSize[i].y / 8;
     }
 
     Platform::SetLanguageFromSystemLocale();
-    fs_path_create(g_App.ExeFilePath("screenshots"));
+    std::filesystem::create_directory(g_App.GetExeDir() / "screenshots");
 
-    LOG("Client config loaded!\n");
-    if (g_Config.ClientVersion >= CV_305D)
+    LOG_INFO("Client", "Client config loaded!");
+    if (GameVars::GetClientVersion() >= CV_305D)
     {
-        CGumpSpellbook::m_SpellReagents1[4] = "Sulfurous ash";                 //Magic Arrow
+        CGumpSpellbook::m_SpellReagents1[4]  = "Sulfurous ash";                //Magic Arrow
         CGumpSpellbook::m_SpellReagents1[17] = "Black pearl";                  //Fireball
         CGumpSpellbook::m_SpellReagents1[29] = "Mandrake root\nSulfurous ash"; //Lightning
         CGumpSpellbook::m_SpellReagents1[42] = "Bloodmoss\nMandrake root";     //Explosion
@@ -413,20 +416,16 @@ bool COrion::Install()
 
     LoadAutoLoginNames();
 
-    LOG("Load files\n");
+    LOG_INFO("Client", "Load files");
 
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
         g_FileManager.TryReadUOPAnimations();
     }
 
     if (!g_FileManager.Load())
     {
-        auto errMsg =
-            string(
-                "Error loading a memmapped file. Please check the log for more info.\nUsing UO search path: ") +
-            StringFromPath(g_App.m_UOPath);
-        g_OrionWindow.ShowMessage(errMsg, "FileManager::Load");
+        LOG_ERROR("Game", "Error loading a memmapped file. Please check the log for more info.\nUsing UO search path: %s", g_App.GetGameDir().c_str());
         return false;
     }
 
@@ -434,85 +433,79 @@ bool COrion::Install()
 
     CGumpSpellbook::InitStaticData();
 
-    m_AnimData.resize(g_FileManager.m_AnimdataMul.Size);
-    memcpy(&m_AnimData[0], &g_FileManager.m_AnimdataMul.Start[0], g_FileManager.m_AnimdataMul.Size);
+    m_AnimData.resize(g_FileManager.m_AnimdataMul.GetSize());
+    memcpy(
+        &m_AnimData[0],
+        g_FileManager.m_AnimdataMul.GetBuffer(),
+        g_FileManager.m_AnimdataMul.GetSize());
 
     g_ColorManager.Init();
 
-    LOG("Load tiledata\n");
+    LOG_INFO("Client", "Load tiledata");
 
     int staticsCount = 512;
 
-    if (g_Config.ClientVersion >= CV_7090)
-    {
-        staticsCount = (int)(g_FileManager.m_TiledataMul.Size - (512 * sizeof(LAND_GROUP_NEW))) /
-                       sizeof(STATIC_GROUP_NEW);
-    }
+    if (GameVars::GetClientVersion() >= CV_7090)
+        staticsCount =
+            (int)(g_FileManager.m_TiledataMul.GetSize() - (512 * sizeof(LAND_GROUP_NEW))) /
+            sizeof(STATIC_GROUP_NEW);
     else
-    {
-        staticsCount = (int)(g_FileManager.m_TiledataMul.Size - (512 * sizeof(LAND_GROUP_OLD))) /
-                       sizeof(STATIC_GROUP_OLD);
-    }
+        staticsCount =
+            (int)(g_FileManager.m_TiledataMul.GetSize() - (512 * sizeof(LAND_GROUP_OLD))) /
+            sizeof(STATIC_GROUP_OLD);
 
     if (staticsCount > 2048)
-    {
         staticsCount = 2048;
-    }
 
-    LOG("staticsCount=%i\n", staticsCount);
+    LOG_INFO("Client", "staticsCount=%i", staticsCount);
     LoadTiledata(512, staticsCount);
-    LOG("Load indexes\n");
+    LOG_INFO("Client", "Load indexes");
     LoadIndexFiles();
     InitStaticAnimList();
 
-    LOG("Load fonts.\n");
+    LOG_INFO("Client", "Load fonts.");
     if (!g_FontManager.LoadFonts())
     {
-        LOG("Error loading fonts\n");
-        g_OrionWindow.ShowMessage("Error loading fonts", "Error loading fonts!");
+        LOG_ERROR("Client", "Error loading fonts");
 
         return false;
     }
 
-    LOG("Load skills.\n");
+    LOG_INFO("Client", "Load skills.");
     if (!g_SkillsManager.Load())
     {
-        LOG("Error loading skills\n");
-        g_OrionWindow.ShowMessage("Error loading skills", "Error loading skills!");
-
+        LOG_ERROR("Client", "Error loading skills");
         return false;
     }
 
-    LOG("Create map blocksTable\n");
+    LOG_INFO("Client", "Create map blocksTable");
     g_MapManager.CreateBlocksTable();
 
-    LOG("Patch files\n");
+    LOG_INFO("Client", "Patch files");
     PatchFiles();
-    LOG("Replaces...\n");
+    LOG_INFO("Client", "Replaces...");
     IndexReplaces();
 
     CheckStaticTileFilterFiles();
 
-    CSize statusbarDims = GetGumpDimension(0x0804);
+    Core::Vec2<i32> statusbarDims = GetGumpDimension(0x0804);
 
-    CGumpStatusbar::m_StatusbarDefaultWidth = statusbarDims.Width;
-    CGumpStatusbar::m_StatusbarDefaultHeight = statusbarDims.Height;
+    CGumpStatusbar::m_StatusbarDefaultWidth  = statusbarDims.x;
+    CGumpStatusbar::m_StatusbarDefaultHeight = statusbarDims.y;
 
-    LOG("Sort skills...\n");
+    LOG_INFO("Client", "Sort skills...");
     g_SkillsManager.Sort();
 
-    LOG("Load cursors.\n");
+    LOG_INFO("Client", "Load cursors.");
     if (!g_MouseManager.LoadCursorTextures())
     {
-        LOG("Error loading cursors\n");
-        g_OrionWindow.ShowMessage("Error loading cursors", "Error loading cursors!");
-
+        LOG_ERROR("Client", "Error loading cursors");
         return false;
     }
 
     if (!g_SoundManager.Init() && g_ShowWarnings)
     {
-        g_OrionWindow.ShowMessage("Failed to init audio system.", "Sound error!");
+        LOG_WARNING("Client", "Failed to init audio system");
     }
 
     LoadContainerOffsets();
@@ -521,9 +514,9 @@ bool COrion::Install()
 
     g_EntryPointer = nullptr;
 
-    LOG("Load prof.\n");
+    LOG_INFO("Client", "Load prof.");
     g_ProfessionManager.Load();
-    g_ProfessionManager.Selected = (CBaseProfession *)g_ProfessionManager.m_Items;
+    g_ProfessionManager.Selected = (CBaseProfession*)g_ProfessionManager.m_Items;
 
     ExecuteStaticArt(0x0EED); //gp 1
     ExecuteStaticArt(0x0EEE); //gp 2-5
@@ -535,20 +528,19 @@ bool COrion::Install()
     {
         g_AnimationManager.Init(
             (int)i,
-            (size_t)g_FileManager.m_AnimIdx[i].Start,
-            (size_t)g_FileManager.m_AnimIdx[i].Size);
+            (size_t)g_FileManager.m_AnimIdx[i].GetBuffer(),
+            (size_t)g_FileManager.m_AnimIdx[i].GetSize());
     }
+    g_AnimationManager.InitIndexReplaces((u32*)g_FileManager.m_VerdataMul.GetBuffer());
 
-    g_AnimationManager.InitIndexReplaces((uint32_t *)g_FileManager.m_VerdataMul.Start);
-
-    LOG("Load client startup.\n");
+    LOG_INFO("Client", "Load client startup.");
     LoadClientStartupConfig();
 
-    uint16_t b = 0x0000;
-    uint16_t r = 0xFC00; // 0xFF0000FF;
-    uint16_t g = 0x83E0; // 0xFF00FF00;
+    u16 b = 0x0000;
+    u16 r = 0xFC00; // 0xFF0000FF;
+    u16 g = 0x83E0; // 0xFF00FF00;
 
-    uint16_t pdwlt[2][140] = {
+    u16 pdwlt[2][140] = {
         { b, b, b, g, g, g, g, g, g, g, b, b, b, g, g, g, g, g, g, g, b, b, b, b, g, g, b, b,
           b, b, b, b, b, b, g, g, b, b, b, b, b, b, b, b, g, g, b, b, b, b, g, g, g, g, g, g,
           g, g, g, b, g, g, g, g, g, g, g, g, g, b, g, g, b, b, b, b, b, g, g, b, g, g, b, g,
@@ -568,21 +560,21 @@ bool COrion::Install()
 
     memset(&m_WinterTile[0], 0, sizeof(m_WinterTile));
 
-    m_WinterTile[196] = 0x011A;
-    m_WinterTile[197] = 0x011B;
-    m_WinterTile[198] = 0x011C;
-    m_WinterTile[199] = 0x011D;
-    m_WinterTile[206] = 0x05C0;
-    m_WinterTile[248] = 0x011A;
-    m_WinterTile[249] = 0x011B;
-    m_WinterTile[250] = 0x011C;
-    m_WinterTile[251] = 0x011D;
-    m_WinterTile[804] = 0x0391;
-    m_WinterTile[805] = 0x0392;
-    m_WinterTile[806] = 0x0393;
-    m_WinterTile[807] = 0x0394;
-    m_WinterTile[808] = 0x0395;
-    m_WinterTile[809] = 0x0396;
+    m_WinterTile[196]  = 0x011A;
+    m_WinterTile[197]  = 0x011B;
+    m_WinterTile[198]  = 0x011C;
+    m_WinterTile[199]  = 0x011D;
+    m_WinterTile[206]  = 0x05C0;
+    m_WinterTile[248]  = 0x011A;
+    m_WinterTile[249]  = 0x011B;
+    m_WinterTile[250]  = 0x011C;
+    m_WinterTile[251]  = 0x011D;
+    m_WinterTile[804]  = 0x0391;
+    m_WinterTile[805]  = 0x0392;
+    m_WinterTile[806]  = 0x0393;
+    m_WinterTile[807]  = 0x0394;
+    m_WinterTile[808]  = 0x0395;
+    m_WinterTile[809]  = 0x0396;
     m_WinterTile[1521] = 0x011A;
     m_WinterTile[1522] = 0x011B;
     m_WinterTile[1523] = 0x011C;
@@ -600,41 +592,40 @@ bool COrion::Install()
     m_WinterTile[1539] = 0x011C;
     m_WinterTile[1540] = 0x011D;
 
-    LOG("Init light buffer.\n");
+    LOG_INFO("Client", "Init light buffer.");
     g_LightBuffer.Init(640, 480);
 
-    LOG("Create object handles.\n");
+    LOG_INFO("Client", "Create object handles.");
     CreateObjectHandlesBackground();
 
-    LOG("Create aura.\n");
+    LOG_INFO("Client", "Create aura.");
     CreateAuraTexture();
 
-    LOG("Load shaders.\n");
+    LOG_INFO("Client", "Load shaders.");
     LoadShaders();
 
-    LOG("Update main screen content\n");
+    LOG_INFO("Client", "Update main screen content");
     g_MainScreen.UpdateContent();
 
-    LOG("Init screen...\n");
+    LOG_INFO("Client", "Init screen...");
 
     InitScreen(GS_MAIN);
 
-    if (g_Config.ClientVersion >= CV_7000)
+    if (GameVars::GetClientVersion() >= CV_7000)
     {
-        LOG("Waiting for FileManager to try & load AnimationFrame files\n");
+        LOG_INFO("Client", "Waiting for FileManager to try & load AnimationFrame files");
         g_FileManager.m_AutoResetEvent.WaitOne();
-        LOG("FileManager.TryReadUOPAnimations() done!\n");
+        LOG_INFO("Client", "FileManager.TryReadUOPAnimations() done!");
     }
 
-    LOG("Installation completed!\n");
+    LOG_INFO("Client", "Installation completed!");
 
     return true;
 }
 
 void COrion::Uninstall()
 {
-    DEBUG_TRACE_FUNCTION;
-    LOG("COrion::Uninstall()\n");
+    LOG_INFO("Client", "COrion::Uninstall()");
     SaveLocalConfig(g_PacketManager.ConfigSerial);
     g_MainScreen.Save();
     SaveGlobalConfig();
@@ -644,7 +635,7 @@ void COrion::Uninstall()
 
     UnloadIndexFiles();
 
-    g_EntryPointer = nullptr;
+    g_EntryPointer  = nullptr;
     g_CurrentScreen = nullptr;
 
     g_AuraTexture.Clear();
@@ -668,7 +659,6 @@ void COrion::Uninstall()
 
 void COrion::InitScreen(GAME_STATE state)
 {
-    DEBUG_TRACE_FUNCTION;
     g_GameState = state;
     g_SelectedObject.Clear();
     g_LastSelectedObject.Clear();
@@ -736,8 +726,7 @@ void COrion::InitScreen(GAME_STATE state)
             g_CurrentScreen = &g_GameBlockedScreen;
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
     if (g_CurrentScreen != nullptr)
@@ -746,9 +735,8 @@ void COrion::InitScreen(GAME_STATE state)
     }
 }
 
-uint16_t COrion::TextToGraphic(const char *text)
+u16 COrion::TextToGraphic(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     if (strlen(text) > 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X'))
     {
         long l = strtol(text + 2, nullptr, 16);
@@ -758,7 +746,7 @@ uint16_t COrion::TextToGraphic(const char *text)
             return 0xFFFF;
         }
 
-        return (uint16_t)l;
+        return (u16)l;
     }
     if (text[0] >= '0' && text[0] <= '9')
     {
@@ -770,20 +758,16 @@ uint16_t COrion::TextToGraphic(const char *text)
 
 void COrion::CheckStaticTileFilterFiles()
 {
-    DEBUG_TRACE_FUNCTION;
     memset(&m_StaticTilesFilterFlags[0], 0, sizeof(m_StaticTilesFilterFlags));
 
-    auto path{ g_App.ExeFilePath("OrionData") };
-    fs_path_create(path);
+    std::filesystem::path dataPath = g_App.GetExeDir() / "OrionData";
+    std::filesystem::create_directory(dataPath);
 
-    auto filePath{ path + PATH_SEP + ToPath("cave.txt") };
-    if (!fs_path_exists(filePath))
+    std::filesystem::path filePath = dataPath / "cave.txt";
+    if (!std::filesystem::exists(filePath))
     {
-        CLogger file;
-
-        file.Init(filePath);
-        file.Print("#Format: graphic\n");
-
+        Core::File file(filePath, "w");
+        file.Print("#Format: graphic");
         for (int i = 0x053B; i < 0x0553 + 1; i++)
         {
             if (i != 0x0550)
@@ -793,17 +777,16 @@ void COrion::CheckStaticTileFilterFiles()
         }
     }
 
-    filePath = path + PATH_SEP + ToPath("vegetation.txt");
-    CLogger vegetationFile;
-
-    if (!fs_path_exists(filePath))
+    filePath = dataPath / "vegetation.txt";
+    Core::File vegetationFile;
+    if (!std::filesystem::exists(filePath))
     {
-        vegetationFile.Init(filePath);
-        vegetationFile.Print("#Format: graphic\n");
+        vegetationFile.Open(filePath, "w");
+        vegetationFile.Print("#Format: graphic");
 
         static const int vegetationTilesCount = 178;
 
-        static const uint16_t vegetationTiles[vegetationTilesCount] = {
+        static const u16 vegetationTiles[vegetationTilesCount] = {
             0x0D45, 0x0D46, 0x0D47, 0x0D48, 0x0D49, 0x0D4A, 0x0D4B, 0x0D4C, 0x0D4D, 0x0D4E, 0x0D4F,
             0x0D50, 0x0D51, 0x0D52, 0x0D53, 0x0D54, 0x0D5C, 0x0D5D, 0x0D5E, 0x0D5F, 0x0D60, 0x0D61,
             0x0D62, 0x0D63, 0x0D64, 0x0D65, 0x0D66, 0x0D67, 0x0D68, 0x0D69, 0x0D6D, 0x0D73, 0x0D74,
@@ -825,28 +808,27 @@ void COrion::CheckStaticTileFilterFiles()
 
         for (int i = 0; i < vegetationTilesCount; i++)
         {
-            int64_t flags = g_Orion.GetStaticFlags(vegetationTiles[i]);
+            i64 flags = g_Orion.GetStaticFlags(vegetationTiles[i]);
             if ((flags & 0x00000040) != 0)
-            {
                 continue;
-            }
 
             vegetationFile.Print("0x%04X\n", vegetationTiles[i]);
         }
     }
-
-    filePath = path + PATH_SEP + ToPath("stumps.txt");
-
-    if (!fs_path_exists(filePath))
+    else
     {
-        CLogger file;
+        vegetationFile.Open(filePath, "a");
+    }
 
-        file.Init(filePath);
-        file.Print("#Format: graphic hatched\n");
+    filePath = dataPath / "stumps.txt";
+    if (!std::filesystem::exists(filePath))
+    {
+        Core::File file(filePath, "w");
+        file.Print("#Format: graphic hatched");
 
         static const int treeTilesCount = 53;
 
-        static const uint16_t treeTiles[treeTilesCount] = {
+        static const u16 treeTiles[treeTilesCount] = {
             0x0CCA, 0x0CCB, 0x0CCC, 0x0CCD, 0x0CD0, 0x0CD3, 0x0CD6, 0x0CD8, 0x0CDA, 0x0CDD, 0x0CE0,
             0x0CE3, 0x0CE6, 0x0D41, 0x0D42, 0x0D43, 0x0D44, 0x0D57, 0x0D58, 0x0D59, 0x0D5A, 0x0D5B,
             0x0D6E, 0x0D6F, 0x0D70, 0x0D71, 0x0D72, 0x0D84, 0x0D85, 0x0D86, 0x0D94, 0x0D98, 0x0D9C,
@@ -856,8 +838,8 @@ void COrion::CheckStaticTileFilterFiles()
 
         for (int i = 0; i < treeTilesCount; i++)
         {
-            uint16_t graphic = treeTiles[i];
-            uint8_t hatched = 1;
+            u16 graphic = treeTiles[i];
+            u8 hatched  = 1;
 
             switch (graphic)
             {
@@ -875,91 +857,72 @@ void COrion::CheckStaticTileFilterFiles()
                 case 0x12B8:
                 case 0x12B9:
                 case 0x12BA:
-                case 0x12BB:
-                    hatched = 0;
-                default:
-                    break;
+                case 0x12BB: hatched = 0;
+                default: break;
             }
 
-            int64_t flags = g_Orion.GetStaticFlags(graphic);
+            i64 flags = g_Orion.GetStaticFlags(graphic);
 
             if ((flags & 0x00000040) == 0)
-            {
                 vegetationFile.Print("0x%04X\n", graphic);
-            }
             else
-            {
                 file.Print("0x%04X\t%i\n", graphic, hatched);
-            }
         }
     }
 
-    filePath = path + PATH_SEP + ToPath("cave.txt");
-
-    Wisp::CTextFileParser caveParser(filePath, " \t", "#;//", "");
-
-    while (!caveParser.IsEOF())
+    filePath = dataPath / "cave.txt";
     {
-        vector<string> strings = caveParser.ReadTokens();
-
-        if (!strings.empty())
+        Core::TextFileParser parser(filePath, " \t", "#;//", "");
+        while (!parser.IsEOF())
         {
-            uint16_t graphic = TextToGraphic(strings[0].c_str());
-
-            m_StaticTilesFilterFlags[graphic] |= STFF_CAVE;
-
-            m_CaveTiles.push_back(graphic);
-        }
-    }
-
-    filePath = path + PATH_SEP + ToPath("stumps.txt");
-
-    Wisp::CTextFileParser stumpParser(filePath, " \t", "#;//", "");
-
-    while (!stumpParser.IsEOF())
-    {
-        vector<string> strings = stumpParser.ReadTokens();
-
-        if (strings.size() >= 2)
-        {
-            uint8_t flag = STFF_STUMP;
-
-            if (atoi(strings[1].c_str()) != 0)
+            std::vector<std::string> strings = parser.ReadTokens();
+            if (!strings.empty())
             {
-                flag |= STFF_STUMP_HATCHED;
+                u16 graphic = TextToGraphic(strings[0].c_str());
+                m_StaticTilesFilterFlags[graphic] |= STFF_CAVE;
+                m_CaveTiles.push_back(graphic);
             }
-
-            uint16_t graphic = TextToGraphic(strings[0].c_str());
-
-            m_StaticTilesFilterFlags[graphic] |= flag;
-
-            m_StumpTiles.push_back(graphic);
         }
     }
 
-    filePath = path + PATH_SEP + ToPath("vegetation.txt");
-
-    Wisp::CTextFileParser vegetationParser(filePath, " \t", "#;//", "");
-
-    while (!vegetationParser.IsEOF())
+    filePath = dataPath / "stumps.txt";
     {
-        vector<string> strings = vegetationParser.ReadTokens();
-
-        if (!strings.empty())
+        Core::TextFileParser parser(filePath, " \t", "#;//", "");
+        while (!parser.IsEOF())
         {
-            m_StaticTilesFilterFlags[TextToGraphic(strings[0].c_str())] |= STFF_VEGETATION;
+            std::vector<std::string> strings = parser.ReadTokens();
+            if (strings.size() >= 2)
+            {
+                u8 flag = STFF_STUMP;
+                if (atoi(strings[1].c_str()) != 0)
+                    flag |= STFF_STUMP_HATCHED;
+                u16 graphic = TextToGraphic(strings[0].c_str());
+                m_StaticTilesFilterFlags[graphic] |= flag;
+                m_StumpTiles.push_back(graphic);
+            }
+        }
+    }
+
+    filePath = dataPath / "vegetation.txt";
+    {
+        Core::TextFileParser parser(filePath, " \t", "#;//", "");
+        while (!parser.IsEOF())
+        {
+            std::vector<std::string> strings = parser.ReadTokens();
+            if (!strings.empty())
+                m_StaticTilesFilterFlags[TextToGraphic(strings[0].c_str())] |= STFF_VEGETATION;
         }
     }
 }
 
 void COrion::LoadContainerOffsets()
 {
-    auto path{ g_App.ExeFilePath("OrionData") };
-    fs_path_create(path);
+    std::filesystem::path path = g_App.GetExeDir() / "OrionData";
+    std::filesystem::create_directory(path);
 
-    auto filePath{ path + PATH_SEP + ToPath("containers.txt") };
-    LOG("Containers: %s\n", CStringFromPath(filePath));
-    if (!fs_path_exists(filePath))
+    std::filesystem::path filePath = path / "containers.txt";
+    LOG_INFO("Client", "Containers: %s", filePath.string().c_str());
+    if (!std::filesystem::exists(filePath))
     {
         //												Gump   OpenSnd  CloseSnd					minX minY maxX maxY
         g_ContainerOffset.push_back(CContainerOffset(
@@ -1045,36 +1008,30 @@ void COrion::LoadContainerOffsets()
     }
     else
     {
-        Wisp::CTextFileParser parser(filePath, " \t", "#;//", "");
-
+        Core::TextFileParser parser(filePath, " \t", "#;//", "");
         while (!parser.IsEOF())
         {
-            vector<string> strings = parser.ReadTokens();
-
+            std::vector<std::string> strings = parser.ReadTokens();
             if (strings.size() >= 7)
             {
-                uint16_t gump = TextToGraphic(strings[0].c_str());
-                uint16_t openSound = TextToGraphic(strings[1].c_str());
-                uint16_t closeSound = TextToGraphic(strings[2].c_str());
-                uint16_t minX = atoi(strings[3].c_str());
-                uint16_t minY = atoi(strings[4].c_str());
-                uint16_t maxX = atoi(strings[5].c_str());
-                uint16_t maxY = atoi(strings[6].c_str());
-
+                u16 gump       = TextToGraphic(strings[0].c_str());
+                u16 openSound  = TextToGraphic(strings[1].c_str());
+                u16 closeSound = TextToGraphic(strings[2].c_str());
+                u16 minX       = atoi(strings[3].c_str());
+                u16 minY       = atoi(strings[4].c_str());
+                u16 maxX       = atoi(strings[5].c_str());
+                u16 maxY       = atoi(strings[6].c_str());
                 g_ContainerOffset.push_back(CContainerOffset(
                     gump, openSound, closeSound, CContainerOffsetRect(minX, minY, maxX, maxY)));
             }
         }
     }
 
-    if (!fs_path_exists(filePath))
+    if (!std::filesystem::exists(filePath))
     {
-        CLogger file;
-
-        file.Init(filePath);
-        file.Print("#Format: gump open_sound close_sound minX minY maxX maxY\n");
-
-        for (const CContainerOffset &item : g_ContainerOffset)
+        Core::File file(filePath, "w");
+        file.Print("#Format: gump open_sound close_sound minX minY maxX maxY");
+        for (const CContainerOffset& item : g_ContainerOffset)
         {
             file.Print(
                 "0x%04X 0x%04X 0x%04X %i %i %i %i\n",
@@ -1088,36 +1045,28 @@ void COrion::LoadContainerOffsets()
         }
     }
 
-    LOG("g_ContainerOffset.size()=%zd\n", g_ContainerOffset.size());
+    LOG_INFO("Client", "g_ContainerOffset.size()=%zd\n", g_ContainerOffset.size());
 }
 
 void COrion::LoadAutoLoginNames()
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CTextFileParser file(g_App.UOFilesPath("AutoLoginNames.cfg"), "", "#;", "");
-
-    string names = g_PacketManager.AutoLoginNames + "|";
-
+    Core::TextFileParser file(g_App.GetGameDir() / "AutoLoginNames.cfg", "", "#;", "");
+    std::string names = g_PacketManager.AutoLoginNames + "|";
     while (!file.IsEOF())
     {
-        vector<string> strings = file.ReadTokens(false);
-
+        std::vector<std::string> strings = file.ReadTokens(false);
         if (static_cast<unsigned int>(!strings.empty()) != 0u)
-        {
             names += strings[0] + "|";
-        }
     }
-
     g_PacketManager.AutoLoginNames = names;
 }
 
 void COrion::ProcessDelayedClicks()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (g_ClickObject.Enabled && g_ClickObject.Timer < g_Ticks)
     {
-        uint32_t serial = 0;
+        u32 serial = 0;
 
         if (g_ClickObject.Object != nullptr)
         {
@@ -1128,7 +1077,7 @@ void COrion::ProcessDelayedClicks()
         {
             if (serial != 0u)
             {
-                CGameObject *go = (CGameObject *)g_ClickObject.Object;
+                CGameObject* go = (CGameObject*)g_ClickObject.Object;
 
                 if (!g_TooltipsEnabled || (!go->NPC && go->Locked()))
                 {
@@ -1155,37 +1104,28 @@ void COrion::ProcessDelayedClicks()
 void COrion::Process(bool rendering)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (g_CurrentScreen == nullptr)
     {
         return;
     }
 
-    static uint32_t removeUnusedTexturesTime = 0;
-    static uint32_t removeUnusedAnimationTexturesTime = 0;
-
-    g_MouseManager.Update();
+    static u32 removeUnusedTexturesTime          = 0;
+    static u32 removeUnusedAnimationTexturesTime = 0;
 
     if (g_GameState >= GS_CHARACTER && (g_LastSendTime + SEND_TIMEOUT_DELAY) < g_Ticks)
     {
         g_LastSendTime = g_Ticks;
-        uint8_t ping[2] = { 0x73, 0 };
+        u8 ping[2]     = { 0x73, 0 };
         Send(ping, 2);
     }
 
-    const bool oldCtrl = g_CtrlPressed;
+    const bool oldCtrl  = g_CtrlPressed;
     const bool oldShift = g_ShiftPressed;
 
-#if USE_WISP
-    g_AltPressed = GetAsyncKeyState(KEY_MENU) & 0x80000000;
-    g_CtrlPressed = GetAsyncKeyState(KEY_CONTROL) & 0x80000000;
-    g_ShiftPressed = GetAsyncKeyState(KEY_SHIFT) & 0x80000000;
-#else
-    auto mod = SDL_GetModState();
-    g_AltPressed = ((mod & KMOD_ALT) != 0);
-    g_CtrlPressed = ((mod & KMOD_CTRL) != 0);
+    auto mod       = SDL_GetModState();
+    g_AltPressed   = ((mod & KMOD_ALT) != 0);
+    g_CtrlPressed  = ((mod & KMOD_CTRL) != 0);
     g_ShiftPressed = ((mod & KMOD_SHIFT) != 0);
-#endif
 
     if (g_GameState >= GS_GAME) // || g_GameState == GS_GAME_BLOCKED)
     {
@@ -1196,19 +1136,14 @@ void COrion::Process(bool rendering)
             return;
         }
 
-        if (!g_DisablePing && g_ConfigManager.CheckPing && g_PingTimer < g_Ticks)
-        {
-            CPingThread *pingThread = new CPingThread(0xFFFFFFFF, m_GameServerIP, 10);
-            pingThread->Run();
-            g_PingTimer = g_Ticks + (g_ConfigManager.GetPingTimer() * 1000);
-        }
+        TickGameServerPing(m_GameServerIP);
 
         g_UseItemActions.Process();
         g_ShowGumpLocker = g_ConfigManager.LockGumpsMoving && g_AltPressed && g_CtrlPressed;
         ProcessStaticAnimList();
 
         g_EffectManager.UpdateEffects();
-        CGumpBuff *gumpBuff = (CGumpBuff *)g_GumpManager.GetGump(0, 0, GT_BUFF);
+        CGumpBuff* gumpBuff = (CGumpBuff*)g_GumpManager.GetGump(0, 0, GT_BUFF);
         if (gumpBuff != nullptr)
         {
             gumpBuff->UpdateBuffIcons();
@@ -1238,11 +1173,11 @@ void COrion::Process(bool rendering)
         {
             if (g_World->ObjectToRemove != 0)
             {
-                CGameObject *removeObj = g_World->FindWorldObject(g_World->ObjectToRemove);
+                CGameObject* removeObj  = g_World->FindWorldObject(g_World->ObjectToRemove);
                 g_World->ObjectToRemove = 0;
                 if (removeObj != nullptr)
                 {
-                    CGameCharacter *character = g_World->FindWorldCharacter(removeObj->Container);
+                    CGameCharacter* character = g_World->FindWorldCharacter(removeObj->Container);
                     g_World->RemoveObject(removeObj);
                     if (character != nullptr)
                     {
@@ -1272,7 +1207,7 @@ void COrion::Process(bool rendering)
                 g_GameScreen.RenderListInitalized = true;
                 g_SelectedObject.Clear();
                 g_SelectedGameObjectHandle = 0;
-                if (!g_OrionWindow.IsMinimizedWindow())
+                if (!g_gameWindow.IsMinimized())
                 {
                     if (canRenderSelect)
                     {
@@ -1282,52 +1217,6 @@ void COrion::Process(bool rendering)
                     CGump::ProcessListing();
                     g_GameScreen.PrepareContent();
                     g_GameScreen.Render();
-
-                    UOI_SELECTED_TILE uoiSelectedObject;
-                    if (g_SelectedObject.Object != nullptr &&
-                        g_SelectedObject.Object->IsWorldObject())
-                    {
-                        CRenderWorldObject *rwo = (CRenderWorldObject *)g_SelectedObject.Object;
-                        if (rwo->IsLandObject())
-                        {
-                            uoiSelectedObject.Serial = 0xFFFFFFFF;
-                        }
-                        else if (!rwo->IsGameObject())
-                        {
-                            uoiSelectedObject.Serial = 0;
-                        }
-                        else
-                        {
-                            uoiSelectedObject.Serial = rwo->Serial;
-                        }
-
-                        uoiSelectedObject.Graphic = rwo->Graphic;
-                        uoiSelectedObject.Color = rwo->Color;
-                        uoiSelectedObject.X = rwo->GetX();
-                        uoiSelectedObject.Y = rwo->GetY();
-                        uoiSelectedObject.Z = rwo->GetZ();
-
-                        rwo = rwo->GetLand();
-                        if (rwo != nullptr)
-                        {
-                            uoiSelectedObject.LandGraphic = rwo->Graphic;
-                            uoiSelectedObject.LandX = rwo->GetX();
-                            uoiSelectedObject.LandY = rwo->GetY();
-                            uoiSelectedObject.LandZ = rwo->GetZ();
-                        }
-                        else
-                        {
-                            uoiSelectedObject.LandGraphic = 0;
-                            uoiSelectedObject.LandX = 0;
-                            uoiSelectedObject.LandY = 0;
-                            uoiSelectedObject.LandZ = 0;
-                        }
-                    }
-                    else
-                    {
-                        memset(&uoiSelectedObject, 0, sizeof(uoiSelectedObject));
-                    }
-                    PLUGIN_EVENT(UOMSG_SELECTED_TILE, &uoiSelectedObject);
                 }
                 g_Target.UnloadMulti();
                 g_GameScreen.RenderListInitalized = false;
@@ -1338,7 +1227,7 @@ void COrion::Process(bool rendering)
     else if (rendering)
     {
         g_SelectedObject.Clear();
-        if (!g_OrionWindow.IsMinimizedWindow())
+        if (!g_gameWindow.IsMaximized())
         {
             g_CurrentScreen->SelectObject();
             g_CurrentScreen->PrepareContent();
@@ -1363,9 +1252,8 @@ void COrion::Process(bool rendering)
 void COrion::LoadStartupConfig(int serial)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     char buf[MAX_PATH] = { 0 };
-    CServer *server = g_ServerList.GetSelectedServer();
+    CServer* server    = g_ServerList.GetSelectedServer();
     if (server != nullptr)
     {
         sprintf_s(
@@ -1380,15 +1268,15 @@ void COrion::LoadStartupConfig(int serial)
         sprintf_s(buf, "Desktop/%s/0x%08X", g_MainScreen.m_Account->c_str(), serial);
     }
 
-    auto orionFilesPath{ g_App.ExeFilePath(buf) };
-    if (!g_ConfigManager.Load(orionFilesPath + ToPath("/orion_options.cfg")))
+    std::filesystem::path exeFilesPath = g_App.GetExeDir() / buf;
+    if (!g_ConfigManager.Load(exeFilesPath / "sot_options.cfg"))
     {
-        auto uoFilesPath{ g_App.UOFilesPath(buf) };
-        if (!g_ConfigManager.Load(uoFilesPath + ToPath("/orion_options.cfg")))
+        std::filesystem::path uoFilesPath = g_App.GetGameDir() / buf;
+        if (!g_ConfigManager.Load(uoFilesPath / "sot_options.cfg"))
         {
-            if (!g_ConfigManager.LoadBin(orionFilesPath + ToPath("/options_debug.cuo")))
+            if (!g_ConfigManager.LoadBin(exeFilesPath / "options_debug.cuo"))
             {
-                g_ConfigManager.LoadBin(uoFilesPath + ToPath("/options_debug.cuo"));
+                g_ConfigManager.LoadBin(uoFilesPath / "/options_debug.cuo");
             }
         }
     }
@@ -1405,144 +1293,10 @@ void COrion::LoadStartupConfig(int serial)
     }
 }
 
-void COrion::LoadPlugin(const os_path &libpath, const string &function, int flags)
+std::string COrion::FixServerName(std::string name)
 {
-    DEBUG_TRACE_FUNCTION;
-    LOG("Loading plugin: %s\n", CStringFromPath(libpath));
-    auto dll = SDL_LoadObject(CStringFromPath(libpath));
-    if (dll != nullptr)
-    {
-        auto initFunc = (PluginEntry *)SDL_LoadFunction(dll, function.c_str());
-        if (!InstallPlugin(initFunc, flags))
-        {
-            SDL_UnloadObject(dll);
-        }
-        CRASHLOG("Plugin['%s'] loaded at: 0x%08X\n", CStringFromPath(libpath), dll);
-        // FIXME: dll leaks, pass handle into CPlugin to be closed
-    }
-    else
-    {
-#if USE_WISP
-        LOG("Failed with error code: %i\n", GetLastError());
-#else
-        LOG("Failed with error: %s\n", SDL_GetError());
-#endif
-    }
-}
-
-bool COrion::InstallPlugin(PluginEntry *initFunc, int flags)
-{
-    CPlugin *plugin = nullptr;
-    if (initFunc != nullptr)
-    {
-        plugin = new CPlugin(flags);
-        initFunc(plugin->m_PPS);
-    }
-
-    if (plugin == nullptr)
-    {
-        return false;
-    }
-
-    plugin->m_PPS->Owner = plugin;
-    if (plugin->CanClientAccess())
-    {
-        plugin->m_PPS->Client = &g_PluginClientInterface;
-    }
-
-    if (plugin->CanParseRecv())
-    {
-        plugin->m_PPS->Recv = PluginRecvFunction;
-    }
-
-    if (plugin->CanParseSend())
-    {
-        plugin->m_PPS->Send = PluginSendFunction;
-    }
-
-    initFunc(plugin->m_PPS);
-    g_PluginManager.Add(plugin);
-    return true;
-}
-
-void COrion::LoadPluginConfig()
-{
-    DEBUG_TRACE_FUNCTION;
-    g_PluginClientInterface.Version = 2;
-    g_PluginClientInterface.Size = sizeof(g_PluginClientInterface);
-    g_PluginClientInterface.GL = &g_Interface_GL;
-    g_PluginClientInterface.UO = &g_Interface_UO;
-    g_PluginClientInterface.ClilocManager = &g_Interface_ClilocManager;
-    g_PluginClientInterface.ColorManager = &g_Interface_ColorManager;
-    g_PluginClientInterface.PathFinder = &g_Interface_PathFinder;
-    g_PluginClientInterface.FileManager = &g_Interface_FileManager;
-
-    ParseCommandLine();
-
-    // FIXME Delete this after sorting out the Module/UOA hotmess
-    CPluginPacketSkillsList().SendToPlugin();
-    CPluginPacketSpellsList().SendToPlugin();
-    CPluginPacketMacrosList().SendToPlugin();
-
-    vector<string> libName;
-    vector<string> functions;
-    vector<uint32_t> flags;
-
-    size_t pluginsInfoCount = Crypt::GetPluginsCount();
-    if (pluginsInfoCount == 0u)
-    {
-        return;
-    }
-
-    PLUGIN_INFO *pluginsInfo = new PLUGIN_INFO[pluginsInfoCount];
-    g_PluginInit(pluginsInfo);
-    for (int i = 0; i < (int)pluginsInfoCount; i++)
-    {
-        libName.push_back(pluginsInfo[i].FileName);
-        functions.push_back(pluginsInfo[i].FunctionName);
-        flags.push_back((uint32_t)pluginsInfo[i].Flags);
-    }
-    delete[] pluginsInfo;
-
-    for (int i = 0; i < (int)libName.size(); i++)
-    {
-        LoadPlugin(g_App.ExeFilePath(libName[i].c_str()), functions[i], flags[i]);
-    }
-
-    if (g_PluginManager.m_Items != nullptr)
-    {
-        CPluginPacketSkillsList().SendToPlugin();
-        CPluginPacketSpellsList().SendToPlugin();
-        CPluginPacketMacrosList().SendToPlugin();
-
-        /*g_FileManager.SendFilesInfo();
-
-		for (auto i = 0; i < 0x10000; i++)
-		{
-			CIndexObjectStatic &staticObj = m_StaticDataIndex[i];
-
-			if (staticObj.Address)
-			{
-				uint64_t compressedSize = 0;
-
-				if (staticObj.UopBlock)
-					compressedSize = staticObj.UopBlock->CompressedSize;
-
-				CPluginPacketStaticArtGraphicDataInfo(i, staticObj.Address, staticObj.DataSize, compressedSize).SendToPlugin();
-			}
-		}
-
-		CPluginPacketFilesTransfered().SendToPlugin();*/
-    }
-
-    g_OrionWindow.Raise();
-}
-
-string COrion::FixServerName(string name)
-{
-    DEBUG_TRACE_FUNCTION;
     size_t i = 0;
-    while ((i = name.find(':')) != string::npos)
+    while ((i = name.find(':')) != std::string::npos)
     {
         name.erase(i, 1);
     }
@@ -1552,7 +1306,6 @@ string COrion::FixServerName(string name)
 void COrion::LoadLocalConfig(int serial)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (g_ConfigLoaded)
     {
         return;
@@ -1561,7 +1314,7 @@ void COrion::LoadLocalConfig(int serial)
     g_CheckContainerStackTimer = g_Ticks + 30000;
 
     char buf[MAX_PATH] = { 0 };
-    CServer *server = g_ServerList.GetSelectedServer();
+    CServer* server    = g_ServerList.GetSelectedServer();
     if (server != nullptr)
     {
         sprintf_s(
@@ -1576,42 +1329,26 @@ void COrion::LoadLocalConfig(int serial)
         sprintf_s(buf, "Desktop/%s/0x%08X", g_MainScreen.m_Account->c_str(), serial);
     }
 
-    auto path = g_App.ExeFilePath(buf);
-
-    if (!g_ConfigManager.Load(path + ToPath("/orion_options.cfg")))
+    std::filesystem::path path = g_App.GetExeDir() / buf;
+    if (!g_ConfigManager.Load(path / "sot_options.cfg") &&
+        !g_ConfigManager.Load(g_App.GetGameDir() / "sot_options.cfg") &&
+        !g_ConfigManager.LoadBin(path / "options_debug.cuo") &&
+        !g_ConfigManager.LoadBin(g_App.GetGameDir() / "options_debug.cuo"))
     {
-        if (!g_ConfigManager.Load(g_App.UOFilesPath("orion_options.cfg")))
-        {
-            if (!g_ConfigManager.LoadBin(path + ToPath("/options_debug.cuo")))
-            {
-                if (!g_ConfigManager.LoadBin(g_App.UOFilesPath("options_debug.cuo")))
-                {
-                    g_ConfigManager.Init();
-
-                    if (g_GameState >= GS_GAME)
-                    {
-                        g_OrionWindow.MaximizeWindow();
-                    }
-                }
-            }
-        }
+        g_ConfigManager.Init();
+        if (g_GameState >= GS_GAME)
+            g_gameWindow.Maximize();
     }
 
-    if (!g_SkillGroupManager.Load(path + ToPath("/skills_debug.cuo")))
-    {
-        g_SkillGroupManager.Load(g_App.UOFilesPath("skills_debug.cuo"));
-    }
+    if (!g_SkillGroupManager.Load(path / "skills_debug.cuo"))
+        g_SkillGroupManager.Load(g_App.GetGameDir() / "skills_debug.cuo");
 
-    if (!g_MacroManager.Load(path + ToPath("/macros_debug.cuo"), path + ToPath("/macros.txt")))
-    {
-        if (!g_MacroManager.Load(
-                g_App.UOFilesPath("/macros_debug.cuo"), g_App.UOFilesPath("/macros.txt")))
-        {
-        }
-    }
+    if (!g_MacroManager.Load(path / "macros_debug.cuo", path / "macros.txt"))
+        g_MacroManager.Load(
+            g_App.GetGameDir() / "macros_debug.cuo", g_App.GetGameDir() / "macros.txt");
 
-    g_GumpManager.Load(path + ToPath("/gumps_debug.cuo"));
-    g_CustomHousesManager.Load(path + ToPath("/customhouses_debug.cuo"));
+    g_GumpManager.Load(path / "gumps_debug.cuo");
+    g_CustomHousesManager.Load(path / "customhouses_debug.cuo");
     if (g_ConfigManager.OffsetInterfaceWindows)
     {
         g_ContainerRect.MakeDefault();
@@ -1642,85 +1379,72 @@ void COrion::LoadLocalConfig(int serial)
 void COrion::SaveLocalConfig(int serial)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigLoaded)
     {
         return;
     }
-    char buf[MAX_PATH] = { 0 };
-    auto path = g_App.ExeFilePath("Desktop");
 
-    if (!fs_path_exists(path))
+    std::filesystem::path path = g_App.GetExeDir() / "Desktop";
+    if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.\n", CStringFromPath(path));
-        fs_path_create(path);
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
+        std::filesystem::create_directory(path);
     }
-
-    path += PATH_SEP + ToPath(g_MainScreen.m_Account->c_str());
-
-    if (!fs_path_exists(path))
+    path /= g_MainScreen.m_Account->c_str();
+    if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.\n", CStringFromPath(path));
-        fs_path_create(path);
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
+        std::filesystem::create_directory(path);
     }
-    CServer *server = g_ServerList.GetSelectedServer();
+    CServer* server = g_ServerList.GetSelectedServer();
     if (server != nullptr)
+        path /= FixServerName(server->Name);
+    if (!std::filesystem::exists(path))
     {
-        path += PATH_SEP + ToPath(FixServerName(server->Name));
-    }
-    if (!fs_path_exists(path))
-    {
-        LOG("%s Does not exist, creating.\n", CStringFromPath(path));
-        fs_path_create(path);
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
+        std::filesystem::create_directory(path);
     }
     char serbuf[20] = { 0 };
-    sprintf_s(serbuf, "/0x%08X", g_PlayerSerial);
-    path += ToPath(serbuf);
-    if (!fs_path_exists(path))
+    sprintf_s(serbuf, "0x%08X", g_PlayerSerial);
+    path /= serbuf;
+    if (!std::filesystem::exists(path))
     {
-        LOG("%s Does not exist, creating.\n", CStringFromPath(path));
-        fs_path_create(path);
+        LOG_INFO("Client", "%s Does not exist, creating.", path.string().c_str());
+        std::filesystem::create_directory(path);
     }
     else
     {
-        LOG("SaveLocalConfig using path: %s\n", CStringFromPath(path));
+        LOG_INFO("Client", "SaveLocalConfig using path: %s", path.string().c_str());
     }
 
-    LOG("managers:saving\n");
-    g_ConfigManager.Save(path + ToPath("/orion_options.cfg"));
-    g_SkillGroupManager.Save(path + ToPath("/skills_debug.cuo"));
-    g_MacroManager.Save(path + ToPath("/macros_debug.cuo"));
-    g_GumpManager.Save(path + ToPath("/gumps_debug.cuo"));
-    g_CustomHousesManager.Save(path + ToPath("/customhouses_debug.cuo"));
+    LOG_INFO("Client", "managers:saving");
+    g_ConfigManager.Save(path / "sot_options.cfg");
+    g_SkillGroupManager.Save(path / "skills_debug.cuo");
+    g_MacroManager.Save(path / "macros_debug.cuo");
+    g_GumpManager.Save(path / "gumps_debug.cuo");
+    g_CustomHousesManager.Save(path / "customhouses_debug.cuo");
 
-    LOG("managers:saving in to root\n");
-    g_ConfigManager.Save(g_App.UOFilesPath("orion_options.cfg"));
-    g_MacroManager.Save(g_App.UOFilesPath("macros_debug.cuo"));
+    LOG_INFO("Client", "managers:saving in to root");
+    g_ConfigManager.Save(g_App.GetGameDir() / "sot_options.cfg");
+    g_MacroManager.Save(g_App.GetGameDir() / "macros_debug.cuo");
 
     if (g_Player != nullptr)
     {
-        LOG("player exists\n");
-        LOG("name len: %zd\n", g_Player->GetName().length());
-        path += ToPath("_") + ToPath(g_Player->GetName()) + ToPath(".cuo");
-
-        if (!fs_path_exists(path))
+        LOG_INFO("Client", "player exists");
+        LOG_INFO("Client", "name len: %zd", g_Player->GetName().length());
+        path /= ("_" + g_Player->GetName() + ".cuo");
+        if (!std::filesystem::exists(path))
         {
-            LOG("file saving\n");
-            FILE *file = fs_open(path, FS_WRITE); // "wb"
-
-            LOG("file closing\n");
-            if (file != nullptr)
-            {
-                fs_close(file);
-            }
+            LOG_INFO("Client", "file saving");
+            Core::File file(path, "wb");
+            LOG_INFO("Client", "file closing");
         }
     }
-    LOG("SaveLocalConfig end\n");
+    LOG_INFO("Client", "SaveLocalConfig end");
 }
 
 void COrion::ClearUnusedTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GameState < GS_GAME)
     {
         return;
@@ -1732,7 +1456,7 @@ void COrion::ClearUnusedTextures()
 
     g_Ticks -= CLEAR_TEXTURES_DELAY;
 
-    void *lists[5] = {
+    void* lists[5] = {
         &m_UsedLandList, &m_UsedStaticList, &m_UsedGumpList, &m_UsedTextureList, &m_UsedLightList
     };
 
@@ -1744,14 +1468,14 @@ void COrion::ClearUnusedTextures()
 
     for (int i = 0; i < 5; i++)
     {
-        int count = 0;
-        auto *list = (deque<CIndexObject *> *)lists[i];
-        int &maxCount = counts[i];
+        int count     = 0;
+        auto* list    = (std::deque<CIndexObject*>*)lists[i];
+        int& maxCount = counts[i];
 
         for (auto it = list->begin(); it != list->end();)
         {
-            CIndexObject *obj = *it;
-            if (obj->LastAccessTime < g_Ticks)
+            CIndexObject* obj = *it;
+            if (obj->LastAccessed < Core::FrameTimer::Now())
             {
                 if (obj->Texture != nullptr)
                 {
@@ -1775,8 +1499,8 @@ void COrion::ClearUnusedTextures()
     int count = 0;
     for (auto it = m_UsedSoundList.begin(); it != m_UsedSoundList.end();)
     {
-        CIndexSound *obj = *it;
-        if (obj->LastAccessTime < g_Ticks)
+        CIndexSound* obj = *it;
+        if (obj->LastAccessed < Core::FrameTimer::Now())
         {
             if (obj->m_Stream != SOUND_NULL)
             {
@@ -1803,14 +1527,13 @@ void COrion::ClearUnusedTextures()
 void COrion::Connect()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     InitScreen(GS_MAIN_CONNECT);
     Process(true);
 
     g_ConnectionManager.Disconnect();
     g_ConnectionManager.Init(); //Configure
 
-    string login{};
+    std::string login{};
     int port;
     LoadLogin(login, port);
     if (g_ConnectionManager.Connect(login, port, g_GameSeed))
@@ -1828,21 +1551,18 @@ void COrion::Connect()
 void COrion::Disconnect()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
-    g_AbyssPacket03First = true;
-    g_PluginManager.Disconnect();
+    g_AbyssPacket03First = true;;
 
     g_ConnectionManager.Disconnect();
 
     ClearWorld();
 }
 
-int COrion::Send(uint8_t *buf, int size)
+int COrion::Send(u8* buf, int size)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t ticks = g_Ticks;
+    u32 ticks = g_Ticks;
     g_TotalSendSize += size;
-    CPacketInfo &type = g_PacketManager.GetInfo(*buf);
+    CPacketInfo& type = g_PacketManager.GetInfo(*buf);
     if (type.save)
     {
 #if defined(ORION_WINDOWS)
@@ -1853,7 +1573,9 @@ int COrion::Send(uint8_t *buf, int size)
         time(&rawtime);
         localtime_s(&timeinfo, &rawtime);
         strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", &timeinfo);
-        LOG("--- ^(%d) s(+%d => %d) %s Client:: %s\n",
+        LOG_INFO(
+            "Client",
+            "--- ^(%d) s(+%d => %d) %s Client:: %s\n",
             ticks - g_LastPacketTime,
             size,
             g_TotalSendSize,
@@ -1863,13 +1585,13 @@ int COrion::Send(uint8_t *buf, int size)
 
         if (*buf == 0x80 || *buf == 0x91)
         {
-            LOG_DUMP(buf, 1);
-            SAFE_LOG_DUMP(buf, size);
-            LOG("**** ACCOUNT AND PASSWORD CENSORED ****\n");
+            //LOG_DUMP(buf, 1);
+            //SAFE_LOG_DUMP(buf, size);
+            LOG_INFO("Client", "**** ACCOUNT AND PASSWORD CENSORED ****");
         }
         else
         {
-            LOG_DUMP(buf, size);
+            //LOG_DUMP(buf, size);
         }
     }
 
@@ -1877,20 +1599,17 @@ int COrion::Send(uint8_t *buf, int size)
 
     if (type.Direction != DIR_SEND && type.Direction != DIR_BOTH)
     {
-        LOG("Warning!!! Message direction invalid: 0x%02X\n", *buf);
+        LOG_ERROR("Client", "Warning!!! Message direction invalid: 0x%02X\n", *buf);
     }
     else
     {
-        if (g_PluginManager.PacketSend(buf, size))
-        {
-            result = g_ConnectionManager.Send(buf, size);
-        }
+        result = g_ConnectionManager.Send(buf, size);
     }
 
     if (result != 0)
     {
         g_LastPacketTime = ticks;
-    
+
         // Siebenwind issue #1:
         // Uncommenting this results in more frequently sent pings/"keep alive"
         // packets in the COrion::Process(..) method.
@@ -1904,28 +1623,19 @@ int COrion::Send(uint8_t *buf, int size)
 
 void COrion::ServerSelection(int pos)
 {
-    DEBUG_TRACE_FUNCTION;
     InitScreen(GS_SERVER_CONNECT);
     Process(true);
-    CServer *server = g_ServerList.Select(pos);
+    CServer* server = g_ServerList.Select(pos);
     if (server != nullptr)
-    {
-        string name = g_ServerList.GetSelectedServer()->Name;
-        g_ServerList.LastServerName = name;
-        static string sn = FixServerName(name);
-        const char *data = sn.c_str();
-        PLUGIN_EVENT(UOMSG_SET_SERVER_NAME, data);
-        CPacketSelectServer((uint8_t)server->Index).Send();
-    }
+        CPacketSelectServer((u8)server->Index).Send();
 }
 
-void COrion::RelayServer(const char *ip, int port, uint8_t *gameSeed)
+void COrion::RelayServer(const char* ip, int port, u8* gameSeed)
 {
-    DEBUG_TRACE_FUNCTION;
     memcpy(&g_GameSeed[0], &gameSeed[0], 4);
     g_ConnectionManager.Init(gameSeed);
     m_GameServerIP = ip;
-    memset(&g_GameServerPingInfo, 0, sizeof(g_GameServerPingInfo));
+    g_gameServerPingInfo.reset();
     if (g_ConnectionManager.Connect(ip, port, gameSeed))
     {
         g_ConnectionScreen.SetConnected(true);
@@ -1940,18 +1650,15 @@ void COrion::RelayServer(const char *ip, int port, uint8_t *gameSeed)
 
 void COrion::CharacterSelection(int pos)
 {
-    DEBUG_TRACE_FUNCTION;
     InitScreen(GS_GAME_CONNECT);
     g_ConnectionScreen.SetType(CST_GAME);
     g_CharacterList.LastCharacterName = g_CharacterList.GetName(pos);
-    PLUGIN_EVENT(UOMSG_SET_PLAYER_NAME, g_CharacterList.LastCharacterName.c_str());
     CPacketSelectCharacter(pos, g_CharacterList.LastCharacterName).Send();
 }
 
 void COrion::LoginComplete(bool reload)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     bool load = reload;
     if (!load && !g_ConnectionScreen.GetCompleted())
     {
@@ -1962,25 +1669,23 @@ void COrion::LoginComplete(bool reload)
 
     if (load && g_Player != nullptr)
     {
-        string title = SiebenwindClient::WindowTitle + " - " + g_Player->GetName();
-        CServer *server = g_ServerList.GetSelectedServer();
+        std::string title = SiebenwindClient::GetWindowTitle() + " - " + g_Player->GetName();
+        CServer* server   = g_ServerList.GetSelectedServer();
         if (server != nullptr)
-        {
             title += " (" + server->Name + ")";
-        }
 
-        g_OrionWindow.SetTitle(title);
+        g_gameWindow.SetTitle(title.c_str());
         CPacketSkillsRequest(g_PlayerSerial).Send();
         g_UseItemActions.Add(g_PlayerSerial);
 
         //CPacketOpenChat({}).Send();
         //CPacketRazorAnswer().Send();
-        if (g_Config.ClientVersion >= CV_306E)
+        if (GameVars::GetClientVersion() >= CV_306E)
         {
             CPacketClientType().Send();
         }
 
-        if (g_Config.ClientVersion >= CV_305D)
+        if (GameVars::GetClientVersion() >= CV_305D)
         {
             CPacketClientViewRange(g_ConfigManager.UpdateRange).Send();
         }
@@ -1988,19 +1693,18 @@ void COrion::LoginComplete(bool reload)
     }
 }
 
-void COrion::ChangeSeason(const SEASON_TYPE &season, int music)
+void COrion::ChangeSeason(const SEASON_TYPE& season, int music)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
 
     g_Season = season;
-    QFOR(item, g_MapManager.m_Items, CMapBlock *)
+    QFOR(item, g_MapManager.m_Items, CMapBlock*)
     {
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
             {
-                QFOR(obj, item->GetRender((int)x, (int)y), CRenderWorldObject *)
+                QFOR(obj, item->GetRender((int)x, (int)y), CRenderWorldObject*)
                 {
                     obj->UpdateGraphicBySeason();
                 }
@@ -2008,7 +1712,7 @@ void COrion::ChangeSeason(const SEASON_TYPE &season, int music)
         }
     }
 
-    CGumpMinimap *gump = (CGumpMinimap *)g_GumpManager.UpdateGump(0, 0, GT_MINIMAP);
+    CGumpMinimap* gump = (CGumpMinimap*)g_GumpManager.UpdateGump(0, 0, GT_MINIMAP);
 
     if (gump != nullptr)
     {
@@ -2021,12 +1725,11 @@ void COrion::ChangeSeason(const SEASON_TYPE &season, int music)
     }
 }
 
-uint16_t COrion::GetLandSeasonGraphic(uint16_t graphic)
+u16 COrion::GetLandSeasonGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Season == ST_WINTER)
     {
-        uint16_t buf = m_WinterTile[graphic];
+        u16 buf = m_WinterTile[graphic];
 
         if (buf != 0)
         {
@@ -2037,243 +1740,129 @@ uint16_t COrion::GetLandSeasonGraphic(uint16_t graphic)
     return graphic;
 }
 
-uint16_t COrion::GetSeasonGraphic(uint16_t graphic)
+u16 COrion::GetSeasonGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (g_Season)
     {
-        case ST_SPRING:
-            return GetSpringGraphic(graphic);
+        case ST_SPRING: return GetSpringGraphic(graphic);
         //case ST_SUMMER:
         //	return GetSummerGraphic(graphic);
-        case ST_FALL:
-            return GetFallGraphic(graphic);
+        case ST_FALL: return GetFallGraphic(graphic);
         //case ST_WINTER:
         //	return GetWinterGraphic(graphic);
-        case ST_DESOLATION:
-            return GetDesolationGraphic(graphic);
-        default:
-            break;
+        case ST_DESOLATION: return GetDesolationGraphic(graphic);
+        default: break;
     }
 
     return graphic;
 }
 
-uint16_t COrion::GetSpringGraphic(uint16_t graphic)
+u16 COrion::GetSpringGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (graphic)
     {
-        case 0x0CA7:
-            graphic = 0x0C84;
-            break;
-        case 0x0CAC:
-            graphic = 0x0C46;
-            break;
-        case 0x0CAD:
-            graphic = 0x0C48;
-            break;
+        case 0x0CA7: graphic = 0x0C84; break;
+        case 0x0CAC: graphic = 0x0C46; break;
+        case 0x0CAD: graphic = 0x0C48; break;
         case 0x0CAE:
-        case 0x0CB5:
-            graphic = 0x0C4A;
-            break;
-        case 0x0CAF:
-            graphic = 0x0C4E;
-            break;
-        case 0x0CB0:
-            graphic = 0x0C4D;
-            break;
+        case 0x0CB5: graphic = 0x0C4A; break;
+        case 0x0CAF: graphic = 0x0C4E; break;
+        case 0x0CB0: graphic = 0x0C4D; break;
         case 0x0CB6:
         case 0x0D0D:
-        case 0x0D14:
-            graphic = 0x0D2B;
-            break;
-        case 0x0D0C:
-            graphic = 0x0D29;
-            break;
-        case 0x0D0E:
-            graphic = 0x0CBE;
-            break;
-        case 0x0D0F:
-            graphic = 0x0CBF;
-            break;
-        case 0x0D10:
-            graphic = 0x0CC0;
-            break;
-        case 0x0D11:
-            graphic = 0x0C87;
-            break;
-        case 0x0D12:
-            graphic = 0x0C38;
-            break;
-        case 0x0D13:
-            graphic = 0x0D2F;
-            break;
-        default:
-            break;
+        case 0x0D14: graphic = 0x0D2B; break;
+        case 0x0D0C: graphic = 0x0D29; break;
+        case 0x0D0E: graphic = 0x0CBE; break;
+        case 0x0D0F: graphic = 0x0CBF; break;
+        case 0x0D10: graphic = 0x0CC0; break;
+        case 0x0D11: graphic = 0x0C87; break;
+        case 0x0D12: graphic = 0x0C38; break;
+        case 0x0D13: graphic = 0x0D2F; break;
+        default: break;
     }
 
     return graphic;
 }
 
-uint16_t COrion::GetSummerGraphic(uint16_t graphic)
+u16 COrion::GetSummerGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     return graphic;
 }
 
-uint16_t COrion::GetFallGraphic(uint16_t graphic)
+u16 COrion::GetFallGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (graphic)
     {
-        case 0x0CD1:
-            graphic = 0x0CD2;
-            break;
-        case 0x0CD4:
-            graphic = 0x0CD5;
-            break;
-        case 0x0CDB:
-            graphic = 0x0CDC;
-            break;
-        case 0x0CDE:
-            graphic = 0x0CDF;
-            break;
-        case 0x0CE1:
-            graphic = 0x0CE2;
-            break;
-        case 0x0CE4:
-            graphic = 0x0CE5;
-            break;
-        case 0x0CE7:
-            graphic = 0x0CE8;
-            break;
-        case 0x0D95:
-            graphic = 0x0D97;
-            break;
-        case 0x0D99:
-            graphic = 0x0D9B;
-            break;
-        case 0x0CCE:
-            graphic = 0x0CCF;
-            break;
+        case 0x0CD1: graphic = 0x0CD2; break;
+        case 0x0CD4: graphic = 0x0CD5; break;
+        case 0x0CDB: graphic = 0x0CDC; break;
+        case 0x0CDE: graphic = 0x0CDF; break;
+        case 0x0CE1: graphic = 0x0CE2; break;
+        case 0x0CE4: graphic = 0x0CE5; break;
+        case 0x0CE7: graphic = 0x0CE8; break;
+        case 0x0D95: graphic = 0x0D97; break;
+        case 0x0D99: graphic = 0x0D9B; break;
+        case 0x0CCE: graphic = 0x0CCF; break;
         case 0x0CE9:
-        case 0x0C9E:
-            graphic = 0x0D3F;
-            break;
-        case 0x0CEA:
-            graphic = 0x0D40;
-            break;
+        case 0x0C9E: graphic = 0x0D3F; break;
+        case 0x0CEA: graphic = 0x0D40; break;
         case 0x0C84:
-        case 0x0CB0:
-            graphic = 0x1B22;
-            break;
+        case 0x0CB0: graphic = 0x1B22; break;
         case 0x0C8B:
         case 0x0C8C:
         case 0x0C8D:
-        case 0x0C8E:
-            graphic = 0x0CC6;
-            break;
-        case 0x0CA7:
-            graphic = 0x0C48;
-            break;
-        case 0x0CAC:
-            graphic = 0x1B1F;
-            break;
-        case 0x0CAD:
-            graphic = 0x1B20;
-            break;
-        case 0x0CAE:
-            graphic = 0x1B21;
-            break;
-        case 0x0CAF:
-            graphic = 0x0D0D;
-            break;
-        case 0x0CB5:
-            graphic = 0x0D10;
-            break;
-        case 0x0CB6:
-            graphic = 0x0D2B;
-            break;
-        case 0x0CC7:
-            graphic = 0x0C4E;
-            break;
-        default:
-            break;
+        case 0x0C8E: graphic = 0x0CC6; break;
+        case 0x0CA7: graphic = 0x0C48; break;
+        case 0x0CAC: graphic = 0x1B1F; break;
+        case 0x0CAD: graphic = 0x1B20; break;
+        case 0x0CAE: graphic = 0x1B21; break;
+        case 0x0CAF: graphic = 0x0D0D; break;
+        case 0x0CB5: graphic = 0x0D10; break;
+        case 0x0CB6: graphic = 0x0D2B; break;
+        case 0x0CC7: graphic = 0x0C4E; break;
+        default: break;
     }
 
     return graphic;
 }
 
-uint16_t COrion::GetWinterGraphic(uint16_t graphic)
+u16 COrion::GetWinterGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     return graphic;
 }
 
-uint16_t COrion::GetDesolationGraphic(uint16_t graphic)
+u16 COrion::GetDesolationGraphic(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (graphic)
     {
-        case 0x1B7E:
-            graphic = 0x1E34;
-            break;
-        case 0x0D2B:
-            graphic = 0x1B15;
-            break;
+        case 0x1B7E: graphic = 0x1E34; break;
+        case 0x0D2B: graphic = 0x1B15; break;
         case 0x0D11:
         case 0x0D14:
-        case 0x0D17:
-            graphic = 0x122B;
-            break;
+        case 0x0D17: graphic = 0x122B; break;
         case 0x0D16:
         case 0x0CB9:
         case 0x0CBA:
         case 0x0CBB:
         case 0x0CBC:
         case 0x0CBD:
-        case 0x0CBE:
-            graphic = 0x1B8D;
-            break;
-        case 0x0CC7:
-            graphic = 0x1B0D;
-            break;
-        case 0x0CE9:
-            graphic = 0x0ED7;
-            break;
-        case 0x0CEA:
-            graphic = 0x0D3F;
-            break;
-        case 0x0D0F:
-            graphic = 0x1B1C;
-            break;
-        case 0x0CB8:
-            graphic = 0x1CEA;
-            break;
+        case 0x0CBE: graphic = 0x1B8D; break;
+        case 0x0CC7: graphic = 0x1B0D; break;
+        case 0x0CE9: graphic = 0x0ED7; break;
+        case 0x0CEA: graphic = 0x0D3F; break;
+        case 0x0D0F: graphic = 0x1B1C; break;
+        case 0x0CB8: graphic = 0x1CEA; break;
         case 0x0C84:
-        case 0x0C8B:
-            graphic = 0x1B84;
-            break;
-        case 0x0C9E:
-            graphic = 0x1182;
-            break;
-        case 0x0CAD:
-            graphic = 0x1AE1;
-            break;
-        case 0x0C4C:
-            graphic = 0x1B16;
-            break;
+        case 0x0C8B: graphic = 0x1B84; break;
+        case 0x0C9E: graphic = 0x1182; break;
+        case 0x0CAD: graphic = 0x1AE1; break;
+        case 0x0C4C: graphic = 0x1B16; break;
         case 0x0C8E:
         case 0x0C99:
-        case 0x0CAC:
-            graphic = 0x1B8D;
-            break;
+        case 0x0CAC: graphic = 0x1B8D; break;
         case 0x0C46:
         case 0x0C49:
-        case 0x0CB6:
-            graphic = 0x1B9D;
-            break;
+        case 0x0CB6: graphic = 0x1B9D; break;
         case 0x0C45:
         case 0x0C48:
         case 0x0C4E:
@@ -2283,9 +1872,7 @@ uint16_t COrion::GetDesolationGraphic(uint16_t graphic)
         case 0x0CAF:
         case 0x0CB5:
         case 0x0D15:
-        case 0x0D29:
-            graphic = 0x1B9C;
-            break;
+        case 0x0D29: graphic = 0x1B9C; break;
         case 0x0C37:
         case 0x0C38:
         case 0x0C47:
@@ -2319,19 +1906,15 @@ uint16_t COrion::GetDesolationGraphic(uint16_t graphic)
         case 0x0D18:
         case 0x0D19:
         case 0x0D2D:
-        case 0x0D2F:
-            graphic = 0x1BAE;
-            break;
-        default:
-            break;
+        case 0x0D2F: graphic = 0x1BAE; break;
+        default: break;
     }
 
     return graphic;
 }
 
-int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
+int COrion::ValueInt(const VALUE_KEY_INT& key, int value)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (key)
     {
         case VKI_SOUND:
@@ -2627,19 +2210,6 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
 
             break;
         }
-        case VKI_USE_SCALING_GAME_WINDOW:
-        {
-            if (value == -1)
-            {
-                value = static_cast<int>(g_ConfigManager.GetUseScaling());
-            }
-            else
-            {
-                g_ConfigManager.SetUseScaling((value != 0));
-            }
-
-            break;
-        }
         case VKI_DRAW_STATUS_STATE:
         {
             if (value == -1)
@@ -2831,7 +2401,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
             }
             else
             {
-                g_ConfigManager.TransparentSpellIcons = static_cast<uint8_t>(value != 0);
+                g_ConfigManager.TransparentSpellIcons = static_cast<u8>(value != 0);
             }
 
             break;
@@ -2865,7 +2435,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         }
         case VKI_SKILL_CAN_BE_USED:
         {
-            CSkill *skill = g_SkillsManager.Get(value);
+            CSkill* skill = g_SkillsManager.Get(value);
 
             if (skill != nullptr)
             {
@@ -2933,8 +2503,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
                         value = CGumpSpellbook::SPELLBOOK_7_SPELLS_COUNT;
                         break;
                     }
-                    default:
-                        break;
+                    default: break;
                 }
             }
 
@@ -3012,7 +2581,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (g_MapSize[value].Width << 16) | g_MapSize[value].Height;
+                value = (g_MapSize[value].x << 16) | g_MapSize[value].y;
             }
 
             break;
@@ -3021,7 +2590,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (g_MapBlockSize[value].Width << 16) | g_MapBlockSize[value].Height;
+                value = (g_MapBlockSize[value].x << 16) | g_MapBlockSize[value].y;
             }
 
             break;
@@ -3030,7 +2599,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_MapMul[value].Start);
+                value = checked_cast<int>(g_FileManager.m_MapMul[value].GetBuffer());
             }
 
             break;
@@ -3039,7 +2608,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_MapMul[value].Size;
+                value = (int)g_FileManager.m_MapMul[value].GetSize();
             }
 
             break;
@@ -3048,7 +2617,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_StaticIdx[value].Start);
+                value = checked_cast<int>(g_FileManager.m_StaticIdx[value].GetBuffer());
             }
 
             break;
@@ -3057,7 +2626,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_StaticIdx[value].Size;
+                value = (int)g_FileManager.m_StaticIdx[value].GetSize();
             }
 
             break;
@@ -3066,7 +2635,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_StaticMul[value].Start);
+                value = checked_cast<int>(g_FileManager.m_StaticMul[value].GetBuffer());
             }
 
             break;
@@ -3075,7 +2644,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_StaticMul[value].Size;
+                value = (int)g_FileManager.m_StaticMul[value].GetSize();
             }
 
             break;
@@ -3084,7 +2653,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_MapDifl[value].Start);
+                value = checked_cast<int>(g_FileManager.m_MapDifl[value].GetBuffer());
             }
 
             break;
@@ -3093,7 +2662,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_MapDifl[value].Size;
+                value = (int)g_FileManager.m_MapDifl[value].GetSize();
             }
 
             break;
@@ -3102,7 +2671,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_MapDif[value].Start);
+                value = checked_cast<int>(g_FileManager.m_MapDif[value].GetBuffer());
             }
 
             break;
@@ -3111,7 +2680,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_MapDif[value].Size;
+                value = (int)g_FileManager.m_MapDif[value].GetSize();
             }
 
             break;
@@ -3120,7 +2689,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_StaDifl[value].Start);
+                value = checked_cast<int>(g_FileManager.m_StaDifl[value].GetBuffer());
             }
 
             break;
@@ -3129,7 +2698,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_StaDifl[value].Size;
+                value = (int)g_FileManager.m_StaDifl[value].GetSize();
             }
 
             break;
@@ -3138,7 +2707,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_StaDifi[value].Start);
+                value = checked_cast<int>(g_FileManager.m_StaDifi[value].GetBuffer());
             }
 
             break;
@@ -3147,7 +2716,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_StaDifi[value].Size;
+                value = (int)g_FileManager.m_StaDifi[value].GetSize();
             }
 
             break;
@@ -3156,7 +2725,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_StaDif[value].Start);
+                value = checked_cast<int>(g_FileManager.m_StaDif[value].GetBuffer());
             }
 
             break;
@@ -3165,20 +2734,20 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_StaDif[value].Size;
+                value = (int)g_FileManager.m_StaDif[value].GetSize();
             }
 
             break;
         }
         case VKI_VERDATA_ADDRESS:
         {
-            value = checked_cast<int>(g_FileManager.m_VerdataMul.Start);
+            value = checked_cast<int>(g_FileManager.m_VerdataMul.GetBuffer());
 
             break;
         }
         case VKI_VERDATA_SIZE:
         {
-            value = (int)g_FileManager.m_VerdataMul.Size;
+            value = (int)g_FileManager.m_VerdataMul.GetSize();
 
             break;
         }
@@ -3186,7 +2755,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_MapUOP[value].Start);
+                value = checked_cast<int>(g_FileManager.m_MapUOP[value].GetBuffer());
             }
 
             break;
@@ -3195,7 +2764,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_MapUOP[value].Size;
+                value = (int)g_FileManager.m_MapUOP[value].GetSize();
             }
 
             break;
@@ -3204,7 +2773,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = checked_cast<int>(g_FileManager.m_MapXUOP[value].Start);
+                value = checked_cast<int>(g_FileManager.m_MapXUOP[value].GetBuffer());
             }
 
             break;
@@ -3213,20 +2782,20 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         {
             if (value >= 0 && value < 6)
             {
-                value = (int)g_FileManager.m_MapXUOP[value].Size;
+                value = (int)g_FileManager.m_MapXUOP[value].GetSize();
             }
 
             break;
         }
         case VKI_CLILOC_ENU_ADDRESS:
         {
-            value = checked_cast<int>(g_ClilocManager.Cliloc("enu")->m_File.Start);
+            value = checked_cast<int>(g_ClilocManager.GetCliloc("enu")->GetFile().GetBuffer());
 
             break;
         }
         case VKI_CLILOC_ENU_SIZE:
         {
-            value = (int)g_ClilocManager.Cliloc("enu")->m_File.Size;
+            value = (int)g_ClilocManager.GetCliloc("enu")->GetFile().GetSize();
 
             break;
         }
@@ -3247,7 +2816,7 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
         }
         case VKI_SET_PVPCALLER:
         {
-            CGameCharacter *obj = g_World->FindWorldCharacter(value);
+            CGameCharacter* obj = g_World->FindWorldCharacter(value);
             if (obj == nullptr)
             {
                 break;
@@ -3264,23 +2833,21 @@ int COrion::ValueInt(const VALUE_KEY_INT &key, int value)
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
     return value;
 }
 
-string COrion::ValueString(const VALUE_KEY_STRING &key, string value)
+std::string COrion::ValueString(const VALUE_KEY_STRING& key, std::string value)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (key)
     {
         case VKS_SKILL_NAME:
         {
             int index = atoi(value.c_str());
 
-            CSkill *skill = g_SkillsManager.Get(index);
+            CSkill* skill = g_SkillsManager.Get(index);
 
             if (skill != nullptr)
             {
@@ -3291,7 +2858,7 @@ string COrion::ValueString(const VALUE_KEY_STRING &key, string value)
         }
         case VKS_SERVER_NAME:
         {
-            CServer *server = g_ServerList.GetSelectedServer();
+            CServer* server = g_ServerList.GetSelectedServer();
 
             if (server != nullptr)
             {
@@ -3386,8 +2953,7 @@ string COrion::ValueString(const VALUE_KEY_STRING &key, string value)
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
     return value;
@@ -3395,13 +2961,12 @@ string COrion::ValueString(const VALUE_KEY_STRING &key, string value)
 
 void COrion::ClearRemovedStaticsTextures()
 {
-    DEBUG_TRACE_FUNCTION;
-    for (deque<CIndexObject *>::iterator it = m_UsedStaticList.begin();
+    for (std::deque<CIndexObject*>::iterator it = m_UsedStaticList.begin();
          it != m_UsedStaticList.end();)
     {
-        CIndexObject *obj = *it;
+        CIndexObject* obj = *it;
 
-        if (obj->LastAccessTime == 0u)
+        if (!obj->LastAccessed.IsSet())
         {
             if (obj->Texture != nullptr)
             {
@@ -3420,20 +2985,16 @@ void COrion::ClearRemovedStaticsTextures()
 
 void COrion::ClearTreesTextures()
 {
-    DEBUG_TRACE_FUNCTION;
-    for (uint16_t graphic : m_StumpTiles)
-    {
-        m_StaticDataIndex[graphic].LastAccessTime = 0;
-    }
-
+    for (u16 graphic : m_StumpTiles)
+        m_StaticDataIndex[graphic].LastAccessed.Reset();
     ClearRemovedStaticsTextures();
 }
 
-bool COrion::InTileFilter(uint16_t graphic)
+bool COrion::InTileFilter(u16 graphic)
 {
     if (!m_IgnoreInFilterTiles.empty())
     {
-        for (const std::pair<uint16_t, uint16_t> &i : m_IgnoreInFilterTiles)
+        for (const std::pair<u16, u16>& i : m_IgnoreInFilterTiles)
         {
             if (i.first == graphic || ((i.second != 0u) && IN_RANGE(graphic, i.first, i.second)))
             {
@@ -3445,15 +3006,14 @@ bool COrion::InTileFilter(uint16_t graphic)
     return false;
 }
 
-bool COrion::IsTreeTile(uint16_t graphic, int &index)
+bool COrion::IsTreeTile(u16 graphic, int& index)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.GetDrawStumps() || InTileFilter(graphic))
     {
         return false;
     }
 
-    uint8_t flags = m_StaticTilesFilterFlags[graphic];
+    u8 flags = m_StaticTilesFilterFlags[graphic];
 
     if ((flags & STFF_STUMP) != 0)
     {
@@ -3474,75 +3034,66 @@ bool COrion::IsTreeTile(uint16_t graphic, int &index)
 
 void COrion::ClearCaveTextures()
 {
-    DEBUG_TRACE_FUNCTION;
-    for (uint16_t graphic : m_CaveTiles)
-    {
-        m_StaticDataIndex[graphic].LastAccessTime = 0;
-    }
-
+    for (u16 graphic : m_CaveTiles)
+        m_StaticDataIndex[graphic].LastAccessed.Reset();
     ClearRemovedStaticsTextures();
 }
 
-bool COrion::IsCaveTile(uint16_t graphic)
+bool COrion::IsCaveTile(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     return (
         g_ConfigManager.GetMarkingCaves() &&
         ((m_StaticTilesFilterFlags[graphic] & STFF_CAVE) != 0));
 }
 
-bool COrion::IsVegetation(uint16_t graphic)
+bool COrion::IsVegetation(u16 graphic)
 {
-    DEBUG_TRACE_FUNCTION;
     return (m_StaticTilesFilterFlags[graphic] & STFF_VEGETATION) != 0;
 }
 
-void COrion::LoadLogin(string &login, int &port)
+void COrion::LoadLogin(std::string& login, int& port)
 {
-    DEBUG_TRACE_FUNCTION;
-
     login = m_OverrideServerAddress;
-    port = m_OverrideServerPort;
+    port  = m_OverrideServerPort;
     if (m_OverrideServerPort != 0)
     {
         return;
     }
 
-    if (!g_Config.ServerAddress.empty())
+    login = uo_server_address.GetValue();
+    port = uo_server_port.GetValue();
+    if (uo_server_port.GetValue() > 0)
     {
-        login = g_Config.ServerAddress;
-        port = g_Config.ServerPort;
         return;
     }
 
-    Wisp::CTextFileParser file(g_App.UOFilesPath("login.cfg"), "=,", "#;", "");
+    Core::TextFileParser file(g_App.GetGameDir() / "login.cfg", "=,", "#;", "");
     while (!file.IsEOF())
     {
         auto strings = file.ReadTokens();
         if (strings.size() >= 3)
         {
-            string lo = ToLowerA(strings[0]);
+            std::string lo = Core::ToLowerA(strings[0]);
             if (lo == "loginserver")
             {
                 login = strings[1];
-                port = atoi(strings[2].c_str());
+                port  = atoi(strings[2].c_str());
             }
         }
     }
 }
 
-void COrion::GoToWebLink(const string &url)
+void COrion::GoToWebLink(const std::string& url)
 {
-    DEBUG_TRACE_FUNCTION;
     if (url.length() != 0u)
     {
         std::size_t found = url.find("http://");
-        if (found == string::npos)
+        if (found == std::string::npos)
         {
             found = url.find("https://");
         }
-        const string header = "http://";
-        if (found != string::npos)
+        const std::string header = "http://";
+        if (found != std::string::npos)
         {
             Platform::OpenBrowser(url.c_str());
         }
@@ -3555,100 +3106,82 @@ void COrion::GoToWebLink(const string &url)
 
 void COrion::LoadTiledata(int landSize, int staticsSize)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CMappedFile &file = g_FileManager.m_TiledataMul;
-
-    if (file.Size != 0u)
+    Core::MappedFile& file = g_FileManager.m_TiledataMul;
+    if (file.GetSize() != 0u)
     {
-        bool isOldVersion = (g_Config.ClientVersion < CV_7090);
+        bool isOldVersion = (GameVars::GetClientVersion() < CV_7090);
         file.ResetPtr();
-
         m_LandData.resize(landSize * 32);
-
         m_StaticData.resize(staticsSize * 32);
-
         for (int i = 0; i < landSize; i++)
         {
-            file.ReadUInt32LE();
-
+            file.ReadLE<u32>();
             for (int j = 0; j < 32; j++)
             {
-                LAND_TILES &tile = m_LandData[(i * 32) + j];
-
+                LAND_TILES& tile = m_LandData[(i * 32) + j];
                 if (isOldVersion)
-                {
-                    tile.Flags = file.ReadUInt32LE();
-                }
+                    tile.Flags = file.ReadLE<u32>();
                 else
-                {
-                    tile.Flags = file.ReadInt64LE();
-                }
+                    tile.Flags = file.ReadLE<u64>();
 
-                tile.TexID = file.ReadUInt16LE();
-                tile.Name = file.ReadString(20);
+                tile.TexID = file.ReadLE<u16>();
+                tile.Name  = file.ReadString(20);
             }
         }
 
         for (int i = 0; i < staticsSize; i++)
         {
-            file.ReadUInt32LE();
-
+            file.ReadLE<u32>();
             for (int j = 0; j < 32; j++)
             {
-                STATIC_TILES &tile = m_StaticData[(i * 32) + j];
-
+                STATIC_TILES& tile = m_StaticData[(i * 32) + j];
                 if (isOldVersion)
-                {
-                    tile.Flags = file.ReadUInt32LE();
-                }
+                    tile.Flags = file.ReadLE<u32>();
                 else
-                {
-                    tile.Flags = file.ReadInt64LE();
-                }
+                    tile.Flags = file.ReadLE<i64>();
 
-                tile.Weight = file.ReadInt8();
-                tile.Layer = file.ReadInt8();
-                tile.Count = file.ReadInt32LE();
-                tile.AnimID = file.ReadInt16LE();
-                tile.Hue = file.ReadInt16LE();
-                tile.LightIndex = file.ReadInt16LE();
-                tile.Height = file.ReadInt8();
-                tile.Name = file.ReadString(20);
+                tile.Weight     = file.ReadLE<i8>();
+                tile.Layer      = file.ReadLE<i8>();
+                tile.Count      = file.ReadLE<i32>();
+                tile.AnimID     = file.ReadLE<i16>();
+                tile.Hue        = file.ReadLE<i16>();
+                tile.LightIndex = file.ReadLE<i16>();
+                tile.Height     = file.ReadLE<i8>();
+                tile.Name       = file.ReadString(20);
             }
         }
-
         file.Unload();
     }
 }
 
 void COrion::ReadMulIndexFile(
     size_t indexMaxCount,
-    const std::function<CIndexObject *(int index)> &getIdxObj,
+    const std::function<CIndexObject*(int index)>& getIdxObj,
     size_t address,
-    BASE_IDX_BLOCK *ptr,
-    const std::function<BASE_IDX_BLOCK *()> &getNewPtrValue)
+    BASE_IDX_BLOCK* ptr,
+    const std::function<BASE_IDX_BLOCK*()>& getNewPtrValue)
 {
     for (int i = 0; i < (int)indexMaxCount; i++)
     {
-        CIndexObject *obj = getIdxObj((int)i);
-        obj->ReadIndexFile(address, ptr, (uint16_t)i);
+        CIndexObject* obj = getIdxObj((int)i);
+        obj->ReadIndexFile(address, ptr, (u16)i);
         ptr = getNewPtrValue();
     }
 }
 
 void COrion::ReadUOPIndexFile(
     size_t indexMaxCount,
-    const std::function<CIndexObject *(int)> &getIdxObj,
-    const char *uopFileName,
+    const std::function<CIndexObject*(int)>& getIdxObj,
+    const char* uopFileName,
     int padding,
-    const char *extesion,
-    CUopMappedFile &uopFile,
+    const char* extesion,
+    CUopMappedFile& uopFile,
     int startIndex)
 {
-    string p = uopFileName;
+    std::string p = uopFileName;
     std::transform(p.begin(), p.end(), p.begin(), ::tolower);
 
-    bool isGump = (string("gumpartlegacymul") == p);
+    bool isGump        = (std::string("gumpartlegacymul") == p);
     char basePath[200] = { 0 };
     sprintf_s(basePath, "build/%s/%%0%ii%s", p.c_str(), padding, extesion);
 
@@ -3657,15 +3190,15 @@ void COrion::ReadUOPIndexFile(
         char hashString[200] = { 0 };
         sprintf_s(hashString, basePath, (int)i);
 
-        CUopBlockHeader *block = uopFile.GetBlock(CreateHash(hashString));
+        CUopBlockHeader* block = uopFile.GetBlock(CreateHash(hashString));
 
         if (block != nullptr)
         {
-            CIndexObject *obj = getIdxObj((int)i);
-            obj->Address = (uintptr_t)uopFile.Start + (uint32_t)block->Offset;
-            obj->DataSize = block->DecompressedSize;
-            obj->UopBlock = block;
-            obj->ID = -1;
+            CIndexObject* obj = getIdxObj((int)i);
+            obj->Address      = (uintptr_t)uopFile.GetBuffer() + (u32)block->Offset;
+            obj->DataSize     = block->DecompressedSize;
+            obj->UopBlock     = block;
+            obj->ID           = -1;
 
             if (isGump)
             {
@@ -3675,27 +3208,27 @@ void COrion::ReadUOPIndexFile(
                 uopFile.ResetPtr();
                 uopFile.Move((int)block->Offset);
 
-                obj->Width = uopFile.ReadUInt32LE();
-                obj->Height = uopFile.ReadUInt32LE();
+                obj->Width  = uopFile.ReadLE<u32>();
+                obj->Height = uopFile.ReadLE<u32>();
             }
         }
     }
 }
 
-uint64_t COrion::CreateHash(const char *s)
+u64 COrion::CreateHash(const char* s)
 {
-    const auto l = (uint32_t)strlen(s);
-    uint32_t eax, ecx, edx, ebx, esi, edi;
+    const auto l = (u32)strlen(s);
+    u32 eax, ecx, edx, ebx, esi, edi;
 
     eax = ecx = edx = ebx = esi = edi = 0;
     ebx = edi = esi = l + 0xDEADBEEF;
 
-    uint32_t i = 0;
+    u32 i = 0;
     for (i = 0; i + 12 < l; i += 12)
     {
-        edi = (uint32_t)((s[i + 7] << 24) | (s[i + 6] << 16) | (s[i + 5] << 8) | s[i + 4]) + edi;
-        esi = (uint32_t)((s[i + 11] << 24) | (s[i + 10] << 16) | (s[i + 9] << 8) | s[i + 8]) + esi;
-        edx = (uint32_t)((s[i + 3] << 24) | (s[i + 2] << 16) | (s[i + 1] << 8) | s[i]) - esi;
+        edi = (u32)((s[i + 7] << 24) | (s[i + 6] << 16) | (s[i + 5] << 8) | s[i + 4]) + edi;
+        esi = (u32)((s[i + 11] << 24) | (s[i + 10] << 16) | (s[i + 9] << 8) | s[i + 8]) + esi;
+        edx = (u32)((s[i + 3] << 24) | (s[i + 2] << 16) | (s[i + 1] << 8) | s[i]) - esi;
 
         edx = (edx + ebx) ^ (esi >> 28) ^ (esi << 4);
         esi += edi;
@@ -3716,17 +3249,17 @@ uint64_t COrion::CreateHash(const char *s)
         switch (l - i)
         {
             case 12:
-                esi += static_cast<uint32_t>(s[i + 11]) << 24;
+                esi += static_cast<u32>(s[i + 11]) << 24;
                 goto case_11;
                 break;
             case 11:
             case_11:
-                esi += static_cast<uint32_t>(s[i + 10]) << 16;
+                esi += static_cast<u32>(s[i + 10]) << 16;
                 goto case_10;
                 break;
             case 10:
             case_10:
-                esi += static_cast<uint32_t>(s[i + 9]) << 8;
+                esi += static_cast<u32>(s[i + 9]) << 8;
                 goto case_9;
                 break;
             case 9:
@@ -3736,17 +3269,17 @@ uint64_t COrion::CreateHash(const char *s)
                 break;
             case 8:
             case_8:
-                edi += static_cast<uint32_t>(s[i + 7]) << 24;
+                edi += static_cast<u32>(s[i + 7]) << 24;
                 goto case_7;
                 break;
             case 7:
             case_7:
-                edi += static_cast<uint32_t>(s[i + 6]) << 16;
+                edi += static_cast<u32>(s[i + 6]) << 16;
                 goto case_6;
                 break;
             case 6:
             case_6:
-                edi += static_cast<uint32_t>(s[i + 5]) << 8;
+                edi += static_cast<u32>(s[i + 5]) << 8;
                 goto case_5;
                 break;
             case 5:
@@ -3756,22 +3289,23 @@ uint64_t COrion::CreateHash(const char *s)
                 break;
             case 4:
             case_4:
-                ebx += static_cast<uint32_t>(s[i + 3]) << 24;
+                ebx += static_cast<u32>(s[i + 3]) << 24;
                 goto case_3;
                 break;
             case 3:
             case_3:
-                ebx += static_cast<uint32_t>(s[i + 2]) << 16;
+                ebx += static_cast<u32>(s[i + 2]) << 16;
                 goto case_2;
                 break;
             case 2:
             case_2:
-                ebx += static_cast<uint32_t>(s[i + 1]) << 8;
+                ebx += static_cast<u32>(s[i + 1]) << 8;
                 goto case_1;
             case 1:
             case_1:
                 ebx += s[i];
                 break;
+            default: break;
         }
 
         esi = (esi ^ edi) - ((edi >> 18) ^ (edi << 14));
@@ -3782,31 +3316,30 @@ uint64_t COrion::CreateHash(const char *s)
         edi = (edi ^ edx) - ((edx >> 18) ^ (edx << 14));
         eax = (esi ^ edi) - ((edi >> 8) ^ (edi << 24));
 
-        return (static_cast<uint64_t>(edi) << 32) | eax;
+        return (static_cast<u64>(edi) << 32) | eax;
     }
 
-    return (static_cast<uint64_t>(esi) << 32) | eax;
+    return (static_cast<u64>(esi) << 32) | eax;
 }
 
 void COrion::LoadIndexFiles()
 {
-    ART_IDX_BLOCK *LandArtPtr = (ART_IDX_BLOCK *)g_FileManager.m_ArtIdx.Start;
-    ART_IDX_BLOCK *StaticArtPtr =
-        (ART_IDX_BLOCK
-             *)((size_t)g_FileManager.m_ArtIdx.Start + (m_LandData.size() * sizeof(ART_IDX_BLOCK)));
-    GUMP_IDX_BLOCK *GumpArtPtr = (GUMP_IDX_BLOCK *)g_FileManager.m_GumpIdx.Start;
-    TEXTURE_IDX_BLOCK *TexturePtr = (TEXTURE_IDX_BLOCK *)g_FileManager.m_TextureIdx.Start;
-    MULTI_IDX_BLOCK *MultiPtr = (MULTI_IDX_BLOCK *)g_FileManager.m_MultiIdx.Start;
-    SOUND_IDX_BLOCK *SoundPtr = (SOUND_IDX_BLOCK *)g_FileManager.m_SoundIdx.Start;
-    LIGHT_IDX_BLOCK *LightPtr = (LIGHT_IDX_BLOCK *)g_FileManager.m_LightIdx.Start;
+    ART_IDX_BLOCK* LandArtPtr = (ART_IDX_BLOCK*)g_FileManager.m_ArtIdx.GetBuffer();
+    ART_IDX_BLOCK* StaticArtPtr =
+        (ART_IDX_BLOCK*)((size_t)g_FileManager.m_ArtIdx.GetBuffer() + (m_LandData.size() * sizeof(ART_IDX_BLOCK)));
+    GUMP_IDX_BLOCK* GumpArtPtr    = (GUMP_IDX_BLOCK*)g_FileManager.m_GumpIdx.GetBuffer();
+    TEXTURE_IDX_BLOCK* TexturePtr = (TEXTURE_IDX_BLOCK*)g_FileManager.m_TextureIdx.GetBuffer();
+    MULTI_IDX_BLOCK* MultiPtr     = (MULTI_IDX_BLOCK*)g_FileManager.m_MultiIdx.GetBuffer();
+    SOUND_IDX_BLOCK* SoundPtr     = (SOUND_IDX_BLOCK*)g_FileManager.m_SoundIdx.GetBuffer();
+    LIGHT_IDX_BLOCK* LightPtr     = (LIGHT_IDX_BLOCK*)g_FileManager.m_LightIdx.GetBuffer();
 
-    if (g_FileManager.m_MultiCollection.Start != nullptr)
+    if (g_FileManager.m_MultiCollection.GetBuffer() != nullptr)
     {
         g_MultiIndexCount = MAX_MULTI_DATA_INDEX_COUNT;
     }
     else
     {
-        g_MultiIndexCount = (int)(g_FileManager.m_MultiIdx.Size / sizeof(MULTI_IDX_BLOCK));
+        g_MultiIndexCount = (int)(g_FileManager.m_MultiIdx.GetSize() / sizeof(MULTI_IDX_BLOCK));
 
         if (g_MultiIndexCount > MAX_MULTI_DATA_INDEX_COUNT)
         {
@@ -3814,20 +3347,19 @@ void COrion::LoadIndexFiles()
         }
     }
 
-    int maxGumpsCount = (int)(g_FileManager.m_GumpIdx.Start == nullptr ? MAX_GUMP_DATA_INDEX_COUNT : (g_FileManager.m_GumpIdx.End - g_FileManager.m_GumpIdx.Start) / sizeof(GUMP_IDX_BLOCK));
-
-    if (g_FileManager.m_ArtMul.Start != nullptr)
+    int maxGumpsCount = (int)(g_FileManager.m_GumpIdx.GetBuffer() == nullptr ? MAX_GUMP_DATA_INDEX_COUNT : g_FileManager.m_GumpIdx.GetSize() / sizeof(GUMP_IDX_BLOCK));
+    if (g_FileManager.m_ArtMul.GetBuffer() != nullptr)
     {
         ReadMulIndexFile(
             MAX_LAND_DATA_INDEX_COUNT,
             [&](int i) { return &m_LandDataIndex[i]; },
-            (size_t)g_FileManager.m_ArtMul.Start,
+            (size_t)g_FileManager.m_ArtMul.GetBuffer(),
             LandArtPtr,
             [&LandArtPtr]() { return ++LandArtPtr; });
         ReadMulIndexFile(
             m_StaticData.size(),
             [&](int i) { return &m_StaticDataIndex[i]; },
-            (size_t)g_FileManager.m_ArtMul.Start,
+            (size_t)g_FileManager.m_ArtMul.GetBuffer(),
             StaticArtPtr,
             [&StaticArtPtr]() { return ++StaticArtPtr; });
     }
@@ -3850,12 +3382,12 @@ void COrion::LoadIndexFiles()
             MAX_LAND_DATA_INDEX_COUNT);
     }
 
-    if (g_FileManager.m_SoundMul.Start != nullptr)
+    if (g_FileManager.m_SoundMul.GetBuffer() != nullptr)
     {
         ReadMulIndexFile(
             MAX_SOUND_DATA_INDEX_COUNT,
             [&](int i) { return &m_SoundDataIndex[i]; },
-            (size_t)g_FileManager.m_SoundMul.Start,
+            (size_t)g_FileManager.m_SoundMul.GetBuffer(),
             SoundPtr,
             [&SoundPtr]() { return ++SoundPtr; });
     }
@@ -3870,12 +3402,12 @@ void COrion::LoadIndexFiles()
             g_FileManager.m_SoundLegacyMUL);
     }
 
-    if (g_FileManager.m_GumpMul.Start != nullptr)
+    if (g_FileManager.m_GumpMul.GetBuffer() != nullptr)
     {
         ReadMulIndexFile(
             maxGumpsCount,
             [&](int i) { return &m_GumpDataIndex[i]; },
-            (size_t)g_FileManager.m_GumpMul.Start,
+            (size_t)g_FileManager.m_GumpMul.GetBuffer(),
             GumpArtPtr,
             [&GumpArtPtr]() { return ++GumpArtPtr; });
     }
@@ -3891,56 +3423,55 @@ void COrion::LoadIndexFiles()
     }
 
     ReadMulIndexFile(
-        g_FileManager.m_TextureIdx.Size / sizeof(TEXTURE_IDX_BLOCK),
+        g_FileManager.m_TextureIdx.GetSize() / sizeof(TEXTURE_IDX_BLOCK),
         [&](int i) { return &m_TextureDataIndex[i]; },
-        (size_t)g_FileManager.m_TextureMul.Start,
+        (size_t)g_FileManager.m_TextureMul.GetBuffer(),
         TexturePtr,
         [&TexturePtr]() { return ++TexturePtr; });
     ReadMulIndexFile(
         MAX_LIGHTS_DATA_INDEX_COUNT,
         [&](int i) { return &m_LightDataIndex[i]; },
-        (size_t)g_FileManager.m_LightMul.Start,
+        (size_t)g_FileManager.m_LightMul.GetBuffer(),
         LightPtr,
         [&LightPtr]() { return ++LightPtr; });
 
-    if (g_FileManager.m_MultiMul.Start != nullptr)
+    if (g_FileManager.m_MultiMul.GetBuffer() != nullptr)
     {
         ReadMulIndexFile(
             g_MultiIndexCount,
             [&](int i) { return &m_MultiDataIndex[i]; },
-            (size_t)g_FileManager.m_MultiMul.Start,
+            (size_t)g_FileManager.m_MultiMul.GetBuffer(),
             MultiPtr,
             [&MultiPtr]() { return ++MultiPtr; });
     }
     else
     {
-        CUopMappedFile &file = g_FileManager.m_MultiCollection;
-
-        for (std::unordered_map<uint64_t, CUopBlockHeader>::iterator i = file.m_Map.begin();
+        CUopMappedFile& file = g_FileManager.m_MultiCollection;
+        for (std::unordered_map<u64, CUopBlockHeader>::iterator i = file.m_Map.begin();
              i != file.m_Map.end();
              ++i)
         {
-            CUopBlockHeader &block = i->second;
-            vector<uint8_t> data = file.GetData(block);
+            CUopBlockHeader& block = i->second;
+            std::vector<u8> data   = file.GetData(block);
 
             if (data.empty())
             {
                 continue;
             }
 
-            Wisp::CDataReader reader(&data[0], data.size());
+            Core::StreamReader reader(&data[0], data.size());
 
-            uint32_t id = reader.ReadUInt32LE();
+            u32 id = reader.ReadLE<u32>();
 
             if (id < MAX_MULTI_DATA_INDEX_COUNT)
             {
-                CIndexMulti &index = m_MultiDataIndex[id];
+                CIndexMulti& index = m_MultiDataIndex[id];
 
-                index.Address = (size_t)file.Start + (size_t)block.Offset;
+                index.Address  = (size_t)file.GetBuffer() + (size_t)block.Offset;
                 index.DataSize = block.DecompressedSize;
                 index.UopBlock = &i->second;
-                index.ID = -1;
-                index.Count = reader.ReadUInt32LE();
+                index.ID       = -1;
+                index.Count    = reader.ReadLE<u32>();
             }
         }
 
@@ -3950,17 +3481,16 @@ void COrion::LoadIndexFiles()
 
 void COrion::UnloadIndexFiles()
 {
-    DEBUG_TRACE_FUNCTION;
-    deque<CIndexObject *> *lists[5] = {
+    std::deque<CIndexObject*>* lists[5] = {
         &m_UsedLandList, &m_UsedStaticList, &m_UsedGumpList, &m_UsedTextureList, &m_UsedLightList
     };
 
     for (int i = 0; i < 5; i++)
     {
-        auto &list = *lists[i];
+        auto& list = *lists[i];
         for (auto it = list.begin(); it != list.end(); ++it)
         {
-            CIndexObject *obj = *it;
+            CIndexObject* obj = *it;
             if (obj->Texture != nullptr)
             {
                 delete obj->Texture;
@@ -3972,7 +3502,7 @@ void COrion::UnloadIndexFiles()
 
     for (auto it = m_UsedSoundList.begin(); it != m_UsedSoundList.end(); ++it)
     {
-        CIndexSound *obj = *it;
+        CIndexSound* obj = *it;
         if (obj->m_Stream != SOUND_NULL)
         {
             g_SoundManager.UpdateSoundEffect(obj->m_Stream, -1);
@@ -3984,16 +3514,15 @@ void COrion::UnloadIndexFiles()
 
 void COrion::InitStaticAnimList()
 {
-    DEBUG_TRACE_FUNCTION;
     if (static_cast<unsigned int>(!m_AnimData.empty()) != 0u)
     {
         uintptr_t lastElement = (uintptr_t)(&m_AnimData[0] + m_AnimData.size() - sizeof(ANIM_DATA));
 
         for (int i = 0; i < (int)m_StaticData.size(); i++)
         {
-            m_StaticDataIndex[i].Index = (uint16_t)i;
+            m_StaticDataIndex[i].Index = (u16)i;
 
-            m_StaticDataIndex[i].LightColor = CalculateLightColor((uint16_t)i);
+            m_StaticDataIndex[i].LightColor = CalculateLightColor((u16)i);
 
             bool isField = false;
 
@@ -4022,7 +3551,7 @@ void COrion::InitStaticAnimList()
 
             if (IsAnimated(m_StaticData[i].Flags))
             {
-                uintptr_t addr = (uintptr_t)((i * 68) + 4 * ((i / 8) + 1));
+                uintptr_t addr   = (uintptr_t)((i * 68) + 4 * ((i / 8) + 1));
                 uintptr_t offset = (uintptr_t)(&m_AnimData[0] + addr);
 
                 if (offset <= lastElement)
@@ -4034,11 +3563,9 @@ void COrion::InitStaticAnimList()
     }
 }
 
-uint16_t COrion::CalculateLightColor(uint16_t id)
+u16 COrion::CalculateLightColor(u16 id)
 {
-    //DEBUG_TRACE_FUNCTION;
-
-    uint16_t color = 0;
+    u16 color = 0;
 
     if (id < 0x3E27)
     {
@@ -4054,24 +3581,13 @@ uint16_t COrion::CalculateLightColor(uint16_t id)
 
     switch (id)
     {
-        case 0x088C:
-            color = 31;
-            break;
-        case 0x0FAC:
-            color = 30;
-            break;
-        case 0x0FB1:
-            color = 60;
-            break;
-        case 0x1647:
-            color = 61;
-            break;
+        case 0x088C: color = 31; break;
+        case 0x0FAC: color = 30; break;
+        case 0x0FB1: color = 60; break;
+        case 0x1647: color = 61; break;
         case 0x19BB:
-        case 0x1F2B:
-            color = 40;
-            break;
-        default:
-            break;
+        case 0x1F2B: color = 40; break;
+        default: break;
     };
 
     if (id < 0x09FB || id > 0x0A14)
@@ -4183,18 +3699,10 @@ uint16_t COrion::CalculateLightColor(uint16_t id)
                                                     {
                                                         switch (id)
                                                         {
-                                                            case 0x40FE:
-                                                                color = 40;
-                                                                break;
-                                                            case 0x40FF:
-                                                                color = 10;
-                                                                break;
-                                                            case 0x4100:
-                                                                color = 20;
-                                                                break;
-                                                            case 0x4101:
-                                                                color = 32;
-                                                                break;
+                                                            case 0x40FE: color = 40; break;
+                                                            case 0x40FF: color = 10; break;
+                                                            case 0x4100: color = 20; break;
+                                                            case 0x4101: color = 32; break;
                                                             default:
                                                                 if ((id >= 0x983B &&
                                                                      id <= 0x983D) ||
@@ -4270,7 +3778,7 @@ uint16_t COrion::CalculateLightColor(uint16_t id)
         color = 62;
     }
 
-    /*uint16_t color = m_StaticData[id].Hue;
+    /*u16 color = m_StaticData[id].Hue;
 
 	if (!color)
 	{
@@ -4413,7 +3921,6 @@ uint16_t COrion::CalculateLightColor(uint16_t id)
 void COrion::ProcessStaticAnimList()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if ((static_cast<unsigned int>(!m_AnimData.empty()) != 0u) &&
         g_ProcessStaticAnimationTimer < g_Ticks)
     {
@@ -4421,13 +3928,13 @@ void COrion::ProcessStaticAnimList()
             (g_ConfigManager.StandartItemsAnimationDelay ? ORIGINAL_ITEMS_ANIMATION_DELAY :
                                                            ORION_ITEMS_ANIMATION_DELAY);
         bool noAnimateFields = g_ConfigManager.GetNoAnimateFields();
-        uint32_t nextTime = g_Ticks + 500;
+        u32 nextTime         = g_Ticks + 500;
 
-        for (deque<CIndexObjectStatic *>::iterator i = m_StaticAnimList.begin();
+        for (std::deque<CIndexObjectStatic*>::iterator i = m_StaticAnimList.begin();
              i != m_StaticAnimList.end();
              ++i)
         {
-            CIndexObjectStatic &obj = *(*i);
+            CIndexObjectStatic& obj = *(*i);
 
             if (noAnimateFields && obj.IsFiled)
             {
@@ -4437,8 +3944,8 @@ void COrion::ProcessStaticAnimList()
 
             if (obj.ChangeTime < g_Ticks)
             {
-                uint32_t addr = (obj.Index * 68) + 4 * ((obj.Index / 8) + 1);
-                ANIM_DATA &pad = *(ANIM_DATA *)(&m_AnimData[0] + addr);
+                u32 addr       = (obj.Index * 68) + 4 * ((obj.Index / 8) + 1);
+                ANIM_DATA& pad = *(ANIM_DATA*)(&m_AnimData[0] + addr);
 
                 int offset = obj.AnimIndex;
 
@@ -4476,7 +3983,6 @@ void COrion::ProcessStaticAnimList()
 
 void COrion::PatchFiles()
 {
-    DEBUG_TRACE_FUNCTION;
     /*
 	-map0 = 0;
 	-staidx0 = 1;
@@ -4500,21 +4006,18 @@ void COrion::PatchFiles()
 	+hues = 32;
 	*/
 
-    Wisp::CMappedFile &file = g_FileManager.m_VerdataMul;
-
-    if (!g_Config.UseVerdata || (file.Size == 0u))
+    Core::MappedFile& file = g_FileManager.m_VerdataMul;
+    if (!g_Config.UseVerdata || (file.GetSize() == 0u))
     {
         g_ColorManager.CreateHuesPalette();
         return;
     }
 
-    int dataCount = *(int32_t *)file.Start;
-
-    size_t vAddr = (size_t)file.Start;
-
+    int dataCount = *(i32*)file.GetBuffer();
+    size_t vAddr  = (size_t)file.GetBuffer();
     for (int i = 0; i < dataCount; i++)
     {
-        VERDATA_HEADER *vh = (VERDATA_HEADER *)(vAddr + 4 + (i * sizeof(VERDATA_HEADER)));
+        VERDATA_HEADER* vh = (VERDATA_HEADER*)(vAddr + 4 + (i * sizeof(VERDATA_HEADER)));
 
         if (vh->FileID == 0) //Map0
         {
@@ -4524,38 +4027,38 @@ void COrion::PatchFiles()
         {
             if (vh->BlockID >= MAX_LAND_DATA_INDEX_COUNT) //Run
             {
-                uint16_t ID = (uint16_t)vh->BlockID - MAX_LAND_DATA_INDEX_COUNT;
-                m_StaticDataIndex[ID].Address = vAddr + vh->Position;
+                u16 ID                         = (u16)vh->BlockID - MAX_LAND_DATA_INDEX_COUNT;
+                m_StaticDataIndex[ID].Address  = vAddr + vh->Position;
                 m_StaticDataIndex[ID].DataSize = vh->Size;
             }
             else //Raw
             {
-                m_LandDataIndex[vh->BlockID].Address = vAddr + vh->Position;
+                m_LandDataIndex[vh->BlockID].Address  = vAddr + vh->Position;
                 m_LandDataIndex[vh->BlockID].DataSize = vh->Size;
             }
         }
         else if (vh->FileID == 12) //Gumpart
         {
-            m_GumpDataIndex[vh->BlockID].Address = vAddr + vh->Position;
+            m_GumpDataIndex[vh->BlockID].Address  = vAddr + vh->Position;
             m_GumpDataIndex[vh->BlockID].DataSize = vh->Size;
-            m_GumpDataIndex[vh->BlockID].Width = vh->GumpData >> 16;
-            m_GumpDataIndex[vh->BlockID].Height = vh->GumpData & 0xFFFF;
+            m_GumpDataIndex[vh->BlockID].Width    = vh->GumpData >> 16;
+            m_GumpDataIndex[vh->BlockID].Height   = vh->GumpData & 0xFFFF;
         }
         else if (vh->FileID == 14 && (int)vh->BlockID < g_MultiIndexCount) //Multi
         {
-            m_MultiDataIndex[vh->BlockID].Address = vAddr + vh->Position;
+            m_MultiDataIndex[vh->BlockID].Address  = vAddr + vh->Position;
             m_MultiDataIndex[vh->BlockID].DataSize = vh->Size;
-            m_MultiDataIndex[vh->BlockID].Count = uint16_t(vh->Size / sizeof(MULTI_IDX_BLOCK));
+            m_MultiDataIndex[vh->BlockID].Count    = u16(vh->Size / sizeof(MULTI_IDX_BLOCK));
         }
         else if (vh->FileID == 16 && (int)vh->BlockID < g_SkillsManager.Count) //Skills
         {
-            CSkill *skill = g_SkillsManager.Get(vh->BlockID);
+            CSkill* skill = g_SkillsManager.Get(vh->BlockID);
 
             if (skill != nullptr)
             {
-                Wisp::CDataReader reader((uint8_t *)vAddr + vh->Position, vh->Size);
-                skill->Button = (reader.ReadUInt8() != 0);
-                skill->Name = reader.ReadString(vh->Size - 1);
+                Core::StreamReader reader((u8*)vAddr + vh->Position, vh->Size);
+                skill->Button = (reader.ReadLE<u8>() != 0);
+                skill->Name   = reader.ReadString(vh->Size - 1);
             }
         }
         else if (vh->FileID == 30) //Tiledata
@@ -4566,29 +4069,18 @@ void COrion::PatchFiles()
             if (vh->Size == 836)
             {
                 int offset = vh->BlockID * 32;
-
                 if (offset + 32 > (int)m_LandData.size())
-                {
                     continue;
-                }
-
-                file.ReadUInt32LE();
-
+                file.ReadLE<u32>();
                 for (int j = 0; j < 32; j++)
                 {
-                    LAND_TILES &tile = m_LandData[offset + j];
-
-                    if (g_Config.ClientVersion < CV_7090)
-                    {
-                        tile.Flags = file.ReadUInt32LE();
-                    }
+                    LAND_TILES& tile = m_LandData[offset + j];
+                    if (GameVars::GetClientVersion() < CV_7090)
+                        tile.Flags = file.ReadLE<u32>();
                     else
-                    {
-                        tile.Flags = file.ReadInt64LE();
-                    }
-
-                    tile.TexID = file.ReadUInt16LE();
-                    tile.Name = file.ReadString(20);
+                        tile.Flags = file.ReadLE<i64>();
+                    tile.TexID = file.ReadLE<u16>();
+                    tile.Name  = file.ReadString(20);
                 }
             }
             else if (vh->Size == 1188)
@@ -4600,29 +4092,22 @@ void COrion::PatchFiles()
                     continue;
                 }
 
-                file.ReadUInt32LE();
-
+                file.ReadLE<u32>();
                 for (int j = 0; j < 32; j++)
                 {
-                    STATIC_TILES &tile = m_StaticData[offset + j];
-
-                    if (g_Config.ClientVersion < CV_7090)
-                    {
-                        tile.Flags = file.ReadUInt32LE();
-                    }
+                    STATIC_TILES& tile = m_StaticData[offset + j];
+                    if (GameVars::GetClientVersion() < CV_7090)
+                        tile.Flags = file.ReadLE<u32>();
                     else
-                    {
-                        tile.Flags = file.ReadInt64LE();
-                    }
-
-                    tile.Weight = file.ReadInt8();
-                    tile.Layer = file.ReadInt8();
-                    tile.Count = file.ReadInt32LE();
-                    tile.AnimID = file.ReadInt16LE();
-                    tile.Hue = file.ReadInt16LE();
-                    tile.LightIndex = file.ReadInt16LE();
-                    tile.Height = file.ReadInt8();
-                    tile.Name = file.ReadString(20);
+                        tile.Flags = file.ReadLE<i64>();
+                    tile.Weight     = file.ReadLE<i8>();
+                    tile.Layer      = file.ReadLE<i8>();
+                    tile.Count      = file.ReadLE<i32>();
+                    tile.AnimID     = file.ReadLE<i16>();
+                    tile.Hue        = file.ReadLE<i16>();
+                    tile.LightIndex = file.ReadLE<i16>();
+                    tile.Height     = file.ReadLE<i8>();
+                    tile.Name       = file.ReadString(20);
                 }
             }
         }
@@ -4630,13 +4115,17 @@ void COrion::PatchFiles()
         {
             if ((int)vh->BlockID < g_ColorManager.GetHuesCount())
             {
-                VERDATA_HUES_GROUP *group = (VERDATA_HUES_GROUP *)(vAddr + vh->Position);
+                VERDATA_HUES_GROUP* group = (VERDATA_HUES_GROUP*)(vAddr + vh->Position);
                 g_ColorManager.SetHuesBlock(vh->BlockID, group);
             }
         }
         else if (vh->FileID != 5 && vh->FileID != 6) //no Anim / Animidx
         {
-            LOG("Unused verdata block (fileID) = %i (BlockID+ %i\n", vh->FileID, vh->BlockID);
+            LOG_WARNING(
+                "Client",
+                "Unused verdata block (fileID) = %i (BlockID+ %i\n",
+                vh->FileID,
+                vh->BlockID);
         }
     }
 
@@ -4645,57 +4134,46 @@ void COrion::PatchFiles()
 
 void COrion::IndexReplaces()
 {
-    DEBUG_TRACE_FUNCTION;
-    if (g_Config.ClientVersion < CV_305D)
+    if (GameVars::GetClientVersion() < CV_305D)
     { //CV_204C
         return;
     }
 
-    Wisp::CTextFileParser newDataParser({}, " \t,{}", "#;//", "");
-    Wisp::CTextFileParser artParser(
-        g_App.UOFilesPath("art.def"), " \t", "#;//", "{}"); // FIXME: case insensitive
-    Wisp::CTextFileParser textureParser(g_App.UOFilesPath("TexTerr.def"), " \t", "#;//", "{}");
-    Wisp::CTextFileParser gumpParser(
-        g_App.UOFilesPath("gump.def"), " \t", "#;//", "{}"); // FIXME: case insensitive
-    Wisp::CTextFileParser multiParser(g_App.UOFilesPath("Multi.def"), " \t", "#;//", "{}");
-    Wisp::CTextFileParser soundParser(g_App.UOFilesPath("Sound.def"), " \t", "#;//", "{}");
-    Wisp::CTextFileParser mp3Parser(g_App.UOFilesPath("Music/Digital/Config.txt"), " ,", "#;", "");
+    Core::TextFileParser newDataParser({}, " \t,{}", "#;//", "");
+    Core::TextFileParser artParser(
+        g_App.GetGameDir() / "art.def", " \t", "#;//", "{}"); // FIXME: case insensitive
+    Core::TextFileParser textureParser(g_App.GetGameDir() / "TexTerr.def", " \t", "#;//", "{}");
+    Core::TextFileParser gumpParser(
+        g_App.GetGameDir() / "gump.def", " \t", "#;//", "{}"); // FIXME: case insensitive
+    Core::TextFileParser multiParser(g_App.GetGameDir() / "Multi.def", " \t", "#;//", "{}");
+    Core::TextFileParser soundParser(g_App.GetGameDir() / "Sound.def", " \t", "#;//", "{}");
+    Core::TextFileParser mp3Parser(g_App.GetGameDir() / "Music/Digital/Config.txt", " ,", "#;", "");
 
-    LOG("Replace arts\n");
+    LOG_INFO("Client", "Replace arts");
     while (!artParser.IsEOF())
     {
-        vector<string> strings = artParser.ReadTokens();
-
+        std::vector<std::string> strings = artParser.ReadTokens();
         if (strings.size() >= 3)
         {
             int index = atoi(strings[0].c_str());
-
             if (index < 0 || index >= MAX_LAND_DATA_INDEX_COUNT + (int)m_StaticData.size())
-            {
                 continue;
-            }
 
-            vector<string> newArt = newDataParser.GetTokens(strings[1].c_str());
-
-            int size = (int)newArt.size();
-
+            std::vector<std::string> newArt = newDataParser.GetTokens(strings[1].c_str());
+            int size                        = (int)newArt.size();
             for (int i = 0; i < size; i++)
             {
                 int checkIndex = atoi(newArt[i].c_str());
-
                 if (checkIndex < 0 ||
                     checkIndex >= MAX_LAND_DATA_INDEX_COUNT + (int)m_StaticData.size())
-                {
                     continue;
-                }
 
                 if (index < MAX_LAND_DATA_INDEX_COUNT && checkIndex < MAX_LAND_DATA_INDEX_COUNT &&
                     m_LandDataIndex[checkIndex].Address != 0 && m_LandDataIndex[index].Address == 0)
                 {
-                    m_LandDataIndex[index] = m_LandDataIndex[checkIndex];
+                    m_LandDataIndex[index]         = m_LandDataIndex[checkIndex];
                     m_LandDataIndex[index].Texture = 0;
-                    m_LandDataIndex[index].Color = atoi(strings[2].c_str());
-
+                    m_LandDataIndex[index].Color   = atoi(strings[2].c_str());
                     break;
                 }
                 if (index >= MAX_LAND_DATA_INDEX_COUNT && checkIndex >= MAX_LAND_DATA_INDEX_COUNT)
@@ -4707,10 +4185,9 @@ void COrion::IndexReplaces()
                     if (m_StaticDataIndex[index].Address == 0 &&
                         m_StaticDataIndex[checkIndex].Address != 0)
                     {
-                        m_StaticDataIndex[index] = m_StaticDataIndex[checkIndex];
+                        m_StaticDataIndex[index]         = m_StaticDataIndex[checkIndex];
                         m_StaticDataIndex[index].Texture = 0;
-                        m_StaticDataIndex[index].Color = atoi(strings[2].c_str());
-
+                        m_StaticDataIndex[index].Color   = atoi(strings[2].c_str());
                         break;
                     }
                 }
@@ -4718,124 +4195,94 @@ void COrion::IndexReplaces()
         }
     }
 
-    LOG("Replace textures\n");
+    LOG_INFO("Client", "Replace textures");
     while (!textureParser.IsEOF())
     {
-        vector<string> strings = textureParser.ReadTokens();
-
+        std::vector<std::string> strings = textureParser.ReadTokens();
         if (strings.size() >= 3)
         {
             int index = atoi(strings[0].c_str());
-
             if (index < 0 || index >= MAX_LAND_TEXTURES_DATA_INDEX_COUNT ||
                 m_TextureDataIndex[index].Address != 0)
-            {
                 continue;
-            }
 
-            vector<string> newTexture = newDataParser.GetTokens(strings[1].c_str());
-
-            int size = (int)newTexture.size();
-
+            std::vector<std::string> newTexture = newDataParser.GetTokens(strings[1].c_str());
+            int size                            = (int)newTexture.size();
             for (int i = 0; i < size; i++)
             {
                 int checkIndex = atoi(newTexture[i].c_str());
-
                 if (checkIndex < 0)
-                {
                     continue;
-                }
 
                 if (index < TexturesDataCount && checkIndex < TexturesDataCount &&
                     m_TextureDataIndex[checkIndex].Address != 0)
                 {
-                    m_TextureDataIndex[index] = m_TextureDataIndex[checkIndex];
+                    m_TextureDataIndex[index]         = m_TextureDataIndex[checkIndex];
                     m_TextureDataIndex[index].Texture = 0;
-                    m_TextureDataIndex[index].Color = atoi(strings[2].c_str());
-
+                    m_TextureDataIndex[index].Color   = atoi(strings[2].c_str());
                     break;
                 }
             }
         }
     }
 
-    LOG("Replace gumps\n");
+    LOG_INFO("Client", "Replace gumps");
     while (!gumpParser.IsEOF())
     {
-        vector<string> strings = gumpParser.ReadTokens();
-
+        std::vector<std::string> strings = gumpParser.ReadTokens();
         if (strings.size() >= 3)
         {
             int index = atoi(strings[0].c_str());
-
             if (index < 0 || index >= MAX_GUMP_DATA_INDEX_COUNT ||
                 m_GumpDataIndex[index].Address != 0)
-            {
                 continue;
-            }
 
-            vector<string> newGump = newDataParser.GetTokens(strings[1].c_str());
-
-            int size = (int)newGump.size();
-
+            std::vector<std::string> newGump = newDataParser.GetTokens(strings[1].c_str());
+            int size                         = (int)newGump.size();
             for (int i = 0; i < size; i++)
             {
                 int checkIndex = atoi(newGump[i].c_str());
-
                 if (checkIndex < 0 || checkIndex >= MAX_GUMP_DATA_INDEX_COUNT ||
                     m_GumpDataIndex[checkIndex].Address == 0)
-                {
                     continue;
-                }
 
-                m_GumpDataIndex[index] = m_GumpDataIndex[checkIndex];
+                m_GumpDataIndex[index]         = m_GumpDataIndex[checkIndex];
                 m_GumpDataIndex[index].Texture = 0;
-                m_GumpDataIndex[index].Color = atoi(strings[2].c_str());
-
+                m_GumpDataIndex[index].Color   = atoi(strings[2].c_str());
                 break;
             }
         }
     }
 
-    LOG("Replace multi\n");
+    LOG_INFO("Client", "Replace multi");
     while (!multiParser.IsEOF())
     {
-        vector<string> strings = multiParser.ReadTokens();
-
+        std::vector<std::string> strings = multiParser.ReadTokens();
         if (strings.size() >= 3)
         {
             int index = atoi(strings[0].c_str());
-
             if (index < 0 || index >= g_MultiIndexCount || m_MultiDataIndex[index].Address != 0)
-            {
                 continue;
-            }
 
-            vector<string> newMulti = newDataParser.GetTokens(strings[1].c_str());
-
-            int size = (int)newMulti.size();
-
+            std::vector<std::string> newMulti = newDataParser.GetTokens(strings[1].c_str());
+            int size                          = (int)newMulti.size();
             for (int i = 0; i < size; i++)
             {
                 int checkIndex = atoi(newMulti[i].c_str());
-
                 if (checkIndex < 0 || checkIndex >= g_MultiIndexCount ||
                     m_MultiDataIndex[checkIndex].Address == 0)
-                {
                     continue;
-                }
 
                 m_MultiDataIndex[index] = m_MultiDataIndex[checkIndex];
-
                 break;
             }
         }
     }
 
-    LOG("Replace sounds\n");
+    LOG_INFO("Client", "Replace sounds");
     while (!soundParser.IsEOF())
     {
-        vector<string> strings = soundParser.ReadTokens();
+        std::vector<std::string> strings = soundParser.ReadTokens();
 
         if (strings.size() >= 2)
         {
@@ -4847,7 +4294,7 @@ void COrion::IndexReplaces()
                 continue;
             }
 
-            vector<string> newSound = newDataParser.GetTokens(strings[1].c_str());
+            std::vector<std::string> newSound = newDataParser.GetTokens(strings[1].c_str());
 
             int size = (int)newSound.size();
 
@@ -4860,84 +4307,75 @@ void COrion::IndexReplaces()
                     continue;
                 }
 
-                CIndexSound &in = m_SoundDataIndex[index];
+                CIndexSound& in = m_SoundDataIndex[index];
 
                 if (checkIndex == -1)
                 {
-                    in.Address = 0;
+                    in.Address  = 0;
                     in.DataSize = 0;
-                    in.Delay = 0;
-                    in.LastAccessTime = 0;
+                    in.Delay    = 0;
+                    in.LastAccessed.Reset();
                 }
                 else
                 {
-                    CIndexSound &out = m_SoundDataIndex[checkIndex];
+                    CIndexSound& out = m_SoundDataIndex[checkIndex];
 
                     if (out.Address == 0)
                     {
                         continue;
                     }
 
-                    in.Address = out.Address;
-                    in.DataSize = out.DataSize;
-                    in.Delay = out.Delay;
-                    in.LastAccessTime = out.LastAccessTime;
+                    in.Address      = out.Address;
+                    in.DataSize     = out.DataSize;
+                    in.Delay        = out.Delay;
+                    in.LastAccessed = out.LastAccessed;
                 }
 
                 free(in.m_WaveFile);
                 in.m_WaveFile = nullptr;
-                in.m_Stream = SOUND_NULL;
+                in.m_Stream   = nullptr;
 
                 break;
             }
         }
     }
 
-    LOG("Loading mp3 config\n");
+    LOG_INFO("Client", "Loading mp3 config");
     while (!mp3Parser.IsEOF())
     {
-        vector<string> strings = mp3Parser.ReadTokens();
-        size_t size = strings.size();
-
+        std::vector<std::string> strings = mp3Parser.ReadTokens();
+        size_t size                      = strings.size();
         if (size > 0)
         {
-            uint32_t index = std::atoi(strings[0].c_str());
-            CIndexMusic &mp3 = m_MP3Data[index];
-            string name = "music/digital/" + strings[1];
-            string extension = ".mp3";
-            if (name.find(extension) == string::npos)
-            {
+            u32 index             = std::atoi(strings[0].c_str());
+            CIndexMusic& mp3      = m_MP3Data[index];
+            std::string name      = "music/digital/" + strings[1];
+            std::string extension = ".mp3";
+            if (name.find(extension) == std::string::npos)
                 name += extension;
-            }
             if (size > 1)
-            {
-                mp3.FilePath = ToString(g_App.UOFilesPath(name));
-            }
-
+                mp3.FilePath = (g_App.GetGameDir() / name).string();
             if (size > 2)
-            {
                 mp3.Loop = true;
-            }
         }
     }
 }
 
 void COrion::CreateAuraTexture()
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint32_t> pixels;
-    short width = 0;
+    std::vector<u32> pixels;
+    short width  = 0;
     short height = 0;
 
     CGLTextureCircleOfTransparency::CreatePixels(30, width, height, pixels);
 
     for (int i = 0; i < (int)pixels.size(); i++)
     {
-        uint32_t &pixel = pixels[i];
+        u32& pixel = pixels[i];
 
         if (pixel != 0u)
         {
-            uint16_t value = pixel << 3;
+            u16 value = pixel << 3;
 
             if (value > 0xFF)
             {
@@ -4953,34 +4391,33 @@ void COrion::CreateAuraTexture()
 
 void COrion::CreateObjectHandlesBackground()
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th[9] = { nullptr };
-    uint16_t gumpID[9] = { 0 };
+    CGLTexture* th[9] = { nullptr };
+    u16 gumpID[9]     = { 0 };
 
     for (int i = 0; i < 9; i++)
     {
-        CGLTexture *pth = ExecuteGump(0x24EA + (uint16_t)i);
+        CGLTexture* pth = ExecuteGump(0x24EA + (u16)i);
 
         if (pth == nullptr)
         {
-            LOG("Error!!! Failed to create Object Handles background data!\n");
+            LOG_ERROR("Client", "Error!!! Failed to create Object Handles background data!");
             return;
         }
 
         if (i == 4)
         {
-            th[8] = pth;
-            gumpID[8] = 0x24EA + (uint16_t)i;
+            th[8]     = pth;
+            gumpID[8] = 0x24EA + (u16)i;
         }
         else if (i > 4)
         {
-            th[i - 1] = pth;
-            gumpID[i - 1] = 0x24EA + (uint16_t)i;
+            th[i - 1]     = pth;
+            gumpID[i - 1] = 0x24EA + (u16)i;
         }
         else
         {
-            th[i] = pth;
-            gumpID[i] = 0x24EA + (uint16_t)i;
+            th[i]     = pth;
+            gumpID[i] = 0x24EA + (u16)i;
         }
     }
 
@@ -4991,12 +4428,12 @@ void COrion::CreateObjectHandlesBackground()
             continue;
         }
 
-        CIndexObject &io = m_GumpDataIndex[gumpID[i]];
+        CIndexObject& io = m_GumpDataIndex[gumpID[i]];
 
-        int drawWidth = io.Width;
+        int drawWidth  = io.Width;
         int drawHeight = io.Height;
-        int drawX = 0;
-        int drawY = 0;
+        int drawX      = 0;
+        int drawY      = 0;
 
         switch (i)
         {
@@ -5058,13 +4495,12 @@ void COrion::CreateObjectHandlesBackground()
                 drawX = th[0]->Width;
                 drawY = th[0]->Height;
 
-                drawWidth = g_ObjectHandlesWidth - th[0]->Width - th[2]->Width;
+                drawWidth  = g_ObjectHandlesWidth - th[0]->Width - th[2]->Width;
                 drawHeight = g_ObjectHandlesHeight - th[2]->Height - th[7]->Height;
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
         if (drawX < 0)
@@ -5089,13 +4525,13 @@ void COrion::CreateObjectHandlesBackground()
             drawHeight = g_ObjectHandlesHeight - drawY;
         }
 
-        vector<uint16_t> pixels = g_UOFileReader.GetGumpPixels(io);
+        std::vector<u16> pixels = g_UOFileReader.GetGumpPixels(io);
 
         if (static_cast<unsigned int>(!pixels.empty()) != 0u)
         {
-            int gumpWidth = io.Width;
+            int gumpWidth  = io.Width;
             int gumpHeight = io.Height;
-            int srcX = 0;
+            int srcX       = 0;
 
             for (int x = drawX; x < drawWidth; x++)
             {
@@ -5103,8 +4539,7 @@ void COrion::CreateObjectHandlesBackground()
 
                 for (int y = drawY; y < drawHeight; y++)
                 {
-                    uint16_t &pixel =
-                        g_ObjectHandlesBackgroundPixels[(y * g_ObjectHandlesWidth) + x];
+                    u16& pixel = g_ObjectHandlesBackgroundPixels[(y * g_ObjectHandlesWidth) + x];
 
                     if (pixel == 0)
                     {
@@ -5122,82 +4557,33 @@ void COrion::CreateObjectHandlesBackground()
 
 void COrion::LoadShaders()
 {
-    DEBUG_TRACE_FUNCTION;
-
-#if UO_USE_SHADER_FILES == 1
-    Wisp::CMappedFile frag;
-    Wisp::CMappedFile vert;
-
-    if (vert.Load(g_App.FilePath("shaders/Shader.vert")))
-    {
-        frag.Load(g_App.FilePath("shaders/DeathShader.frag"));
-
-        g_DeathShader.Init((char *)vert.Start, (char *)frag.Start);
-
-        frag.Unload();
-
-        frag.Load(g_App.FilePath("shaders/ColorizerShader.frag"));
-
-        g_ColorizerShader.Init((char *)vert.Start, (char *)frag.Start);
-
-        frag.Unload();
-
-        frag.Load(g_App.FilePath("shaders/FontColorizerShader.frag"));
-
-        g_FontColorizerShader.Init((char *)vert.Start, (char *)frag.Start);
-
-        frag.Unload();
-
-        frag.Load(g_App.FilePath("shaders/LightColorizerShader.frag"));
-
-        g_LightColorizerShader.Init((char *)vert.Start, (char *)frag.Start);
-
-        frag.Unload();
-        vert.Unload();
-    }
-#else
-    g_DeathShader.Init(g_Vert_ShaderData, g_Frag_DeathShaderData);
-    g_ColorizerShader.Init(g_Vert_ShaderData, g_Frag_ColorizerShaderData);
-    g_FontColorizerShader.Init(g_Vert_ShaderData, g_Frag_FontShaderData);
-    g_LightColorizerShader.Init(g_Vert_ShaderData, g_Frag_LightShaderData);
-#endif
+    g_DeathShader.Init(resources::shaders::Shader_vert_data, resources::shaders::DeathShader_frag_data);
+    g_ColorizerShader.Init(resources::shaders::Shader_vert_data, resources::shaders::ColorizerShader_frag_data);
+    g_FontColorizerShader.Init(resources::shaders::Shader_vert_data, resources::shaders::FontColorizerShader_frag_data);
+    g_LightColorizerShader.Init(resources::shaders::Shader_vert_data, resources::shaders::LightColorizerShader_frag_data);
 }
 
 void COrion::LoadClientStartupConfig()
 {
-    DEBUG_TRACE_FUNCTION;
-    if (!g_ConfigManager.Load(g_App.ExeFilePath("orion_options.cfg")))
-    {
-        if (!g_ConfigManager.Load(g_App.UOFilesPath("orion_options.cfg")))
-        {
-            if (!g_ConfigManager.LoadBin(g_App.ExeFilePath("options_debug.cuo")))
-            {
-                g_ConfigManager.LoadBin(g_App.UOFilesPath("options_debug.cuo"));
-            }
-        }
-    }
+    if (!g_ConfigManager.Load(g_App.GetExeDir() / "sot_options.cfg") &&
+        !g_ConfigManager.Load(g_App.GetGameDir() / "sot_options.cfg") &&
+        !g_ConfigManager.LoadBin(g_App.GetExeDir() / "options_debug.cuo"))
+        g_ConfigManager.LoadBin(g_App.GetGameDir() / "options_debug.cuo");
 
     g_SoundManager.SetMusicVolume(g_ConfigManager.GetMusicVolume());
     if (g_ConfigManager.GetMusic())
     {
-        if (g_Config.ClientVersion >= CV_7000)
-        {
+        if (GameVars::GetClientVersion() >= CV_7000)
             PlayMusic(78);
-        }
-        else if (g_Config.ClientVersion > CV_308Z)
-        { //from 4.x the music played is 0, the first one
-            PlayMusic(0);
-        }
+        else if (GameVars::GetClientVersion() > CV_308Z)
+            PlayMusic(0); //from 4.x the music played is 0, the first one
         else
-        {
             PlayMusic(8);
-        }
     }
 }
 
 void COrion::PlayMusic(int index, bool warmode)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.GetMusic() || index >= MAX_MUSIC_DATA_INDEX_COUNT)
     {
         return;
@@ -5208,9 +4594,9 @@ void COrion::PlayMusic(int index, bool warmode)
         return;
     }
 
-    if (g_Config.ClientVersion >= CV_306E)
+    if (GameVars::GetClientVersion() >= CV_306E)
     {
-        CIndexMusic &mp3Info = m_MP3Data[index];
+        CIndexMusic& mp3Info = m_MP3Data[index];
         g_SoundManager.PlayMP3(mp3Info.FilePath, index, mp3Info.Loop, warmode);
     }
     else
@@ -5219,21 +4605,20 @@ void COrion::PlayMusic(int index, bool warmode)
     }
 }
 
-void COrion::PlaySoundEffectAtPosition(uint16_t id, int x, int y)
+void COrion::PlaySoundEffectAtPosition(u16 id, int x, int y)
 {
-    auto distance = GetDistance(g_Player, CPoint2Di(x, y));
+    auto distance = GetDistance(g_Player, Core::Vec2<i32>(x, y));
     g_Orion.PlaySoundEffect(id, g_SoundManager.GetVolumeValue(distance));
 }
 
-void COrion::PlaySoundEffect(uint16_t id, float volume)
+void COrion::PlaySoundEffect(u16 id, float volume)
 {
-    DEBUG_TRACE_FUNCTION;
     if (id >= 0x0800 || !g_ConfigManager.GetSound())
     {
         return;
     }
 
-    CIndexSound &is = m_SoundDataIndex[id];
+    CIndexSound& is = m_SoundDataIndex[id];
     if (is.Address == 0)
     {
         return;
@@ -5250,7 +4635,7 @@ void COrion::PlaySoundEffect(uint16_t id, float volume)
     }
     else
     {
-        if (is.LastAccessTime + is.Delay > g_Ticks)
+        if (is.LastAccessed + Core::TimeDiff::FromMilliseconds(is.Delay) > Core::FrameTimer::Now())
         {
             return;
         }
@@ -5266,22 +4651,21 @@ void COrion::PlaySoundEffect(uint16_t id, float volume)
     if (volume > 0)
     {
         g_SoundManager.PlaySoundEffect(is.m_Stream, volume);
-        is.LastAccessTime = g_Ticks;
+        is.LastAccessed = Core::FrameTimer::Now();
     }
 }
 
 void COrion::AdjustSoundEffects(int ticks, float volume)
 {
-    DEBUG_TRACE_FUNCTION;
     for (auto it = m_UsedSoundList.begin(); it != m_UsedSoundList.end();)
     {
-        CIndexSound *obj = *it;
+        CIndexSound* obj = *it;
         if (obj->m_Stream == SOUND_NULL)
         {
             ++it;
             continue;
         }
-        if (static_cast<int>(obj->LastAccessTime + obj->Delay) < ticks)
+        if (obj->LastAccessed + Core::TimeDiff::FromMilliseconds(obj->Delay) < Core::FrameTimer::Now())
         {
             if (!g_SoundManager.UpdateSoundEffect(obj->m_Stream, volume))
             {
@@ -5306,15 +4690,14 @@ void COrion::ResumeSound() const
     g_SoundManager.ResumeSound();
 }
 
-CGLTexture *COrion::ExecuteGump(uint16_t id)
+CGLTexture* COrion::ExecuteGump(u16 id)
 {
-    //DEBUG_TRACE_FUNCTION;
     if (id >= MAX_GUMP_DATA_INDEX_COUNT)
     {
         return nullptr;
     }
 
-    CIndexObject &io = m_GumpDataIndex[id];
+    CIndexObject& io = m_GumpDataIndex[id];
     if (io.Texture == 0)
     {
         if (io.Address == 0u)
@@ -5330,19 +4713,18 @@ CGLTexture *COrion::ExecuteGump(uint16_t id)
         }
     }
 
-    io.LastAccessTime = g_Ticks;
+    io.LastAccessed = Core::FrameTimer::Now();
 
     return io.Texture;
 }
 
-CGLTexture *COrion::ExecuteLandArt(uint16_t id)
+CGLTexture* COrion::ExecuteLandArt(u16 id)
 {
-    DEBUG_TRACE_FUNCTION;
     if (id >= MAX_LAND_DATA_INDEX_COUNT)
     {
         return nullptr;
     }
-    CIndexObject &io = m_LandDataIndex[id];
+    CIndexObject& io = m_LandDataIndex[id];
 
     if (io.Texture == 0)
     {
@@ -5359,25 +4741,23 @@ CGLTexture *COrion::ExecuteLandArt(uint16_t id)
         }
     }
 
-    io.LastAccessTime = g_Ticks;
+    io.LastAccessed = Core::FrameTimer::Now();
 
     return io.Texture;
 }
 
-CGLTexture *COrion::ExecuteStaticArtAnimated(uint16_t id)
+CGLTexture* COrion::ExecuteStaticArtAnimated(u16 id)
 {
-    DEBUG_TRACE_FUNCTION;
     return ExecuteStaticArt(id + m_StaticDataIndex[id].Offset);
 }
 
-CGLTexture *COrion::ExecuteStaticArt(uint16_t id)
+CGLTexture* COrion::ExecuteStaticArt(u16 id)
 {
-    DEBUG_TRACE_FUNCTION;
     if (id >= MAX_STATIC_DATA_INDEX_COUNT)
     {
         return nullptr;
     }
-    CIndexObject &io = m_StaticDataIndex[id];
+    CIndexObject& io = m_StaticDataIndex[id];
 
     if (io.Texture == 0)
     {
@@ -5390,21 +4770,20 @@ CGLTexture *COrion::ExecuteStaticArt(uint16_t id)
 
         if (io.Texture != 0)
         {
-            io.Width = ((io.Texture->Width / 2) + 1);
+            io.Width  = ((io.Texture->Width / 2) + 1);
             io.Height = io.Texture->Height - 20;
 
             m_UsedStaticList.push_back(&m_StaticDataIndex[id]);
         }
     }
 
-    io.LastAccessTime = g_Ticks;
+    io.LastAccessed = Core::FrameTimer::Now();
 
     return io.Texture;
 }
 
-CGLTexture *COrion::ExecuteTexture(uint16_t id)
+CGLTexture* COrion::ExecuteTexture(u16 id)
 {
-    DEBUG_TRACE_FUNCTION;
     id = m_LandData[id].TexID;
 
     if ((id == 0u) || id >= MAX_LAND_TEXTURES_DATA_INDEX_COUNT)
@@ -5412,7 +4791,7 @@ CGLTexture *COrion::ExecuteTexture(uint16_t id)
         return nullptr;
     }
 
-    CIndexObject &io = m_TextureDataIndex[id];
+    CIndexObject& io = m_TextureDataIndex[id];
 
     if (io.Texture == 0)
     {
@@ -5429,20 +4808,19 @@ CGLTexture *COrion::ExecuteTexture(uint16_t id)
         }
     }
 
-    io.LastAccessTime = g_Ticks;
+    io.LastAccessed = Core::FrameTimer::Now();
 
     return io.Texture;
 }
 
-CGLTexture *COrion::ExecuteLight(uint8_t &id)
+CGLTexture* COrion::ExecuteLight(u8& id)
 {
-    DEBUG_TRACE_FUNCTION;
     if (id >= MAX_LIGHTS_DATA_INDEX_COUNT)
     {
         id = 0;
     }
 
-    CIndexObject &io = m_LightDataIndex[id];
+    CIndexObject& io = m_LightDataIndex[id];
 
     if (io.Texture == 0)
     {
@@ -5459,19 +4837,39 @@ CGLTexture *COrion::ExecuteLight(uint8_t &id)
         }
     }
 
-    io.LastAccessTime = g_Ticks;
+    io.LastAccessed = Core::FrameTimer::Now();
 
     return io.Texture;
 }
 
-bool COrion::ExecuteGumpPart(uint16_t id, int count)
+std::pair<CGLTexture*, Core::Vec2<i16>> COrion::ExecuteCursor(u16 a_id)
 {
-    DEBUG_TRACE_FUNCTION;
+    if (a_id >= MAX_STATIC_DATA_INDEX_COUNT)
+        return { nullptr, {} };
+
+    CIndexObject& io = m_StaticDataIndex[a_id];
+    auto cursor      = g_UOFileReader.ReadCursor(a_id, io, true);
+    if (io.Texture == 0)
+    {
+        io.Texture = cursor.first;
+        if (io.Texture != 0)
+        {
+            io.Width  = ((io.Texture->Width / 2) + 1);
+            io.Height = io.Texture->Height - 20;
+            m_UsedStaticList.push_back(&m_StaticDataIndex[a_id]);
+        }
+    }
+    io.LastAccessed = Core::TimeStamp::Max();
+    return cursor;
+}
+
+bool COrion::ExecuteGumpPart(u16 id, int count)
+{
     bool result = true;
 
     for (int i = 0; i < count; i++)
     {
-        if (ExecuteGump(id + (uint16_t)i) == nullptr)
+        if (ExecuteGump(id + (u16)i) == nullptr)
         {
             result = false;
         }
@@ -5480,10 +4878,9 @@ bool COrion::ExecuteGumpPart(uint16_t id, int count)
     return result;
 }
 
-void COrion::DrawGump(uint16_t id, uint16_t color, int x, int y, bool partialHue)
+void COrion::DrawGump(u16 id, u16 color, int x, int y, bool partialHue)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteGump(id);
+    CGLTexture* th = ExecuteGump(id);
 
     if (th != nullptr)
     {
@@ -5509,11 +4906,9 @@ void COrion::DrawGump(uint16_t id, uint16_t color, int x, int y, bool partialHue
     }
 }
 
-void COrion::DrawGump(
-    uint16_t id, uint16_t color, int x, int y, int width, int height, bool partialHue)
+void COrion::DrawGump(u16 id, u16 color, int x, int y, int width, int height, bool partialHue)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteGump(id);
+    CGLTexture* th = ExecuteGump(id);
 
     if (th != nullptr)
     {
@@ -5539,14 +4934,13 @@ void COrion::DrawGump(
     }
 }
 
-void COrion::DrawResizepicGump(uint16_t id, int x, int y, int width, int height)
+void COrion::DrawResizepicGump(u16 id, int x, int y, int width, int height)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th[9] = { nullptr };
+    CGLTexture* th[9] = { nullptr };
 
     for (int i = 0; i < 9; i++)
     {
-        CGLTexture *pth = ExecuteGump(id + (uint16_t)i);
+        CGLTexture* pth = ExecuteGump(id + (u16)i);
 
         if (pth == nullptr)
         {
@@ -5570,12 +4964,11 @@ void COrion::DrawResizepicGump(uint16_t id, int x, int y, int width, int height)
     g_GL_DrawResizepic(th, x, y, width, height);
 }
 
-void COrion::DrawLandTexture(CLandObject *land, uint16_t color, int x, int y)
+void COrion::DrawLandTexture(CLandObject* land, u16 color, int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t id = land->Graphic;
+    u16 id = land->Graphic;
 
-    CGLTexture *th = ExecuteTexture(id);
+    CGLTexture* th = ExecuteTexture(id);
 
     if (th == nullptr)
     {
@@ -5602,10 +4995,9 @@ void COrion::DrawLandTexture(CLandObject *land, uint16_t color, int x, int y)
     }
 }
 
-void COrion::DrawLandArt(uint16_t id, uint16_t color, int x, int y)
+void COrion::DrawLandArt(u16 id, u16 color, int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteLandArt(id);
+    CGLTexture* th = ExecuteLandArt(id);
 
     if (th != nullptr)
     {
@@ -5628,10 +5020,9 @@ void COrion::DrawLandArt(uint16_t id, uint16_t color, int x, int y)
     }
 }
 
-void COrion::DrawStaticArt(uint16_t id, uint16_t color, int x, int y, bool selection)
+void COrion::DrawStaticArt(u16 id, u16 color, int x, int y, bool selection)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteStaticArt(id);
+    CGLTexture* th = ExecuteStaticArt(id);
 
     if (th != nullptr && id > 1)
     {
@@ -5662,16 +5053,14 @@ void COrion::DrawStaticArt(uint16_t id, uint16_t color, int x, int y, bool selec
     }
 }
 
-void COrion::DrawStaticArtAnimated(uint16_t id, uint16_t color, int x, int y, bool selection)
+void COrion::DrawStaticArtAnimated(u16 id, u16 color, int x, int y, bool selection)
 {
-    DEBUG_TRACE_FUNCTION;
     DrawStaticArt(id + m_StaticDataIndex[id].Offset, color, x, y, selection);
 }
 
-void COrion::DrawStaticArtRotated(uint16_t id, uint16_t color, int x, int y, float angle)
+void COrion::DrawStaticArtRotated(u16 id, u16 color, int x, int y, float angle)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteStaticArt(id);
+    CGLTexture* th = ExecuteStaticArt(id);
 
     if (th != nullptr && id > 1)
     {
@@ -5694,16 +5083,14 @@ void COrion::DrawStaticArtRotated(uint16_t id, uint16_t color, int x, int y, flo
     }
 }
 
-void COrion::DrawStaticArtAnimatedRotated(uint16_t id, uint16_t color, int x, int y, float angle)
+void COrion::DrawStaticArtAnimatedRotated(u16 id, u16 color, int x, int y, float angle)
 {
-    DEBUG_TRACE_FUNCTION;
     DrawStaticArtRotated(id + m_StaticDataIndex[id].Offset, color, x, y, angle);
 }
 
-void COrion::DrawStaticArtTransparent(uint16_t id, uint16_t color, int x, int y, bool selection)
+void COrion::DrawStaticArtTransparent(u16 id, u16 color, int x, int y, bool selection)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteStaticArt(id);
+    CGLTexture* th = ExecuteStaticArt(id);
 
     if (th != nullptr && id > 1)
     {
@@ -5734,18 +5121,14 @@ void COrion::DrawStaticArtTransparent(uint16_t id, uint16_t color, int x, int y,
     }
 }
 
-void COrion::DrawStaticArtAnimatedTransparent(
-    uint16_t id, uint16_t color, int x, int y, bool selection)
+void COrion::DrawStaticArtAnimatedTransparent(u16 id, u16 color, int x, int y, bool selection)
 {
-    DEBUG_TRACE_FUNCTION;
     DrawStaticArtTransparent(id + m_StaticDataIndex[id].Offset, color, x, y, selection);
 }
 
-void COrion::DrawStaticArtInContainer(
-    uint16_t id, uint16_t color, int x, int y, bool selection, bool onMouse)
+void COrion::DrawStaticArtInContainer(u16 id, u16 color, int x, int y, bool selection, bool onMouse)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteStaticArt(id);
+    CGLTexture* th = ExecuteStaticArt(id);
 
     if (th != nullptr)
     {
@@ -5782,17 +5165,15 @@ void COrion::DrawStaticArtInContainer(
     }
 }
 
-void COrion::DrawLight(LIGHT_DATA &light)
+void COrion::DrawLight(LIGHT_DATA& a_light)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteLight(light.ID);
-
+    CGLTexture* th = ExecuteLight(a_light.ID);
     if (th != nullptr)
     {
-        if (light.Color != 0u)
+        if (a_light.Color != 0u)
         {
             glUniform1iARB(g_ShaderDrawMode, SDM_COLORED);
-            g_ColorManager.SendColorsToShader(light.Color);
+            g_ColorManager.SendColorsToShader(a_light.Color);
         }
         else
         {
@@ -5800,112 +5181,87 @@ void COrion::DrawLight(LIGHT_DATA &light)
         }
 
         th->Draw(
-            light.DrawX - g_RenderBounds.GameWindowPosX - (th->Width / 2),
-            light.DrawY - g_RenderBounds.GameWindowPosY - (th->Height / 2));
+            a_light.DrawX - g_RenderBounds.GameWindowPosX - (th->Width / 2),
+            a_light.DrawY - g_RenderBounds.GameWindowPosY - (th->Height / 2));
     }
 }
 
-bool COrion::PolygonePixelsInXY(int x, int y, int width, int height)
+bool COrion::PolygonePixelsInXY(int a_x, int a_y, int a_width, int a_height)
 {
-    DEBUG_TRACE_FUNCTION;
-    x = g_MouseManager.Position.X - x;
-    y = g_MouseManager.Position.Y - y;
-
-    return !(x < 0 || y < 0 || x >= width || y >= height);
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    a_x                 = pos.x - a_x;
+    a_y                 = pos.y - a_y;
+    return !(a_x < 0 || a_y < 0 || a_x >= a_width || a_y >= a_height);
 }
 
-bool COrion::GumpPixelsInXY(uint16_t id, int x, int y)
+bool COrion::GumpPixelsInXY(u16 a_id, int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *texture = m_GumpDataIndex[id].Texture;
-
-    if (texture != nullptr)
-    {
-        return texture->Select(x, y);
-    }
-
-    return false;
+    CGLTexture* texture = m_GumpDataIndex[a_id].Texture;
+    return texture ? texture->Select(a_x, a_y) : false;
 }
 
-bool COrion::GumpPixelsInXY(uint16_t id, int x, int y, int width, int height)
+bool COrion::GumpPixelsInXY(u16 a_id, int a_x, int a_y, int a_width, int a_height)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *texture = m_GumpDataIndex[id].Texture;
+    CGLTexture* texture = m_GumpDataIndex[a_id].Texture;
 
     if (texture == nullptr)
-    {
         return false;
-    }
 
-    x = g_MouseManager.Position.X - x;
-    y = g_MouseManager.Position.Y - y;
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    a_x                 = pos.x - a_x;
+    a_y                 = pos.y - a_y;
 
-    if (x < 0 || y < 0 || (width > 0 && x >= width) || (height > 0 && y >= height))
-    {
+    if (a_x < 0 || a_y < 0 || (a_width > 0 && a_x >= a_width) || (a_height > 0 && a_y >= a_height))
         return false;
-    }
 
-    int textureWidth = texture->Width;
+    int textureWidth  = texture->Width;
     int textureHeight = texture->Height;
 
-    if (width == 0)
+    if (a_width == 0)
+        a_width = textureWidth;
+
+    if (a_height == 0)
+        a_height = textureHeight;
+
+    while (a_x > textureWidth && a_width > textureWidth)
     {
-        width = textureWidth;
+        a_x -= textureWidth;
+        a_width -= textureWidth;
     }
 
-    if (height == 0)
-    {
-        height = textureHeight;
-    }
-
-    while (x > textureWidth && width > textureWidth)
-    {
-        x -= textureWidth;
-        width -= textureWidth;
-    }
-
-    if (x < 0 || x > width)
+    if (a_x < 0 || a_x > a_width)
     {
         return false;
     }
 
-    while (y > textureHeight && height > textureHeight)
+    while (a_y > textureHeight && a_height > textureHeight)
     {
-        y -= textureHeight;
-        height -= textureHeight;
+        a_y -= textureHeight;
+        a_height -= textureHeight;
     }
 
-    if (y < 0 || y > height)
+    if (a_y < 0 || a_y > a_height)
     {
         return false;
     }
 
-    int pos = (y * textureWidth) + x;
-
-    if (pos < (int)texture->m_HitMap.size())
-    {
-        return (texture->m_HitMap[pos] != 0);
-    }
-
-    return false;
+    int idx = (a_y * textureWidth) + a_x;
+    return texture->m_hitMap.Get(idx);
 }
 
-bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int height)
+bool COrion::ResizepicPixelsInXY(u16 a_id, int a_x, int a_y, int a_width, int a_height)
 {
-    DEBUG_TRACE_FUNCTION;
-    int tempX = g_MouseManager.Position.X - x;
-    int tempY = g_MouseManager.Position.Y - y;
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int tempX           = pos.x - a_x;
+    int tempY           = pos.y - a_y;
 
-    if (tempX < 0 || tempY < 0 || tempX >= width || tempY >= height)
-    {
+    if (tempX < 0 || tempY < 0 || tempX >= a_width || tempY >= a_height)
         return false;
-    }
 
-    CGLTexture *th[9] = { nullptr };
-
+    CGLTexture* th[9] = { nullptr };
     for (int i = 0; i < 9; i++)
     {
-        CGLTexture *pth = m_GumpDataIndex[id + i].Texture;
+        CGLTexture* pth = m_GumpDataIndex[a_id + i].Texture;
 
         if (pth == nullptr)
         {
@@ -5926,10 +5282,10 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
         }
     }
 
-    int offsetTop = std::max(th[0]->Height, th[2]->Height) - th[1]->Height;
-    int offsetBottom = std::max(th[5]->Height, th[7]->Height) - th[6]->Height;
-    int offsetLeft = std::max(th[0]->Width, th[5]->Width) - th[3]->Width;
-    int offsetRight = std::max(th[2]->Width, th[7]->Width) - th[4]->Width;
+    int offsetTop    = Core::Max(th[0]->Height, th[2]->Height) - th[1]->Height;
+    int offsetBottom = Core::Max(th[5]->Height, th[7]->Height) - th[6]->Height;
+    int offsetLeft   = Core::Max(th[0]->Width, th[5]->Width) - th[3]->Width;
+    int offsetRight  = Core::Max(th[2]->Width, th[7]->Width) - th[4]->Width;
 
     for (int i = 0; i < 9; i++)
     {
@@ -5937,7 +5293,7 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
         {
             case 0:
             {
-                if (GumpPixelsInXY(id, x, y))
+                if (GumpPixelsInXY(a_id, a_x, a_y))
                 {
                     return true;
                 }
@@ -5945,13 +5301,13 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 1:
             {
-                int DW = width - th[0]->Width - th[2]->Width;
+                int DW = a_width - th[0]->Width - th[2]->Width;
                 if (DW < 1)
                 {
                     break;
                 }
 
-                if (GumpPixelsInXY(id + 1, x + th[0]->Width, y, DW, 0))
+                if (GumpPixelsInXY(a_id + 1, a_x + th[0]->Width, a_y, DW, 0))
                 {
                     return true;
                 }
@@ -5960,7 +5316,7 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 2:
             {
-                if (GumpPixelsInXY(id + 2, x + width - th[i]->Width, y + offsetTop))
+                if (GumpPixelsInXY(a_id + 2, a_x + a_width - th[i]->Width, a_y + offsetTop))
                 {
                     return true;
                 }
@@ -5969,13 +5325,13 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 3:
             {
-                int DH = height - th[0]->Height - th[5]->Height;
+                int DH = a_height - th[0]->Height - th[5]->Height;
                 if (DH < 1)
                 {
                     break;
                 }
 
-                if (GumpPixelsInXY(id + 3, x + offsetLeft, y + th[0]->Height, 0, DH))
+                if (GumpPixelsInXY(a_id + 3, a_x + offsetLeft, a_y + th[0]->Height, 0, DH))
                 {
                     return true;
                 }
@@ -5984,14 +5340,18 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 4:
             {
-                int DH = height - th[2]->Height - th[7]->Height;
+                int DH = a_height - th[2]->Height - th[7]->Height;
                 if (DH < 1)
                 {
                     break;
                 }
 
                 if (GumpPixelsInXY(
-                        id + 5, x + width - th[i]->Width - offsetRight, y + th[2]->Height, 0, DH))
+                        a_id + 5,
+                        a_x + a_width - th[i]->Width - offsetRight,
+                        a_y + th[2]->Height,
+                        0,
+                        DH))
                 {
                     return true;
                 }
@@ -6000,7 +5360,7 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 5:
             {
-                if (GumpPixelsInXY(id + 6, x, y + height - th[i]->Height))
+                if (GumpPixelsInXY(a_id + 6, a_x, a_y + a_height - th[i]->Height))
                 {
                     return true;
                 }
@@ -6009,14 +5369,18 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 6:
             {
-                int DW = width - th[5]->Width - th[7]->Width;
+                int DW = a_width - th[5]->Width - th[7]->Width;
                 if (DW < 1)
                 {
                     break;
                 }
 
                 if (GumpPixelsInXY(
-                        id + 7, x + th[5]->Width, y + height - th[i]->Height - offsetBottom, DW, 0))
+                        a_id + 7,
+                        a_x + th[5]->Width,
+                        a_y + a_height - th[i]->Height - offsetBottom,
+                        DW,
+                        0))
                 {
                     return true;
                 }
@@ -6025,7 +5389,8 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 7:
             {
-                if (GumpPixelsInXY(id + 8, x + width - th[i]->Width, y + height - th[i]->Height))
+                if (GumpPixelsInXY(
+                        a_id + 8, a_x + a_width - th[i]->Width, a_y + a_height - th[i]->Height))
                 {
                     return true;
                 }
@@ -6034,146 +5399,115 @@ bool COrion::ResizepicPixelsInXY(uint16_t id, int x, int y, int width, int heigh
             }
             case 8:
             {
-                int DW = width - th[0]->Width - th[2]->Width;
+                int DW = a_width - th[0]->Width - th[2]->Width;
 
                 if (DW < 1)
                 {
                     break;
                 }
 
-                int DH = height - th[2]->Height - th[7]->Height;
+                int DH = a_height - th[2]->Height - th[7]->Height;
 
                 if (DH < 1)
                 {
                     break;
                 }
 
-                if (GumpPixelsInXY(id + 4, x + th[0]->Width, y + th[0]->Height, DW, DH))
+                if (GumpPixelsInXY(a_id + 4, a_x + th[0]->Width, a_y + th[0]->Height, DW, DH))
                 {
                     return true;
                 }
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
 
     return false;
 }
 
-bool COrion::StaticPixelsInXY(uint16_t id, int x, int y)
+bool COrion::StaticPixelsInXY(u16 a_id, int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    CIndexObject &io = m_StaticDataIndex[id];
-    CGLTexture *texture = io.Texture;
-
-    if (texture != nullptr)
-    {
-        return texture->Select(x - io.Width, y - io.Height);
-    }
-
-    return false;
+    CIndexObject& io    = m_StaticDataIndex[a_id];
+    CGLTexture* texture = io.Texture;
+    return texture ? texture->Select(a_x - io.Width, a_y - io.Height) : false;
 }
 
-bool COrion::StaticPixelsInXYAnimated(uint16_t id, int x, int y)
+bool COrion::StaticPixelsInXYAnimated(u16 a_id, int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    return StaticPixelsInXY(id + m_StaticDataIndex[id].Offset, x, y);
+    return StaticPixelsInXY(a_id + m_StaticDataIndex[a_id].Offset, a_x, a_y);
 }
 
-bool COrion::StaticPixelsInXYInContainer(uint16_t id, int x, int y)
+bool COrion::StaticPixelsInXYInContainer(u16 a_id, int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *texture = m_StaticDataIndex[id].Texture;
-
-    if (texture != nullptr)
-    {
-        return texture->Select(x, y);
-    }
-
-    return false;
+    CGLTexture* texture = m_StaticDataIndex[a_id].Texture;
+    return texture ? texture->Select(a_x, a_y) : false;
 }
 
-bool COrion::LandPixelsInXY(uint16_t id, int x, int y)
+bool COrion::LandPixelsInXY(u16 a_id, int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *texture = m_LandDataIndex[id].Texture;
-
-    if (texture != nullptr)
-    {
-        return texture->Select(x - 22, y - 22);
-    }
-
-    return false;
+    CGLTexture* texture = m_LandDataIndex[a_id].Texture;
+    return texture ? texture->Select(a_x - 22, a_y - 22) : false;
 }
 
-bool COrion::LandTexturePixelsInXY(int x, int y, const SDL_Rect &r)
+bool COrion::LandTexturePixelsInXY(int a_x, int a_y, const Core::Rect<int>& a_r)
 {
-    DEBUG_TRACE_FUNCTION;
-    y -= 22;
-    int testX = g_MouseManager.Position.X - x;
-    int testY = g_MouseManager.Position.Y;
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    a_y -= 22;
+    int testX = pos.x - a_x;
+    int testY = pos.y;
 
-    int y0 = -r.x;
-    int y1 = 22 - r.y;
-    int y2 = 44 - r.w;
-    int y3 = 22 - r.h;
+    int y0 = -a_r.pos.x;
+    int y1 = 22 - a_r.pos.y;
+    int y2 = 44 - a_r.size.x;
+    int y3 = 22 - a_r.size.y;
 
     bool result =
-        ((testY >= testX * (y1 - y0) / -22 + y + y0) &&
-         (testY >= testX * (y3 - y0) / 22 + y + y0) && (testY <= testX * (y3 - y2) / 22 + y + y2) &&
-         (testY <= testX * (y1 - y2) / -22 + y + y2));
+        ((testY >= testX * (y1 - y0) / -22 + a_y + y0) &&
+         (testY >= testX * (y3 - y0) / 22 + a_y + y0) &&
+         (testY <= testX * (y3 - y2) / 22 + a_y + y2) &&
+         (testY <= testX * (y1 - y2) / -22 + a_y + y2));
 
     return result;
 }
 
-void COrion::CreateTextMessageF(uint8_t font, uint16_t color, const char *format, ...)
+void COrion::CreateTextMessageF(u8 a_font, u16 a_color, const char* a_format, ...)
 {
-    DEBUG_TRACE_FUNCTION;
     va_list arg;
-    va_start(arg, format);
-
+    va_start(arg, a_format);
     char buf[512] = { 0 };
-    vsprintf_s(buf, format, arg);
-
-    CreateTextMessage(TT_SYSTEM, 0xFFFFFFFF, font, color, buf);
-
+    vsprintf_s(buf, a_format, arg);
+    CreateTextMessage(TT_SYSTEM, 0xFFFFFFFF, a_font, a_color, buf);
     va_end(arg);
 }
 
-void COrion::CreateUnicodeTextMessageF(uint8_t font, uint16_t color, const char *format, ...)
+void COrion::CreateUnicodeTextMessageF(u8 a_font, u16 a_color, const char* a_format, ...)
 {
-    DEBUG_TRACE_FUNCTION;
     va_list arg;
-    va_start(arg, format);
-
+    va_start(arg, a_format);
     char buf[512] = { 0 };
-    vsprintf_s(buf, format, arg);
-
-    CreateUnicodeTextMessage(TT_SYSTEM, 0xFFFFFFFF, font, color, ToWString(buf));
-
+    vsprintf_s(buf, a_format, arg);
+    CreateUnicodeTextMessage(TT_SYSTEM, 0xFFFFFFFF, a_font, a_color, Core::ToWString(buf));
     va_end(arg);
 }
 
 void COrion::CreateTextMessage(
-    const TEXT_TYPE &type,
+    const TEXT_TYPE& type,
     int serial,
-    uint8_t font,
-    uint16_t color,
-    const string &text,
-    CRenderWorldObject *clientObj)
+    u8 font,
+    u16 color,
+    const std::string& text,
+    CRenderWorldObject* clientObj)
 {
-    DEBUG_TRACE_FUNCTION;
-    CTextData *td = new CTextData();
-    td->Unicode = false;
-    td->Font = font;
-    td->Serial = serial;
-    td->Color = color;
-    td->Timer = g_Ticks;
-    td->Type = type;
-    td->Text = text;
+    CTextData* td = new CTextData();
+    td->Unicode   = false;
+    td->Font      = font;
+    td->Serial    = serial;
+    td->Color     = color;
+    td->Timer     = g_Ticks;
+    td->Type      = type;
+    td->Text      = text;
 
     switch (type)
     {
@@ -6186,7 +5520,7 @@ void COrion::CreateTextMessage(
         }
         case TT_OBJECT:
         {
-            CGameObject *obj = g_World->FindWorldObject(serial);
+            CGameObject* obj = g_World->FindWorldObject(serial);
 
             if (obj != nullptr)
             {
@@ -6207,7 +5541,7 @@ void COrion::CreateTextMessage(
 
                 td->Color = color;
 
-                uint32_t container = obj->Container;
+                u32 container = obj->Container;
 
                 if (container == 0xFFFFFFFF)
                 {
@@ -6218,13 +5552,13 @@ void COrion::CreateTextMessage(
                     td->SetX(g_ClickObject.X);
                     td->SetY(g_ClickObject.Y);
 
-                    CGump *gump = g_GumpManager.GetGump(container, 0, GT_CONTAINER);
+                    CGump* gump = g_GumpManager.GetGump(container, 0, GT_CONTAINER);
 
                     if (gump == nullptr)
                     {
-                        CGameObject *topobj = obj->GetTopObject();
+                        CGameObject* topobj = obj->GetTopObject();
 
-                        if (((CGameItem *)obj)->Layer != OL_NONE)
+                        if (((CGameItem*)obj)->Layer != OL_NONE)
                         {
                             gump = g_GumpManager.GetGump(topobj->Serial, 0, GT_PAPERDOLL);
                         }
@@ -6235,11 +5569,11 @@ void COrion::CreateTextMessage(
 
                             if (gump == nullptr)
                             {
-                                topobj = (CGameObject *)topobj->m_Items;
+                                topobj = (CGameObject*)topobj->m_Items;
 
                                 while (topobj != nullptr && topobj->Graphic != 0x1E5E)
                                 {
-                                    topobj = (CGameObject *)topobj->m_Next;
+                                    topobj = (CGameObject*)topobj->m_Next;
                                 }
 
                                 if (topobj != nullptr)
@@ -6252,7 +5586,7 @@ void COrion::CreateTextMessage(
 
                     if (gump != nullptr)
                     {
-                        CTextRenderer *tr = gump->GetTextRenderer();
+                        CTextRenderer* tr = gump->GetTextRenderer();
 
                         if (tr != nullptr)
                         {
@@ -6290,25 +5624,25 @@ void COrion::CreateTextMessage(
 
             break;
         }
+        default: break;
     }
 }
 
 void COrion::CreateUnicodeTextMessage(
-    const TEXT_TYPE &type,
+    const TEXT_TYPE& type,
     int serial,
-    uint8_t font,
-    uint16_t color,
-    const wstring &text,
-    CRenderWorldObject *clientObj)
+    u8 font,
+    u16 color,
+    const std::wstring& text,
+    CRenderWorldObject* clientObj)
 {
-    DEBUG_TRACE_FUNCTION;
-    CTextData *td = new CTextData();
-    td->Unicode = true;
-    td->Font = font;
-    td->Serial = serial;
-    td->Color = color;
-    td->Timer = g_Ticks;
-    td->Type = type;
+    CTextData* td   = new CTextData();
+    td->Unicode     = true;
+    td->Font        = font;
+    td->Serial      = serial;
+    td->Color       = color;
+    td->Timer       = g_Ticks;
+    td->Type        = type;
     td->UnicodeText = text;
 
     switch (type)
@@ -6321,7 +5655,7 @@ void COrion::CreateUnicodeTextMessage(
         }
         case TT_OBJECT:
         {
-            CGameObject *obj = g_World->FindWorldObject(serial);
+            CGameObject* obj = g_World->FindWorldObject(serial);
             if (obj != nullptr)
             {
                 int width = g_FontManager.GetWidthW(font, text);
@@ -6336,7 +5670,7 @@ void COrion::CreateUnicodeTextMessage(
                     td->GenerateTexture(0, UOFONT_BLACK_BORDER, TS_CENTER);
                 }
 
-                uint32_t container = obj->Container;
+                u32 container = obj->Container;
                 if (container == 0xFFFFFFFF)
                 {
                     g_WorldTextRenderer.AddText(td);
@@ -6346,11 +5680,11 @@ void COrion::CreateUnicodeTextMessage(
                     td->SetX(g_ClickObject.X);
                     td->SetY(g_ClickObject.Y);
 
-                    CGump *gump = g_GumpManager.GetGump(container, 0, GT_CONTAINER);
+                    CGump* gump = g_GumpManager.GetGump(container, 0, GT_CONTAINER);
                     if (gump == nullptr)
                     {
-                        CGameObject *topobj = obj->GetTopObject();
-                        if (((CGameItem *)obj)->Layer != OL_NONE)
+                        CGameObject* topobj = obj->GetTopObject();
+                        if (((CGameItem*)obj)->Layer != OL_NONE)
                         {
                             gump = g_GumpManager.GetGump(topobj->Serial, 0, GT_PAPERDOLL);
                         }
@@ -6360,10 +5694,10 @@ void COrion::CreateUnicodeTextMessage(
                             gump = g_GumpManager.GetGump(topobj->Serial, 0, GT_TRADE);
                             if (gump == nullptr)
                             {
-                                topobj = (CGameObject *)topobj->m_Items;
+                                topobj = (CGameObject*)topobj->m_Items;
                                 while (topobj != nullptr && topobj->Graphic != 0x1E5E)
                                 {
-                                    topobj = (CGameObject *)topobj->m_Next;
+                                    topobj = (CGameObject*)topobj->m_Next;
                                 }
 
                                 if (topobj != nullptr)
@@ -6376,7 +5710,7 @@ void COrion::CreateUnicodeTextMessage(
 
                     if (gump != nullptr)
                     {
-                        CTextRenderer *tr = gump->GetTextRenderer();
+                        CTextRenderer* tr = gump->GetTextRenderer();
                         if (tr != nullptr)
                         {
                             tr->AddText(td);
@@ -6411,20 +5745,19 @@ void COrion::CreateUnicodeTextMessage(
             g_WorldTextRenderer.AddText(td);
             break;
         }
+        default: break;
     }
 }
 
-void COrion::AddSystemMessage(CTextData *msg)
+void COrion::AddSystemMessage(CTextData* msg)
 {
-    DEBUG_TRACE_FUNCTION;
     g_SystemChat.Add(msg);
     AddJournalMessage(msg, "");
 }
 
-void COrion::AddJournalMessage(CTextData *msg, const string &name)
+void COrion::AddJournalMessage(CTextData* msg, const std::string& name)
 {
-    DEBUG_TRACE_FUNCTION;
-    CTextData *jmsg = new CTextData(msg);
+    CTextData* jmsg = new CTextData(msg);
 
     if (!jmsg->Unicode)
     {
@@ -6436,8 +5769,8 @@ void COrion::AddJournalMessage(CTextData *msg, const string &name)
         //if (msg->Type == TT_SYSTEM)
         //	jmsg->Color = 0;
 
-        jmsg->UnicodeText = ToWString(name) + jmsg->UnicodeText;
-        jmsg->Font = 0;
+        jmsg->UnicodeText = Core::ToWString(name) + jmsg->UnicodeText;
+        jmsg->Font        = 0;
     }
 
     /*if (msg->Type == TT_OBJECT)
@@ -6448,9 +5781,8 @@ void COrion::AddJournalMessage(CTextData *msg, const string &name)
     g_Journal.Add(jmsg);
 }
 
-void COrion::ChangeMap(uint8_t newmap)
+void COrion::ChangeMap(u8 newmap)
 {
-    DEBUG_TRACE_FUNCTION;
     if (newmap < 0 || newmap > 5)
     {
         newmap = 0;
@@ -6465,11 +5797,11 @@ void COrion::ChangeMap(uint8_t newmap)
             g_Player->MapIndex = g_CurrentMap;
             g_Player->RemoveRender();
 
-            CGameObject *obj = (CGameObject *)g_World->m_Items;
+            CGameObject* obj = (CGameObject*)g_World->m_Items;
 
             while (obj != nullptr)
             {
-                CGameObject *next = (CGameObject *)obj->m_Next;
+                CGameObject* next = (CGameObject*)obj->m_Next;
 
                 if (obj->MapIndex != g_CurrentMap)
                 {
@@ -6495,9 +5827,8 @@ void COrion::ChangeMap(uint8_t newmap)
     }
 }
 
-void COrion::PickupItem(CGameItem *obj, int count, bool isGameFigure)
+void COrion::PickupItem(CGameItem* obj, int count, bool isGameFigure)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ObjectInHand.Enabled)
     {
         g_ObjectInHand.Clear();
@@ -6508,19 +5839,19 @@ void COrion::PickupItem(CGameItem *obj, int count, bool isGameFigure)
             count = obj->Count;
         }
 
-        g_ObjectInHand.Serial = obj->Serial;
-        g_ObjectInHand.Graphic = obj->Graphic;
-        g_ObjectInHand.Color = obj->Color;
-        g_ObjectInHand.Container = obj->Container;
-        g_ObjectInHand.Layer = obj->Layer;
-        g_ObjectInHand.Flags = obj->GetFlags();
-        g_ObjectInHand.TiledataPtr = obj->GetStaticData();
-        g_ObjectInHand.Count = count;
+        g_ObjectInHand.Serial       = obj->Serial;
+        g_ObjectInHand.Graphic      = obj->Graphic;
+        g_ObjectInHand.Color        = obj->Color;
+        g_ObjectInHand.Container    = obj->Container;
+        g_ObjectInHand.Layer        = obj->Layer;
+        g_ObjectInHand.Flags        = obj->GetFlags();
+        g_ObjectInHand.TiledataPtr  = obj->GetStaticData();
+        g_ObjectInHand.Count        = count;
         g_ObjectInHand.IsGameFigure = isGameFigure;
-        g_ObjectInHand.X = obj->GetX();
-        g_ObjectInHand.Y = obj->GetY();
-        g_ObjectInHand.Z = obj->GetZ();
-        g_ObjectInHand.TotalCount = obj->Count;
+        g_ObjectInHand.X            = obj->GetX();
+        g_ObjectInHand.Y            = obj->GetY();
+        g_ObjectInHand.Z            = obj->GetZ();
+        g_ObjectInHand.TotalCount   = obj->Count;
 
         CPacketPickupRequest(g_ObjectInHand.Serial, count).Send();
 
@@ -6528,12 +5859,11 @@ void COrion::PickupItem(CGameItem *obj, int count, bool isGameFigure)
     }
 }
 
-void COrion::DropItem(int container, uint16_t x, uint16_t y, char z)
+void COrion::DropItem(int container, u16 x, u16 y, char z)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ObjectInHand.Enabled && g_ObjectInHand.Serial != container)
     {
-        if (g_Config.ClientVersion >= CV_6017)
+        if (GameVars::GetClientVersion() >= CV_6017)
         {
             CPacketDropRequestNew(g_ObjectInHand.Serial, x, y, z, 0, container).Send();
         }
@@ -6547,14 +5877,13 @@ void COrion::DropItem(int container, uint16_t x, uint16_t y, char z)
     }
 }
 
-void COrion::EquipItem(uint32_t container)
+void COrion::EquipItem(u32 container)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ObjectInHand.Enabled)
     {
         if (IsWearable(g_ObjectInHand.TiledataPtr->Flags))
         {
-            uint16_t graphic = g_ObjectInHand.Graphic;
+            u16 graphic = g_ObjectInHand.Graphic;
 
             if (container == 0u)
             {
@@ -6570,10 +5899,9 @@ void COrion::EquipItem(uint32_t container)
     }
 }
 
-void COrion::ChangeWarmode(uint8_t status)
+void COrion::ChangeWarmode(u8 status)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint8_t newstatus = (uint8_t)(!g_Player->Warmode);
+    u8 newstatus = (u8)(!g_Player->Warmode);
 
     if (status != 0xFF)
     {
@@ -6597,21 +5925,19 @@ void COrion::ChangeWarmode(uint8_t status)
     CPacketChangeWarmode(newstatus).Send();
 }
 
-void COrion::Click(uint32_t serial)
+void COrion::Click(u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     CPacketClickRequest(serial).Send();
 
-    CGameObject *obj = g_World->FindWorldObject(serial);
+    CGameObject* obj = g_World->FindWorldObject(serial);
     if (obj != nullptr)
     {
         obj->Clicked = true;
     }
 }
 
-void COrion::DoubleClick(uint32_t serial)
+void COrion::DoubleClick(u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial >= 0x40000000)
     {
         g_LastUseObject = serial;
@@ -6620,20 +5946,18 @@ void COrion::DoubleClick(uint32_t serial)
     CPacketDoubleClickRequest(serial).Send();
 }
 
-void COrion::PaperdollReq(uint32_t serial)
+void COrion::PaperdollReq(u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     //g_LastUseObject = serial;
 
     CPacketDoubleClickRequest(serial | 0x80000000).Send();
 }
 
-void COrion::Attack(uint32_t serial)
+void COrion::Attack(u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ConfigManager.CriminalActionsQuery && g_World != nullptr)
     {
-        CGameCharacter *target = g_World->FindWorldCharacter(serial);
+        CGameCharacter* target = g_World->FindWorldCharacter(serial);
 
         if (target != nullptr && (NOTORIETY_TYPE)g_Player->Notoriety == NT_INNOCENT &&
             (NOTORIETY_TYPE)target->Notoriety == NT_INNOCENT)
@@ -6641,7 +5965,7 @@ void COrion::Attack(uint32_t serial)
             int x = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2) - 40;
             int y = g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2) - 20;
 
-            CGumpQuestion *newgump =
+            CGumpQuestion* newgump =
                 new CGumpQuestion(0, x, y, CGumpQuestion::ID_GQ_STATE_ATTACK_REQUEST);
             newgump->ID = serial;
 
@@ -6657,9 +5981,8 @@ void COrion::Attack(uint32_t serial)
     AttackReq(serial);
 }
 
-void COrion::AttackReq(uint32_t serial)
+void COrion::AttackReq(u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     g_LastAttackObject = serial;
 
     //CPacketStatusRequest(serial).Send();
@@ -6667,15 +5990,13 @@ void COrion::AttackReq(uint32_t serial)
     CPacketAttackRequest(serial).Send();
 }
 
-void COrion::SendASCIIText(const char *str, SPEECH_TYPE type)
+void COrion::SendASCIIText(const char* str, SPEECH_TYPE type)
 {
-    DEBUG_TRACE_FUNCTION;
     CPacketASCIISpeechRequest(str, type, 3, g_ConfigManager.SpeechColor).Send();
 }
 
 void COrion::CastSpell(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     if (index >= 0)
     {
         g_LastSpellIndex = index;
@@ -6684,9 +6005,8 @@ void COrion::CastSpell(int index)
     }
 }
 
-void COrion::CastSpellFromBook(int index, uint32_t serial)
+void COrion::CastSpellFromBook(int index, u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     if (index >= 0)
     {
         g_LastSpellIndex = index;
@@ -6697,7 +6017,6 @@ void COrion::CastSpellFromBook(int index, uint32_t serial)
 
 void COrion::UseSkill(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     if (index >= 0)
     {
         g_LastSkillIndex = index;
@@ -6708,20 +6027,17 @@ void COrion::UseSkill(int index)
 
 void COrion::OpenDoor()
 {
-    DEBUG_TRACE_FUNCTION;
     CPacketOpenDoor().Send();
 }
 
-void COrion::EmoteAction(const char *action)
+void COrion::EmoteAction(const char* action)
 {
-    DEBUG_TRACE_FUNCTION;
     CPacketEmoteAction(action).Send();
 }
 
 void COrion::AllNames()
 {
-    DEBUG_TRACE_FUNCTION;
-    CGameObject *obj = g_World->m_Items;
+    CGameObject* obj = g_World->m_Items;
 
     while (obj != nullptr)
     {
@@ -6730,23 +6046,22 @@ void COrion::AllNames()
             CPacketClickRequest(obj->Serial).Send();
         }
 
-        obj = (CGameObject *)obj->m_Next;
+        obj = (CGameObject*)obj->m_Next;
     }
 }
 
 void COrion::RemoveRangedObjects()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (g_World != nullptr)
     {
         int objectsRange = g_ConfigManager.UpdateRange;
 
-        CGameObject *go = g_World->m_Items;
+        CGameObject* go = g_World->m_Items;
 
         while (go != nullptr)
         {
-            CGameObject *next = (CGameObject *)go->m_Next;
+            CGameObject* next = (CGameObject*)go->m_Next;
 
             if (go->Container == 0xFFFFFFFF && !go->IsPlayer())
             {
@@ -6765,11 +6080,11 @@ void COrion::RemoveRangedObjects()
                         }
                     }
                 }
-                else if (((CGameItem *)go)->MultiBody)
+                else if (((CGameItem*)go)->MultiBody)
                 {
                     if (!CheckMultiDistance(g_RemoveRangeXY, go, objectsRange))
                     {
-                        ((CGameItem *)go)->ClearMultiItems();
+                        ((CGameItem*)go)->ClearMultiItems();
                     }
                     //g_World->RemoveObject(go);
                 }
@@ -6796,45 +6111,49 @@ void COrion::ClearWorld()
     g_Ping = 0;
     g_ClickObject.Clear();
     g_Weather.Reset();
-    g_ConsolePrompt = PT_NONE;
-    g_MacroPointer = nullptr;
-    g_Season = ST_SUMMER;
-    g_OldSeason = ST_SUMMER;
-    g_GlobalScale = 1.0;
-    g_PathFinder.BlockMoving = false;
-    g_SkillsManager.SkillsTotal = 0.0f;
+    g_ConsolePrompt                 = PT_NONE;
+    g_MacroPointer                  = nullptr;
+    g_Season                        = ST_SUMMER;
+    g_OldSeason                     = ST_SUMMER;
+    g_GlobalScale                   = 1.0;
+    g_PathFinder.BlockMoving        = false;
+    g_SkillsManager.SkillsTotal     = 0.0f;
     g_SkillsManager.SkillsRequested = false;
 
-    RELEASE_POINTER(g_World)
-    LOG("\tWorld removed?\n");
+    if (g_World)
+    {
+        delete g_World;
+        g_World = nullptr;
+    }
+    LOG_INFO("Client", "\tWorld removed?");
 
     g_PopupMenu = nullptr;
 
     g_GumpManager.Clear();
-    LOG("\tGump Manager cleared?\n");
+    LOG_INFO("Client", "\tGump Manager cleared?");
 
     g_EffectManager.Clear();
-    LOG("\tEffect List cleared?\n");
+    LOG_INFO("Client", "\tEffect List cleared?");
 
     g_GameConsole.Clear();
 
-    g_EntryPointer = nullptr;
+    g_EntryPointer  = nullptr;
     g_GrayMenuCount = 0;
 
     g_Target.Reset();
 
     g_SystemChat.Clear();
-    LOG("\tSystem chat cleared?\n");
+    LOG_INFO("Client", "\tSystem chat cleared?");
 
     g_Journal.Clear();
-    LOG("\tJournal cleared?\n");
+    LOG_INFO("Client", "\tJournal cleared?");
 
     g_MapManager.Clear();
-    LOG("\tMap cleared?\n");
+    LOG_INFO("Client", "\tMap cleared?");
 
     g_CurrentMap = 0;
 
-    g_Party.Leader = 0;
+    g_Party.Leader  = 0;
     g_Party.Inviter = 0;
     g_Party.Clear();
 
@@ -6848,8 +6167,7 @@ void COrion::ClearWorld()
 
 void COrion::LogOut()
 {
-    DEBUG_TRACE_FUNCTION;
-    LOG("COrion::LogOut->Start\n");
+    LOG_INFO("Client", "COrion::LogOut->Start");
     SaveLocalConfig(g_PacketManager.ConfigSerial);
 
     if (g_SendLogoutNotification)
@@ -6858,145 +6176,98 @@ void COrion::LogOut()
     }
 
     Disconnect();
-    LOG("\tDisconnected?\n");
+    LOG_INFO("Client", "\tDisconnected?");
 
     ClearWorld();
 
-    LOG("COrion::LogOut->End\n");
+    LOG_INFO("Client", "COrion::LogOut->End");
     InitScreen(GS_MAIN);
 }
 
 void COrion::ConsolePromptSend()
 {
-    DEBUG_TRACE_FUNCTION;
-    size_t len = g_GameConsole.Length();
+    size_t len  = g_GameConsole.Length();
     bool cancel = (len < 1);
-
     if (g_ConsolePrompt == PT_ASCII)
-    {
         CPacketASCIIPromptResponse(g_GameConsole.c_str(), len, cancel).Send();
-    }
     else if (g_ConsolePrompt == PT_UNICODE)
-    {
         CPacketUnicodePromptResponse(g_GameConsole.Data(), len, g_Language, cancel).Send();
-    }
-
     g_ConsolePrompt = PT_NONE;
 }
 
 void COrion::ConsolePromptCancel()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ConsolePrompt == PT_ASCII)
-    {
         CPacketASCIIPromptResponse("", 0, true).Send();
-    }
     else if (g_ConsolePrompt == PT_UNICODE)
-    {
         CPacketUnicodePromptResponse({}, 0, g_Language, true).Send();
-    }
-
     g_ConsolePrompt = PT_NONE;
 }
 
-uint64_t COrion::GetLandFlags(uint16_t id)
+u64 COrion::GetLandFlags(u16 a_id)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    if (id < m_LandData.size())
-    {
-        return m_LandData[id].Flags;
-    }
-
-    return 0;
+    return a_id < m_LandData.size() ? m_LandData[a_id].Flags : 0;
 }
 
-uint64_t COrion::GetStaticFlags(uint16_t id)
+u64 COrion::GetStaticFlags(u16 a_id)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    if (id < (int)m_StaticData.size())
-    {
-        return m_StaticData[id].Flags;
-    }
-
-    return 0;
+    return a_id < (int)m_StaticData.size() ? m_StaticData[a_id].Flags : 0;
 }
 
-CSize COrion::GetStaticArtDimension(uint16_t id)
+Core::Vec2<i32> COrion::GetStaticArtDimension(u16 a_id)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    CGLTexture *th = ExecuteStaticArt(id);
-
-    if (th != nullptr)
-    {
-        return CSize(th->Width, th->Height);
-    }
-
-    return CSize();
+    CGLTexture* th = ExecuteStaticArt(a_id);
+    return th ? Core::Vec2<i32>(th->Width, th->Height) : Core::Vec2<i32>();
 }
 
-CSize COrion::GetGumpDimension(uint16_t id)
+Core::Vec2<i32> COrion::GetGumpDimension(u16 a_id)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th = ExecuteGump(id);
-
-    if (th != nullptr)
-    {
-        return CSize(th->Width, th->Height);
-    }
-
-    return CSize();
+    CGLTexture* th = ExecuteGump(a_id);
+    return th ? Core::Vec2<i32>(th->Width, th->Height) : Core::Vec2<i32>();
 }
 
-void COrion::OpenStatus(uint32_t serial)
+void COrion::OpenStatus(u32 a_serial)
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - 76;
-    int y = g_MouseManager.Position.Y - 30;
-
-    CPacketStatusRequest(serial).Send();
-
-    g_GumpManager.AddGump(new CGumpStatusbar(serial, x, y, true));
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x               = pos.x - 76;
+    int y               = pos.y - 30;
+    CPacketStatusRequest(a_serial).Send();
+    g_GumpManager.AddGump(new CGumpStatusbar(a_serial, x, y, true));
 }
 
-void COrion::DisplayStatusbarGump(int serial, int x, int y)
+void COrion::DisplayStatusbarGump(int a_serial, int a_x, int a_y)
 {
-    DEBUG_TRACE_FUNCTION;
-    CPacketStatusRequest packet(serial);
-    UOMsg_Send(packet.Data().data(), packet.Data().size());
+    CPacketStatusRequest packet(a_serial);
+    // TODO: reimplement: UOMsg_Send(packet.GetData().data(), packet.GetData().size());
 
-    CGump *gump = g_GumpManager.GetGump(serial, 0, GT_STATUSBAR);
+    CGump* gump = g_GumpManager.GetGump(a_serial, 0, GT_STATUSBAR);
 
     if (gump != nullptr)
     {
         if (gump->Minimized)
         {
-            gump->MinimizedX = x;
-            gump->MinimizedY = y;
+            gump->MinimizedX = a_x;
+            gump->MinimizedY = a_y;
         }
         else
         {
-            gump->SetX(x);
-            gump->SetY(y);
+            gump->SetX(a_x);
+            gump->SetY(a_y);
         }
     }
     else
     {
-        g_GumpManager.AddGump(new CGumpStatusbar(serial, x, y, true));
+        g_GumpManager.AddGump(new CGumpStatusbar(a_serial, a_x, a_y, true));
     }
 }
 
 void COrion::OpenMinimap()
 {
-    DEBUG_TRACE_FUNCTION;
     g_GumpManager.AddGump(new CGumpMinimap(0, 0, true));
 }
 
 void COrion::OpenWorldMap()
 {
-    DEBUG_TRACE_FUNCTION;
     CPluginPacketOpenMap().SendToPlugin();
 
     /*int x = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2) - 200;
@@ -7010,24 +6281,20 @@ void COrion::OpenWorldMap()
 
 void COrion::OpenJournal()
 {
-    DEBUG_TRACE_FUNCTION;
     g_GumpManager.AddGump(new CGumpJournal(0, 0, false, 250));
 }
 
 void COrion::OpenSkills()
 {
-    DEBUG_TRACE_FUNCTION;
-
     g_SkillsManager.SkillsRequested = true;
     CPacketSkillsRequest(g_PlayerSerial).Send();
 }
 
 void COrion::OpenBackpack()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Player != nullptr)
     {
-        CGameItem *pack = g_Player->FindLayer(OL_BACKPACK);
+        CGameItem* pack = g_Player->FindLayer(OL_BACKPACK);
 
         if (pack != nullptr)
         {
@@ -7038,7 +6305,6 @@ void COrion::OpenBackpack()
 
 void COrion::OpenLogOut()
 {
-    DEBUG_TRACE_FUNCTION;
     int x = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2) - 40;
     int y = g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2) - 20;
 
@@ -7050,15 +6316,13 @@ void COrion::OpenLogOut()
 
 void COrion::OpenChat()
 {
-    DEBUG_TRACE_FUNCTION;
     CPacketOpenChat({}).Send();
 }
 
 void COrion::OpenConfiguration()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = (g_OrionWindow.GetSize().Width / 2) - 320;
-    int y = (g_OrionWindow.GetSize().Height / 2) - 240;
+    int x = (g_gameWindow.GetSize().x / 2) - 320;
+    int y = (g_gameWindow.GetSize().y / 2) - 240;
 
     g_OptionsConfig = g_ConfigManager;
 
@@ -7067,21 +6331,18 @@ void COrion::OpenConfiguration()
 
 void COrion::OpenMail()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 void COrion::OpenPartyManifest()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = (g_OrionWindow.GetSize().Width / 2) - 272;
-    int y = (g_OrionWindow.GetSize().Height / 2) - 240;
+    int x = (g_gameWindow.GetSize().x / 2) - 272;
+    int y = (g_gameWindow.GetSize().y / 2) - 240;
 
     g_GumpManager.AddGump(new CGumpPartyManifest(0, x, y, g_Party.CanLoot));
 }
 
-void COrion::OpenProfile(uint32_t serial)
+void COrion::OpenProfile(u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == 0u)
     {
         serial = g_PlayerSerial;
@@ -7092,15 +6353,14 @@ void COrion::OpenProfile(uint32_t serial)
 
 void COrion::DisconnectGump()
 {
-    DEBUG_TRACE_FUNCTION;
-    CServer *server = g_ServerList.GetSelectedServer();
-    string str = "Disconnected from " + (server != nullptr ? server->Name : "server name...");
+    CServer* server = g_ServerList.GetSelectedServer();
+    std::string str = "Disconnected from " + (server != nullptr ? server->Name : "server name...");
     g_Orion.CreateTextMessage(TT_SYSTEM, 0, 3, 0x21, str);
 
     int x = g_ConfigManager.GameWindowX + (g_ConfigManager.GameWindowWidth / 2) - 100;
     int y = g_ConfigManager.GameWindowY + (g_ConfigManager.GameWindowHeight / 2) - 62;
 
-    CGumpNotify *gump =
+    CGumpNotify* gump =
         new CGumpNotify(x, y, CGumpNotify::ID_GN_STATE_LOGOUT, 200, 125, "Connection lost");
 
     g_GumpManager.AddGump(gump);
@@ -7111,7 +6371,6 @@ void COrion::DisconnectGump()
 
 void COrion::OpenCombatBookGump()
 {
-    DEBUG_TRACE_FUNCTION;
     int gameWindowCenterX = (g_ConfigManager.GameWindowX - 4) + g_ConfigManager.GameWindowWidth / 2;
     int gameWindowCenterY =
         (g_ConfigManager.GameWindowY - 4) + g_ConfigManager.GameWindowHeight / 2;
@@ -7134,7 +6393,6 @@ void COrion::OpenCombatBookGump()
 
 void COrion::OpenRacialAbilitiesBookGump()
 {
-    DEBUG_TRACE_FUNCTION;
     int gameWindowCenterX = (g_ConfigManager.GameWindowX - 4) + g_ConfigManager.GameWindowWidth / 2;
     int gameWindowCenterY =
         (g_ConfigManager.GameWindowY - 4) + g_ConfigManager.GameWindowHeight / 2;
@@ -7162,6 +6420,10 @@ void COrion::StartReconnect()
         LogOut();
         g_MainScreen.m_AutoLogin->Checked = true;
         InitScreen(GS_MAIN);
-        g_OrionWindow.CreateTimer(FASTLOGIN_TIMER_ID, 50);
     }
+}
+
+const std::string& COrion::GetPingString()
+{
+    return g_pingString;
 }

@@ -1,37 +1,33 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GameWorld.h"
+#include "Core/Log.h"
 #include "ObjectOnCursor.h"
 #include "GamePlayer.h"
-#include "../OrionUO.h"
-#include "../Party.h"
-#include "../Profiler.h"
-#include "../Target.h"
-#include "../Weather.h"
-#include "../Managers/AnimationManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/CorpseManager.h"
-#include "../Managers/MapManager.h"
-#include "../Managers/FileManager.h"
-#include "../Network/Packets.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../Gumps/GumpContainer.h"
-#include "../Walker/Walker.h"
+#include "OrionUO.h"
+#include "Party.h"
+#include "Profiler.h"
+#include "Target.h"
+#include "Weather.h"
+#include "Managers/AnimationManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/CorpseManager.h"
+#include "Managers/MapManager.h"
+#include "Managers/FileManager.h"
+#include "Network/Packets.h"
+#include "ScreenStages/GameScreen.h"
+#include "Gumps/GumpContainer.h"
+#include "Walker/Walker.h"
 
 CGameWorld *g_World = nullptr;
 
 CGameWorld::CGameWorld(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     CreatePlayer(serial);
 }
 
 CGameWorld::~CGameWorld()
 {
-    DEBUG_TRACE_FUNCTION;
     RemovePlayer();
 
     CGameObject *obj = m_Items;
@@ -57,7 +53,6 @@ void CGameWorld::ResetObjectHandlesState()
 void CGameWorld::ProcessSound(int ticks, CGameCharacter *gc)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (g_ConfigManager.FootstepsSound && gc->IsHuman() && !gc->Hidden())
     {
         if (!gc->m_Steps.empty() && (int)gc->LastStepSoundTime < ticks)
@@ -95,19 +90,18 @@ void CGameWorld::ProcessSound(int ticks, CGameCharacter *gc)
 void CGameWorld::ProcessAnimation()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     int delay =
         (g_ConfigManager.StandartCharactersAnimationDelay ? ORIGINAL_CHARACTERS_ANIMATION_DELAY :
                                                             ORION_CHARACTERS_ANIMATION_DELAY);
     g_AnimCharactersDelayValue = (float)delay;
-    deque<CGameObject *> toRemove;
+    std::deque<CGameObject *> toRemove;
 
     QFOR(obj, m_Items, CGameObject *)
     {
         if (obj->NPC)
         {
             CGameCharacter *gc = obj->GameCharacterPtr();
-            uint8_t dir = 0;
+            u8 dir = 0;
             gc->UpdateAnimationInfo(dir, true);
 
             ProcessSound(g_Ticks, gc);
@@ -125,7 +119,7 @@ void CGameWorld::ProcessAnimation()
                     frameIndex++;
                 }
 
-                uint16_t id = gc->GetMountAnimation();
+                u16 id = gc->GetMountAnimation();
                 int animGroup = gc->GetAnimationGroup(id);
                 gc->ProcessGargoyleAnims(animGroup);
 
@@ -167,7 +161,7 @@ void CGameWorld::ProcessAnimation()
 
                     if (direction.Address != 0 || direction.IsUOP)
                     {
-                        direction.LastAccessTime = g_Ticks;
+                        direction.LastAccessed = Core::FrameTimer::Now();
                         int fc = direction.FrameCount;
 
                         if (gc->AnimationFromServer)
@@ -191,7 +185,7 @@ void CGameWorld::ProcessAnimation()
 
                                     if (gc->AnimationRepeat)
                                     {
-                                        uint8_t repCount = gc->AnimationRepeatMode;
+                                        u8 repCount = gc->AnimationRepeatMode;
 
                                         if (repCount == 2)
                                         {
@@ -224,7 +218,7 @@ void CGameWorld::ProcessAnimation()
 
                                     if (gc->AnimationRepeat)
                                     {
-                                        uint8_t repCount = gc->AnimationRepeatMode;
+                                        u8 repCount = gc->AnimationRepeatMode;
 
                                         if (repCount == 2)
                                         {
@@ -274,13 +268,13 @@ void CGameWorld::ProcessAnimation()
         else if (obj->IsCorpse())
         {
             CGameItem *gi = (CGameItem *)obj;
-            uint8_t dir = gi->Layer;
+            u8 dir = gi->Layer;
 
             if (obj->LastAnimationChangeTime < g_Ticks)
             {
                 char frameIndex = obj->AnimIndex + 1;
 
-                uint16_t id = obj->GetMountAnimation();
+                u16 id = obj->GetMountAnimation();
 
                 bool mirror = false;
 
@@ -302,7 +296,7 @@ void CGameWorld::ProcessAnimation()
 
                     if (direction.Address != 0 || direction.IsUOP)
                     {
-                        direction.LastAccessTime = g_Ticks;
+                        direction.LastAccessed = Core::FrameTimer::Now();
                         int fc = direction.FrameCount;
 
                         if (frameIndex >= fc)
@@ -336,7 +330,6 @@ void CGameWorld::ProcessAnimation()
 
 void CGameWorld::CreatePlayer(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     RemovePlayer();
 
     g_PlayerSerial = serial;
@@ -358,7 +351,6 @@ void CGameWorld::CreatePlayer(int serial)
 
 void CGameWorld::RemovePlayer()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Player != nullptr)
     {
         RemoveFromContainer(g_Player);
@@ -372,7 +364,6 @@ void CGameWorld::RemovePlayer()
 
 void CGameWorld::SetPlayer(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial != g_Player->Serial)
     {
         CreatePlayer(serial);
@@ -381,7 +372,6 @@ void CGameWorld::SetPlayer(int serial)
 
 CGameItem *CGameWorld::GetWorldItem(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     WORLD_MAP::iterator i = m_Map.find(serial);
 
     if (i == m_Map.end() || (*i).second == nullptr)
@@ -409,7 +399,6 @@ CGameItem *CGameWorld::GetWorldItem(int serial)
 
 CGameCharacter *CGameWorld::GetWorldCharacter(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     WORLD_MAP::iterator i = m_Map.find(serial);
 
     if (i == m_Map.end() || (*i).second == nullptr)
@@ -437,7 +426,6 @@ CGameCharacter *CGameWorld::GetWorldCharacter(int serial)
 
 CGameObject *CGameWorld::FindWorldObject(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     CGameObject *result = nullptr;
 
     WORLD_MAP::iterator i = m_Map.find(serial);
@@ -451,7 +439,6 @@ CGameObject *CGameWorld::FindWorldObject(int serial)
 
 CGameItem *CGameWorld::FindWorldItem(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     CGameItem *result = nullptr;
 
     WORLD_MAP::iterator i = m_Map.find(serial);
@@ -465,7 +452,6 @@ CGameItem *CGameWorld::FindWorldItem(int serial)
 
 CGameCharacter *CGameWorld::FindWorldCharacter(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
     CGameCharacter *result = nullptr;
 
     WORLD_MAP::iterator i = m_Map.find(serial);
@@ -479,7 +465,6 @@ CGameCharacter *CGameWorld::FindWorldCharacter(int serial)
 
 void CGameWorld::ReplaceObject(CGameObject *obj, int newSerial)
 {
-    DEBUG_TRACE_FUNCTION;
 
     m_Map[obj->Serial] = nullptr;
     m_Map.erase(obj->Serial);
@@ -493,10 +478,9 @@ void CGameWorld::ReplaceObject(CGameObject *obj, int newSerial)
 
 void CGameWorld::RemoveObject(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     RemoveFromContainer(obj);
 
-    uint32_t serial = obj->Serial;
+    u32 serial = obj->Serial;
     m_Map[serial] = nullptr;
     m_Map.erase(serial);
     delete obj;
@@ -504,8 +488,7 @@ void CGameWorld::RemoveObject(CGameObject *obj)
 
 void CGameWorld::RemoveFromContainer(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t containerSerial = obj->Container;
+    u32 containerSerial = obj->Container;
 
     if (containerSerial != 0xFFFFFFFF)
     {
@@ -572,7 +555,6 @@ void CGameWorld::RemoveFromContainer(CGameObject *obj)
 
 void CGameWorld::ClearContainer(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!obj->Empty())
     {
         obj->Clear();
@@ -581,14 +563,12 @@ void CGameWorld::ClearContainer(CGameObject *obj)
 
 void CGameWorld::PutContainer(CGameObject *obj, CGameObject *container)
 {
-    DEBUG_TRACE_FUNCTION;
     RemoveFromContainer(obj);
     container->AddItem(obj);
 }
 
 void CGameWorld::MoveToTop(CGameObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj == nullptr)
     {
         return;
@@ -706,7 +686,6 @@ void CGameWorld::MoveToTop(CGameObject *obj)
 CGameObject *CGameWorld::SearchWorldObject(
     int serialStart, int scanDistance, SCAN_TYPE_OBJECT scanType, SCAN_MODE_OBJECT scanMode)
 {
-    DEBUG_TRACE_FUNCTION;
     CGameObject *result = nullptr;
 
     CGameObject *start = FindWorldObject(serialStart);
@@ -834,20 +813,20 @@ CGameObject *CGameWorld::SearchWorldObject(
 
 void CGameWorld::UpdateGameObject(
     int serial,
-    uint16_t graphic,
-    uint8_t graphicIncrement,
+    u16 graphic,
+    u8 graphicIncrement,
     int count,
     int x,
     int y,
     char z,
-    uint8_t direction,
-    uint16_t color,
-    uint8_t flags,
+    u8 direction,
+    u16 color,
+    u8 flags,
     int a11,
     UPDATE_GAME_OBJECT_TYPE updateType,
-    uint16_t a13)
+    u16 a13)
 {
-    LOG("UpdateGameObject 0x%08lX:0x%04X 0x%04X (%i) %d:%d:%d %i\n",
+    LOG_INFO("GameObjects", "UpdateGameObject 0x%08lX:0x%04X 0x%04X (%i) %d:%d:%d %i\n",
         serial,
         graphic,
         color,
@@ -881,13 +860,13 @@ void CGameWorld::UpdateGameObject(
     if (obj == nullptr)
     {
         created = true;
-        LOG("created ");
+        LOG_INFO("GameObjects", "created ");
         if (((serial & 0x40000000) == 0) && updateType != 3)
         {
             character = GetWorldCharacter(serial);
             if (character == nullptr)
             {
-                LOG("No memory?\n");
+                LOG_WARNING("GameObjects", "No memory?\n");
                 return;
             }
 
@@ -906,7 +885,7 @@ void CGameWorld::UpdateGameObject(
             item = GetWorldItem(serial);
             if (item == nullptr)
             {
-                LOG("No memory?\n");
+                LOG_WARNING("GameObjects", "No memory?\n");
                 return;
             }
             obj = item;
@@ -914,7 +893,7 @@ void CGameWorld::UpdateGameObject(
     }
     else
     {
-        LOG("updated ");
+        LOG_INFO("GameObjects", "updated ");
         if (obj->Container != 0xFFFFFFFF)
         {
             RemoveFromContainer(obj);
@@ -942,7 +921,7 @@ void CGameWorld::UpdateGameObject(
     {
         if (item == nullptr)
         {
-            LOG("item must not be null\n");
+            LOG_WARNING("GameObjects", "item must not be null\n");
             return;
         }
 
@@ -988,7 +967,9 @@ void CGameWorld::UpdateGameObject(
         item->Count = count;
         item->SetFlags(flags);
         item->OnGraphicChange(direction);
-        LOG("serial:0x%08X graphic:0x%04X color:0x%04X count:%i xyz:%d,%d,%d light:%i flags:0x%02X\n",
+        LOG_INFO(
+            "GameObjects",
+            "serial:0x%08X graphic:0x%04X color:0x%04X count:%i xyz:%d,%d,%d light:%i flags:0x%02X\n",
             obj->Serial,
             obj->Graphic,
             obj->Color,
@@ -1003,7 +984,7 @@ void CGameWorld::UpdateGameObject(
     {
         if (character == nullptr)
         {
-            LOG("character must not be null\n");
+            LOG_WARNING("GameObjects", "character must not be null\n");
             return;
         }
 
@@ -1058,7 +1039,9 @@ void CGameWorld::UpdateGameObject(
         character->Color = g_ColorManager.FixColor(color, (color & 0x8000));
         character->SetFlags(flags);
 
-        LOG("NPC serial:0x%08X graphic:0x%04X color:0x%04X xyz:%d,%d,%d flags:0x%02X direction:%d notoriety:%d\n",
+        LOG_INFO(
+            "GameObjects",
+            "NPC serial:0x%08X graphic:0x%04X color:0x%04X xyz:%d,%d,%d flags:0x%02X direction:%d notoriety:%d\n",
             obj->Serial,
             obj->Graphic,
             obj->Color,
@@ -1084,14 +1067,14 @@ void CGameWorld::UpdateGameObject(
 
 void CGameWorld::UpdatePlayer(
     int serial,
-    uint16_t graphic,
-    uint8_t graphicIncrement,
-    uint16_t color,
-    uint8_t flags,
+    u16 graphic,
+    u8 graphicIncrement,
+    u16 color,
+    u8 flags,
     int x,
     int y,
-    uint16_t serverID,
-    uint8_t direction,
+    u16 serverID,
+    u8 direction,
     char z)
 {
     if (serial == g_PlayerSerial)
@@ -1104,16 +1087,13 @@ void CGameWorld::UpdatePlayer(
         g_Player->SetY(y);
         g_Player->SetZ(z);
 
-        g_RemoveRangeXY.X = x;
-        g_RemoveRangeXY.Y = y;
-
-        UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.X, g_RemoveRangeXY.Y, 0 };
-        PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
+        g_RemoveRangeXY.x = x;
+        g_RemoveRangeXY.y = y;
 
         g_GameScreen.UpdateDrawPos = true;
 
         bool oldDead = g_Player->Dead();
-        uint16_t oldGraphic = g_Player->Graphic;
+        u16 oldGraphic = g_Player->Graphic;
 
         g_Player->Graphic = graphic;
         g_Player->OnGraphicChange();
@@ -1162,7 +1142,7 @@ void CGameWorld::UpdateItemInContainer(CGameObject *obj, CGameObject *container,
     obj->SetY(y);
     PutContainer(obj, container);
 
-    uint32_t containerSerial = container->Serial;
+    u32 containerSerial = container->Serial;
 
     CGump *gump = g_GumpManager.UpdateContent(containerSerial, 0, GT_BULLETIN_BOARD);
 
@@ -1205,13 +1185,13 @@ void CGameWorld::UpdateItemInContainer(CGameObject *obj, CGameObject *container,
 
 void CGameWorld::UpdateContainedItem(
     int serial,
-    uint16_t graphic,
-    uint8_t graphicIncrement,
-    uint16_t count,
+    u16 graphic,
+    u8 graphicIncrement,
+    u16 count,
     int x,
     int y,
     int containerSerial,
-    uint16_t color)
+    u16 color)
 {
     if (g_ObjectInHand.Serial == serial && g_ObjectInHand.Dropped)
     {
@@ -1247,7 +1227,7 @@ void CGameWorld::UpdateContainedItem(
 
     if (obj == nullptr)
     {
-        LOG("No memory?\n");
+        LOG_WARNING("GameObjects", "No memory?\n");
         return;
     }
 
@@ -1268,7 +1248,9 @@ void CGameWorld::UpdateContainedItem(
 
     MoveToTop(obj);
 
-    LOG("\t|0x%08X<0x%08X:%04X*%d (%d,%d) %04X\n",
+    LOG_INFO(
+        "GameObjects",
+        "\t|0x%08X<0x%08X:%04X*%d (%d,%d) %04X\n",
         containerSerial,
         serial,
         graphic + graphicIncrement,
@@ -1278,10 +1260,9 @@ void CGameWorld::UpdateContainedItem(
         color);
 }
 
-void CGameWorld::Dump(uint8_t tCount, uint32_t serial)
+void CGameWorld::Dump(u8 tCount, u32 serial)
 {
-    DEBUG_TRACE_FUNCTION;
-    LOG("World Dump:\n\n");
+    LOG_INFO("GameObjects", "World Dump:\n\n");
 
     CGameObject *obj = m_Items;
 
@@ -1300,15 +1281,17 @@ void CGameWorld::Dump(uint8_t tCount, uint32_t serial)
         {
             if (obj->Serial == g_Player->Serial)
             {
-                LOG("---Player---\n");
+                LOG_INFO("GameObjects", "---Player---\n");
             }
 
             for (int i = 0; i < tCount; i++)
             {
-                LOG("\t");
+                LOG_INFO("GameObjects", "\t");
             }
 
-            LOG("%s%08X:%04X[%04X](%%02X)*%i\tin 0x%08X XYZ=%i,%i,%i on Map %i\n",
+            LOG_INFO(
+                "GameObjects",
+                "%s%08X:%04X[%04X](%%02X)*%i\tin 0x%08X XYZ=%i,%i,%i on Map %i\n",
                 (obj->NPC ? "NPC: " : "Item: "),
                 obj->Serial,
                 obj->Graphic,

@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -14,10 +11,10 @@ public:
     CGumpScreenGame();
     virtual ~CGumpScreenGame();
 
-    virtual void UpdateContent() override;
-    virtual void InitToolTip() override;
-    virtual void Draw() override;
-    virtual CRenderObject *Select() override;
-    virtual void OnLeftMouseButtonDown() override;
-    virtual void OnLeftMouseButtonUp() override;
+     void UpdateContent()  override;
+     void InitToolTip()  override;
+     void Draw()  override;
+     CRenderObject *Select()  override;
+     void OnLeftMouseButtonDown()  override;
+     void OnLeftMouseButtonUp()  override;
 };

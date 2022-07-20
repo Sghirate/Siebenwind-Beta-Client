@@ -1,13 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GameBlockedScreen.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Gumps/GumpNotify.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/GumpManager.h"
+#include "Managers/MouseManager.h"
+#include "Gumps/GumpNotify.h"
 
 CGameBlockedScreen g_GameBlockedScreen;
 
@@ -27,15 +24,13 @@ void CGameBlockedScreen::Init()
 
 void CGameBlockedScreen::Render()
 {
-    DEBUG_TRACE_FUNCTION;
     g_GumpManager.Draw(true);
     InitToolTip();
-    g_MouseManager.Draw(0x2073); //Main Gump mouse cursor
+    g_MouseManager.Draw(MouseCursors::Default);
 }
 
 void CGameBlockedScreen::SelectObject()
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_SelectedObject.Clear();
     g_GumpManager.Select(true);
@@ -57,7 +52,6 @@ void CGameBlockedScreen::SelectObject()
 
 void CGameBlockedScreen::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump != nullptr)
     {
         g_GumpManager.OnLeftMouseButtonDown(true);
@@ -66,16 +60,14 @@ void CGameBlockedScreen::OnLeftMouseButtonDown()
 
 void CGameBlockedScreen::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.LeftGump != nullptr)
     {
         g_GumpManager.OnLeftMouseButtonUp(true);
     }
 }
 
-void CGameBlockedScreen::OnTextInput(const TextEvent &ev)
+void CGameBlockedScreen::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_EntryPointer == nullptr || g_EntryPointer == &g_GameConsole)
     {
@@ -85,15 +77,12 @@ void CGameBlockedScreen::OnTextInput(const TextEvent &ev)
     g_GumpManager.OnTextInput(ev, true);
 }
 
-void CGameBlockedScreen::OnKeyDown(const KeyEvent &ev)
+void CGameBlockedScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
     CGumpNotify *notify = (CGumpNotify *)g_GumpManager.GetGump(0, 0, GT_NOTIFY);
-    const auto key = EvKey(ev);
     if (g_EntryPointer == nullptr || g_EntryPointer == &g_GameConsole)
     {
-        if ((key == KEY_RETURN || key == KEY_RETURN2) && notify != nullptr)
+        if ((ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2) && notify != nullptr)
         {
             notify->OnKeyDown(ev);
         }

@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include "BaseScreen.h"
-#include "../Platform.h"
-#include "../Gumps/GumpScreenMain.h"
+#include "Platform.h"
+#include "Gumps/GumpScreenMain.h"
 
 class CEntryText;
 class CGUICheckbox;
@@ -30,13 +30,13 @@ public:
     CMainScreen();
     virtual ~CMainScreen();
 
-    void SetAccounting(const string &account, const string &password);
+    void SetAccounting(const std::string &account, const std::string &password);
     void Paste();
-    void ProcessSmoothAction(uint8_t action = 0xFF);
+    void ProcessSmoothAction(u8 action = 0xFF);
     void Init();
 
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
 
     void Save();
     void Reset() const;

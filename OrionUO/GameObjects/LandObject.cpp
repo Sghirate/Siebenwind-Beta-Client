@@ -1,16 +1,13 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "LandObject.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
 
-CLandObject::CLandObject(int serial, uint16_t graphic, uint16_t color, short x, short y, char z)
+CLandObject::CLandObject(int serial, u16 graphic, u16 color, short x, short y, char z)
     : CMapObject(ROT_LAND_OBJECT, serial, 0, color, x, y, z)
     , MinZ(z)
     , AverageZ(z)
 {
-    DEBUG_TRACE_FUNCTION;
     OriginalGraphic = graphic;
     UpdateGraphicBySeason();
 
@@ -20,8 +17,8 @@ CLandObject::CLandObject(int serial, uint16_t graphic, uint16_t color, short x, 
 
     IsStretched = ((tile.TexID == 0u) && ::IsWet(tile.Flags));
 
-    memset(&m_Rect, 0, sizeof(m_Rect));
-    memset(&m_Normals[0], 0, sizeof(m_Normals));
+    m_rect.set(0, 0, 0, 0);
+    m_Normals->set(0.0, 0.0, 0.0);
 
 #if UO_DEBUG_INFO != 0
     g_LandObjectsCount++;
@@ -30,7 +27,6 @@ CLandObject::CLandObject(int serial, uint16_t graphic, uint16_t color, short x, 
 
 CLandObject::~CLandObject()
 {
-    DEBUG_TRACE_FUNCTION;
     if (PositionBuffer != 0)
     {
         glDeleteBuffers(1, &PositionBuffer);
@@ -52,22 +48,20 @@ CLandObject::~CLandObject()
 
 void CLandObject::UpdateGraphicBySeason()
 {
-    DEBUG_TRACE_FUNCTION;
     Graphic = g_Orion.GetLandSeasonGraphic(OriginalGraphic);
     NoDrawTile = (Graphic == 2);
 }
 
 int CLandObject::GetDirectionZ(int direction)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (direction)
     {
         case 1:
-            return (m_Rect.h / 4);
+            return (m_rect.h / 4);
         case 2:
-            return (m_Rect.w / 4);
+            return (m_rect.w / 4);
         case 3:
-            return (m_Rect.y / 4);
+            return (m_rect.y / 4);
         default:
             break;
     }
@@ -77,8 +71,7 @@ int CLandObject::GetDirectionZ(int direction)
 
 int CLandObject::CalculateCurrentAverageZ(int direction)
 {
-    DEBUG_TRACE_FUNCTION;
-    int result = GetDirectionZ(((uint8_t)(direction >> 1) + 1) & 3);
+    int result = GetDirectionZ(((u8)(direction >> 1) + 1) & 3);
 
     if ((direction & 1) != 0)
     {
@@ -90,15 +83,14 @@ int CLandObject::CalculateCurrentAverageZ(int direction)
 
 void CLandObject::UpdateZ(int zTop, int zRight, int zBottom)
 {
-    DEBUG_TRACE_FUNCTION;
     if (IsStretched)
     {
         Serial = ((m_Z + zTop + zRight + zBottom) / 4);
 
-        m_Rect.x = m_Z * 4 + 1;
-        m_Rect.y = zTop * 4;
-        m_Rect.w = zRight * 4;
-        m_Rect.h = zBottom * 4 + 1;
+        m_rect.x = m_Z * 4 + 1;
+        m_rect.y = zTop * 4;
+        m_rect.w = zRight * 4;
+        m_rect.h = zBottom * 4 + 1;
 
         if (abs(m_Z - zRight) <= abs(zBottom - zTop))
         {
@@ -130,10 +122,9 @@ void CLandObject::UpdateZ(int zTop, int zRight, int zBottom)
 
 void CLandObject::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Z <= g_MaxGroundZ)
     {
-        uint16_t objColor = 0;
+        u16 objColor = 0;
 
         if (g_DeveloperMode == DM_DEBUGGING && g_SelectedObject.Object == this)
         {
@@ -157,7 +148,6 @@ void CLandObject::Draw(int x, int y)
 
 void CLandObject::Select(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Z <= g_MaxGroundZ)
     {
         if (!IsStretched)
@@ -169,7 +159,7 @@ void CLandObject::Select(int x, int y)
         }
         else
         {
-            if (g_Orion.LandTexturePixelsInXY(x, y + (m_Z * 4), m_Rect))
+            if (g_Orion.LandTexturePixelsInXY(x, y + (m_Z * 4), m_rect))
             {
                 g_SelectedObject.Init(this);
             }

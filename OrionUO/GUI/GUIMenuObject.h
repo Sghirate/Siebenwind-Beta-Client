@@ -1,16 +1,15 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GUITilepic.h"
+#include <string>
 
 class CGUIMenuObject : public CGUITilepic
 {
-    string Text = "";
+    std::string Text = "";
 
 public:
-    CGUIMenuObject(int serial, uint16_t graphic, uint16_t color, int x, int y, const string &text);
+    CGUIMenuObject(int serial, u16 graphic, u16 color, int x, int y, const std::string &text);
     virtual ~CGUIMenuObject();
 
     virtual bool Select();

@@ -1,16 +1,14 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GUIPolygonal.h"
 
 class CGUIResizepic : public CGUIPolygonal
 {
 public:
-    CGUIResizepic(int serial, uint16_t graphic, int x, int y, int width, int height);
+    CGUIResizepic(int serial, u16 graphic, int x, int y, int width, int height);
     virtual ~CGUIResizepic();
-    virtual CSize GetSize() { return CSize(Width, Height); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(Width, Height); }
     virtual void PrepareTextures();
     virtual void Draw(bool checktrans = false);
     virtual bool Select();

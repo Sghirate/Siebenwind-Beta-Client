@@ -1,5 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
+#include "GLShader.h"
+#include "Globals.h"
+#include "Core/Log.h"
 
 CDeathShader g_DeathShader;
 CColorizerShader g_ColorizerShader;
@@ -8,7 +9,6 @@ CColorizerShader g_LightColorizerShader;
 
 void UnuseShader()
 {
-    DEBUG_TRACE_FUNCTION;
     glUseProgramObjectARB(0);
     ShaderColorTable = 0;
     g_ShaderDrawMode = 0;
@@ -16,10 +16,9 @@ void UnuseShader()
 
 CGLShader::CGLShader()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
-bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderData)
+bool CGLShader::Init(const char* vertexShaderData, const char* fragmentShaderData)
 {
     GLint val = GL_FALSE;
 
@@ -28,40 +27,40 @@ bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderDat
         m_Shader = glCreateProgramObjectARB();
 
         m_VertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-        glShaderSourceARB(m_VertexShader, 1, (const GLcharARB **)&vertexShaderData, nullptr);
+        glShaderSourceARB(m_VertexShader, 1, (const GLcharARB**)&vertexShaderData, nullptr);
         glCompileShaderARB(m_VertexShader);
 
         glGetShaderiv(m_VertexShader, GL_COMPILE_STATUS, &val);
         if (val != GL_TRUE)
         {
-            LOG("CGLShader::Init vertex shader compilation error:\n");
+            LOG_ERROR("GLShader", "CGLShader::Init vertex shader compilation error:");
             auto error = glGetError();
             if (error != 0)
             {
-                LOG("CGLShader::Init vertex shader error Code: %i\n", error);
+                LOG_ERROR("GLShader", "CGLShader::Init vertex shader error Code: %i", error);
             }
             return false;
         }
-        LOG("vertex shader compiled successfully\n");
+        LOG_INFO("GLShader", "vertex shader compiled successfully");
 
         glAttachObjectARB(m_Shader, m_VertexShader);
 
         m_FragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-        glShaderSourceARB(m_FragmentShader, 1, (const GLcharARB **)&fragmentShaderData, nullptr);
+        glShaderSourceARB(m_FragmentShader, 1, (const GLcharARB**)&fragmentShaderData, nullptr);
         glCompileShaderARB(m_FragmentShader);
 
         glGetShaderiv(m_FragmentShader, GL_COMPILE_STATUS, &val);
         if (val != GL_TRUE)
         {
-            LOG("CGLShader::Init fragment shader compilation error:\n");
+            LOG_ERROR("GLShader", "CGLShader::Init fragment shader compilation error:");
             auto error = glGetError();
             if (error != 0)
             {
-                LOG("CGLShader::Init fragment shader error Code: %i\n", error);
+                LOG_ERROR("GLShader", "CGLShader::Init fragment shader error Code: %i", error);
             }
             return false;
         }
-        LOG("fragment shader compiled successfully\n");
+        LOG_INFO("GLShader", "fragment shader compiled successfully");
 
         glAttachObjectARB(m_Shader, m_FragmentShader);
 
@@ -76,15 +75,15 @@ bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderDat
     glGetShaderiv(m_Shader, GL_COMPILE_STATUS, &val);
     if (val != GL_TRUE)
     {
-        LOG("CGLShader::Init shader program compilation error:\n");
+        LOG_ERROR("GLShader", "CGLShader::Init shader program compilation error:");
         auto error = glGetError();
         if (error != 0)
         {
-            LOG("CGLShader::Init shader program error Code: %i\n", error);
+            LOG_ERROR("GLShader", "CGLShader::Init shader program error Code: %i", error);
         }
         return false;
     }
-    LOG("shader program compiled successfully\n");
+    LOG_INFO("GLShader", "shader program compiled successfully");
 
     GLint isLinked = 0;
     glGetProgramiv(m_Shader, GL_LINK_STATUS, &isLinked);
@@ -94,16 +93,16 @@ bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderDat
         glGetProgramiv(m_Shader, GL_INFO_LOG_LENGTH, &maxLength);
 
         // The maxLength includes the nullptr character
-        vector<GLchar> infoLog(maxLength);
+        std::vector<GLchar> infoLog(maxLength);
         glGetProgramInfoLog(m_Shader, maxLength, &maxLength, &infoLog[0]);
 
         // The program is useless now. So delete it.
         glDeleteProgram(m_Shader);
 
-        LOG("shader program failed to link\n");
-        LOG("%s\n", infoLog.data());
-        wstring str(infoLog.begin(), infoLog.end());
-        LOG("%ws\n", str.c_str());
+        LOG_ERROR("GLShader", "shader program failed to link");
+        LOG_ERROR("GLShader", "%s", infoLog.data());
+        std::wstring str(infoLog.begin(), infoLog.end());
+        LOG_ERROR("GLShader", "%ws", str.c_str());
         return false;
     }
 
@@ -112,7 +111,6 @@ bool CGLShader::Init(const char *vertexShaderData, const char *fragmentShaderDat
 
 CGLShader::~CGLShader()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Shader != 0)
     {
         glDeleteObjectARB(m_Shader);
@@ -136,7 +134,6 @@ CGLShader::~CGLShader()
 
 bool CGLShader::Use()
 {
-    DEBUG_TRACE_FUNCTION;
     UnuseShader();
 
     bool result = false;
@@ -152,23 +149,20 @@ bool CGLShader::Use()
 
 void CGLShader::Pause()
 {
-    DEBUG_TRACE_FUNCTION;
     glUseProgramObjectARB(0);
 }
 
 void CGLShader::Resume()
 {
-    DEBUG_TRACE_FUNCTION;
     glUseProgramObjectARB(m_Shader);
 }
 
 CDeathShader::CDeathShader()
     : CGLShader()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
-bool CDeathShader::Init(const char *vertexShaderData, const char *fragmentShaderData)
+bool CDeathShader::Init(const char* vertexShaderData, const char* fragmentShaderData)
 {
     if (CGLShader::Init(vertexShaderData, fragmentShaderData))
     {
@@ -176,7 +170,7 @@ bool CDeathShader::Init(const char *vertexShaderData, const char *fragmentShader
     }
     else
     {
-        LOG("Failed to create DeathShader\n");
+        LOG_ERROR("GLShader", "Failed to create DeathShader");
     }
 
     return (m_Shader != 0);
@@ -185,20 +179,19 @@ bool CDeathShader::Init(const char *vertexShaderData, const char *fragmentShader
 CColorizerShader::CColorizerShader()
     : CGLShader()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
-bool CColorizerShader::Init(const char *vertexShaderData, const char *fragmentShaderData)
+bool CColorizerShader::Init(const char* vertexShaderData, const char* fragmentShaderData)
 {
     if (CGLShader::Init(vertexShaderData, fragmentShaderData))
     {
-        m_TexturePointer = glGetUniformLocationARB(m_Shader, "usedTexture");
+        m_TexturePointer    = glGetUniformLocationARB(m_Shader, "usedTexture");
         m_ColorTablePointer = glGetUniformLocationARB(m_Shader, "colors");
-        m_DrawModePointer = glGetUniformLocationARB(m_Shader, "drawMode");
+        m_DrawModePointer   = glGetUniformLocationARB(m_Shader, "drawMode");
     }
     else
     {
-        LOG("Failed to create ColorizerShader\n");
+        LOG_ERROR("GLShader", "Failed to create ColorizerShader");
     }
 
     return (m_Shader != 0);
@@ -206,7 +199,6 @@ bool CColorizerShader::Init(const char *vertexShaderData, const char *fragmentSh
 
 bool CColorizerShader::Use()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = CGLShader::Use();
 
     if (result)

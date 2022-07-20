@@ -1,14 +1,11 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "CreateCharacterScreen.h"
 #include "ConnectionScreen.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../OrionWindow.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Managers/CreateCharacterManager.h"
+#include "GameWindow.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Managers/CreateCharacterManager.h"
 
 CCreateCharacterScreen g_CreateCharacterScreen;
 
@@ -35,7 +32,6 @@ void CCreateCharacterScreen::SetColorSelection(int val)
 
 void CCreateCharacterScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     g_CreateCharacterManager.Clear();
 
     Name = "";
@@ -49,9 +45,8 @@ void CCreateCharacterScreen::Init()
     m_Gump.WantUpdateContent = true;
 }
 
-void CCreateCharacterScreen::ProcessSmoothAction(uint8_t action)
+void CCreateCharacterScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -59,7 +54,7 @@ void CCreateCharacterScreen::ProcessSmoothAction(uint8_t action)
 
     if (action == ID_SMOOTH_CCS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Close();
     }
     else if (action == ID_SMOOTH_CCS_GO_SCREEN_CHARACTER)
     {
@@ -80,7 +75,6 @@ void CCreateCharacterScreen::ProcessSmoothAction(uint8_t action)
 
 void CCreateCharacterScreen::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     CBaseScreen::OnLeftMouseButtonDown();
 
     if (g_SelectedObject.Serial == 0)
@@ -93,12 +87,11 @@ void CCreateCharacterScreen::OnLeftMouseButtonDown()
     }
 }
 
-void CCreateCharacterScreen::OnTextInput(const TextEvent &ev)
+void CCreateCharacterScreen::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
-    if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((uint8_t)ch))
+    const auto ch = ev.text[0];
+    if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {
         return;
     }
@@ -116,14 +109,11 @@ void CCreateCharacterScreen::OnTextInput(const TextEvent &ev)
     m_Gump.WantRedraw = true;
 }
 
-void CCreateCharacterScreen::OnKeyDown(const KeyEvent &ev)
+void CCreateCharacterScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    const auto key = EvKey(ev);
     if (g_EntryPointer != nullptr)
     {
-        g_EntryPointer->OnKey(&m_Gump, key);
+        g_EntryPointer->OnKey(&m_Gump, ev.key);
         Name = g_EntryPointer->c_str();
         m_Gump.WantRedraw = true;
     }

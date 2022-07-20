@@ -1,24 +1,21 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUITextEntry.h"
-#include "../Point.h"
-#include "../SelectedObject.h"
-#include "../Gumps/Gump.h"
-#include "../Managers/MouseManager.h"
+#include "Globals.h"
+#include "SelectedObject.h"
+#include "Gumps/Gump.h"
+#include "Managers/MouseManager.h"
 
 CGUITextEntry::CGUITextEntry(
     int serial,
-    uint16_t color,
-    uint16_t colorSelected,
-    uint16_t colorFocused,
+    u16 color,
+    u16 colorSelected,
+    u16 colorFocused,
     int x,
     int y,
     int maxWidth,
     bool unicode,
-    uint8_t font,
+    u8 font,
     TEXT_ALIGN_TYPE align,
-    uint16_t textFlags,
+    u16 textFlags,
     int maxLength)
     : CBaseGUI(GOT_TEXTENTRY, serial, 0, color, x, y)
     , ColorSelected(colorSelected)
@@ -33,25 +30,21 @@ CGUITextEntry::CGUITextEntry(
 
 CGUITextEntry::~CGUITextEntry()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Entry.Clear();
 }
 
 bool CGUITextEntry::EntryPointerHere()
 {
-    DEBUG_TRACE_FUNCTION;
     return (g_EntryPointer == &m_Entry);
 }
 
-CSize CGUITextEntry::GetSize()
+Core::Vec2<i32> CGUITextEntry::GetSize()
 {
-    DEBUG_TRACE_FUNCTION;
-    return CSize(m_Entry.m_Texture.Width, m_Entry.m_Texture.Height);
+    return Core::Vec2<i32>(m_Entry.m_Texture.Width, m_Entry.m_Texture.Height);
 }
 
 void CGUITextEntry::SetGlobalColor(bool use, int color, int selected, int focused)
 {
-    DEBUG_TRACE_FUNCTION;
     UseGlobalColor = use;
 
     if (use)
@@ -90,13 +83,11 @@ void CGUITextEntry::SetGlobalColor(bool use, int color, int selected, int focuse
 
 void CGUITextEntry::OnClick(CGump *gump, int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Entry.OnClick(gump, Font, Unicode, x, y, Align, TextFlags);
 }
 
 void CGUITextEntry::OnMouseEnter()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump != nullptr)
     {
         g_SelectedObject.Gump->WantRedraw = true;
@@ -105,7 +96,6 @@ void CGUITextEntry::OnMouseEnter()
 
 void CGUITextEntry::OnMouseExit()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_LastSelectedObject.Gump != nullptr)
     {
         g_LastSelectedObject.Gump->WantRedraw = true;
@@ -114,8 +104,7 @@ void CGUITextEntry::OnMouseExit()
 
 void CGUITextEntry::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t color = Color;
+    u16 color = Color;
 
     if (!UseGlobalColor)
     {
@@ -150,9 +139,8 @@ void CGUITextEntry::PrepareTextures()
 
 void CGUITextEntry::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     int y = m_Y;
-    uint16_t color = Color;
+    u16 color = Color;
 
     if (Focused || &m_Entry == g_EntryPointer)
     {
@@ -246,9 +234,8 @@ void CGUITextEntry::Draw(bool checktrans)
 
 bool CGUITextEntry::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    int x = g_MouseManager.Position.X - m_X;
-    int y = g_MouseManager.Position.Y - m_Y;
-
+    Core::TMousePos pos = g_MouseManager.GetPosition();
+    int x = pos.x - m_X;
+    int y = pos.y - m_Y;
     return (x >= 0 && y >= 0 && x < m_Entry.m_Texture.Width && y < m_Entry.m_Texture.Height);
 }

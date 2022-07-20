@@ -1,18 +1,15 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "MultiObject.h"
 #include "CustomHouseMultiObject.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/CustomHousesManager.h"
-#include "../Gumps/GumpCustomHouse.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/CustomHousesManager.h"
+#include "Gumps/GumpCustomHouse.h"
 
-CMultiObject::CMultiObject(uint16_t graphic, short x, short y, char z, int flags)
+CMultiObject::CMultiObject(u16 graphic, short x, short y, char z, int flags)
     : CRenderStaticObject(ROT_MULTI_OBJECT, 0, graphic, 0, x, y, z)
     , OnTarget(flags == 2)
 {
-    DEBUG_TRACE_FUNCTION;
     OriginalGraphic = graphic;
     UpdateGraphicBySeason();
 
@@ -30,8 +27,7 @@ CMultiObject::~CMultiObject()
 
 void CMultiObject::UpdateGraphicBySeason()
 {
-    DEBUG_TRACE_FUNCTION;
-    //uint16_t graphic = Graphic;
+    //u16 graphic = Graphic;
 
     Graphic = g_Orion.GetSeasonGraphic(OriginalGraphic);
 
@@ -43,9 +39,8 @@ void CMultiObject::UpdateGraphicBySeason()
 
 void CMultiObject::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    uint16_t color = Color;
+    u16 color = Color;
 
     if (State != 0)
     {
@@ -110,7 +105,6 @@ void CMultiObject::Draw(int x, int y)
 
 void CMultiObject::Select(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!OnTarget)
     {
         if (State != 0)

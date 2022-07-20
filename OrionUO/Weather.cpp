@@ -1,12 +1,11 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Weather.h"
+#include "Core/Random.h"
+#include "Globals.h"
 #include "Managers/ConfigManager.h"
 
 CWeather g_Weather;
 
-float SinOscillate(float freq, int range, uint32_t current_tick)
+float SinOscillate(float freq, int range, u32 current_tick)
 {
     //float anglef = int((current_tick / (1000.0f / 360.0f)) * freq) % 360;
     float anglef = (float)(int((current_tick / 2.7777f) * freq) % 360);
@@ -19,13 +18,12 @@ CWeather::CWeather()
 
 void CWeather::Reset()
 {
-    DEBUG_TRACE_FUNCTION;
-    Type = 0;
-    Count = 0;
+    Type         = 0;
+    Count        = 0;
     CurrentCount = 0;
-    Temperature = 0;
+    Temperature  = 0;
 
-    Wind = 0;
+    Wind      = 0;
     WindTimer = 0;
 
     Timer = 0;
@@ -35,7 +33,6 @@ void CWeather::Reset()
 
 void CWeather::Generate()
 {
-    DEBUG_TRACE_FUNCTION;
     LastTick = g_Ticks;
 
     if (Type == 0xFF || Type == 0xFE)
@@ -57,8 +54,10 @@ void CWeather::Generate()
     {
         CWeatherEffect effect;
 
-        effect.X = (float)(drawX + RandomInt(g_ConfigManager.GameWindowWidth));
-        effect.Y = (float)(drawY + RandomInt(g_ConfigManager.GameWindowHeight));
+        effect.X =
+            (float)(drawX + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowWidth));
+        effect.Y =
+            (float)(drawY + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowHeight));
 
         m_Effects.push_back(effect);
 
@@ -68,7 +67,6 @@ void CWeather::Generate()
 
 void CWeather::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     bool removeEffects = false;
 
     if (Timer < g_Ticks)
@@ -86,12 +84,12 @@ void CWeather::Draw(int x, int y)
         return;
     }
 
-    uint32_t passed = g_Ticks - LastTick;
+    u32 passed = g_Ticks - LastTick;
 
     if (passed > 7000) // если времени слишком много прошло со старой симуляции
     {
         LastTick = g_Ticks;
-        passed = 25;
+        passed   = 25;
     }
 
     bool windChanged = false;
@@ -103,13 +101,13 @@ void CWeather::Draw(int x, int y)
             windChanged = true; //Для установки стартовых значений снежинок
         }
 
-        WindTimer = g_Ticks + (RandomIntMinMax(7, 13) * 1000);
+        WindTimer = g_Ticks + (Core::Random::Get().GetNextInRange(7, 13) * 1000);
 
         char lastWind = Wind;
 
-        Wind = RandomInt(4);
+        Wind = Core::Random::Get().GetNextWrapped(4);
 
-        if (RandomInt(2) != 0)
+        if (Core::Random::Get().GetNextWrapped(2) != 0)
         {
             Wind *= (-1);
         }
@@ -145,11 +143,11 @@ void CWeather::Draw(int x, int y)
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
-    for (deque<CWeatherEffect>::iterator effect = m_Effects.begin(); effect != m_Effects.end();)
+    for (std::deque<CWeatherEffect>::iterator effect = m_Effects.begin();
+         effect != m_Effects.end();)
     {
         if ((effect->X < x || effect->X > (x + g_ConfigManager.GameWindowWidth)) ||
             (effect->Y < y || effect->Y > (y + g_ConfigManager.GameWindowHeight)))
@@ -170,8 +168,10 @@ void CWeather::Draw(int x, int y)
                 continue;
             }
 
-            effect->X = (float)(x + RandomInt(g_ConfigManager.GameWindowWidth));
-            effect->Y = (float)(y + RandomInt(g_ConfigManager.GameWindowHeight));
+            effect->X =
+                (float)(x + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowWidth));
+            effect->Y =
+                (float)(y + Core::Random::Get().GetNextWrapped(g_ConfigManager.GameWindowHeight));
         }
 
         switch (Type)
@@ -179,8 +179,8 @@ void CWeather::Draw(int x, int y)
             case WT_RAIN:
             {
                 float scaleRatio = effect->ScaleRatio;
-                effect->SpeedX = -4.5f - scaleRatio;
-                effect->SpeedY = 5.0f + scaleRatio;
+                effect->SpeedX   = -4.5f - scaleRatio;
+                effect->SpeedY   = 5.0f + scaleRatio;
                 break;
             }
             case WT_FIERCE_STORM:
@@ -212,7 +212,7 @@ void CWeather::Draw(int x, int y)
                         sqrtf(powf(effect->SpeedX, 2) + powf(effect->SpeedY, 2));
                 }
 
-                float speed_angle = effect->SpeedAngle;
+                float speed_angle     = effect->SpeedAngle;
                 float speed_magnitude = effect->SpeedMagnitude;
 
                 // коэффицент скейлирования (используеться для рандомизации скорости снега)
@@ -228,8 +228,7 @@ void CWeather::Draw(int x, int y)
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
         float speedOffset = passed / SimulationRatio;
@@ -282,8 +281,7 @@ void CWeather::Draw(int x, int y)
 
                 break;
             }
-            default:
-                break;
+            default: break;
         }
 
         ++effect;

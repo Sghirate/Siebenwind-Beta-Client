@@ -1,19 +1,22 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../plugin/mulstruct.h"
+#include "Core/Minimal.h"
+#include "plugin/enumlist.h"
+#include "plugin/mulstruct.h"
+#include <map>
+#include <vector>
+
+class CGLTextTexture;
 
 typedef struct MULTILINES_FONT_DATA
 {
     wchar_t item;
-    uint16_t flags;
-    uint8_t font;
-    uint16_t linkID;
-    uint32_t color;
+    u16 flags;
+    u8 font;
+    u16 linkID;
+    u32 color;
 
-    MULTILINES_FONT_DATA *Next;
+    MULTILINES_FONT_DATA* Next;
 } * PMULTILINES_FONT_DATA;
 
 typedef struct MULTILINES_FONT_INFO
@@ -24,127 +27,121 @@ typedef struct MULTILINES_FONT_INFO
     int CharStart;
     int CharCount;
     TEXT_ALIGN_TYPE Align;
-    vector<MULTILINES_FONT_DATA> Data;
+    std::vector<MULTILINES_FONT_DATA> Data;
 
-    MULTILINES_FONT_INFO *m_Next;
+    MULTILINES_FONT_INFO* m_Next;
 
     void Reset()
     {
-        Width = 0;
+        Width           = 0;
         IndentionOffset = 0;
-        MaxHeight = 0;
-        CharStart = 0;
-        CharCount = 0;
-        Align = TS_LEFT;
-        m_Next = nullptr;
+        MaxHeight       = 0;
+        CharStart       = 0;
+        CharCount       = 0;
+        Align           = TS_LEFT;
+        m_Next          = nullptr;
     }
 } * PMULTILINES_FONT_INFO;
 
 struct WEB_LINK
 {
     bool Visited;
-    string WebLink;
+    std::string WebLink;
 };
 
 struct HTML_char
 {
     wchar_t Char;
-    uint8_t Font;
+    u8 Font;
     TEXT_ALIGN_TYPE Align;
-    uint16_t Flags;
-    uint32_t Color;
-    uint16_t LinkID;
+    u16 Flags;
+    u32 Color;
+    u16 LinkID;
 };
 
 struct HTML_DATA_INFO
 {
     HTML_TAG_TYPE Tag;
     TEXT_ALIGN_TYPE Align;
-    uint16_t Flags;
-    uint8_t Font;
-    uint32_t Color;
-    uint16_t Link;
+    u16 Flags;
+    u8 Font;
+    u32 Color;
+    u16 Link;
 };
 
-typedef map<uint16_t, WEB_LINK> WEBLINK_MAP;
-typedef vector<HTML_char> HTMLCHAR_LIST;
-typedef vector<HTML_DATA_INFO> HTMLINFO_LIST;
+typedef std::map<u16, WEB_LINK> WEBLINK_MAP;
+typedef std::vector<HTML_char> HTMLCHAR_LIST;
+typedef std::vector<HTML_DATA_INFO> HTMLINFO_LIST;
 
 class CFontsManager
 {
 public:
     bool RecalculateWidthByInfo = false;
-    bool UnusePartialHue = false;
-    int FontCount = 0;
+    bool UnusePartialHue        = false;
+    int FontCount               = 0;
 
 private:
-    FONT_DATA *Font = nullptr;
+    FONT_DATA* Font = nullptr;
     WEBLINK_MAP m_WebLink;
 
-    static uint8_t m_FontIndex[256];
+    static u8 m_FontIndex[256];
 
     size_t m_UnicodeFontAddress[20];
-    uint32_t m_UnicodeFontSize[20];
+    u32 m_UnicodeFontSize[20];
 
-    bool m_UseHTML = false;
-    uint32_t m_HTMLColor = 0xFFFFFFFF;
+    bool m_UseHTML                    = false;
+    u32 m_HTMLColor                   = 0xFFFFFFFF;
     bool m_HTMLBackgroundCanBeColored = false;
 
-    uint32_t m_BackgroundColor = 0;
-    uint32_t m_WebLinkColor = 0;
-    uint32_t m_VisitedWebLinkColor = 0;
+    u32 m_BackgroundColor     = 0;
+    u32 m_WebLinkColor        = 0;
+    u32 m_VisitedWebLinkColor = 0;
 
-    int m_LeftMargin = 0;
-    int m_TopMargin = 0;
-    int m_RightMargin = 0;
+    int m_LeftMargin   = 0;
+    int m_TopMargin    = 0;
+    int m_RightMargin  = 0;
     int m_BottomMargin = 0;
 
-    uint16_t GetWebLinkID(const string &link, uint32_t &color);
-    uint16_t GetWebLinkID(const wstring &link, uint32_t &color);
+    u16 GetWebLinkID(const std::string& link, u32& color);
+    u16 GetWebLinkID(const std::wstring& link, u32& color);
 
     HTMLCHAR_LIST
-    GetHTMLData(uint8_t font, const wchar_t *str, int &len, TEXT_ALIGN_TYPE align, uint16_t flags);
+    GetHTMLData(u8 font, const wchar_t* str, int& len, TEXT_ALIGN_TYPE align, u16 flags);
 
-    HTML_DATA_INFO GetHTMLInfoFromTag(const HTML_TAG_TYPE &tag);
-    HTML_DATA_INFO GetCurrentHTMLInfo(const HTMLINFO_LIST &list);
+    HTML_DATA_INFO GetHTMLInfoFromTag(const HTML_TAG_TYPE& tag);
+    HTML_DATA_INFO GetCurrentHTMLInfo(const HTMLINFO_LIST& list);
 
-    void GetHTMLInfoFromContent(HTML_DATA_INFO &info, const string &content);
-    void TrimHTMLString(string &str);
-    uint32_t GetHTMLColorFromText(string &str);
+    void GetHTMLInfoFromContent(HTML_DATA_INFO& info, const std::string& content);
+    void TrimHTMLString(std::string& str);
+    u32 GetHTMLColorFromText(std::string& str);
 
     HTML_TAG_TYPE
-    ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, HTML_DATA_INFO &info);
+    ParseHTMLTag(const wchar_t* str, int len, int& i, bool& endTag, HTML_DATA_INFO& info);
 
     HTMLCHAR_LIST
-    GetHTMLDataOld(
-        uint8_t font, const wchar_t *str, int &len, TEXT_ALIGN_TYPE align, uint16_t flags);
+    GetHTMLDataOld(u8 font, const wchar_t* str, int& len, TEXT_ALIGN_TYPE align, u16 flags);
 
-    PMULTILINES_FONT_INFO GetInfoHTML(
-        uint8_t font,
-        const wchar_t *str,
-        int len,
-        TEXT_ALIGN_TYPE align,
-        uint16_t flags,
-        int width);
+    PMULTILINES_FONT_INFO
+    GetInfoHTML(u8 font, const wchar_t* str, int len, TEXT_ALIGN_TYPE align, u16 flags, int width);
 
     bool GenerateABase(
-        uint8_t font,
-        CGLTextTexture &th,
-        const string &str,
-        uint16_t color,
+        u8 font,
+        CGLTextTexture& th,
+        const std::string& str,
+        u16 color,
         int width,
         TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+        u16 flags);
 
     bool GenerateWBase(
-        uint8_t font,
-        CGLTextTexture &th,
-        const wstring &str,
-        uint16_t color,
-        uint8_t cell,
+        u8 font,
+        CGLTextTexture& th,
+        const std::wstring& str,
+        u16 color,
+        u8 cell,
         int width,
         TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+        u16 flags);
 
 public:
     CFontsManager();
@@ -153,149 +150,132 @@ public:
     void
     SetUseHTML(bool val, int htmlStartColor = 0xFFFFFFFF, const bool backgroundCanBeColored = false)
     {
-        m_UseHTML = val;
-        m_HTMLColor = htmlStartColor;
+        m_UseHTML                    = val;
+        m_HTMLColor                  = htmlStartColor;
         m_HTMLBackgroundCanBeColored = backgroundCanBeColored;
     }
     bool GetUseHTML() const { return m_UseHTML; }
 
     bool LoadFonts();
-    bool UnicodeFontExists(uint8_t font);
-    void GoToWebLink(uint16_t link);
+    bool UnicodeFontExists(u8 font);
+    void GoToWebLink(u16 link);
 
-    inline bool IsPrintASCII(uint8_t index) { return (m_FontIndex[index] != 0xFF); }
-    int GetFontOffsetY(uint8_t font, uint8_t index);
-    CPoint2Di GetCaretPosA(
-        uint8_t font, const string &str, int pos, int width, TEXT_ALIGN_TYPE align, uint16_t flags);
+    inline bool IsPrintASCII(u8 index) { return (m_FontIndex[index] != 0xFF); }
+    int GetFontOffsetY(u8 font, u8 index);
+    Core::Vec2<i32> GetCaretPosA(
+        u8 font, const std::string& str, int pos, int width, TEXT_ALIGN_TYPE align, u16 flags);
 
     int CalculateCaretPosA(
-        uint8_t font,
-        const string &str,
-        int x,
-        int y,
-        int width,
-        TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+        u8 font, const std::string& str, int x, int y, int width, TEXT_ALIGN_TYPE align, u16 flags);
 
-    int GetWidthA(uint8_t font, const string &str);
+    int GetWidthA(u8 font, const std::string& str);
 
-    int GetWidthExA(
-        uint8_t font, const string &str, int maxWidth, TEXT_ALIGN_TYPE align, uint16_t flags);
+    int
+    GetWidthExA(u8 font, const std::string& str, int maxWidth, TEXT_ALIGN_TYPE align, u16 flags);
 
     int GetHeightA(
-        uint8_t font,
-        const string &str,
-        int width = 0,
+        u8 font,
+        const std::string& str,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags             = 0);
 
     int GetHeightA(PMULTILINES_FONT_INFO info);
 
-    string GetTextByWidthA(uint8_t font, const string &str, int width, bool isCropped);
+    std::string GetTextByWidthA(u8 font, const std::string& str, int width, bool isCropped);
 
     PMULTILINES_FONT_INFO
-    GetInfoA(
-        uint8_t font, const char *str, int len, TEXT_ALIGN_TYPE align, uint16_t flags, int width);
+    GetInfoA(u8 font, const char* str, int len, TEXT_ALIGN_TYPE align, u16 flags, int width);
 
-    vector<uint32_t> GeneratePixelsA(
-        uint8_t font,
-        CGLTextTexture &th,
-        const char *str,
-        uint16_t color,
+    std::vector<u32> GeneratePixelsA(
+        u8 font,
+        CGLTextTexture& th,
+        const char* str,
+        u16 color,
         int width,
         TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+        u16 flags);
 
     bool GenerateA(
-        uint8_t font,
-        CGLTextTexture &th,
-        const string &str,
-        uint16_t color = 0,
-        int width = 0,
+        u8 font,
+        CGLTextTexture& th,
+        const std::string& str,
+        u16 color             = 0,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags             = 0);
 
     void DrawA(
-        uint8_t font,
-        const string &str,
-        uint16_t color,
+        u8 font,
+        const std::string& str,
+        u16 color,
         int x,
         int y,
-        int width = 0,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags             = 0);
 
-    CPoint2Di GetCaretPosW(
-        uint8_t font,
-        const wstring &str,
-        int pos,
-        int width,
-        TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+    Core::Vec2<i32> GetCaretPosW(
+        u8 font, const std::wstring& str, int pos, int width, TEXT_ALIGN_TYPE align, u16 flags);
 
     int CalculateCaretPosW(
-        uint8_t font,
-        const wstring &str,
+        u8 font,
+        const std::wstring& str,
         int x,
         int y,
         int width,
         TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+        u16 flags);
 
-    int GetWidthW(uint8_t font, const wstring &str);
+    int GetWidthW(u8 font, const std::wstring& str);
 
-    int GetWidthExW(
-        uint8_t font, const wstring &str, int maxWidth, TEXT_ALIGN_TYPE align, uint16_t flags);
+    int
+    GetWidthExW(u8 font, const std::wstring& str, int maxWidth, TEXT_ALIGN_TYPE align, u16 flags);
 
     int GetHeightW(
-        uint8_t font,
-        const wstring &str,
-        int width = 0,
+        u8 font,
+        const std::wstring& str,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags             = 0);
 
     int GetHeightW(PMULTILINES_FONT_INFO info);
 
-    wstring GetTextByWidthW(uint8_t font, const wstring &str, int width, bool isCropped);
+    std::wstring GetTextByWidthW(u8 font, const std::wstring& str, int width, bool isCropped);
 
-    PMULTILINES_FONT_INFO GetInfoW(
-        uint8_t font,
-        const wchar_t *str,
-        int len,
-        TEXT_ALIGN_TYPE align,
-        uint16_t flags,
-        int width);
+    PMULTILINES_FONT_INFO
+    GetInfoW(u8 font, const wchar_t* str, int len, TEXT_ALIGN_TYPE align, u16 flags, int width);
 
-    vector<uint32_t> GeneratePixelsW(
-        uint8_t font,
-        CGLTextTexture &th,
-        const wchar_t *str,
-        uint16_t color,
-        uint8_t cell,
+    std::vector<u32> GeneratePixelsW(
+        u8 font,
+        CGLTextTexture& th,
+        const wchar_t* str,
+        u16 color,
+        u8 cell,
         int width,
         TEXT_ALIGN_TYPE align,
-        uint16_t flags);
+        u16 flags);
 
     bool GenerateW(
-        uint8_t font,
-        CGLTextTexture &th,
-        const wstring &str,
-        uint16_t color = 0,
-        uint8_t cell = 30,
-        int width = 0,
+        u8 font,
+        CGLTextTexture& th,
+        const std::wstring& str,
+        u16 color             = 0,
+        u8 cell               = 30,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags             = 0);
 
     void DrawW(
-        uint8_t font,
-        const wstring &str,
-        uint16_t color,
+        u8 font,
+        const std::wstring& str,
+        u16 color,
         int x,
         int y,
-        uint8_t cell = 30,
-        int width = 0,
+        u8 cell               = 30,
+        int width             = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint16_t flags = 0);
+        u16 flags             = 0);
 };
 
 extern CFontsManager g_FontManager;

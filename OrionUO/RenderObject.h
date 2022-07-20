@@ -1,16 +1,14 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "BaseQueue.h"
 
 class CRenderObject : public CBaseQueueItem
 {
 public:
-    uint32_t Serial = 0;
-    uint16_t Graphic = 0;
-    uint16_t Color = 0;
+    u32 Serial = 0;
+    u16 Graphic = 0;
+    u16 Color = 0;
 
 protected:
     int m_X = 0;
@@ -31,7 +29,7 @@ public:
     int DrawY = 0;
     bool Changed = true;
 
-    CRenderObject(int serial, uint16_t graphic, uint16_t color, short x, short y);
+    CRenderObject(int serial, u16 graphic, u16 color, short x, short y);
     virtual ~CRenderObject();
     virtual void PrepareTextures() {}
     virtual void OnMouseEnter() {}

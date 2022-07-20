@@ -1,46 +1,42 @@
-﻿// MIT License
-// Copyright (C) October 2017 Hotride
-
 #include "IntlocManager.h"
 #include "ClilocManager.h"
-#include "../OrionApplication.h"
+#include "Core/StringUtils.h"
+#include "OrionApplication.h"
 
-CIntlocManager g_IntlocManager;
+IntlocManager g_IntlocManager;
 
-CIntloc::CIntloc(int fileIndex, const string &lang)
+Intloc::Intloc(int a_fileIndex, const std::string& a_lang)
 {
-    DEBUG_TRACE_FUNCTION;
-    Loaded = false;
-    Language = lang;
-    FileIndex = fileIndex;
+    m_loaded    = false;
+    m_language  = a_lang;
+    m_fileIndex = a_fileIndex;
 
-    if (Language.length() != 0u)
+    if (m_language.length() != 0u)
     {
-        if (m_File.Load(g_App.UOFilesPath("intloc%02i.%s", fileIndex, lang.c_str())))
+        char fileName[64];
+        std::snprintf(fileName, 64, "intloc%02i.%s", a_fileIndex, a_lang.c_str());
+        std::filesystem::path filePath = g_App.GetGameDir() / fileName;
+        if (m_file.Load(filePath))
         {
-            while (!m_File.IsEOF())
+            while (!m_file.IsEOF())
             {
-                uint32_t code = m_File.ReadUInt32BE();
+                u32 code = m_file.ReadBE<u32>();
 
                 if (code == 'TEXT')
                 {
-                    int len = m_File.ReadInt32BE();
-
-                    uint8_t *end = m_File.Ptr + len;
-
-                    while (m_File.Ptr < end && !m_File.IsEOF())
-                    {
-                        m_Strings.push_back(DecodeUTF8(m_File.ReadString()));
-                    }
+                    int len = m_file.ReadBE<i32>();
+                    u8* end = m_file.GetPtr() + len;
+                    while (m_file.GetPtr() < end && !m_file.IsEOF())
+                        m_strings.push_back(Core::DecodeUTF8(m_file.ReadString()));
                 }
                 else if (code == 'FORM')
                 {
-                    m_File.Move(4);
+                    m_file.Move(4);
                 }
                 else if (code == 'INFO')
                 {
-                    int len = m_File.ReadInt32BE();
-                    m_File.Move(len + 1);
+                    int len = m_file.ReadBE<i32>();
+                    m_file.Move(len + 1);
                 }
                 else if (code == 'DATA' || code == 'LANG')
                 {
@@ -50,100 +46,68 @@ CIntloc::CIntloc(int fileIndex, const string &lang)
                     break;
                 }
             }
-
-            Loaded = (!m_Strings.empty());
+            m_loaded = !m_strings.empty();
         }
     }
 }
 
-CIntloc::~CIntloc()
+Intloc::~Intloc()
 {
-    DEBUG_TRACE_FUNCTION;
-    m_File.Unload();
-
-    m_Strings.clear();
+    m_file.Unload();
+    m_strings.clear();
 }
 
-wstring CIntloc::Get(int id, bool toCamelCase)
+std::wstring Intloc::Get(int a_id, bool a_toCamelCase)
 {
-    DEBUG_TRACE_FUNCTION;
-    if (id < (int)m_Strings.size())
+    if (a_id < (int)m_strings.size())
     {
-        if (toCamelCase)
-        {
-            return ToCamelCaseW(m_Strings[id]);
-        }
-
-        return m_Strings[id];
+        if (a_toCamelCase)
+            return Core::ToCamelCaseW(m_strings[a_id]);
+        return m_strings[a_id];
     }
-
     return {};
 }
 
-CIntlocManager::CIntlocManager()
-
+IntlocManager::IntlocManager()
 {
 }
 
-CIntlocManager::~CIntlocManager()
+IntlocManager::~IntlocManager()
 {
 }
 
-CIntloc *CIntlocManager::Intloc(int fileIndex, const string &lang)
+Intloc* IntlocManager::GetIntloc(int a_fileIndex, const std::string& a_lang)
 {
-    DEBUG_TRACE_FUNCTION;
-    QFOR(obj, m_Items, CIntloc *)
+    QFOR(obj, m_Items, Intloc*)
     {
-        if (obj->Language == lang && obj->FileIndex == fileIndex)
-        {
-            if (!obj->Loaded)
-            {
-                return nullptr;
-            }
+        if (obj->GetLanguage() == a_lang && obj->GetFileIndex() == a_fileIndex)
+            return obj->IsLoaded() ? obj : nullptr;
+    }
 
+    {
+        Intloc* obj = (Intloc*)Add(new Intloc(a_fileIndex, a_lang));
+        if (obj->IsLoaded())
             return obj;
-        }
     }
 
-    CIntloc *obj = (CIntloc *)Add(new CIntloc(fileIndex, lang));
-
-    if (obj->Loaded)
+    QFOR(obj, m_Items, Intloc*)
     {
-        return obj;
-    }
-
-    QFOR(obj, m_Items, CIntloc *)
-    {
-        if (obj->Language == "enu" && obj->FileIndex == fileIndex)
-        {
-            if (obj->Loaded)
-            {
-                return obj;
-            }
-
-            break;
-        }
+        if (obj->GetLanguage() == "enu" && obj->GetFileIndex() == a_fileIndex)
+            return obj->IsLoaded() ? obj : nullptr;
     }
 
     return nullptr;
 }
 
-wstring CIntlocManager::Intloc(const string &lang, uint32_t clilocID, bool isNewCliloc)
+std::wstring IntlocManager::GetIntloc(const std::string& a_lang, u32 a_clilocID, bool a_isNewCliloc)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    string language = ToLowerA(lang);
+    std::string language = Core::ToLowerA(a_lang);
     if (language.length() == 0u)
-    {
         language = "enu";
-    }
 
-    wstring str = {};
-
+    std::wstring str = {};
     if (str.length() == 0u)
-    {
-        str = g_ClilocManager.Cliloc(lang)->GetW(clilocID, true);
-    }
+        str = g_ClilocManager.GetCliloc(a_lang)->GetW(a_clilocID, true);
 
     return str;
 }

@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #define QFOR(var, start, type) for (type var = (type)start; var != nullptr; var = (type)var->m_Next)

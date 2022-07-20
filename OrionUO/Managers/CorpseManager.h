@@ -1,18 +1,18 @@
-// MIT License
-// Copyright (C) August 2017 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
+#include <deque>
 
 class CCorpse
 {
 public:
-    uint32_t CorpseSerial = 0;
-    uint32_t ObjectSerial = 0;
-    uint8_t Direction = 0;
-    bool Running = false;
+    u32 CorpseSerial = 0;
+    u32 ObjectSerial = 0;
+    u8 Direction     = 0;
+    bool Running     = false;
 
     CCorpse() {}
-    CCorpse(int corpseSerial, int objectSerial, uint8_t direction, bool running)
+    CCorpse(int corpseSerial, int objectSerial, u8 direction, bool running)
         : CorpseSerial(corpseSerial)
         , ObjectSerial(objectSerial)
         , Direction(direction)
@@ -25,16 +25,16 @@ public:
 class CCorpseManager
 {
 private:
-    deque<CCorpse> m_List;
+    std::deque<CCorpse> m_List;
 
 public:
     CCorpseManager() {}
     ~CCorpseManager() {}
 
-    void Add(const CCorpse &corpse);
+    void Add(const CCorpse& corpse);
     void Remove(int corpseSerial, int objectSerial);
     bool InList(int corpseSerial, int objectSerial);
-    CGameObject *GetCorpseObject(int serial);
+    class CGameObject* GetCorpseObject(int serial);
     void Clear() { m_List.clear(); }
 };
 

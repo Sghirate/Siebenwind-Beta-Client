@@ -1,49 +1,43 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/DataStream.h"
+#include <string>
 
 class CServer
 {
 public:
-    uint16_t Index = 0;
-    string Name = "";
-    uint8_t FullPercent = 0;
-    uint8_t Timezone = 0;
-    uint32_t IP = 0;
-    bool Selected = false;
-    int Ping = -1;
-    int PacketsLoss = -1;
+    u16 Index        = 0;
+    std::string Name = "";
+    u8 FullPercent   = 0;
+    u8 Timezone      = 0;
+    u32 IP           = 0;
+    bool Selected    = false;
+    int Ping         = -1;
+    int PacketsLoss  = -1;
 
     CServer();
-    CServer(
-        uint16_t index,
-        const string &name,
-        uint8_t fullPercent,
-        uint8_t timezone,
-        int ip,
-        bool selected);
+    CServer(u16 index, const std::string& name, u8 fullPercent, u8 timezone, int ip, bool selected);
     ~CServer();
 };
 
 class CServerList
 {
 public:
-    string LastServerName = "";
-    uint32_t LastServerIndex = 0;
+    std::string LastServerName = "";
+    u32 LastServerIndex        = 0;
 
 private:
-    vector<CServer> m_Servers;
+    std::vector<CServer> m_Servers;
 
 public:
     CServerList();
     ~CServerList();
 
-    CServer *GetServer(int index);
-    CServer *GetSelectedServer();
+    CServer* GetServer(int index);
+    CServer* GetSelectedServer();
     int ServersCount() { return (int)m_Servers.size(); }
-    CServer *Select(int index);
-    void ParsePacket(Wisp::CDataReader &reader);
+    CServer* Select(int index);
+    void ParsePacket(Core::StreamReader& a_reader);
 };
 
 extern CServerList g_ServerList;

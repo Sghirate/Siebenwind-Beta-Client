@@ -1,13 +1,13 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "CityManager.h"
+#include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
 #include "ClilocManager.h"
-#include "../OrionApplication.h"
+#include "Globals.h"
+#include "OrionApplication.h"
 
 CCityManager g_CityManager;
 
-CCity::CCity(const string &name, const wstring &description)
+CCity::CCity(const std::string& name, const std::wstring& description)
     : Name(name)
     , Description(description)
 {
@@ -23,21 +23,18 @@ CCityManager::CCityManager()
 
 void CCityManager::Init()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    Wisp::CMappedFile file;
-    if (file.Load(g_App.UOFilesPath("citytext.enu")))
+    Core::MappedFile file;
+    if (file.Load(g_App.GetGameDir() / "citytext.enu"))
     {
-        uint8_t *end = file.Ptr + file.Size;
-        while (file.Ptr < end)
+        u8* end = file.GetPtr() + file.GetSize();
+        while (file.GetPtr() < end)
         {
-            if (memcmp(&file.Ptr[0], "END\0", 4) == 0)
+            if (memcmp(&file.GetPtr()[0], "END\0", 4) == 0)
             {
                 file.Move(4);
-
-                uint8_t *startBlock = file.Ptr + 4;
-                uint8_t *ptrBlock = startBlock;
-                string name{};
+                u8* startBlock = file.GetPtr() + 4;
+                u8* ptrBlock   = startBlock;
+                std::string name{};
                 while (ptrBlock < end)
                 {
                     if (*ptrBlock == '<')
@@ -50,22 +47,20 @@ void CCityManager::Init()
                     ptrBlock++;
                 }
 
-                string text{};
-                while (file.Ptr < end)
+                std::string text{};
+                while (file.GetPtr() < end)
                 {
-                    string str = file.ReadString();
+                    std::string str = file.ReadString();
                     if (text.length() != 0u)
-                    {
                         text += "\n\n";
-                    }
 
                     text += str;
-                    if (*file.Ptr == 0x2E || (memcmp(&file.Ptr[0], "END\0", 4) == 0))
+                    if (*file.GetPtr() == 0x2E || (memcmp(&file.GetPtr()[0], "END\0", 4) == 0))
                     {
                         break;
                     }
                 }
-                m_CityList.push_back(CCity(name, ToWString(text)));
+                m_CityList.push_back(CCity(name, Core::ToWString(text)));
             }
             else
             {
@@ -76,17 +71,15 @@ void CCityManager::Init()
     }
     else
     {
-        static const string cityNames[9] = { "Yew",      "Minoc",      "Britain",
-                                             "Moonglow", "Trinsic",    "Magincia",
-                                             "Jhelom",   "Skara Brae", "Vesper" };
+        static const std::string cityNames[9] = { "Yew",      "Minoc",      "Britain",
+                                                  "Moonglow", "Trinsic",    "Magincia",
+                                                  "Jhelom",   "Skara Brae", "Vesper" };
 
-        CCliloc *cliloc = g_ClilocManager.Cliloc(g_Language);
+        Cliloc* cliloc = g_ClilocManager.GetCliloc(g_Language);
         if (cliloc != nullptr)
         {
             for (int i = 0; i < (int)countof(cityNames); i++)
-            {
                 m_CityList.push_back(CCity(cityNames[i], cliloc->GetW(1075072 + i)));
-            }
         }
     }
 }
@@ -96,11 +89,9 @@ CCityManager::~CCityManager()
     Clear();
 }
 
-CCity CCityManager::GetCity(const string &name)
+CCity CCityManager::GetCity(const std::string& name)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    for (auto &city : m_CityList)
+    for (auto& city : m_CityList)
     {
         if (city.Name == name)
         {
@@ -112,6 +103,5 @@ CCity CCityManager::GetCity(const string &name)
 
 void CCityManager::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     m_CityList.clear();
 }

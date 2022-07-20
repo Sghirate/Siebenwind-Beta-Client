@@ -1,51 +1,35 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
 
 struct STATIC_TILES;
 
 class CObjectOnCursor
 {
 public:
-    //!Активен
-    bool Enabled = false;
-    //!Сброшен
-    bool Dropped = false;
-    //!Серийник объекта
-    uint32_t Serial = 0;
-    //!Индекс картинки
-    uint16_t Graphic = 0;
-    //!Цвет
-    uint16_t Color = 0;
-    //!Количество для перемещения
-    uint16_t Count = 0;
-    //!Количество ранее в стеке
-    uint16_t TotalCount = 0;
-    //!Слой
-    uint8_t Layer = 0;
-    //!Флаги
-    uint8_t Flags = 0;
-    //!Контейнер
-    uint32_t Container = 0;
-    //!Координата X
-    uint16_t X = 0;
-    //!Координата Y
-    uint16_t Y = 0;
-    //!Координата Z
-    char Z = 0;
-    //!Это игровая фигура
-    bool IsGameFigure = false;
-    //!Указатель на тайлдату для объекта
-    STATIC_TILES *TiledataPtr = nullptr; //!Обновлен ли предмет в мире
-    bool UpdatedInWorld = false;
+    bool Enabled              = false;
+    bool Dropped              = false;
+    u32 Serial                = 0;
+    u16 Graphic               = 0;
+    u16 Color                 = 0;
+    u16 Count                 = 0;
+    u16 TotalCount            = 0;
+    u8 Layer                  = 0;
+    u8 Flags                  = 0;
+    u32 Container             = 0;
+    u16 X                     = 0;
+    u16 Y                     = 0;
+    char Z                    = 0;
+    bool IsGameFigure         = false;
+    STATIC_TILES* TiledataPtr = nullptr;
+    bool UpdatedInWorld       = false;
 
     CObjectOnCursor() {}
     virtual ~CObjectOnCursor() {}
 
     void Clear();
 
-    uint16_t GetDrawGraphic(bool &doubleDraw);
+    u16 GetDrawGraphic(bool& doubleDraw);
 };
 
 extern CObjectOnCursor g_ObjectInHand;

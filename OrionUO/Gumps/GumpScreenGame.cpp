@@ -1,26 +1,24 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenGame.h"
+#include "Core/Platform.h"
+#include "GameVars.h"
+#include "GameWindow.h"
 #include "GumpConsoleType.h"
 #include "GumpOptions.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../OrionWindow.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/MouseManager.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../Network/Packets.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "Managers/GumpManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/MouseManager.h"
+#include "ScreenStages/GameScreen.h"
+#include "Network/Packets.h"
 
 CGumpScreenGame::CGumpScreenGame()
     : CGump(GT_NONE, 0, 0, 0)
 {
-    DEBUG_TRACE_FUNCTION;
-    NoMove = true;
+    NoMove  = true;
     NoClose = true;
 
     Add(new CGUIButton(ID_GS_RESIZE, 0x0837, 0x0837, 0x0838, 0, 0));
@@ -33,21 +31,18 @@ CGumpScreenGame::~CGumpScreenGame()
 
 void CGumpScreenGame::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
     if (g_PressedObject.LeftGump == this)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if (g_PressedObject.LeftObject == m_Items) //resizer
         {
-            g_RenderBounds.GameWindowWidth += offset.X;
-            g_RenderBounds.GameWindowHeight += offset.Y;
+            g_RenderBounds.GameWindowWidth += offset.x;
+            g_RenderBounds.GameWindowHeight += offset.y;
 
             if (g_RenderBounds.GameWindowWidth < 640)
             {
@@ -69,7 +64,7 @@ void CGumpScreenGame::UpdateContent()
                 g_RenderBounds.GameWindowHeight = screenY;
             }
 
-            CGumpOptions *opt = (CGumpOptions *)g_GumpManager.UpdateGump(0, 0, GT_OPTIONS);
+            CGumpOptions* opt = (CGumpOptions*)g_GumpManager.UpdateGump(0, 0, GT_OPTIONS);
 
             if (opt != nullptr)
             {
@@ -81,8 +76,8 @@ void CGumpScreenGame::UpdateContent()
         }
         else //scope
         {
-            g_RenderBounds.GameWindowPosX += offset.X;
-            g_RenderBounds.GameWindowPosY += offset.Y;
+            g_RenderBounds.GameWindowPosX += offset.x;
+            g_RenderBounds.GameWindowPosY += offset.y;
 
             if (g_RenderBounds.GameWindowPosX < 0)
             {
@@ -95,17 +90,17 @@ void CGumpScreenGame::UpdateContent()
             }
 
             if (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth >
-                g_OrionWindow.GetSize().Width)
+                g_gameWindow.GetSize().x)
             {
                 g_RenderBounds.GameWindowPosX =
-                    g_OrionWindow.GetSize().Width - g_RenderBounds.GameWindowWidth;
+                    g_gameWindow.GetSize().x - g_RenderBounds.GameWindowWidth;
             }
 
             if (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight >
-                g_OrionWindow.GetSize().Height)
+                g_gameWindow.GetSize().y)
             {
                 g_RenderBounds.GameWindowPosY =
-                    g_OrionWindow.GetSize().Height - g_RenderBounds.GameWindowHeight;
+                    g_gameWindow.GetSize().y - g_RenderBounds.GameWindowHeight;
             }
         }
     }
@@ -113,7 +108,6 @@ void CGumpScreenGame::UpdateContent()
 
 void CGumpScreenGame::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.UseToolTips || g_SelectedObject.Object == nullptr)
     {
         return;
@@ -127,7 +121,6 @@ void CGumpScreenGame::InitToolTip()
 
 void CGumpScreenGame::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     //Рамка игрового окна
     g_Orion.DrawGump(
         0x0A8D,
@@ -159,7 +152,7 @@ void CGumpScreenGame::Draw()
         g_RenderBounds.GameWindowWidth + 8,
         0);
 
-    uint16_t resizeGumpID = 0x0837; //button
+    u16 resizeGumpID = 0x0837; //button
     if (g_ConfigManager.LockResizingGameWindow)
     {
         resizeGumpID = 0x082C; //lock
@@ -176,10 +169,9 @@ void CGumpScreenGame::Draw()
         g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - 3);
 }
 
-CRenderObject *CGumpScreenGame::Select()
+CRenderObject* CGumpScreenGame::Select()
 {
-    DEBUG_TRACE_FUNCTION;
-    CRenderObject *selected = nullptr;
+    CRenderObject* selected = nullptr;
 
     if (!g_ConfigManager.LockResizingGameWindow)
     {
@@ -188,7 +180,7 @@ CRenderObject *CGumpScreenGame::Select()
                 g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth - 3,
                 g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - 3))
         {
-            selected = (CRenderObject *)m_Items;
+            selected = (CRenderObject*)m_Items;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8D,
@@ -197,7 +189,7 @@ CRenderObject *CGumpScreenGame::Select()
                      0,
                      g_RenderBounds.GameWindowHeight + 8))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8D,
@@ -206,7 +198,7 @@ CRenderObject *CGumpScreenGame::Select()
                      0,
                      g_RenderBounds.GameWindowHeight + 8))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8C,
@@ -215,7 +207,7 @@ CRenderObject *CGumpScreenGame::Select()
                      g_RenderBounds.GameWindowWidth + 8,
                      0))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
         else if (g_Orion.GumpPixelsInXY(
                      0x0A8C,
@@ -224,7 +216,7 @@ CRenderObject *CGumpScreenGame::Select()
                      g_RenderBounds.GameWindowWidth + 8,
                      0))
         {
-            selected = (CRenderObject *)m_Items->m_Next;
+            selected = (CRenderObject*)m_Items->m_Next;
         }
 
         if (selected != nullptr)
@@ -238,7 +230,6 @@ CRenderObject *CGumpScreenGame::Select()
 
 void CGumpScreenGame::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     //CGump::OnLeftMouseButtonDown();
 
     if (g_GumpConsoleType != nullptr)
@@ -249,19 +240,16 @@ void CGumpScreenGame::OnLeftMouseButtonDown()
 
 void CGumpScreenGame::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
-
-    CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+    Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
     if (g_PressedObject.LeftObject == m_Items) //resizer
     {
-        g_ConfigManager.GameWindowWidth = g_ConfigManager.GameWindowWidth + offset.X;
-        g_ConfigManager.GameWindowHeight = g_ConfigManager.GameWindowHeight + offset.Y;
+        g_ConfigManager.GameWindowWidth  = g_ConfigManager.GameWindowWidth + offset.x;
+        g_ConfigManager.GameWindowHeight = g_ConfigManager.GameWindowHeight + offset.y;
 
         if (g_ConfigManager.GameWindowWidth < 640)
         {
@@ -283,15 +271,15 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
             g_ConfigManager.GameWindowHeight = screenY;
         }
 
-        if (g_Config.ClientVersion >= CV_200)
+        if (GameVars::GetClientVersion() >= CV_200)
         {
             CPacketGameWindowSize().Send();
         }
     }
     else //scope
     {
-        g_ConfigManager.GameWindowX = g_ConfigManager.GameWindowX + offset.X;
-        g_ConfigManager.GameWindowY = g_ConfigManager.GameWindowY + offset.Y;
+        g_ConfigManager.GameWindowX = g_ConfigManager.GameWindowX + offset.x;
+        g_ConfigManager.GameWindowY = g_ConfigManager.GameWindowY + offset.y;
 
         if (g_ConfigManager.GameWindowX < 1)
         {
@@ -304,17 +292,17 @@ void CGumpScreenGame::OnLeftMouseButtonUp()
         }
 
         if (g_ConfigManager.GameWindowX + g_ConfigManager.GameWindowWidth >
-            g_OrionWindow.GetSize().Width)
+            g_gameWindow.GetSize().x)
         {
             g_ConfigManager.GameWindowX =
-                g_OrionWindow.GetSize().Width - g_ConfigManager.GameWindowWidth;
+                g_gameWindow.GetSize().x - g_ConfigManager.GameWindowWidth;
         }
 
         if (g_ConfigManager.GameWindowY + g_ConfigManager.GameWindowHeight >
-            g_OrionWindow.GetSize().Height)
+            g_gameWindow.GetSize().y)
         {
             g_ConfigManager.GameWindowY =
-                g_OrionWindow.GetSize().Height - g_ConfigManager.GameWindowHeight;
+                g_gameWindow.GetSize().y - g_ConfigManager.GameWindowHeight;
         }
     }
 }

@@ -1,12 +1,9 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "RenderObject.h"
 #include "PressedObject.h"
 #include "SelectedObject.h"
 #include "ClickObject.h"
 
-CRenderObject::CRenderObject(int serial, uint16_t graphic, uint16_t color, short x, short y)
+CRenderObject::CRenderObject(int serial, u16 graphic, u16 color, short x, short y)
     : Serial(serial)
     , Graphic(graphic)
     , Color(color)
@@ -18,7 +15,6 @@ CRenderObject::CRenderObject(int serial, uint16_t graphic, uint16_t color, short
 
 CRenderObject::~CRenderObject()
 {
-    DEBUG_TRACE_FUNCTION;
     g_ClickObject.Clear(this);
     g_SelectedObject.Clear(this);
     g_LastSelectedObject.Clear(this);

@@ -1,16 +1,13 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpGeneric.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../Network/Packets.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
+#include "Network/Packets.h"
 
-CGumpGeneric::CGumpGeneric(uint32_t serial, short x, short y, uint32_t id)
+CGumpGeneric::CGumpGeneric(u32 serial, short x, short y, u32 id)
     : CGump(GT_GENERIC, serial, x, y)
 {
     Page = 1;
@@ -23,7 +20,6 @@ CGumpGeneric::~CGumpGeneric()
 
 void CGumpGeneric::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsGUI())
     {
@@ -73,9 +69,8 @@ void CGumpGeneric::InitToolTip()
 }
 
 void CGumpGeneric::AddText(
-    int index, const wstring &text, CBaseGUI *start, bool backbroundCanBeColored)
+    int index, const std::wstring &text, CBaseGUI *start, bool backbroundCanBeColored)
 {
-    DEBUG_TRACE_FUNCTION;
     if (start == nullptr)
     {
         start = (CBaseGUI *)m_Items;
@@ -139,7 +134,6 @@ void CGumpGeneric::AddText(
 
 void CGumpGeneric::SendGumpResponse(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     //Ответ на гамп
     CPacketGumpResponse(this, index).Send();
 
@@ -149,19 +143,16 @@ void CGumpGeneric::SendGumpResponse(int index)
 
 void CGumpGeneric::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     SendGumpResponse(serial);
 }
 
 void CGumpGeneric::GUMP_DIRECT_HTML_LINK_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     g_FontManager.GoToWebLink(link);
 }
 
 bool CGumpGeneric::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_GeneratedMouseDown)
     {
         return false;
@@ -182,21 +173,17 @@ bool CGumpGeneric::OnLeftMouseButtonDoubleClick()
     return false;
 }
 
-void CGumpGeneric::OnTextInput(const TextEvent &ev)
+void CGumpGeneric::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     g_EntryPointer->Insert(ch);
     WantRedraw = true;
 }
 
-void CGumpGeneric::OnKeyDown(const KeyEvent &ev)
+void CGumpGeneric::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return2)
     {
         if (g_ConfigManager.GetConsoleNeedEnter())
         {
@@ -211,6 +198,6 @@ void CGumpGeneric::OnKeyDown(const KeyEvent &ev)
     }
     else
     {
-        g_EntryPointer->OnKey(this, key);
+        g_EntryPointer->OnKey(this, ev.key);
     }
 }

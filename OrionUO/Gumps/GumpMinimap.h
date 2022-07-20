@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -8,13 +5,13 @@
 class CGumpMinimap : public CGump
 {
 public:
-    uint16_t LastX = 0;
-    uint16_t LastY = 0;
+    u16 LastX = 0;
+    u16 LastY = 0;
 
 private:
     const int ID_GMM_LOCK_MOVING = 1;
 
-    uint8_t m_Count{ 0 };
+    u8 m_Count{ 0 };
 
     CGLTexture m_Texture{ CGLTexture() };
 
@@ -24,13 +21,13 @@ private:
     void GenerateMap();
 
     void CreatePixels(
-        vector<uint16_t> &data,
+        std::vector<u16> &data,
         int color,
         int x,
         int y,
         int width,
         int height,
-        const CPoint2Di *table,
+        const Core::Vec2<i32> *table,
         int count);
 
 protected:

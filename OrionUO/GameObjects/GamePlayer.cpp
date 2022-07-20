@@ -1,23 +1,18 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GamePlayer.h"
 #include "GameItem.h"
-#include "../OrionUO.h"
-#include "../Managers/GumpManager.h"
-#include "../Network/Packets.h"
+#include "OrionUO.h"
+#include "Managers/GumpManager.h"
+#include "Network/Packets.h"
 
 CPlayer *g_Player = nullptr;
 
 CPlayer::CPlayer(int serial)
     : CGameCharacter(serial)
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 CPlayer::~CPlayer()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 void CPlayer::CloseBank()
@@ -35,7 +30,6 @@ void CPlayer::CloseBank()
 
 CGameItem *CPlayer::FindBandage()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameItem *item = FindLayer(OL_BACKPACK);
 
     if (item != nullptr)
@@ -48,8 +42,7 @@ CGameItem *CPlayer::FindBandage()
 
 void CPlayer::UpdateAbilities()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t equippedGraphic = 0;
+    u16 equippedGraphic = 0;
 
     CGameItem *layerObject = FindLayer(OL_1_HAND);
 
@@ -72,11 +65,11 @@ void CPlayer::UpdateAbilities()
 
     if (equippedGraphic != 0u)
     {
-        uint16_t graphics[2] = { equippedGraphic, 0 };
-        uint16_t imageID = layerObject->GetStaticData()->AnimID;
+        u16 graphics[2] = { equippedGraphic, 0 };
+        u16 imageID = layerObject->GetStaticData()->AnimID;
         int count = 1;
 
-        uint16_t testGraphic = equippedGraphic - 1;
+        u16 testGraphic = equippedGraphic - 1;
 
         if (g_Orion.m_StaticData[testGraphic].AnimID == imageID)
         {

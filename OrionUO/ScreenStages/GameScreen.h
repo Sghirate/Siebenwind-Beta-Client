@@ -1,11 +1,9 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../Platform.h"
+#include "Platform.h"
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenGame.h"
+#include "Constants.h"
+#include "Gumps/GumpScreenGame.h"
 
 class CGameObject;
 
@@ -51,8 +49,8 @@ struct RENDER_VARIABLES_FOR_GAME_WINDOW
 
 struct LIGHT_DATA
 {
-    uint8_t ID;
-    uint16_t Color;
+    u8 ID;
+    u16 Color;
     int DrawX;
     int DrawY;
 };
@@ -60,16 +58,16 @@ struct LIGHT_DATA
 struct RENDER_OBJECT_DATA
 {
     class CRenderWorldObject *Object;
-    uint16_t GrayColor;
+    u16 GrayColor;
 };
 
 struct OBJECT_HITS_INFO
 {
     int X;
     int Y;
-    uint16_t Color;
+    u16 Color;
     int Width;
-    uint16_t HealthColor;
+    u16 HealthColor;
     CGLTextTexture *HitsTexture;
 };
 
@@ -84,13 +82,13 @@ public:
 private:
     CGameObject *m_ObjectHandlesList[MAX_OBJECT_HANDLES];
     LIGHT_DATA m_Light[MAX_LIGHT_SOURCES];
-    vector<RENDER_OBJECT_DATA> m_RenderList;
+    std::vector<RENDER_OBJECT_DATA> m_RenderList;
 
     int m_ObjectHandlesCount = 0;
     int m_RenderListCount = 0;
     int m_LightCount = 0;
     int m_MaxDrawZ = 0;
-    uint32_t m_ProcessAlphaTimer = 0;
+    u32 m_ProcessAlphaTimer = 0;
     bool m_CanProcessAlpha = false;
     bool m_zoom = false;
 
@@ -98,8 +96,8 @@ private:
     void DrawGameWindow(bool render);
     void DrawGameWindowLight();
     void DrawGameWindowText(bool render);
-    void ApplyTransparentFoliageToUnion(uint16_t graphic, int x, int y, int z);
-    void CheckFoliageUnion(uint16_t graphic, int x, int y, int z);
+    void ApplyTransparentFoliageToUnion(u16 graphic, int x, int y, int z);
+    void CheckFoliageUnion(u16 graphic, int x, int y, int z);
 
     void AddTileToRenderList(
         class CRenderWorldObject *obj,
@@ -112,16 +110,16 @@ private:
 
     class CGumpScreenGame m_GameScreenGump;
 
-    vector<OBJECT_HITS_INFO> m_HitsStack;
+    std::vector<OBJECT_HITS_INFO> m_HitsStack;
 
 public:
     CGameScreen();
     virtual ~CGameScreen();
 
-    static const uint8_t ID_SMOOTH_GS_LOGOUT = 1;
+    static const u8 ID_SMOOTH_GS_LOGOUT = 1;
 
     void UpdateMaxDrawZ();
-    virtual void ProcessSmoothAction(uint8_t action = 0xFF);
+    virtual void ProcessSmoothAction(u8 action = 0xFF);
     void CalculateGameWindowBounds();
     void CalculateRenderList();
     virtual void Init();
@@ -129,8 +127,8 @@ public:
     void
     AddLight(class CRenderWorldObject *rwo, class CRenderWorldObject *lightObject, int x, int y);
     virtual void PrepareContent();
-    virtual void Render() override;
-    virtual void SelectObject() override;
+     void Render()  override;
+     void SelectObject()  override;
     virtual void OnLeftMouseButtonDown();
     virtual void OnLeftMouseButtonUp();
     virtual bool OnLeftMouseButtonDoubleClick();
@@ -142,9 +140,9 @@ public:
     virtual bool OnMidMouseButtonDoubleClick() { return false; }
     virtual void OnMidMouseButtonScroll(bool up);
     virtual void OnDragging();
-    virtual void OnTextInput(const TextEvent &ev) override;
-    virtual void OnKeyDown(const KeyEvent &ev) override;
-    virtual void OnKeyUp(const KeyEvent &ev) override;
+     void OnTextInput(const Core::TextEvent &ev)  override;
+     void OnKeyDown(const Core::KeyEvent &ev)  override;
+     void OnKeyUp(const Core::KeyEvent &ev)  override;
     void SetZoom(const bool zommed);
 };
 

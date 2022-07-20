@@ -1,12 +1,12 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "EffectManager.h"
+#include "Core/Time.h"
 #include "MapManager.h"
-#include "../OrionUO.h"
-#include "../Profiler.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/GameEffectMoving.h"
+#include "OrionUO.h"
+#include "Profiler.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/GameEffectMoving.h"
+
+using namespace Core::TimeLiterals;
 
 CEffectManager g_EffectManager;
 
@@ -14,9 +14,8 @@ CEffectManager::CEffectManager()
 {
 }
 
-void CEffectManager::AddEffect(CGameEffect *effect)
+void CEffectManager::AddEffect(CGameEffect* effect)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (effect->EffectType)
     {
         case EF_MOVING:
@@ -25,7 +24,7 @@ void CEffectManager::AddEffect(CGameEffect *effect)
         {
             if (effect->EffectType == EF_MOVING)
             {
-                CGameObject *obj = g_World->FindWorldObject(effect->DestSerial);
+                CGameObject* obj = g_World->FindWorldObject(effect->DestSerial);
                 if (obj != nullptr)
                 {
                     obj = obj->GetTopObject();
@@ -38,7 +37,7 @@ void CEffectManager::AddEffect(CGameEffect *effect)
                     }
                 }
 
-                CGameEffectMoving *moving = (CGameEffectMoving *)effect;
+                CGameEffectMoving* moving = (CGameEffectMoving*)effect;
 
                 if (moving->GetX() == moving->DestX && moving->GetY() == moving->DestY &&
                     moving->GetZ() == moving->DestZ)
@@ -63,9 +62,9 @@ void CEffectManager::AddEffect(CGameEffect *effect)
 
             if (effect->EffectType != EF_STAY_AT_POS)
             {
-                CGameEffectDrag *effectDrag = (CGameEffectDrag *)effect;
-                effectDrag->OffsetX = 0;
-                effectDrag->OffsetY = 0;
+                CGameEffectDrag* effectDrag = (CGameEffectDrag*)effect;
+                effectDrag->OffsetX         = 0;
+                effectDrag->OffsetY         = 0;
             }
 
             Add(effect);
@@ -79,14 +78,13 @@ void CEffectManager::AddEffect(CGameEffect *effect)
         case EF_LIGHTING:
         case EF_STAY_AT_SOURCE:
         {
-            CGameObject *obj = g_World->FindWorldObject(effect->Serial);
+            CGameObject* obj = g_World->FindWorldObject(effect->Serial);
             if (obj != nullptr)
             {
                 if (effect->EffectType == EF_LIGHTING)
                 {
                     g_Orion.ExecuteGumpPart(0x4E20, 10);
-
-                    effect->Duration = g_Ticks + 400;
+                    effect->SetDuration(400_ms);
                     effect->Speed = 50;
                 }
 
@@ -99,14 +97,12 @@ void CEffectManager::AddEffect(CGameEffect *effect)
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
-void CEffectManager::RemoveEffect(CGameEffect *effect)
+void CEffectManager::RemoveEffect(CGameEffect* effect)
 {
-    DEBUG_TRACE_FUNCTION;
     Unlink(effect);
 
     effect->m_Next = nullptr;
@@ -114,22 +110,21 @@ void CEffectManager::RemoveEffect(CGameEffect *effect)
     delete effect;
 }
 
-void CEffectManager::CreateExplodeEffect(CGameEffect *effect, const EFFECT_TYPE &type)
+void CEffectManager::CreateExplodeEffect(CGameEffect* effect, const EFFECT_TYPE& type)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGameEffect *newEffect = new CGameEffect();
+    CGameEffect* newEffect = new CGameEffect();
 
     newEffect->EffectType = type;
-    newEffect->Serial = effect->DestSerial;
+    newEffect->Serial     = effect->DestSerial;
     newEffect->SetX(effect->DestX);
     newEffect->SetY(effect->DestY);
     newEffect->SetZ(effect->DestZ);
     newEffect->Graphic = 0x36CB;
-    newEffect->Speed = 50;
-    newEffect->Duration = g_Ticks + 400;
+    newEffect->Speed   = 50;
+    newEffect->SetDuration(400_ms);
     newEffect->FixedDirection = effect->FixedDirection;
 
-    newEffect->Color = effect->Color;
+    newEffect->Color      = effect->Color;
     newEffect->RenderMode = effect->RenderMode;
 
     AddEffect(newEffect);
@@ -138,10 +133,9 @@ void CEffectManager::CreateExplodeEffect(CGameEffect *effect, const EFFECT_TYPE 
 void CEffectManager::UpdateEffects()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
-    for (CGameEffect *effect = (CGameEffect *)m_Items; effect != nullptr;)
+    for (CGameEffect* effect = (CGameEffect*)m_Items; effect != nullptr;)
     {
-        CGameEffect *next = (CGameEffect *)effect->m_Next;
+        CGameEffect* next = (CGameEffect*)effect->m_Next;
 
         effect->Update(nullptr);
 
@@ -151,5 +145,4 @@ void CEffectManager::UpdateEffects()
 
 void CEffectManager::RemoveRangedEffects()
 {
-    DEBUG_TRACE_FUNCTION;
 }

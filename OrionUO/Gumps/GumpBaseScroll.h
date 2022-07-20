@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -9,15 +6,14 @@ class CGumpBaseScroll : public CGump
 {
 public:
     int Height = 0;
-    int StartResizeHeight = 0;
     int ScrollerOffsetY = 0;
     int ScissorOffsetHeight = 0;
     bool HaveBackgroundLines = false;
 
 protected:
-    static const uint32_t ID_GBS_HTMLGUMP = 0xFFFFFFF0;
-    static const uint32_t ID_GBS_BUTTON_MINIMIZE = 0xFFFFFFF1;
-    static const uint32_t ID_GBS_BUTTON_RESIZE = 0xFFFFFFF2;
+    static const u32 ID_GBS_HTMLGUMP = 0xFFFFFFF0;
+    static const u32 ID_GBS_BUTTON_MINIMIZE = 0xFFFFFFF1;
+    static const u32 ID_GBS_BUTTON_RESIZE = 0xFFFFFFF2;
 
     CGUIButton *m_Minimizer{ nullptr };
     CGUIScrollBackground *m_Background{ nullptr };
@@ -31,8 +27,8 @@ protected:
 public:
     CGumpBaseScroll(
         GUMP_TYPE type,
-        uint32_t serial,
-        uint16_t graphic,
+        u32 serial,
+        u16 graphic,
         int height,
         short x,
         short y,
@@ -45,4 +41,8 @@ public:
     GUMP_RESIZE_START_EVENT_H;
     GUMP_RESIZE_EVENT_H;
     GUMP_RESIZE_END_EVENT_H;
+
+private:
+    int m_resizeStartHeight = 0;
+    Core::Vec2<i32> m_resizeStartMouse;
 };

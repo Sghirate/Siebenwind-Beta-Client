@@ -1,21 +1,20 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSecureTrading.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../Target.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../ClickObject.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/MouseManager.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../Network/Packets.h"
+#include "GameVars.h"
+#include "Globals.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "Target.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "ClickObject.h"
+#include "Managers/FontsManager.h"
+#include "Managers/MouseManager.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "GameObjects/GamePlayer.h"
+#include "Network/Packets.h"
 
-CGumpSecureTrading::CGumpSecureTrading(uint32_t serial, short x, short y, uint32_t id, uint32_t id2)
+CGumpSecureTrading::CGumpSecureTrading(u32 serial, short x, short y, u32 id, u32 id2)
     : CGump(GT_TRADE, serial, x, y)
     , ID2(id2)
 {
@@ -28,19 +27,18 @@ CGumpSecureTrading::~CGumpSecureTrading()
 
 void CGumpSecureTrading::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
     if (g_GumpPressed && g_PressedObject.LeftObject != nullptr &&
         g_PressedObject.LeftObject->IsText())
     {
-        g_GumpMovingOffset.Reset();
+        g_GumpMovingOffset.set(0, 0);
 
-        g_GumpTranslate.X = (float)m_X;
-        g_GumpTranslate.Y = (float)m_Y;
+        g_GumpTranslate.x = (float)m_X;
+        g_GumpTranslate.y = (float)m_Y;
     }
 
-    if ((g_GumpTranslate.X != 0.0f) || (g_GumpTranslate.Y != 0.0f))
+    if ((g_GumpTranslate.x != 0.0f) || (g_GumpTranslate.y != 0.0f))
     {
         WantRedraw = true;
     }
@@ -48,7 +46,6 @@ void CGumpSecureTrading::CalculateGumpState()
 
 void CGumpSecureTrading::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_MyCheck != nullptr)
     {
         if (StateMy)
@@ -95,7 +92,6 @@ void CGumpSecureTrading::PrepareContent()
 
 void CGumpSecureTrading::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameObject *selobj = g_World->FindWorldObject(Serial);
 
     if (selobj == nullptr)
@@ -107,7 +103,7 @@ void CGumpSecureTrading::UpdateContent()
     {
         Add(new CGUIGumppic(0x0866, 0, 0)); //Trade Gump
 
-        if (g_Config.ClientVersion < CV_500A)
+        if (GameVars::GetClientVersion() < CV_500A)
         {
             Add(new CGUIColoredPolygone(0, 0, 45, 90, 110, 60, 0xFF000001));
 
@@ -168,7 +164,7 @@ void CGumpSecureTrading::UpdateContent()
         QFOR(item, container->m_Items, CGameItem *)
         {
             bool doubleDraw = false;
-            uint16_t graphic = item->GetDrawGraphic(doubleDraw);
+            u16 graphic = item->GetDrawGraphic(doubleDraw);
 
             CGUITilepicHightlighted *dataObject =
                 (CGUITilepicHightlighted *)m_MyDataBox->Add(new CGUITilepicHightlighted(
@@ -200,7 +196,7 @@ void CGumpSecureTrading::UpdateContent()
         QFOR(item, container->m_Items, CGameItem *)
         {
             bool doubleDraw = false;
-            uint16_t graphic = item->GetDrawGraphic(doubleDraw);
+            u16 graphic = item->GetDrawGraphic(doubleDraw);
 
             CGUITilepicHightlighted *dataObject =
                 (CGUITilepicHightlighted *)m_OpponentDataBox->Add(new CGUITilepicHightlighted(
@@ -228,7 +224,6 @@ void CGumpSecureTrading::UpdateContent()
 
 void CGumpSecureTrading::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameObject *selobj = g_World->FindWorldObject(Serial);
 
     if (selobj == nullptr)
@@ -243,7 +238,7 @@ void CGumpSecureTrading::Draw()
 
     CGump::Draw();
 
-    glTranslatef(g_GumpTranslate.X, g_GumpTranslate.Y, 0.0f);
+    glTranslatef(g_GumpTranslate.x, g_GumpTranslate.y, 0.0f);
 
     g_FontColorizerShader.Use();
 
@@ -251,12 +246,11 @@ void CGumpSecureTrading::Draw()
 
     UnuseShader();
 
-    glTranslatef(-g_GumpTranslate.X, -g_GumpTranslate.Y, 0.0f);
+    glTranslatef(-g_GumpTranslate.x, -g_GumpTranslate.y, 0.0f);
 }
 
 CRenderObject *CGumpSecureTrading::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameObject *selobj = g_World->FindWorldObject(Serial);
 
     if (selobj == nullptr)
@@ -266,20 +260,16 @@ CRenderObject *CGumpSecureTrading::Select()
 
     CRenderObject *selected = CGump::Select();
 
-    CPoint2Di oldPos = g_MouseManager.Position;
-    g_MouseManager.Position =
-        CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
-
+    Core::TMousePos oldPos = g_MouseManager.GetPosition();
+    g_MouseManager.SetPosition(oldPos - Core::TMousePos(g_GumpTranslate.x, g_GumpTranslate.y));
     m_TextRenderer.Select(this);
-
-    g_MouseManager.Position = oldPos;
+    g_MouseManager.SetPosition(oldPos);
 
     return selected;
 }
 
 void CGumpSecureTrading::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GST_CHECKBOX) //Изменение состояния чекбокса
     {
         StateMy = !StateMy;
@@ -299,15 +289,14 @@ void CGumpSecureTrading::GUMP_BUTTON_EVENT_C
 
             g_ClickObject.Init(clickTarget);
             g_ClickObject.Timer = g_Ticks + DCLICK_DELAY;
-            g_ClickObject.X = g_MouseManager.Position.X - m_X;
-            g_ClickObject.Y = g_MouseManager.Position.Y - m_Y;
+            g_ClickObject.X = g_MouseManager.GetPosition().x - m_X;
+            g_ClickObject.Y = g_MouseManager.GetPosition().y - m_Y;
         }
     }
 }
 
 void CGumpSecureTrading::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     if (g_ObjectInHand.Enabled)
@@ -319,11 +308,11 @@ void CGumpSecureTrading::OnLeftMouseButtonUp()
         {
             //if (GetTopObjDistance(g_Player, g_World->FindWorldObject(ID2)) <= DRAG_ITEMS_DISTANCE)
             {
-                x = g_MouseManager.Position.X - x - 45;
-                y = g_MouseManager.Position.Y - y - 70;
+                x = g_MouseManager.GetPosition().x - x - 45;
+                y = g_MouseManager.GetPosition().y - y - 70;
 
                 bool doubleDraw = false;
-                uint16_t graphic = g_ObjectInHand.GetDrawGraphic(doubleDraw);
+                u16 graphic = g_ObjectInHand.GetDrawGraphic(doubleDraw);
 
                 CGLTexture *th = g_Orion.ExecuteStaticArt(graphic);
 
@@ -371,7 +360,6 @@ void CGumpSecureTrading::OnLeftMouseButtonUp()
 
 void CGumpSecureTrading::SendTradingResponse(int code)
 {
-    DEBUG_TRACE_FUNCTION;
     //Ответ на трэйд окно
     CPacketTradeResponse(this, code).Send();
 

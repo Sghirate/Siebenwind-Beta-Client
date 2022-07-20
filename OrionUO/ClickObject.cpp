@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ClickObject.h"
 #include "SelectedObject.h"
 
@@ -8,7 +5,6 @@ CClickObject g_ClickObject;
 
 void CClickObject::Clear(CRenderObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj == Object)
     {
         Object = nullptr;
@@ -23,7 +19,6 @@ void CClickObject::Clear(CRenderObject *obj)
 
 void CClickObject::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     Object = nullptr;
     Gump = nullptr;
     Timer = 0;
@@ -35,7 +30,6 @@ void CClickObject::Clear()
 
 void CClickObject::Init(CRenderObject *obj, CGump *gump)
 {
-    DEBUG_TRACE_FUNCTION;
     Enabled = true;
     Object = obj;
     Gump = gump;

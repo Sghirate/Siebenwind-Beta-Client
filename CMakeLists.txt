@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
 find_program(CMAKE_C_COMPILER NAMES $ENV{CC} clang PATHS ENV PATH NO_DEFAULT_PATH)
 find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} clang++ PATHS ENV PATH NO_DEFAULT_PATH)
 
@@ -9,9 +9,6 @@ project(OrionUO)
 #
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ORION_BUILD_MODULES "Enables Modular Project Structure" OFF)
-option(ORION_WISP "Use WISP pure Win32 API Implementation (DEPRECATED)" OFF)
-option(ORION_BASS "Use BASS for audio playback (DEPRECATED)" OFF)
-option(ORION_THREADED "Use threaded render (DEPRECATED)" OFF)
 
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/CMake
@@ -50,6 +47,7 @@ include(CCache)
 include(ClangFormat)
 #include(WindowsDeps)
 include(Revision)
+include(EmbeddedResources)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -72,68 +70,59 @@ elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	set(ORION_64BITS 0)
 endif()
 
+# tracy
+if (ORION_WINDOWS OR ORION_LINUX)
+	option(TRACY_ENABLE "" ON)
+	option(TRACY_ON_DEMAND "" ON)
+	add_subdirectory("${EXTERNAL_DIR}/tracy")
+	set(LIBS_BASE
+		"${LIBS_BASE}"
+		"TracyClient")
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_TRACY")
+	set(ORION_WITH_TRACY ON)
+endif()
+
+# GLEW
+set(BUILD_UTILS OFF)
+add_subdirectory("${EXTERNAL_DIR}/GLEW/build/cmake")
+set(LIBS_BASE
+	"${LIBS_BASE}"
+	"glew")
+set(DEFINES_BASE
+	"${DEFINES_BASE}"
+	"ORION_WITH_GLEW")
+set(ORION_WITH_GLEW ON)
+
+# SDL2
+add_subdirectory("${EXTERNAL_DIR}/SDL2")
+set(INC_BASE
+	"${INC_BASE}"
+	"${EXTERNAL_DIR}/GLEW/include")
+set(LIBS_BASE
+	"${LIBS_BASE}"
+	"SDL2")
+set(DEFINES_BASE
+	"${DEFINES_BASE}"
+	"ORION_WITH_SDL2")
+set(ORION_WITH_SDL2 ON)
+
 if(ORION_WINDOWS)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-	
-	# GLEW
-	set(INC_BASE
-		"${INC_BASE}"
-		"${EXTERNAL_DIR}/GLEW/include")
-	set(LIBS_BASE
-		"${LIBS_BASE}"
-		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/lib/glew32.lib")
-	set(BINS_BASE
-		"${BINS_BASE}"
-		"${EXTERNAL_DIR}/GLEW/${ORION_ARCH}/bin/glew32.dll")
-
-	# SDL2
-	set(INC_BASE
-		"${INC_BASE}"
-		"${EXTERNAL_DIR}/SDL2/include"
-		"${EXTERNAL_DIR}/SDL2/include/SDL2")
-	set(LIBS_BASE
-		"${LIBS_BASE}"
-		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2.lib"
-		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/lib/SDL2main.lib")
-	set(BINS_BASE
-		"${BINS_BASE}"
-		"${EXTERNAL_DIR}/SDL2/${ORION_ARCH}/bin/SDL2.dll")
 
 	# PSAPI
 	set(LIBS_BASE
 		"${LIBS_BASE}"
 		"${EXTERNAL_DIR}/psapi/${ORION_ARCH}/lib/psapi.lib")
-
-	# Optick
-	if (ORION_ARCH STREQUAL "x64")
-		set(INC_BASE
-			"${INC_BASE}"
-			"${EXTERNAL_DIR}/Optick/include")
-		set(LIBS_DEBUG
-			"${LIBS_DEBUG}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.lib")
-		set(BINS_DEBUG
-			"${BINS_DEBUG}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.dll"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/debug/OptickCore.pdb")
-		set(LIBS_RELEASE
-			"${LIBS_RELEASE}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.lib")
-		set(BINS_RELEASE
-			"${BINS_RELEASE}"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.dll"
-			"${EXTERNAL_DIR}/Optick/lib/${ORION_ARCH}/release/OptickCore.pdb")
-		set(DEFINES_BASE
-			"${DEFINES_BASE}"
-			"WITH_OPTICK")
-	endif()
-
+	set(DEFINES_BASE
+		"${DEFINES_BASE}"
+		"ORION_WITH_PSASI")
+	set(ORION_WITH_PSASI ON)
 else()
-	set(ORION_WISP OFF)
-	set(ORION_BASS OFF)
-	find_package(SDL2 REQUIRED)
-	find_package(GLEW REQUIRED)
+	#find_package(SDL2 REQUIRED)
+	#find_package(GLEW REQUIRED)
 	# Set the preferred opengl library to GLVND if there is GLVND and Legacy.
 	# Only if there is no GLVND Legacy will be used.
 	# The that is the default with cmake-3.11. Legacy is deprecated.

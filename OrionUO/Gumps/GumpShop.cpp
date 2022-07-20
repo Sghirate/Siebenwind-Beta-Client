@@ -1,15 +1,13 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpShop.h"
-#include "../Target.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "Target.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "GameObjects/GamePlayer.h"
+#include "Network/Packets.h"
 
 enum
 {
@@ -23,11 +21,10 @@ enum
     ID_SHOP_COUNT,
 };
 
-CGumpShop::CGumpShop(uint32_t serial, bool isBuyGump, short x, short y)
+CGumpShop::CGumpShop(u32 serial, bool isBuyGump, short x, short y)
     : CGump(GT_SHOP, serial, x, y)
     , IsBuyGump(isBuyGump)
 {
-    DEBUG_TRACE_FUNCTION;
     Visible = !isBuyGump;
 
     if (isBuyGump)
@@ -146,7 +143,6 @@ CGumpShop::~CGumpShop()
 
 void CGumpShop::SendList()
 {
-    DEBUG_TRACE_FUNCTION;
     CGameCharacter *vendor = g_World->FindWorldCharacter(Serial);
 
     if (vendor == nullptr)
@@ -166,7 +162,6 @@ void CGumpShop::SendList()
 
 void CGumpShop::UpdateTotalPrice()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TotalPriceText != nullptr)
     {
         int totalPrice = 0;
@@ -187,10 +182,9 @@ void CGumpShop::UpdateTotalPrice()
 
 void CGumpShop::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (NoProcess && g_Player != nullptr)
     {
-        string name = g_Player->GetName();
+        std::string name = g_Player->GetName();
         int len = (int)name.length();
 
         if (m_ContinueCounter > len)
@@ -230,7 +224,6 @@ void CGumpShop::PrepareContent()
 
 void CGumpShop::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_SHOP_BUTTON_ACCEPT) //Accept
     {
         NoProcess = true;
@@ -244,7 +237,6 @@ void CGumpShop::GUMP_BUTTON_EVENT_C
 
 void CGumpShop::GUMP_SCROLL_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     CGUIMinMaxButtons *minmax = (CGUIMinMaxButtons *)g_PressedObject.LeftObject;
 
     if (minmax == nullptr)
@@ -268,7 +260,7 @@ void CGumpShop::GUMP_SCROLL_BUTTON_EVENT_C
 
     if (deleteItem)
     {
-        uint32_t itemSerial = minmax->Serial;
+        u32 itemSerial = minmax->Serial;
         int y = 0;
 
         for (CBaseGUI *item = (CBaseGUI *)m_ItemList[1]->m_Items; item != nullptr;)
@@ -284,7 +276,7 @@ void CGumpShop::GUMP_SCROLL_BUTTON_EVENT_C
                 else
                 {
                     item->SetY(y);
-                    y += item->GetSize().Height;
+                    y += item->GetSize().y;
                 }
             }
 
@@ -297,7 +289,6 @@ void CGumpShop::GUMP_SCROLL_BUTTON_EVENT_C
 
 void CGumpShop::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     if (g_Target.IsTargeting() && !g_ObjectInHand.Enabled &&
@@ -310,7 +301,6 @@ void CGumpShop::OnLeftMouseButtonUp()
 
 bool CGumpShop::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (g_PressedObject.LeftObject != nullptr && g_PressedObject.LeftObject->IsGUI())
@@ -332,7 +322,7 @@ bool CGumpShop::OnLeftMouseButtonDoubleClick()
                         break;
                     }
 
-                    posY += ((CGUIShopResult *)item)->GetSize().Height;
+                    posY += ((CGUIShopResult *)item)->GetSize().y;
                 }
             }
 

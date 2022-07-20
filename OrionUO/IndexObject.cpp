@@ -1,8 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "IndexObject.h"
 #include "Config.h"
+#include "GameVars.h"
+#include "plugin/enumlist.h"
 
 CIndexObject::CIndexObject()
 {
@@ -10,7 +9,6 @@ CIndexObject::CIndexObject()
 
 CIndexObject::~CIndexObject()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != nullptr)
     {
         delete Texture;
@@ -88,7 +86,7 @@ CIndexMusic::~CIndexMusic()
 {
 }
 
-void CIndexObject::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const uint16_t id)
+void CIndexObject::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id)
 {
     Address = ptr->Position;
     DataSize = ptr->Size;
@@ -106,20 +104,20 @@ void CIndexObject::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const uint
     ID = id;
 };
 
-void CIndexMulti::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const uint16_t id)
+void CIndexMulti::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id)
 {
     CIndexObject::ReadIndexFile(address, ptr, id);
-    if (g_Config.ClientVersion >= CV_7090)
+    if (GameVars::GetClientVersion()  >= CV_7090)
     {
-        Count = (uint16_t)(DataSize / sizeof(MULTI_BLOCK_NEW));
+        Count = (u16)(DataSize / sizeof(MULTI_BLOCK_NEW));
     }
     else
     {
-        Count = (uint16_t)(DataSize / sizeof(MULTI_BLOCK));
+        Count = (u16)(DataSize / sizeof(MULTI_BLOCK));
     }
 };
 
-void CIndexLight::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const uint16_t id)
+void CIndexLight::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id)
 {
     CIndexObject::ReadIndexFile(address, ptr, id);
     LIGHT_IDX_BLOCK *realPtr = (LIGHT_IDX_BLOCK *)ptr;
@@ -127,7 +125,7 @@ void CIndexLight::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const uint1
     Height = realPtr->Height;
 };
 
-void CIndexGump::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const uint16_t id)
+void CIndexGump::ReadIndexFile(size_t address, BASE_IDX_BLOCK *ptr, const u16 id)
 {
     CIndexObject::ReadIndexFile(address, ptr, id);
     GUMP_IDX_BLOCK *realPtr = (GUMP_IDX_BLOCK *)ptr;

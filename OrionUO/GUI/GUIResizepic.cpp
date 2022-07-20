@@ -1,13 +1,11 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUIResizepic.h"
-#include "../OrionUO.h"
+#include "Globals.h"
+#include "OrionUO.h"
 
-CGUIResizepic::CGUIResizepic(int serial, uint16_t graphic, int x, int y, int width, int height)
+CGUIResizepic::CGUIResizepic(int serial, u16 graphic, int x, int y, int width, int height)
     : CGUIPolygonal(GOT_RESIZEPIC, x, y, width, height)
 {
-    Serial = serial;
+    Serial  = serial;
     Graphic = graphic;
 }
 
@@ -17,18 +15,16 @@ CGUIResizepic::~CGUIResizepic()
 
 void CGUIResizepic::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     g_Orion.ExecuteResizepic(Graphic);
 }
 
 void CGUIResizepic::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
-    CGLTexture *th[9] = { nullptr };
+    CGLTexture* th[9] = { nullptr };
 
     for (int i = 0; i < 9; i++)
     {
-        CGLTexture *pth = g_Orion.ExecuteGump(Graphic + (int)i);
+        CGLTexture* pth = g_Orion.ExecuteGump(Graphic + (int)i);
 
         if (pth == nullptr)
         {
@@ -74,7 +70,6 @@ void CGUIResizepic::Draw(bool checktrans)
 
 bool CGUIResizepic::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     if (CheckPolygone)
     {
         return CGUIPolygonal::Select();

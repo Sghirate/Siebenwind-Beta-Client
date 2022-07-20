@@ -1,19 +1,19 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "BaseGUI.h"
+#include "GLEngine/GLTextTexture.h"
+#include <string>
 
 class CGUIBulletinBoardObject : public CBaseGUI
 {
-    wstring Text = {};
+    std::wstring Text = {};
 
 private:
     CGLTextTexture m_Texture;
 
 public:
-    CGUIBulletinBoardObject(int serial, int x, int y, const wstring &text);
+    CGUIBulletinBoardObject(int serial, int x, int y, const std::wstring& text);
     virtual ~CGUIBulletinBoardObject();
 
     virtual void PrepareTextures();

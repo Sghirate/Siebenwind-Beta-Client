@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
 
 struct PATH_POINT
 {
@@ -13,7 +12,7 @@ struct PATH_POINT
 class CPathObject
 {
 public:
-    uint32_t Flags = 0;
+    u32 Flags = 0;
     int Z = 0;
     int AverageZ = 0;
     int Height = 0;

@@ -1,7 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
+#include <vector>
 
 class CContainerOffsetRect
 {
@@ -25,14 +25,14 @@ public:
 class CContainerOffset
 {
 public:
-    uint16_t Gump = 0;
-    uint16_t OpenSound = 0;
-    uint16_t CloseSound = 0;
+    u16 Gump = 0;
+    u16 OpenSound = 0;
+    u16 CloseSound = 0;
     CContainerOffsetRect Rect = CContainerOffsetRect();
 
     CContainerOffset() {}
     CContainerOffset(
-        uint16_t gump, uint16_t openSound, uint16_t closeSound, const CContainerOffsetRect &rect)
+        u16 gump, u16 openSound, u16 closeSound, const CContainerOffsetRect &rect)
         : Gump(gump)
         , OpenSound(openSound)
         , CloseSound(closeSound)
@@ -54,7 +54,7 @@ public:
     CContainerRect() {}
     ~CContainerRect() {}
 
-    void Calculate(uint16_t gumpID);
+    void Calculate(u16 gumpID);
     void MakeDefault()
     {
         X = DefaultX;
@@ -62,5 +62,5 @@ public:
     }
 };
 
-extern vector<CContainerOffset> g_ContainerOffset;
+extern std::vector<CContainerOffset> g_ContainerOffset;
 extern CContainerRect g_ContainerRect;

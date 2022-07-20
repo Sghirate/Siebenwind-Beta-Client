@@ -1,10 +1,8 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "MapObject.h"
-#include "../plugin/mulstruct.h"
+#include "plugin/enumlist.h"
+#include "plugin/mulstruct.h"
 
 class CTextContainer;
 class CTextData;
@@ -17,8 +15,8 @@ public:
     char CanBeTransparent = 0;
     bool Vegetation = false;
 
-    uint16_t RenderGraphic = 0;
-    uint16_t RenderColor = 0;
+    u16 RenderGraphic = 0;
+    u16 RenderColor = 0;
 
 protected:
     //Указатель на структуру данных тайлдаты
@@ -28,8 +26,8 @@ public:
     CRenderStaticObject(
         RENDER_OBJECT_TYPE renderType,
         int serial,
-        uint16_t graphic,
-        uint16_t color,
+        u16 graphic,
+        u16 color,
         short x,
         short y,
         char z);
@@ -40,7 +38,7 @@ public:
     virtual void UpdateTextCoordinates();
     virtual void FixTextCoordinates();
 
-    static bool IsNoDrawTile(uint16_t graphic);
+    static bool IsNoDrawTile(u16 graphic);
 
     //Отрисовать объект
     virtual void Draw(int x, int y);
@@ -60,10 +58,10 @@ public:
     STATIC_TILES *GetStaticData() { return m_TiledataPtr; }
 
     //Получить высоту объекта (по данным из тайлдаты)
-    uint8_t GetStaticHeight() { return m_TiledataPtr->Height; }
+    u8 GetStaticHeight() { return m_TiledataPtr->Height; }
 
     //Получить индекс света
-    uint16_t GetLightID() { return m_TiledataPtr->Layer /*LightIndex*/; } //m_TiledataPtr->Layer
+    u16 GetLightID() { return m_TiledataPtr->Layer /*LightIndex*/; } //m_TiledataPtr->Layer
 
     //Стандартные состояния по флагам из тайлдаты (вердаты)
     bool IsBackground() { return (m_TiledataPtr->Flags & 0x00000001) != 0; }

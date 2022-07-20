@@ -1,9 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GameObject.h"
+#include "Core/Minimal.h"
 
 class CMulti;
 class CMultiObject;
@@ -11,19 +9,19 @@ class CMultiObject;
 class CGameItem : public CGameObject
 {
 public:
-    uint8_t Layer = 0;
-    uint16_t AnimID = 0;
-    uint8_t UsedLayer = 0;
+    u8 Layer = 0;
+    u16 AnimID = 0;
+    u8 UsedLayer = 0;
     bool Opened = false;
     bool Dragged = false;
     bool MultiBody = false;
     bool WantUpdateMulti = true;
-    uint16_t FieldColor = 0;
+    u16 FieldColor = 0;
     short MultiDistanceBonus = 0;
-    uint32_t Price = 0;
+    u32 Price = 0;
     bool NameFromCliloc = false;
-    uint16_t MultiTileGraphic = 0;
-    uint8_t LightID = 0;
+    u16 MultiTileGraphic = 0;
+    u8 LightID = 0;
 
 protected:
     void AddMultiObject(CMultiObject *obj);
@@ -40,10 +38,10 @@ public:
     void ClearCustomHouseMultis(int state);
 
     CMultiObject *
-    AddMulti(uint16_t graphic, uint16_t color, char x, char y, char z, bool isCustomHouseMulti);
+    AddMulti(u16 graphic, u16 color, char x, char y, char z, bool isCustomHouseMulti);
 
     void OnGraphicChange(int direction = 0);
-    uint16_t GetMountAnimation();
+    u16 GetMountAnimation();
     virtual bool IsInternal() { return ((m_TiledataPtr->Flags & 0x00010000) && !IsCorpse()); }
 
     bool IsHuman()
@@ -55,5 +53,5 @@ public:
 
     void LoadMulti(bool dropAlpha);
     CMulti *GetMultiAtXY(short x, short y);
-    CGameItem *FindItem(uint16_t graphic, uint16_t color = 0xFFFF);
+    CGameItem *FindItem(u16 graphic, u16 color = 0xFFFF);
 };

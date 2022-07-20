@@ -1,7 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include <filesystem>
 
 class CSkillGroupObject;
 
@@ -19,17 +18,17 @@ private:
     void MakeDefaultBard();
 
 public:
-    CSkillGroupObject *m_Groups{ nullptr };
+    CSkillGroupObject* m_Groups{ nullptr };
 
     CSkillGroupManager();
     ~CSkillGroupManager();
 
     void MakeDefault();
     void Clear();
-    void Add(CSkillGroupObject *group);
-    bool Remove(CSkillGroupObject *group);
-    bool Load(const os_path &path);
-    void Save(const os_path &path);
+    void Add(CSkillGroupObject* group);
+    bool Remove(CSkillGroupObject* group);
+    bool Load(const std::filesystem::path& a_path);
+    void Save(const std::filesystem::path& a_path);
 };
 
 extern CSkillGroupManager g_SkillGroupManager;

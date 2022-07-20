@@ -1,9 +1,8 @@
-// MIT License
-// Copyright (C) November 2017 Hotride
-
 #pragma once
 
-class CPluginPacket : public Wisp::CDataWriter
+#include "Core/DataStream.h"
+
+class CPluginPacket : public Core::StreamWriter
 {
 public:
     CPluginPacket();
@@ -33,33 +32,33 @@ public:
 class CPluginPacketFileInfo : public CPluginPacket
 {
 public:
-    CPluginPacketFileInfo(int index, uint64_t address, uint64_t size);
+    CPluginPacketFileInfo(int index, u64 address, u64 size);
 };
 
 class CPluginPacketFileInfoLocalized : public CPluginPacket
 {
 public:
     CPluginPacketFileInfoLocalized(
-        int index, uint64_t address, uint64_t size, const string &language);
+        int index, u64 address, u64 size, const std::string &language);
 };
 
 class CPluginPacketStaticArtGraphicDataInfo : public CPluginPacket
 {
 public:
     CPluginPacketStaticArtGraphicDataInfo(
-        uint16_t graphic, uint64_t address, uint64_t size, uint64_t compressedSize);
+        u16 graphic, u64 address, u64 size, u64 compressedSize);
 };
 
 class CPluginPacketGumpArtGraphicDataInfo : public CPluginPacket
 {
 public:
     CPluginPacketGumpArtGraphicDataInfo(
-        uint16_t graphic,
-        uint64_t address,
-        uint64_t size,
-        uint64_t compressedSize,
-        uint16_t width,
-        uint16_t height);
+        u16 graphic,
+        u64 address,
+        u64 size,
+        u64 compressedSize,
+        u16 width,
+        u16 height);
 };
 
 class CPluginPacketFilesTransfered : public CPluginPacket

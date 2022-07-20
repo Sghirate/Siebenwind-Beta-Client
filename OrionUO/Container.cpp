@@ -1,13 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Container.h"
+#include "GameWindow.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "Managers/ConfigManager.h"
 
 CContainerRect g_ContainerRect;
-vector<CContainerOffset> g_ContainerOffset;
+std::vector<CContainerOffset> g_ContainerOffset;
 
 /*CONTAINER_OFFSET g_ContainerOffset[CONTAINERS_COUNT] =
 {
@@ -46,9 +43,8 @@ vector<CContainerOffset> g_ContainerOffset;
 	{ 0x010E, 0x002F, 0x002E, { 0, 20, 168, 115 } }
 };*/
 
-void CContainerRect::Calculate(uint16_t gumpID)
+void CContainerRect::Calculate(u16 gumpID)
 {
-    DEBUG_TRACE_FUNCTION;
     //!Указатель на текстуру
     CGLTexture *tex = g_Orion.ExecuteGump(gumpID);
 
@@ -69,12 +65,12 @@ void CContainerRect::Calculate(uint16_t gumpID)
             for (int i = 0; i < 4 && (passed == 0); i++)
             {
                 //!Пора изменять смещение по оси Y и обнулять по оси X
-                if (X + tex->Width + CONTAINERS_RECT_STEP > g_OrionWindow.GetSize().Width)
+                if (X + tex->Width + CONTAINERS_RECT_STEP > g_gameWindow.GetSize().x)
                 {
                     X = CONTAINERS_RECT_DEFAULT_POS;
 
                     //!Если смещение по оси Y достигло максимума - выставим стандартное значение
-                    if (Y + tex->Height + CONTAINERS_RECT_LINESTEP > g_OrionWindow.GetSize().Height)
+                    if (Y + tex->Height + CONTAINERS_RECT_LINESTEP > g_gameWindow.GetSize().y)
                     {
                         Y = CONTAINERS_RECT_DEFAULT_POS;
                     }
@@ -84,10 +80,10 @@ void CContainerRect::Calculate(uint16_t gumpID)
                     }
                 }
                 //!Пора изменять смещение по оси X и обнулять по оси Y
-                else if (Y + tex->Height + CONTAINERS_RECT_STEP > g_OrionWindow.GetSize().Height)
+                else if (Y + tex->Height + CONTAINERS_RECT_STEP > g_gameWindow.GetSize().y)
                 {
                     //!Если смещение по оси X достигло максимума - выставим стандартное значение
-                    if (X + tex->Width + CONTAINERS_RECT_LINESTEP > g_OrionWindow.GetSize().Width)
+                    if (X + tex->Width + CONTAINERS_RECT_LINESTEP > g_gameWindow.GetSize().x)
                     {
                         X = CONTAINERS_RECT_DEFAULT_POS;
                     }

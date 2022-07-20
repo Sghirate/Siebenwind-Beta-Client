@@ -1,11 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GameEffect.h"
 #include "GameEffectMoving.h"
-#include "../OrionUO.h"
-#include "../Managers/EffectManager.h"
-#include "../Managers/FileManager.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Managers/EffectManager.h"
+#include "Managers/FileManager.h"
+#include "plugin/enumlist.h"
 
 CGameEffect::CGameEffect()
     : CRenderWorldObject(ROT_EFFECT, 0, 0, 0, 0, 0, 0)
@@ -18,12 +17,11 @@ CGameEffect::~CGameEffect()
 
 void CGameEffect::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
 #if UO_DEBUG_INFO != 0
     g_RenderedObjectsCountInGameWindow++;
 #endif
 
-    uint16_t objGraphic = GetCurrentGraphic();
+    u16 objGraphic = GetCurrentGraphic();
 
     ApplyRenderMode();
 
@@ -60,10 +58,9 @@ void CGameEffect::Draw(int x, int y)
 
 void CGameEffect::Update(CGameObject *parent)
 {
-    DEBUG_TRACE_FUNCTION;
     if (EffectType != EF_MOVING)
     {
-        if (Duration < g_Ticks)
+        if (IsElapsed())
         {
             if (parent != nullptr)
             {
@@ -108,14 +105,13 @@ void CGameEffect::Update(CGameObject *parent)
     }
 }
 
-uint16_t CGameEffect::CalculateCurrentGraphic()
+u16 CGameEffect::CalculateCurrentGraphic()
 {
-    DEBUG_TRACE_FUNCTION;
-    uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.Start;
+    uintptr_t addressAnimData = (uintptr_t)g_FileManager.m_AnimdataMul.GetBuffer();
 
     if (addressAnimData != 0u)
     {
-        uint32_t addr = (Graphic * 68) + 4 * ((Graphic / 8) + 1);
+        u32 addr = (Graphic * 68) + 4 * ((Graphic / 8) + 1);
         ANIM_DATA *pad = (ANIM_DATA *)(addressAnimData + addr);
 
         if (AnimIndex < (int)pad->FrameCount)
@@ -133,15 +129,13 @@ uint16_t CGameEffect::CalculateCurrentGraphic()
     return Graphic + Increment;
 }
 
-uint16_t CGameEffect::GetCurrentGraphic()
+u16 CGameEffect::GetCurrentGraphic()
 {
-    DEBUG_TRACE_FUNCTION;
     return Graphic + Increment;
 }
 
 void CGameEffect::ApplyRenderMode()
 {
-    DEBUG_TRACE_FUNCTION;
     switch (RenderMode)
     {
         case 1: //ok
@@ -183,7 +177,6 @@ void CGameEffect::ApplyRenderMode()
 
 void CGameEffect::RemoveRenderMode()
 {
-    DEBUG_TRACE_FUNCTION;
     switch (RenderMode)
     {
         case 1: //ok

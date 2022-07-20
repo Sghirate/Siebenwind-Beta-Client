@@ -1,38 +1,39 @@
-﻿// MIT License
-// Copyright (C) October 2017 Hotride
-
 #pragma once
 
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
+#include "Core/MappedFile.h"
+#include <string>
+#include <vector>
 
-class CIntloc : public CBaseQueueItem
+class Intloc : public CBaseQueueItem
 {
 public:
-    string Language = "";
-    int FileIndex = -1;
-    bool Loaded = false;
+    Intloc(int a_fileIndex, const std::string& a_lang);
+    virtual ~Intloc();
+
+    const std::string& GetLanguage() const { return m_language; }
+    int GetFileIndex() const { return m_fileIndex; }
+    bool IsLoaded() const { return m_loaded; }
+    std::wstring Get(int a_id, bool a_toCamelCase = false);
 
 private:
-    vector<wstring> m_Strings;
-
-public:
-    CIntloc(int fileIndex, const string &lang);
-    virtual ~CIntloc();
-
-    Wisp::CMappedFile m_File;
-    wstring Get(int id, bool toCamelCase = false);
+    Core::MappedFile m_file;
+    std::string m_language = "";
+    int m_fileIndex        = -1;
+    bool m_loaded          = false;
+    std::vector<std::wstring> m_strings;
 };
 
-class CIntlocManager : public CBaseQueue
+class IntlocManager : public CBaseQueue
 {
 private:
-    CIntloc *Intloc(int fileIndex, const string &lang);
+    Intloc* GetIntloc(int a_fileIndex, const std::string& a_lang);
 
 public:
-    CIntlocManager();
-    virtual ~CIntlocManager();
+    IntlocManager();
+    virtual ~IntlocManager();
 
-    wstring Intloc(const string &lang, uint32_t clilocID, bool isNewCliloc);
+    std::wstring GetIntloc(const std::string& a_lang, u32 a_clilocID, bool a_isNewCliloc);
 };
 
-extern CIntlocManager g_IntlocManager;
+extern IntlocManager g_IntlocManager;

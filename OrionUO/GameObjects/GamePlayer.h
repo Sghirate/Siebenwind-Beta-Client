@@ -1,10 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GameCharacter.h"
-#include "../Walker/FastWalk.h"
+#include "Walker/FastWalk.h"
 
 class CPlayer : public CGameCharacter
 {
@@ -12,17 +9,17 @@ public:
     short Str = 0;
     short Int = 0;
     short Dex = 0;
-    uint8_t LockStr = 0;
-    uint8_t LockInt = 0;
-    uint8_t LockDex = 0;
-    uint16_t MaxWeight = 0;
-    uint16_t Weight = 0;
+    u8 LockStr = 0;
+    u8 LockInt = 0;
+    u8 LockDex = 0;
+    u16 MaxWeight = 0;
+    u16 Weight = 0;
     short Armor = 0;
-    uint32_t Gold = 0;
+    u32 Gold = 0;
     bool Warmode = 0;
-    uint16_t StatsCap = 0;
-    uint8_t Followers = 0;
-    uint8_t MaxFollowers = 5;
+    u16 StatsCap = 0;
+    u8 Followers = 0;
+    u8 MaxFollowers = 5;
     short FireResistance = 0;
     short ColdResistance = 0;
     short PoisonResistance = 0;
@@ -35,7 +32,7 @@ public:
     short Luck = 0;
     short MinDamage = 0;
     short MaxDamage = 0;
-    uint32_t TithingPoints = 0;
+    u32 TithingPoints = 0;
     short DefenceChance = 0;
     short MaxDefenceChance = 0;
     short AttackChance = 0;
@@ -59,7 +56,7 @@ public:
     void CloseBank();
     class CGameItem *FindBandage();
     bool IsPlayer() { return true; }
-    virtual bool Walking() { return (LastStepTime > (uint32_t)(g_Ticks - PLAYER_WALKING_DELAY)); }
+    virtual bool Walking() { return (LastStepTime > (u32)(g_Ticks - PLAYER_WALKING_DELAY)); }
     virtual bool NoIterateAnimIndex() { return false; }
     void UpdateAbilities();
 };

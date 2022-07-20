@@ -1,11 +1,9 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../Platform.h"
+#include "Platform.h"
 #include "BaseScreen.h"
-#include "../Gumps/GumpScreenConnection.h"
+#include "Gumps/GumpScreenConnection.h"
+#include <string>
 
 class CConnectionScreen : public CBaseScreen
 {
@@ -45,11 +43,11 @@ public:
     void SetType(CONNECTION_SCREEN_TYPE val);
 
 protected:
-    string m_Text = "";
+    std::string m_Text = "";
 
 public:
-    string GetTextA() { return m_Text; };
-    void SetTextA(const string &val);
+    std::string GetTextA() { return m_Text; };
+    void SetTextA(const std::string &val);
 
 private:
     CGumpScreenConnection m_ConnectionGump;
@@ -58,15 +56,15 @@ public:
     CConnectionScreen();
     ~CConnectionScreen();
 
-    static const uint8_t ID_SMOOTH_CS_GO_SCREEN_MAIN = 1;
-    static const uint8_t ID_SMOOTH_CS_GO_SCREEN_CHARACTER = 2;
-    static const uint8_t ID_SMOOTH_CS_GO_SCREEN_PROFESSION = 3;
-    static const uint8_t ID_SMOOTH_CS_SEND_DELETE = 4;
+    static const u8 ID_SMOOTH_CS_GO_SCREEN_MAIN = 1;
+    static const u8 ID_SMOOTH_CS_GO_SCREEN_CHARACTER = 2;
+    static const u8 ID_SMOOTH_CS_GO_SCREEN_PROFESSION = 3;
+    static const u8 ID_SMOOTH_CS_SEND_DELETE = 4;
 
     void Init();
-    void ProcessSmoothAction(uint8_t action = 0xFF);
+    void ProcessSmoothAction(u8 action = 0xFF);
 
-    virtual void OnKeyDown(const KeyEvent &ev);
+    virtual void OnKeyDown(const Core::KeyEvent &ev);
 };
 
 extern CConnectionScreen g_ConnectionScreen;

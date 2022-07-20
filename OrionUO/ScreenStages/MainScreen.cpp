@@ -1,19 +1,19 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "MainScreen.h"
+#include "Globals.h"
 #include "BaseScreen.h"
-#include "../Config.h"
-#include "../Point.h"
-#include "../Definitions.h"
-#include "../OrionUO.h"
-#include "../QuestArrow.h"
-#include "../OrionWindow.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Managers/AnimationManager.h"
-#include "../GUI/GUITextEntry.h"
-#include "../TextEngine/EntryText.h"
+#include "GameVars.h"
+#include "GameWindow.h"
+#include "Platform.h"
+#include "SiebenwindClient.h"
+#include "Config.h"
+#include "Definitions.h"
+#include "OrionUO.h"
+#include "QuestArrow.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Managers/AnimationManager.h"
+#include "GUI/GUITextEntry.h"
+#include "TextEngine/EntryText.h"
 
 CMainScreen g_MainScreen;
 
@@ -24,31 +24,23 @@ CMainScreen::CMainScreen()
     , m_SavePassword(nullptr)
     , m_AutoLogin(nullptr)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Password = new CEntryText(32, 0, 300);
 }
 
 CMainScreen::~CMainScreen()
 {
-    DEBUG_TRACE_FUNCTION;
     delete m_Password;
 }
 
 void CMainScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     g_ConfigLoaded = false;
     g_GlobalScale = 1.0;
 
     Load();
 
-#if USE_WISP
-    g_OrionWindow.SetSize(CSize(640, 480));
-    g_OrionWindow.NoResize = true;
-#else
     Reset();
-#endif
-    g_OrionWindow.SetTitle(SiebenwindClient::WindowTitle);
+    g_gameWindow.SetTitle(SiebenwindClient::GetWindowTitle().c_str());
     g_GL.UpdateRect();
 
     g_EntryPointer = m_MainGump.m_PasswordFake;
@@ -69,9 +61,8 @@ void CMainScreen::Init()
     m_Gump.PrepareTextures();
 }
 
-void CMainScreen::ProcessSmoothAction(uint8_t action)
+void CMainScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -83,13 +74,12 @@ void CMainScreen::ProcessSmoothAction(uint8_t action)
     }
     else if (action == ID_SMOOTH_MS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Close();
     }
 }
 
-void CMainScreen::SetAccounting(const string &account, const string &password)
+void CMainScreen::SetAccounting(const std::string &account, const std::string &password)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Account->SetTextA(account);
     m_Password->SetTextA(password);
 
@@ -104,7 +94,6 @@ void CMainScreen::SetAccounting(const string &account, const string &password)
 
 void CMainScreen::Paste()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_EntryPointer == m_MainGump.m_PasswordFake)
     {
         m_Password->Paste();
@@ -123,12 +112,11 @@ void CMainScreen::Paste()
     }
 }
 
-void CMainScreen::OnTextInput(const TextEvent &ev)
+void CMainScreen::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
-    if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((uint8_t)ch))
+    const auto ch = ev.text[0];
+    if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {
         return;
     }
@@ -155,19 +143,16 @@ void CMainScreen::OnTextInput(const TextEvent &ev)
     m_Gump.WantRedraw = true;
 }
 
-void CMainScreen::OnKeyDown(const KeyEvent &ev)
+void CMainScreen::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (g_EntryPointer == nullptr)
     {
         g_EntryPointer = m_MainGump.m_PasswordFake;
     }
-
-    const auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_TAB:
+        case Core::EKey::Key_Tab:
         {
             if (g_EntryPointer == m_Account)
             {
@@ -179,8 +164,8 @@ void CMainScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             CreateSmoothAction(ID_SMOOTH_MS_CONNECT);
             break;
@@ -189,10 +174,10 @@ void CMainScreen::OnKeyDown(const KeyEvent &ev)
         {
             if (g_EntryPointer == m_MainGump.m_PasswordFake)
             {
-                m_Password->OnKey(nullptr, key);
+                m_Password->OnKey(nullptr, ev.key);
             }
 
-            g_EntryPointer->OnKey(nullptr, key);
+            g_EntryPointer->OnKey(nullptr, ev.key);
             break;
         }
     }
@@ -201,18 +186,18 @@ void CMainScreen::OnKeyDown(const KeyEvent &ev)
 
 void CMainScreen::Load()
 {
-    m_AutoLogin->Checked = g_Config.AutoLogin;
+    m_AutoLogin->Checked = uo_auto_login.GetValue() > 0;
 
-    m_Account->SetTextA(g_Config.Login);
-    m_Account->SetPos(checked_cast<int>(g_Config.Login.length()));
+    m_Account->SetTextA(uo_login.GetValue());
+    m_Account->SetPos(checked_cast<int>(uo_login.GetValue().length()));
 
     m_MainGump.m_PasswordFake->SetTextA("");
     m_MainGump.m_PasswordFake->SetPos(0);
 
-    const size_t len = g_Config.Password.length();
+    const size_t len = uo_password.GetValue().length();
     if (len != 0)
     {
-        m_Password->SetTextA(g_Config.Password);
+        m_Password->SetTextA(uo_password.GetValue());
         for (int zv = 0; zv < len; zv++)
         {
             m_MainGump.m_PasswordFake->Insert(L'*');
@@ -225,7 +210,7 @@ void CMainScreen::Load()
         m_Password->SetPos(0);
     }
 
-    m_SavePassword->Checked = g_Config.SavePassword;
+    m_SavePassword->Checked = uo_save_password.GetValue() > 0;
     if (!m_SavePassword->Checked)
     {
         m_Password->SetTextW({});
@@ -235,15 +220,15 @@ void CMainScreen::Load()
 
 void CMainScreen::Save()
 {
-    g_Config.AutoLogin = m_AutoLogin->Checked;
-    g_Config.SavePassword = m_SavePassword->Checked;
-    g_Config.Password = m_Password->GetTextA();
-    g_Config.Login = m_Account->GetTextA();
+    uo_auto_login.SetValue(m_AutoLogin->Checked ? 1 : 0);
+    uo_save_password.SetValue(m_SavePassword->Checked ? 1 : 0);
+    uo_password.SetValue(uo_save_password.GetValue() > 0 ? m_Password->GetTextA() : "");
+    uo_login.SetValue(m_Account->GetTextA());
 }
 
 void CMainScreen::Reset() const
 {
-    g_OrionWindow.RestoreWindow();
-    g_OrionWindow.SetSize(CSize(640, 480));
-    g_OrionWindow.SetWindowResizable(false);
+    g_gameWindow.Restore();
+    g_gameWindow.SetSize(Core::Vec2<i32>(640, 480));
+    g_gameWindow.SetIsResizeable(false);
 }

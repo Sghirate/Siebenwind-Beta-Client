@@ -1,12 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUIGenericTextEntry.h"
-#include "../Config.h"
-#include "../DefinitionMacro.h"
+#include "GameVars.h"
+#include "Config.h"
+#include "DefinitionMacro.h"
 
 CGUIGenericTextEntry::CGUIGenericTextEntry(
-    int serial, int index, uint16_t color, int x, int y, int maxWidth, int maxLength)
+    int serial, int index, u16 color, int x, int y, int maxWidth, int maxLength)
     : CGUITextEntry(
           serial,
           color,
@@ -16,7 +14,7 @@ CGUIGenericTextEntry::CGUIGenericTextEntry(
           y,
           maxWidth,
           true,
-          (uint8_t)(g_Config.ClientVersion >= CV_305D),
+          (u8)(GameVars::GetClientVersion() >= CV_305D),
           TS_LEFT,
           UOFONT_BLACK_BORDER,
           maxLength)

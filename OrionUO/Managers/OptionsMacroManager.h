@@ -1,9 +1,6 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
 
 class COptionsMacroManager : public CBaseQueue
 {

@@ -1,13 +1,9 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "TextData.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
 
 CTextData::CTextData()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 CTextData::CTextData(CTextData *obj)
@@ -17,7 +13,6 @@ CTextData::CTextData(CTextData *obj)
     , Timer(obj->Timer)
     , Alpha(obj->Alpha)
 {
-    DEBUG_TRACE_FUNCTION;
     RealDrawX = obj->RealDrawX;
     RealDrawY = obj->RealDrawY;
     Color = obj->Color;
@@ -27,14 +22,12 @@ CTextData::CTextData(CTextData *obj)
 
 CTextData::~CTextData()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Texture.Clear();
     Owner = nullptr;
 }
 
 bool CTextData::CanBeDrawedInJournalGump()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = true;
 
     switch (Type)
@@ -56,9 +49,8 @@ bool CTextData::CanBeDrawedInJournalGump()
 }
 
 void CTextData::GenerateTexture(
-    int maxWidth, uint16_t flags, TEXT_ALIGN_TYPE align, uint8_t cell, int font)
+    int maxWidth, u16 flags, TEXT_ALIGN_TYPE align, u8 cell, int font)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Unicode)
     {
         if (font == -1)
@@ -67,11 +59,11 @@ void CTextData::GenerateTexture(
         }
 
         g_FontManager.GenerateW(
-            (uint8_t)font, m_Texture, UnicodeText, Color, cell, maxWidth, align, flags);
+            (u8)font, m_Texture, UnicodeText, Color, cell, maxWidth, align, flags);
     }
     else
     {
-        g_FontManager.GenerateA((uint8_t)Font, m_Texture, Text, Color, maxWidth, align, flags);
+        g_FontManager.GenerateA((u8)Font, m_Texture, Text, Color, maxWidth, align, flags);
     }
 
     if (!m_Texture.Empty())
@@ -82,9 +74,9 @@ void CTextData::GenerateTexture(
         }
         else
         {
-            uint32_t delay =
-                ((int64_t)((int64_t)5497558140000 * g_ConfigManager.SpeechDelay) >> 32) >> 5;
-            Timer += (uint32_t)((delay >> 31) + delay);
+            u32 delay =
+                ((i64)((i64)5497558140000 * g_ConfigManager.SpeechDelay) >> 32) >> 5;
+            Timer += (u32)((delay >> 31) + delay);
         }
     }
 }

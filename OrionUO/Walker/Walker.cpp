@@ -1,9 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Walker.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 CWalker g_Walker;
 
@@ -22,7 +19,7 @@ void CWalker::Reset()
     LastStepRequestTime = 0;
 }
 
-void CWalker::DenyWalk(uint8_t sequence, int x, int y, char z)
+void CWalker::DenyWalk(u8 sequence, int x, int y, char z)
 {
     g_Player->m_Steps.clear();
 
@@ -50,15 +47,12 @@ void CWalker::DenyWalk(uint8_t sequence, int x, int y, char z)
         g_Player->SetY(y);
         g_Player->SetZ(z);
 
-        g_RemoveRangeXY.X = x;
-        g_RemoveRangeXY.Y = y;
-
-        UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.X, g_RemoveRangeXY.Y, 0 };
-        PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
+        g_RemoveRangeXY.x = x;
+        g_RemoveRangeXY.y = y;
     }
 }
 
-void CWalker::ConfirmWalk(uint8_t sequence)
+void CWalker::ConfirmWalk(u8 sequence)
 {
     if (UnacceptedPacketsCount != 0)
     {
@@ -84,13 +78,13 @@ void CWalker::ConfirmWalk(uint8_t sequence)
         if (stepIndex >= CurrentWalkSequence)
         {
             m_Step[stepIndex].Accepted = true;
-            g_RemoveRangeXY.X = m_Step[stepIndex].X;
-            g_RemoveRangeXY.Y = m_Step[stepIndex].Y;
+            g_RemoveRangeXY.x = m_Step[stepIndex].X;
+            g_RemoveRangeXY.y = m_Step[stepIndex].Y;
         }
         else if (stepIndex == 0)
         {
-            g_RemoveRangeXY.X = m_Step[0].X;
-            g_RemoveRangeXY.Y = m_Step[0].Y;
+            g_RemoveRangeXY.x = m_Step[0].X;
+            g_RemoveRangeXY.y = m_Step[0].Y;
 
             for (int i = 1; i < StepsCount; i++)
             {
@@ -117,10 +111,5 @@ void CWalker::ConfirmWalk(uint8_t sequence)
         WalkingFailed = true;
         StepsCount = 0;
         CurrentWalkSequence = 0;
-    }
-    else
-    {
-        UOI_PLAYER_XYZ_DATA xyzData = { g_RemoveRangeXY.X, g_RemoveRangeXY.Y, 0 };
-        PLUGIN_EVENT(UOMSG_UPDATE_REMOVE_POS, &xyzData);
     }
 }

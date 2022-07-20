@@ -1,230 +1,232 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "MacroManager.h"
-#include "OptionsMacroManager.h"
-#include "ConfigManager.h"
-#include "GumpManager.h"
-#include "PacketManager.h"
+#include "Macro.h"
+#include "Core/DataStream.h"
+#include "Core/File.h"
+#include "Core/Log.h"
+#include "Core/MappedFile.h"
+#include "Core/Platform.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
+#include "GameObjects/GameItem.h"
+#include "GameObjects/GamePlayer.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "GameVars.h"
+#include "Globals.h"
+#include "Gumps/GumpAbility.h"
+#include "Gumps/GumpSpellbook.h"
+#include "Gumps/GumpTargetSystem.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/OptionsMacroManager.h"
+#include "Managers/PacketManager.h"
+#include "Network/Packets.h"
+#include "plugin/enumlist.h"
+#include "OrionUO.h"
+#include "Target.h"
+#include "TargetGump.h"
+#include "TextEngine/EntryText.h"
+#include "Walker/PathFinder.h"
 #include <SDL_clipboard.h>
-#include "../FileSystem.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../Macro.h"
-#include "../Target.h"
-#include "../TargetGump.h"
-#include "../GameObjects/GameItem.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../Gumps/Gump.h"
-#include "../Gumps/GumpAbility.h"
-#include "../Gumps/GumpTargetSystem.h"
-#include "../Gumps/GumpSpellbook.h"
-#include "../Network/Packets.h"
-#include "../Walker/PathFinder.h"
 
-CMacroManager g_MacroManager;
+MacroManager g_MacroManager;
 
-uint8_t CMacroManager::m_SkillIndexTable[24] = { 1,  2,  35, 4,  6,  12,
-                                                 14, 15, 16, 19, 21, 0xFF /*imbuing*/,
-                                                 23, 3,  46, 9,  30, 22,
-                                                 48, 32, 33, 47, 36, 38 };
+u8 MacroManager::m_SkillIndexTable[24] = { 1,  2,  35, 4,  6,  12,
+                                           14, 15, 16, 19, 21, 0xFF /*imbuing*/,
+                                           23, 3,  46, 9,  30, 22,
+                                           48, 32, 33, 47, 36, 38 };
 
-CMacroManager::CMacroManager()
+MacroManager::MacroManager()
 {
 }
 
-CMacroManager::~CMacroManager()
+MacroManager::~MacroManager()
 {
 }
 
-Keycode CMacroManager::ConvertStringToKeyCode(const vector<string> &strings)
+Core::EKey MacroManager::ConvertStringToKeyCode(const std::vector<std::string>& a_strings)
 {
-    DEBUG_TRACE_FUNCTION;
-    string str = strings[0];
+    std::string str = a_strings[0];
 
-    for (int i = 1; i < (int)strings.size() - 3; i++)
-    {
-        str += " " + strings[i];
-    }
+    for (int i = 1; i < (int)a_strings.size() - 3; i++)
+        str += " " + a_strings[i];
 
-    Keycode key = 0;
+    Core::EKey key = Core::EKey::Key_Unknown;
 
     if (str.length() == 1)
     {
-        key = *str.c_str();
+        key = (Core::EKey)*str.c_str();
     }
     else if (str.length() != 0u)
     {
-        str = ToUpperA(str);
+        str = Core::ToUpperA(str);
 
         if (str == "ESC")
         {
-            key = KEY_ESCAPE;
+            key = Core::EKey::Key_Escape;
         }
         else if (str == "BACKSPACE")
         {
-            key = KEY_BACK;
+            key = Core::EKey::Key_Backspace;
         }
         else if (str == "TAB")
         {
-            key = KEY_TAB;
+            key = Core::EKey::Key_Tab;
         }
         else if (str == "ENTER")
         {
-            key = KEY_RETURN;
+            key = Core::EKey::Key_Return;
         }
         else if (str == "CTRL")
         {
-            key = KEY_CONTROL;
+            key = Core::EKey::Key_LCtrl;
         }
         else if (str == "ALT")
         {
-            key = KEY_MENU;
+            key = Core::EKey::Key_LAlt;
         }
         else if (str == "SHIFT")
         {
-            key = KEY_SHIFT;
+            key = Core::EKey::Key_LShift;
         }
         else if (str == "SPACE")
         {
-            key = KEY_SPACE;
+            key = Core::EKey::Key_Space;
         }
         else if (str == "CAPS LOCK")
         {
-            key = KEY_CAPITAL;
+            key = Core::EKey::Key_CapsLock;
         }
         else if (str == "F1")
         {
-            key = KEY_F1;
+            key = Core::EKey::Key_F1;
         }
         else if (str == "F2")
         {
-            key = KEY_F2;
+            key = Core::EKey::Key_F2;
         }
         else if (str == "F3")
         {
-            key = KEY_F3;
+            key = Core::EKey::Key_F3;
         }
         else if (str == "F4")
         {
-            key = KEY_F4;
+            key = Core::EKey::Key_F4;
         }
         else if (str == "F5")
         {
-            key = KEY_F5;
+            key = Core::EKey::Key_F5;
         }
         else if (str == "F6")
         {
-            key = KEY_F6;
+            key = Core::EKey::Key_F6;
         }
         else if (str == "F7")
         {
-            key = KEY_F7;
+            key = Core::EKey::Key_F7;
         }
         else if (str == "F8")
         {
-            key = KEY_F8;
+            key = Core::EKey::Key_F8;
         }
         else if (str == "F9")
         {
-            key = KEY_F9;
+            key = Core::EKey::Key_F9;
         }
         else if (str == "F10")
         {
-            key = KEY_F10;
+            key = Core::EKey::Key_F10;
         }
         else if (str == "F11")
         {
-            key = KEY_F11;
+            key = Core::EKey::Key_F11;
         }
         else if (str == "F12")
         {
-            key = KEY_F12;
+            key = Core::EKey::Key_F12;
         }
         else if (str == "PAUSE")
         {
-            key = KEY_PAUSE;
+            key = Core::EKey::Key_Pause;
         }
         else if (str == "SCROLL LOCK")
         {
-            key = KEY_SCROLL;
+            key = Core::EKey::Key_ScrollLock;
         }
         else if (str == "NUM 0")
         {
-            key = KEY_NUMPAD0;
+            key = Core::EKey::Key_Kp0;
         }
         else if (str == "NUM 1")
         {
-            key = KEY_NUMPAD1;
+            key = Core::EKey::Key_Kp1;
         }
         else if (str == "NUM 2")
         {
-            key = KEY_NUMPAD2;
+            key = Core::EKey::Key_Kp2;
         }
         else if (str == "NUM 3")
         {
-            key = KEY_NUMPAD3;
+            key = Core::EKey::Key_Kp3;
         }
         else if (str == "NUM 4")
         {
-            key = KEY_NUMPAD4;
+            key = Core::EKey::Key_Kp4;
         }
         else if (str == "NUM 5")
         {
-            key = KEY_NUMPAD5;
+            key = Core::EKey::Key_Kp5;
         }
         else if (str == "NUM 6")
         {
-            key = KEY_NUMPAD6;
+            key = Core::EKey::Key_Kp6;
         }
         else if (str == "NUM 7")
         {
-            key = KEY_NUMPAD7;
+            key = Core::EKey::Key_Kp7;
         }
         else if (str == "NUM 8")
         {
-            key = KEY_NUMPAD8;
+            key = Core::EKey::Key_Kp8;
         }
         else if (str == "NUM 9")
         {
-            key = KEY_NUMPAD9;
+            key = Core::EKey::Key_Kp9;
         }
         else if (str == "NUM *")
         {
-            key = 42;
+            key = Core::EKey::Key_KpMultiply;
         }
         else if (str == "NUM -")
         {
-            key = 45;
+            key = Core::EKey::Key_KpMinus;
         }
         else if (str == "NUM +")
         {
-            key = 43;
+            key = Core::EKey::Key_KpPlus;
         }
         else if (str == "NUM DEL")
         {
-            key = 46;
+            key = Core::EKey::Key_KpBackspace;
         }
     }
 
     return key;
 }
 
-bool CMacroManager::Convert(const os_path &path)
+bool MacroManager::Convert(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CTextFileParser file(path, "", "", "");
-    Wisp::CTextFileParser unicodeParser({}, " ", "", "");
+    Core::TextFileParser file(a_path, "", "", "");
+    Core::TextFileParser unicodeParser({}, " ", "", "");
 
-    const int MACRO_POSITION_ALT = 2;
-    const int MACRO_POSITION_CTRL = 3;
+    const int MACRO_POSITION_ALT   = 2;
+    const int MACRO_POSITION_CTRL  = 3;
     const int MACRO_POSITION_SHIFT = 1;
 
     while (!file.IsEOF())
     {
-        vector<string> strings = file.ReadTokens();
-        strings = unicodeParser.GetTokens(file.RawLine.c_str(), false);
+        std::vector<std::string> strings = file.ReadTokens();
+        strings     = unicodeParser.GetTokens(file.GetRawLine().c_str(), false);
         size_t size = strings.size();
 
         if (size == 0u)
@@ -234,31 +236,31 @@ bool CMacroManager::Convert(const os_path &path)
 
         if (size < 4 || size > 5)
         {
-            LOG("Error! Macros converter: unexpected start args count = %zi\n", size);
+            LOG_ERROR("MacroManager", "Macros converter: unexpected start args count = %zi", size);
             continue;
         }
 
         //TPRINT("Key: %s [alt=%i ctrl=%i shift=%i]\n", strings[0].c_str(), atoi(strings[MACRO_ALT_POSITION].c_str()), atoi(strings[MACRO_CTRL_POSITION].c_str()), atoi(strings[MACRO_SHIFT_POSITION].c_str()));
         bool macroAdded = false;
 
-        CMacro *macro = new CMacro(
+        Macro* macro = new Macro(
             ConvertStringToKeyCode(strings),
             atoi(strings[size - MACRO_POSITION_ALT].c_str()) != 0,
             atoi(strings[size - MACRO_POSITION_CTRL].c_str()) != 0,
             atoi(strings[size - MACRO_POSITION_SHIFT].c_str()) != 0);
 
-        string TestLine{};
+        std::string TestLine{};
         while (!file.IsEOF())
         {
-            vector<string> datas = file.ReadTokens();
-            TestLine.append(file.RawLine);
-            if ((*file.RawLine.c_str() != '\n') && (*file.RawLine.c_str() != '\r') &&
-                (!file.RawLine.empty()) && (*file.RawLine.c_str() != '#'))
+            std::vector<std::string> datas = file.ReadTokens();
+            TestLine.append(file.GetRawLine());
+            if ((*file.GetRawLine().c_str() != '\n') && (*file.GetRawLine().c_str() != '\r') &&
+                (!file.GetRawLine().empty()) && (*file.GetRawLine().c_str() != '#'))
             {
                 continue;
             }
-            vector<string> data = unicodeParser.GetTokens(TestLine.c_str(), false);
-            TestLine = "";
+            std::vector<std::string> data = unicodeParser.GetTokens(TestLine.c_str(), false);
+            TestLine                      = "";
             if (data.empty())
             {
                 continue;
@@ -271,39 +273,39 @@ bool CMacroManager::Convert(const os_path &path)
             }
             if (*data[0].c_str() == '+')
             {
-                string raw = data[0].c_str() + 1;
-                data[0] = raw;
+                std::string raw = data[0].c_str() + 1;
+                data[0]         = raw;
             }
 
-            string upData = ToUpperA(data[0]);
-            MACRO_CODE code = MC_NONE;
+            std::string upData = Core::ToUpperA(data[0]);
+            MACRO_CODE code    = MC_NONE;
 
-            for (int i = 0; i < CMacro::MACRO_ACTION_NAME_COUNT; i++)
+            for (int i = 0; i < Macro::kMacroActionNamesCount; i++)
             {
-                if (upData == ToUpperA(CMacro::m_MacroActionName[i]))
+                if (upData == Core::ToUpperA(Macro::GetActionName(i)))
                 {
                     code = (MACRO_CODE)i;
-                    //LOG("Action found (%i): %s\n", i, CMacro::m_MacroActionName[i]);
+                    //LOG_F(INFO, "Action found (%i): %s", i, Macro::m_MacroActionName[i]);
                     break;
                 }
             }
 
             if (code != MC_NONE)
             {
-                CMacroObject *obj = CMacro::CreateMacro(code);
-                if (obj->HaveString()) //Аргументы - строка
+                MacroObject* obj = Macro::CreateMacro(code);
+                if (obj->HasString()) //Аргументы - строка
                 {
                     if (data.size() > 1)
                     {
-                        string args = data[1];
+                        std::string args = data[1];
                         for (int i = 2; i < (int)data.size(); i++)
                         {
                             args += " " + data[i];
                         }
 
-                        //LOG("\tSub action string is: %s\n", args.c_str());
+                        //LOG_F(INFO, "\tSub action std::string is: %s", args.c_str());
 
-                        ((CMacroObjectString *)obj)->m_String = args;
+                        ((MacroObjectString*)obj)->SetString(args);
                     }
                 }
                 else if (data.size() > 1) //Аргументы - код (значение), либо просто код макроса
@@ -315,15 +317,15 @@ bool CMacroManager::Convert(const os_path &path)
                         upData += " " + data[i];
                     }
 
-                    upData = ToUpperA(upData);
+                    upData = Core::ToUpperA(upData);
 
-                    for (int i = 0; i < CMacro::MACRO_ACTION_COUNT; i++)
+                    for (int i = 0; i < Macro::kMacroActionsCount; i++)
                     {
-                        if (upData == ToUpperA(CMacro::m_MacroAction[i]))
+                        if (upData == Core::ToUpperA(Macro::GetAction(i)))
                         {
-                            obj->SubCode = (MACRO_SUB_CODE)i;
+                            obj->SetSubCode((MACRO_SUB_CODE)i);
 
-                            //LOG("\tSub action found (%i): %s\n", i, CMacro::m_MacroAction[i]);
+                            //LOG_F(INFO, "\tSub action found (%i): %s", i, Macro::m_MacroAction[i]);
 
                             break;
                         }
@@ -333,41 +335,37 @@ bool CMacroManager::Convert(const os_path &path)
             }
         }
 
-        //LOG("Cycle ends with add: %i\n", macroAdded);
+        //LOG_F(INFO, "Cycle ends with add: %i", macroAdded);
 
         if (!macroAdded)
         {
             Add(macro);
         }
     }
-
-    return fs_path_exists(path);
+    return std::filesystem::exists(a_path);
 }
 
-bool CMacroManager::Load(const os_path &path, const os_path &originalPath)
+bool MacroManager::Load(
+    const std::filesystem::path& a_path, const std::filesystem::path& a_originalPath)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
     Clear();
 
-    Wisp::CMappedFile file;
-
-    if (file.Load(path) && (file.Size != 0u))
+    Core::MappedFile file;
+    if (file.Load(a_path) && (file.GetSize() != 0u))
     {
-        uint8_t version = file.ReadUInt8();
+        u8 version = file.ReadLE<u8>();
 
-        short count = file.ReadInt16LE();
+        short count = file.ReadLE<i16>();
 
         for (int i = 0; i < count; i++)
-        {
-            Add(CMacro::Load(file));
-        }
+            Add(Macro::Load(file));
 
         result = true;
     }
     else
     {
-        result = Convert(originalPath);
+        result = Convert(a_originalPath);
     }
 
     file.Unload();
@@ -375,68 +373,58 @@ bool CMacroManager::Load(const os_path &path, const os_path &originalPath)
     return result;
 }
 
-void CMacroManager::Save(const os_path &path)
+void MacroManager::Save(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CBinaryFileWriter writer;
-    writer.Open(path);
-
-    writer.WriteUInt8(0); //version
+    Core::StreamWriter writer;
+    writer.WriteLE((u8)0); //verison
 
     short count = GetItemsCount();
+    writer.WriteLE((i16)count);
 
-    writer.WriteInt16LE(count);
-    writer.WriteBuffer();
-
-    QFOR(obj, m_Items, CMacro *)
+    QFOR(obj, m_Items, Macro*)
     obj->Save(writer);
 
-    writer.WriteUInt32LE(0); //EOF
-    writer.WriteBuffer();
+    writer.WriteLE((u32)0); //EOF
 
-    writer.Close();
+    Core::File file(a_path, "wb");
+    file.Write(writer.GetBuffer(), writer.GetSize(), 1);
 }
 
-CMacro *CMacroManager::FindMacro(Keycode key, bool alt, bool ctrl, bool shift)
+Macro* MacroManager::FindMacro(Core::EKey a_key, bool a_alt, bool a_ctrl, bool a_shift)
 {
-    DEBUG_TRACE_FUNCTION;
-    CMacro *obj = (CMacro *)m_Items;
-
+    Macro* obj = (Macro*)m_Items;
     while (obj != nullptr)
     {
-        if (obj->Key == key && obj->Alt == alt && obj->Ctrl == ctrl && obj->Shift == shift)
-        {
+        if (obj->GetKey() == a_key && obj->GetAlt() == a_alt && obj->GetCtrl() == a_ctrl &&
+            obj->GetShift() == a_shift)
             break;
-        }
-
-        obj = (CMacro *)obj->m_Next;
+        obj = (Macro*)obj->m_Next;
     }
-
     return obj;
 }
 
-void CMacroManager::LoadFromOptions()
+void MacroManager::LoadFromOptions()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
     ChangePointer(nullptr);
-    QFOR(obj, g_OptionsMacroManager.m_Items, CMacro *) { Add(obj->GetCopy()); }
+    QFOR(obj, g_OptionsMacroManager.m_Items, Macro*)
+    {
+        Add(obj->GetCopy());
+    }
 }
 
-void CMacroManager::ChangePointer(CMacroObject *macro)
+void MacroManager::ChangePointer(MacroObject* macro)
 {
     g_MacroPointer = macro;
 
     if (g_MacroPointer == nullptr && SendNotificationToPlugin)
     {
         SendNotificationToPlugin = false;
-        PLUGIN_EVENT(UOMSG_END_MACRO_PLAYING, nullptr);
     }
 }
 
-void CMacroManager::Execute()
+void MacroManager::Execute()
 {
-    DEBUG_TRACE_FUNCTION;
     while (g_MacroPointer != nullptr)
     {
         switch (Process())
@@ -452,23 +440,21 @@ void CMacroManager::Execute()
             }
             case MRC_PARSE_NEXT:
             {
-                ChangePointer((CMacroObject *)g_MacroPointer->m_Next);
+                ChangePointer((MacroObject*)g_MacroPointer->m_Next);
                 break;
             }
-            default:
-                break;
+            default: break;
         }
     }
 }
 
-void CMacroManager::ProcessSubMenu()
+void MacroManager::ProcessSubMenu()
 {
-    DEBUG_TRACE_FUNCTION;
-    switch (g_MacroPointer->Code)
+    switch (g_MacroPointer->GetCode())
     {
         case MC_OPEN:
         {
-            switch (g_MacroPointer->SubCode)
+            switch (g_MacroPointer->GetSubCode())
             {
                 case MSC_G2_CONFIGURATION:
                 {
@@ -505,7 +491,7 @@ void CMacroManager::ProcessSubMenu()
                 {
                     SPELLBOOK_TYPE type = ST_MAGE;
 
-                    switch (g_MacroPointer->SubCode)
+                    switch (g_MacroPointer->GetSubCode())
                     {
                         case MSC_G2_NECRO_SPELLBOOK:
                         {
@@ -537,8 +523,7 @@ void CMacroManager::ProcessSubMenu()
                             type = ST_MYSTICISM;
                             break;
                         }
-                        default:
-                            break;
+                        default: break;
                     }
 
                     CPacketOpenSpellbook(type).Send();
@@ -551,7 +536,7 @@ void CMacroManager::ProcessSubMenu()
                 }
                 case MSC_G2_BACKPACK:
                 {
-                    CGameItem *backpack = g_Player->FindLayer(OL_BACKPACK);
+                    CGameItem* backpack = g_Player->FindLayer(OL_BACKPACK);
                     if (backpack != nullptr)
                     {
                         g_Orion.DoubleClick(backpack->Serial);
@@ -591,8 +576,7 @@ void CMacroManager::ProcessSubMenu()
                 {
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             break;
@@ -601,9 +585,9 @@ void CMacroManager::ProcessSubMenu()
         case MC_MINIMIZE:
         case MC_MAXIMIZE:
         {
-            CGump *gump = nullptr;
+            CGump* gump = nullptr;
 
-            switch (g_MacroPointer->SubCode)
+            switch (g_MacroPointer->GetSubCode())
             {
                 case MSC_G2_CONFIGURATION:
                 {
@@ -641,14 +625,14 @@ void CMacroManager::ProcessSubMenu()
                 {
                     //gump = g_GumpManager.GetGump(0, 0, GT_SPELLBOOK);
 
-                    QFOR(item, g_GumpManager.m_Items, CGump *)
+                    QFOR(item, g_GumpManager.m_Items, CGump*)
                     {
                         if (item->GumpType == GT_SPELLBOOK)
                         {
-                            CGameItem *gi = g_World->FindWorldItem(item->Serial);
+                            CGameItem* gi = g_World->FindWorldItem(item->Serial);
                             if (gi != nullptr)
                             {
-                                switch (g_MacroPointer->SubCode)
+                                switch (g_MacroPointer->GetSubCode())
                                 {
                                     case MSC_G2_MAGE_SPELLBOOK:
                                     {
@@ -706,8 +690,7 @@ void CMacroManager::ProcessSubMenu()
                                         }
                                         break;
                                     }
-                                    default:
-                                        break;
+                                    default: break;
                                 }
                             }
 
@@ -726,7 +709,7 @@ void CMacroManager::ProcessSubMenu()
                 }
                 case MSC_G2_BACKPACK:
                 {
-                    CGameItem *backpack = g_Player->FindLayer(OL_BACKPACK);
+                    CGameItem* backpack = g_Player->FindLayer(OL_BACKPACK);
                     if (backpack != nullptr)
                     {
                         g_GumpManager.CloseGump(backpack->Serial, 0, GT_SPELLBOOK);
@@ -757,31 +740,29 @@ void CMacroManager::ProcessSubMenu()
                 {
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             if (gump != nullptr)
             {
-                if (g_MacroPointer->Code == MC_CLOSE)
+                if (g_MacroPointer->GetCode() == MC_CLOSE)
                 {
                     g_GumpManager.RemoveGump(gump);
                 }
                 else
                 {
-                    gump->Minimized = (g_MacroPointer->Code == MC_MINIMIZE);
+                    gump->Minimized  = (g_MacroPointer->GetCode() == MC_MINIMIZE);
                     gump->WantRedraw = true;
                 }
             }
 
             break;
         }
-        default:
-            break;
+        default: break;
     }
 }
 
-MACRO_RETURN_CODE CMacroManager::Process()
+MACRO_RETURN_CODE MacroManager::Process()
 {
     MACRO_RETURN_CODE result = MRC_PARSE_NEXT;
     if (g_MacroPointer == nullptr)
@@ -799,26 +780,25 @@ MACRO_RETURN_CODE CMacroManager::Process()
     return result;
 }
 
-MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
+MACRO_RETURN_CODE MacroManager::Process(MacroObject* macro)
 {
-    DEBUG_TRACE_FUNCTION;
     MACRO_RETURN_CODE result = MRC_PARSE_NEXT;
     static int itemInHand[2] = { 0, 0 };
 
-    switch (macro->Code)
+    switch (macro->GetCode())
     {
         case MC_SAY:
         case MC_EMOTE:
         case MC_WHISPER:
         case MC_YELL:
         {
-            CMacroObjectString *mos = (CMacroObjectString *)macro;
+            MacroObjectString* mos = (MacroObjectString*)macro;
 
-            if (mos->m_String.length() != 0u)
+            if (mos->GetString().length() != 0u)
             {
                 SPEECH_TYPE st = ST_NORMAL;
 
-                switch (macro->Code)
+                switch (macro->GetCode())
                 {
                     case MC_EMOTE:
                     {
@@ -835,24 +815,28 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                         st = ST_YELL;
                         break;
                     }
-                    default:
-                        break;
+                    default: break;
                 }
 
                 // Always send unicode speech requests to the Siebenwind Server.
-                CPacketUnicodeSpeechRequest(ToWString(mos->m_String).c_str(), st, 3,
-                    g_ConfigManager.SpeechColor, (uint8_t *)g_Language.c_str()).Send();
+                CPacketUnicodeSpeechRequest(
+                    Core::ToWString(mos->GetString()).c_str(),
+                    st,
+                    3,
+                    g_ConfigManager.SpeechColor,
+                    (u8*)g_Language.c_str())
+                    .Send();
             }
 
             break;
         }
         case MC_WALK:
         {
-            uint8_t dt = (uint8_t)DT_NW;
+            u8 dt = (u8)DT_NW;
 
-            if (macro->SubCode != MSC_G1_NW)
+            if (macro->GetSubCode() != MSC_G1_NW)
             {
-                dt = (uint8_t)(macro->Code - 2);
+                dt = (u8)(macro->GetCode() - 2);
 
                 if (dt > 7)
                 {
@@ -877,37 +861,13 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         {
             if (g_EntryPointer != nullptr)
             {
-#if USE_WISP
-                // FIXME: move clipboard access to wisp window
-                if (OpenClipboard(g_OrionWindow.Handle))
+                if (Core::Platform::HasClipboardText())
                 {
-                    HANDLE cb = GetClipboardData(CF_TEXT);
-
-                    if (cb != nullptr)
-                    {
-                        char *chBuffer = (char *)GlobalLock(cb);
-
-                        if (chBuffer != nullptr && (strlen(chBuffer) != 0u))
-                        {
-                            wstring str = g_EntryPointer->Data() + ToWString(chBuffer);
-                            g_EntryPointer->SetTextW(str);
-                        }
-
-                        GlobalUnlock(cb);
-                    }
-
-                    CloseClipboard();
-                }
-#else
-                auto chBuffer = SDL_GetClipboardText();
-                if (chBuffer != nullptr && (strlen(chBuffer) != 0u))
-                {
-                    wstring str = g_EntryPointer->Data() + ToWString(chBuffer);
+                    const char* text = Core::Platform::GetClipboardText();
+                    std::wstring str = g_EntryPointer->Data() + Core::ToWString(text);
                     g_EntryPointer->SetTextW(str);
                 }
-#endif
             }
-
             break;
         }
         case MC_OPEN:
@@ -925,7 +885,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_USE_SKILL:
         {
-            int skill = (macro->SubCode - MSC_G3_ANATOMY);
+            int skill = (macro->GetSubCode() - MSC_G3_ANATOMY);
             if (skill >= 0 && skill < 24)
             {
                 skill = m_SkillIndexTable[skill];
@@ -943,7 +903,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_CAST_SPELL:
         {
-            int spell = (macro->SubCode - MSC_G6_CLUMSY + 1);
+            int spell = (macro->GetSubCode() - MSC_G6_CLUMSY + 1);
             if (spell > 0 && spell <= 151)
             {
                 const int spellsCountTable[7] = { CGumpSpellbook::SPELLBOOK_1_SPELLS_COUNT,
@@ -955,7 +915,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                                                   CGumpSpellbook::SPELLBOOK_7_SPELLS_COUNT };
 
                 int totalCount = 0;
-                int spellType = 0;
+                int spellType  = 0;
                 for (spellType = 0; spellType < 7; spellType++)
                 {
                     totalCount += spellsCountTable[spellType];
@@ -993,8 +953,8 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         case MC_BOW:
         case MC_SALUTE:
         {
-            const char *emote[2] = { "bow", "salute" };
-            int index = macro->Code - MC_BOW;
+            const char* emote[2] = { "bow", "salute" };
+            int index            = macro->GetCode() - MC_BOW;
             g_Orion.EmoteAction(emote[index]);
             break;
         }
@@ -1064,7 +1024,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_ARM_DISARM:
         {
-            int handIndex = 1 - (macro->SubCode - MSC_G4_LEFT_HAND);
+            int handIndex = 1 - (macro->GetSubCode() - MSC_G4_LEFT_HAND);
             if (handIndex < 0 || handIndex > 1 || g_ObjectInHand.Enabled)
             {
                 break;
@@ -1072,7 +1032,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
 
             if (itemInHand[handIndex] != 0u)
             {
-                CGameItem *objHand = g_World->FindWorldItem(itemInHand[handIndex]);
+                CGameItem* objHand = g_World->FindWorldItem(itemInHand[handIndex]);
                 if (objHand != nullptr)
                 {
                     g_Orion.PickupItem(objHand, 1, false);
@@ -1082,8 +1042,8 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
             }
             else
             {
-                uint32_t backpack = 0;
-                CGameItem *objBackpack = g_Player->FindLayer(OL_BACKPACK);
+                u32 backpack           = 0;
+                CGameItem* objBackpack = g_Player->FindLayer(OL_BACKPACK);
                 if (objBackpack != nullptr)
                 {
                     backpack = objBackpack->Serial;
@@ -1094,7 +1054,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                     break;
                 }
 
-                CGameItem *objHand = g_Player->FindLayer(OL_1_HAND + handIndex);
+                CGameItem* objHand = g_Player->FindLayer(OL_1_HAND + handIndex);
                 if (objHand != nullptr)
                 {
                     itemInHand[handIndex] = objHand->Serial;
@@ -1124,19 +1084,18 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_TARGET_NEXT:
         {
-            CGameObject *obj =
+            CGameObject* obj =
                 g_World->SearchWorldObject(g_LastTargetObject, 30, STO_MOBILES, SMO_NEXT);
 
             if (obj != nullptr)
             {
-                if (obj->NPC && (((CGameCharacter *)obj)->MaxHits == 0))
+                if (obj->NPC && (((CGameCharacter*)obj)->MaxHits == 0))
                 {
                     CPacketStatusRequest(obj->Serial).Send();
                 }
 
                 g_LastTargetObject = obj->Serial;
                 g_LastAttackObject = obj->Serial;
-                PLUGIN_EVENT(UOMSG_STATUS_REQUEST, obj->Serial);
             }
             break;
         }
@@ -1147,8 +1106,8 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_DELAY:
         {
-            CMacroObjectString *mos = (CMacroObjectString *)macro;
-            string str = mos->m_String;
+            MacroObjectString* mos = (MacroObjectString*)macro;
+            std::string str        = mos->GetString();
             if (str.length() != 0u)
             {
                 m_NextTimer = g_Ticks + std::atoi(str.c_str());
@@ -1162,10 +1121,10 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_CLOSE_GUMPS:
         {
-            CGump *gump = (CGump *)g_GumpManager.m_Items;
+            CGump* gump = (CGump*)g_GumpManager.m_Items;
             while (gump != nullptr)
             {
-                CGump *next = (CGump *)gump->m_Next;
+                CGump* next = (CGump*)gump->m_Next;
                 if (gump->GumpType == GT_OPTIONS)
                 {
                     g_OptionsMacroManager.Clear();
@@ -1257,7 +1216,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         case MC_BANDAGE_TARGET:
         {
             //На самом деле с 5.0.4a
-            if (g_Config.ClientVersion < CV_5020)
+            if (GameVars::GetClientVersion() < CV_5020)
             {
                 if (WaitingBandageTarget)
                 {
@@ -1268,7 +1227,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
 
                     if (g_Target.IsTargeting())
                     {
-                        if (macro->Code == MC_BANDAGE_SELF)
+                        if (macro->GetCode() == MC_BANDAGE_SELF)
                         {
                             g_Target.SendTargetObject(g_PlayerSerial);
                         }
@@ -1280,12 +1239,12 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                         }
 
                         WaitingBandageTarget = false;
-                        WaitForTargetTimer = 0;
+                        WaitForTargetTimer   = 0;
                     }
                     else if (WaitForTargetTimer < g_Ticks)
                     {
                         WaitingBandageTarget = false;
-                        WaitForTargetTimer = 0;
+                        WaitForTargetTimer   = 0;
                     }
                     else
                     {
@@ -1294,7 +1253,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                 }
                 else
                 {
-                    CGameItem *bandage = g_Player->FindBandage();
+                    CGameItem* bandage = g_Player->FindBandage();
                     if (bandage != nullptr)
                     {
                         WaitingBandageTarget = true;
@@ -1305,10 +1264,10 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
             }
             else
             {
-                CGameItem *bandage = g_Player->FindBandage();
+                CGameItem* bandage = g_Player->FindBandage();
                 if (bandage != nullptr)
                 {
-                    if (macro->Code == MC_BANDAGE_SELF)
+                    if (macro->GetCode() == MC_BANDAGE_SELF)
                     {
                         CPacketTargetSelectedObject(bandage->Serial, g_PlayerSerial).Send();
                     }
@@ -1326,8 +1285,8 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         case MC_SET_UPDATE_RANGE:
         case MC_MODIFY_UPDATE_RANGE:
         {
-            CMacroObjectString *mos = (CMacroObjectString *)macro;
-            string str = mos->m_String;
+            MacroObjectString* mos = (MacroObjectString*)macro;
+            std::string str        = mos->GetString();
             if (str.length() != 0u)
             {
                 g_ConfigManager.UpdateRange = std::atoi(str.c_str());
@@ -1390,12 +1349,12 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
                 break;
             }
 
-            SCAN_TYPE_OBJECT scanType = (SCAN_TYPE_OBJECT)(macro->SubCode - MSC_G7_HOSTILE);
-            CGameObject *obj = g_World->SearchWorldObject(
+            SCAN_TYPE_OBJECT scanType = (SCAN_TYPE_OBJECT)(macro->GetSubCode() - MSC_G7_HOSTILE);
+            CGameObject* obj          = g_World->SearchWorldObject(
                 g_NewTargetSystem.Serial,
                 10,
                 scanType,
-                (SCAN_MODE_OBJECT)(macro->Code - MC_SELECT_NEXT));
+                (SCAN_MODE_OBJECT)(macro->GetCode() - MC_SELECT_NEXT));
 
             if (obj != nullptr)
             {
@@ -1416,7 +1375,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
             }
             else
             {
-                const char *resultNames[5] = {
+                const char* resultNames[5] = {
                     "Hostiles", "Party Members", "Followers", "Objects", "Mobiles"
                 };
 
@@ -1432,7 +1391,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
         }
         case MC_INVOKE_VIRTUE:
         {
-            uint8_t id = macro->SubCode - MSC_G5_HONOR + 31;
+            u8 id = macro->GetSubCode() - MSC_G5_HONOR + 31;
             CPacketInvokeVirtueRequest(id).Send();
             break;
         }
@@ -1464,8 +1423,7 @@ MACRO_RETURN_CODE CMacroManager::Process(CMacroObject *macro)
             g_Orion.CreateTextMessage(TT_SYSTEM, 0xFFFFFFFF, 3, 0x77, "That macro is not work now");
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
     return result;

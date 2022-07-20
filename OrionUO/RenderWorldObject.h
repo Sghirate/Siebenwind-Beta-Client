@@ -1,9 +1,8 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "RenderObject.h"
+#include "plugin/enumlist.h"
 
 class CTextData;
 class CRenderTextObject;
@@ -16,38 +15,32 @@ protected:
 public:
     char GetZ() { return m_Z; };
     void SetZ(char val);
-    short PriorityZ = 0;
+    short PriorityZ               = 0;
     RENDER_OBJECT_TYPE RenderType = ROT_GAME_OBJECT;
 
-    uint8_t CurrentRenderIndex = 0;
-    uint8_t UseInRender = 0;
+    u8 CurrentRenderIndex = 0;
+    u8 UseInRender        = 0;
 
     bool NoDrawTile = false;
 
 public:
     CRenderWorldObject(
-        RENDER_OBJECT_TYPE renderType,
-        int serial,
-        uint16_t graphic,
-        uint16_t color,
-        int x,
-        int y,
-        char z);
+        RENDER_OBJECT_TYPE renderType, int serial, u16 graphic, u16 color, int x, int y, char z);
     virtual ~CRenderWorldObject();
 
-    uint8_t m_DrawTextureColor[4];
+    u8 m_DrawTextureColor[4];
 
     bool ProcessAlpha(int maxAlpha);
     bool RemovedFromRender();
-    virtual void AddText(CTextData *td) {}
-    virtual bool TextCanBeTransparent(CRenderTextObject *text) { return false; }
+    virtual void AddText(CTextData* td) {}
+    virtual bool TextCanBeTransparent(CRenderTextObject* text) { return false; }
     virtual bool TranparentTest(int playerZ) { return false; }
 
-    CRenderWorldObject *m_NextXY{ nullptr };
-    CRenderWorldObject *m_PrevXY{ nullptr };
+    CRenderWorldObject* m_NextXY{ nullptr };
+    CRenderWorldObject* m_PrevXY{ nullptr };
 
-    class CLandObject *GetLand();
-    virtual uint16_t GetLightID() { return 0; }
+    class CLandObject* GetLand();
+    virtual u16 GetLightID() { return 0; }
     virtual void Draw(int x, int y) {}
     virtual void Select(int x, int y) {}
     virtual void UpdateGraphicBySeason() {}
@@ -90,9 +83,9 @@ public:
     virtual bool IsStaticObject() { return false; }
     virtual bool IsMultiObject() { return false; }
     virtual bool IsEffectObject() { return false; }
-    virtual class CRenderStaticObject *StaticGroupObjectPtr() { return nullptr; }
-    virtual class CLandObject *LandObjectPtr() { return nullptr; }
-    virtual class CGameCharacter *GameCharacterPtr() { return nullptr; }
+    virtual class CRenderStaticObject* StaticGroupObjectPtr() { return nullptr; }
+    virtual class CLandObject* LandObjectPtr() { return nullptr; }
+    virtual class CGameCharacter* GameCharacterPtr() { return nullptr; }
     virtual void UpdateRealDrawCoordinates();
     virtual void UpdateDrawCoordinates();
 };

@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "BaseGUI.h"
@@ -21,15 +18,15 @@ public:
     int Width = 0;
 
     //!Рабочая область
-    CRect WorkSpace = CRect();
+    Core::Rect<i32> WorkSpace = Core::Rect<i32>();
 
-    CGUIScrollBackground(int serial, uint16_t graphic, int x, int y, int height);
+    CGUIScrollBackground(int serial, u16 graphic, int x, int y, int height);
     virtual ~CGUIScrollBackground();
 
     //!Обновить высоту
     void UpdateHeight(int height);
 
-    virtual CSize GetSize() { return CSize(Width, Height); }
+    virtual Core::Vec2<i32> GetSize() { return Core::Vec2<i32>(Width, Height); }
 
     virtual void PrepareTextures();
 

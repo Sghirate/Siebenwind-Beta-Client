@@ -1,14 +1,12 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUILine.h"
+#include "GLEngine/GLEngine.h"
+#include <GL/glew.h>
 
 CGUILine::CGUILine(int startX, int startY, int targetX, int targetY, int polygoneColor)
     : CBaseGUI(GOT_LINE, 0, 0, 0, startX, startY)
     , TargetX(targetX)
     , TargetY(targetY)
 {
-    DEBUG_TRACE_FUNCTION;
     ColorR = ToColorR(polygoneColor);
     ColorG = ToColorG(polygoneColor);
     ColorB = ToColorB(polygoneColor);
@@ -26,7 +24,6 @@ CGUILine::~CGUILine()
 
 void CGUILine::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     glColor4ub(ColorR, ColorG, ColorB, ColorA);
 
     if (ColorA < 0xFF)

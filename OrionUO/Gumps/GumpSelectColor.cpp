@@ -1,12 +1,9 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSelectColor.h"
 #include "GumpOptions.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/GumpManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/GumpManager.h"
 
-CGumpSelectColor::CGumpSelectColor(uint32_t serial, short x, short y, SELECT_COLOR_GUMP_STATE state)
+CGumpSelectColor::CGumpSelectColor(u32 serial, short x, short y, SELECT_COLOR_GUMP_STATE state)
     : CGump(GT_SELECT_COLOR, serial, x, y)
     , m_State(state)
 {
@@ -18,7 +15,6 @@ CGumpSelectColor::~CGumpSelectColor()
 
 void CGumpSelectColor::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Items == nullptr)
     {
         Add(new CGUIGumppic(0x0906, 0, 0));
@@ -50,9 +46,9 @@ void CGumpSelectColor::UpdateContent()
     const int cellWidthX = 8;
     const int cellWidthY = 8;
 
-    uint16_t startColor = m_ColorRef + 1;
+    u16 startColor = m_ColorRef + 1;
 
-    uint8_t *huesData = (uint8_t *)g_ColorManager.GetHuesRangePointer() + 32 + 4;
+    u8 *huesData = (u8 *)g_ColorManager.GetHuesRangePointer() + 32 + 4;
     const int colorOffsetDivider = sizeof(HUES_GROUP) - 4;
 
     for (int y = 0; y < 10; y++)
@@ -62,11 +58,11 @@ void CGumpSelectColor::UpdateContent()
             int colorIndex = (startColor + ((startColor + (startColor << 2)) << 1)) << 3;
 
             colorIndex += (colorIndex / colorOffsetDivider) << 2;
-            uint16_t color = *(uint16_t *)(huesData + colorIndex);
+            u16 color = *(u16 *)(huesData + colorIndex);
 
-            uint32_t clr = g_ColorManager.Color16To32(color);
+            u32 clr = g_ColorManager.Color16To32(color);
 
-            uint32_t serial = ID_GSC_COLORS + ((int)x * 30 + (int)y);
+            u32 serial = ID_GSC_COLORS + ((int)x * 30 + (int)y);
             CGUIColoredPolygone *polygone =
                 (CGUIColoredPolygone *)m_DataBox->Add(new CGUIColoredPolygone(
                     serial,
@@ -86,10 +82,9 @@ void CGumpSelectColor::UpdateContent()
 
 void CGumpSelectColor::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GSC_BUTTON_OKAY && m_DataBox != nullptr)
     {
-        uint16_t color = 0;
+        u16 color = 0;
 
         QFOR(item, m_DataBox->m_Items, CBaseGUI *)
         {
@@ -113,13 +108,11 @@ void CGumpSelectColor::GUMP_BUTTON_EVENT_C
 
 void CGumpSelectColor::GUMP_SLIDER_CLICK_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     OnSliderMove(serial);
 }
 
 void CGumpSelectColor::GUMP_SLIDER_MOVE_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Slider != nullptr && m_ColorRef != m_Slider->Value)
     {
         m_ColorRef = m_Slider->Value;
@@ -127,9 +120,8 @@ void CGumpSelectColor::GUMP_SLIDER_MOVE_EVENT_C
     }
 }
 
-void CGumpSelectColor::OnSelectColor(uint16_t color)
+void CGumpSelectColor::OnSelectColor(u16 color)
 {
-    DEBUG_TRACE_FUNCTION;
     CGumpOptions *gump = (CGumpOptions *)g_GumpManager.UpdateGump(0, 0, GT_OPTIONS);
 
     if (gump != nullptr)

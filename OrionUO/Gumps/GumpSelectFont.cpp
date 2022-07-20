@@ -1,11 +1,8 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSelectFont.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ConfigManager.h"
 
-CGumpSelectFont::CGumpSelectFont(uint32_t serial, short x, short y, SELECT_FONT_GUMP_STATE state)
+CGumpSelectFont::CGumpSelectFont(u32 serial, short x, short y, SELECT_FONT_GUMP_STATE state)
     : CGump(GT_SELECT_FONT, serial, x, y)
     , m_State(state)
 {
@@ -17,7 +14,6 @@ CGumpSelectFont::~CGumpSelectFont()
 
 void CGumpSelectFont::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     CGUIResizepic *background = (CGUIResizepic *)Add(new CGUIResizepic(0, 0x0A28, 0, 0, 200, 70));
@@ -60,7 +56,7 @@ void CGumpSelectFont::UpdateContent()
             CGUIRadio *radio = (CGUIRadio *)Add(
                 new CGUIRadio((int)i + ID_GSF_FONTS, 0x00D0, 0x00D1, 0x00D0, 50, drawY));
             radio->Checked = (i == selected);
-            radio->SetTextParameters((uint8_t)i, L"This font", 0);
+            radio->SetTextParameters((u8)i, L"This font", 0);
             drawY += 22;
             count++;
         }
@@ -73,7 +69,6 @@ void CGumpSelectFont::UpdateContent()
 
 void CGumpSelectFont::GUMP_RADIO_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (!state)
     {
         return;

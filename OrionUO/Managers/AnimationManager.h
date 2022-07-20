@@ -1,9 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../IndexObject.h"
+#include "Core/DataStream.h"
+#include "IndexObject.h"
+#include <deque>
+#include <unordered_map>
+#include <vector>
 
 class CTargetGump;
 class CGameCharacter;
@@ -30,19 +31,19 @@ struct ANIMATION_DIMENSIONS
 };
 struct UOPFrameData
 {
-    uint8_t *dataStart = nullptr;
+    u8 *dataStart = nullptr;
     short frameId = 0;
-    uint32_t pixelDataOffset = 0;
+    u32 pixelDataOffset = 0;
 };
 
 class CEquipConvData
 {
 public:
-    uint16_t Graphic = 0;
-    uint16_t Gump = 0;
-    uint16_t Color = 0;
+    u16 Graphic = 0;
+    u16 Gump = 0;
+    u16 Color = 0;
 
-    CEquipConvData(uint16_t graphic, uint16_t gump, uint16_t color)
+    CEquipConvData(u16 graphic, u16 gump, u16 color)
         : Graphic(graphic)
         , Gump(gump)
         , Color(color)
@@ -51,17 +52,17 @@ public:
     ~CEquipConvData() {}
 };
 
-typedef unordered_map<uint16_t, CEquipConvData> EQUIP_CONV_DATA_MAP;
-typedef unordered_map<uint16_t, EQUIP_CONV_DATA_MAP> EQUIP_CONV_BODY_MAP;
+typedef std::unordered_map<u16, CEquipConvData> EQUIP_CONV_DATA_MAP;
+typedef std::unordered_map<u16, EQUIP_CONV_DATA_MAP> EQUIP_CONV_BODY_MAP;
 
-class CAnimationManager : public Wisp::CDataReader
+class CAnimationManager : public Core::StreamReader
 {
 public:
-    uint16_t Color = 0;
-    uint8_t AnimGroup = 0;
-    uint8_t Direction = 0;
-    uint16_t AnimID = 0;
-    uint8_t AnimGroupCount = PAG_ANIMATION_COUNT;
+    u16 Color = 0;
+    u8 AnimGroup = 0;
+    u8 Direction = 0;
+    u16 AnimID = 0;
+    u8 AnimGroupCount = PAG_ANIMATION_COUNT;
 
 private:
     size_t m_AddressIdx[6];
@@ -73,7 +74,7 @@ private:
         CTargetGump &gump,
         int drawX,
         int drawY,
-        uint16_t targetColor,
+        u16 targetColor,
         int per,
         CGameCharacter &obj);
 
@@ -91,20 +92,20 @@ private:
     static const int USED_LAYER_COUNT = 23;
     static const int m_UsedLayers[MAX_LAYER_DIRECTIONS][USED_LAYER_COUNT];
 
-    vector<std::pair<uint16_t, uint8_t>> m_GroupReplaces[2];
+    std::vector<std::pair<u16, u8>> m_GroupReplaces[2];
 
-    deque<CTextureAnimationDirection *> m_UsedAnimList;
+    std::deque<CTextureAnimationDirection *> m_UsedAnimList;
 
     bool TestPixels(
         class CGameObject *obj,
         int x,
         int y,
         bool mirror,
-        uint8_t &frameIndex,
-        uint16_t id = 0x0000);
+        u8 &frameIndex,
+        u16 id = 0x0000);
 
-    void FixSittingDirection(uint8_t &layerDirection, bool &mirror, int &x, int &y);
-    void Draw(class CGameObject *obj, int x, int y, bool mirror, uint8_t &frameIndex, int id = 0);
+    void FixSittingDirection(u8 &layerDirection, bool &mirror, int &x, int &y);
+    void Draw(class CGameObject *obj, int x, int y, bool mirror, u8 &frameIndex, int id = 0);
     void DrawIntoFrameBuffer(class CGameCharacter *obj, int x, int y);
 
     bool DrawEquippedLayers(
@@ -113,39 +114,39 @@ private:
         int drawX,
         int drawY,
         bool mirror,
-        uint8_t layerDir,
-        uint8_t animIndex,
+        u8 layerDir,
+        u8 animIndex,
         int lightOffset);
 
     bool IsCovered(int layer, class CGameObject *owner);
     bool m_Transform = false;
 
-    uint16_t m_CharacterLayerGraphic[25];
-    uint16_t m_CharacterLayerAnimID[25];
+    u16 m_CharacterLayerGraphic[25];
+    u16 m_CharacterLayerAnimID[25];
 
     bool TryReadUOPAnimDimins(CTextureAnimationDirection &direction);
-    vector<UOPFrameData> ReadUOPFrameDataOffsets();
+    std::vector<UOPFrameData> ReadUOPFrameDataOffsets();
 
     void ReadUOPFrameData(
         short &imageCenterX,
         short &imageCenterY,
         short &imageWidth,
         short &imageHeight,
-        uint16_t *&palette,
+        u16 *&palette,
         UOPFrameData &frameData);
 
-    uint8_t GetObjectNewAnimationType_0(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_1_2(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_3(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_4(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_5(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_6_14(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_7(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_8(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_9_10(CGameCharacter *obj, uint16_t action, uint8_t mode);
-    uint8_t GetObjectNewAnimationType_11(CGameCharacter *obj, uint16_t action, uint8_t mode);
+    u8 GetObjectNewAnimationType_0(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_1_2(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_3(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_4(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_5(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_6_14(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_7(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_8(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_9_10(CGameCharacter *obj, u16 action, u8 mode);
+    u8 GetObjectNewAnimationType_11(CGameCharacter *obj, u16 action, u8 mode);
 
-    void ReadFrameDimensionData(ANIMATION_DIMENSIONS &result, uint8_t frameIndex, bool isCorpse);
+    void ReadFrameDimensionData(ANIMATION_DIMENSIONS &result, u8 frameIndex, bool isCorpse);
     void ReadFramesPixelData(CTextureAnimationDirection &direction);
 
 public:
@@ -161,41 +162,41 @@ public:
     }
 
     EQUIP_CONV_BODY_MAP &GetEquipConv() { return m_EquipConv; }
-    void InitIndexReplaces(uint32_t *verdata);
+    void InitIndexReplaces(u32 *verdata);
     void UpdateAnimationAddressTable();
-    void Load(uint32_t *verdata);
-    void ClearUnusedTextures(uint32_t ticks);
+    void Load(u32 *verdata);
+    void ClearUnusedTextures(u32 ticks);
     bool LoadDirectionGroup(CTextureAnimationDirection &direction);
-    void GetAnimDirection(uint8_t &dir, bool &mirror);
-    void GetSittingAnimDirection(uint8_t &dir, bool &mirror, int &x, int &y);
+    void GetAnimDirection(u8 &dir, bool &mirror);
+    void GetSittingAnimDirection(u8 &dir, bool &mirror, int &x, int &y);
     void DrawCharacter(class CGameCharacter *obj, int x, int y);
     bool CharacterPixelsInXY(class CGameCharacter *obj, int x, int y);
     void DrawCorpse(class CGameItem *obj, int x, int y);
     bool CorpsePixelsInXY(class CGameItem *obj, int x, int y);
-    uint8_t GetDieGroupIndex(uint16_t id, bool second);
-    ANIMATION_GROUPS GetGroupIndex(uint16_t id);
-    bool AnimationExists(uint16_t graphic, uint8_t group);
+    u8 GetDieGroupIndex(u16 id, bool second);
+    ANIMATION_GROUPS GetGroupIndex(u16 id);
+    bool AnimationExists(u16 graphic, u8 group);
 
     ANIMATION_DIMENSIONS
     GetAnimationDimensions(
-        uint8_t frameIndex, uint16_t id, uint8_t dir, uint8_t animGroup, bool isCorpse);
+        u8 frameIndex, u16 id, u8 dir, u8 animGroup, bool isCorpse);
 
     ANIMATION_DIMENSIONS GetAnimationDimensions(
         class CGameObject *obj,
-        uint8_t frameIndex = 0xFF,
-        uint8_t defaultDirection = 0,
-        uint8_t defaultGroup = 0);
+        u8 frameIndex = 0xFF,
+        u8 defaultDirection = 0,
+        u8 defaultGroup = 0);
 
     void CalculateFrameInformation(
-        FRAME_OUTPUT_INFO &info, class CGameObject *obj, bool mirror, uint8_t animIndex);
+        FRAME_OUTPUT_INFO &info, class CGameObject *obj, bool mirror, u8 animIndex);
 
     struct DRAW_FRAME_INFORMATION
     CollectFrameInformation(class CGameObject *gameObject, bool checkLayers = true);
 
-    uint8_t GetReplacedObjectAnimation(CGameCharacter *obj, uint16_t index);
+    u8 GetReplacedObjectAnimation(CGameCharacter *obj, u16 index);
 
-    uint8_t
-    GetObjectNewAnimation(CGameCharacter *obj, uint16_t type, uint16_t action, uint8_t mode);
+    u8
+    GetObjectNewAnimation(CGameCharacter *obj, u16 type, u16 action, u8 mode);
 };
 
 extern CAnimationManager g_AnimationManager;

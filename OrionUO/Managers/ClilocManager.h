@@ -1,54 +1,54 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
+#include "Core/MappedFile.h"
+#include <map>
+#include <string>
 
-typedef map<uint32_t, string> CLILOC_MAP;
+typedef std::map<u32, std::string> TClilocMap;
 
-class CCliloc : public CBaseQueueItem
+class Cliloc : public CBaseQueueItem
 {
 public:
-    string Language = "";
-    bool Loaded = false;
+    Cliloc(const std::string& a_lang);
+    virtual ~Cliloc();
+
+    const std::string& GetLanguage() const { return m_language; }
+    bool IsLoaded() const { return m_loaded; }
+    Core::MappedFile& GetFile() { return m_file; }
+    std::string GetA(int a_id, bool a_toCamelCase = false, std::string a_result = {});  // FIXME
+    std::wstring GetW(int a_id, bool a_toCamelCase = false, std::string a_result = {}); // FIXME
 
 private:
+    std::string Load(u32& a_id);
+    std::wstring CamelCaseTest(bool a_toCamelCase, const std::string& a_result);
+    std::wstring GetX(int a_id, bool a_toCamelCase, const std::string& a_result);
+
+private:
+    std::string m_language = "";
+    bool m_loaded          = false;
+    Core::MappedFile m_file;
     // System (id < 1000000)
-    CLILOC_MAP m_ClilocSystem;
-
+    TClilocMap m_system;
     // Regular (id >= 1000000 && id < 3000000)
-    CLILOC_MAP m_ClilocRegular;
-
+    TClilocMap m_regular;
     // Support (id >= 3000000)
-    CLILOC_MAP m_ClilocSupport;
-
-    string Load(uint32_t &id);
-    wstring CamelCaseTest(bool toCamelCase, const string &result);
-    wstring GetX(int id, bool toCamelCase, string &result);
-
-public:
-    CCliloc(const string &lang);
-    virtual ~CCliloc();
-
-    Wisp::CMappedFile m_File;
-
-    string GetA(int id, bool toCamelCase = false, string result = {});  // FIXME
-    wstring GetW(int id, bool toCamelCase = false, string result = {}); // FIXME
+    TClilocMap m_support;
 };
 
-class CClilocManager : public CBaseQueue
+class ClilocManager : public CBaseQueue
 {
-private:
-    CCliloc *m_LastCliloc{ nullptr };
-    CCliloc *m_ENUCliloc{ nullptr };
-
 public:
-    CClilocManager();
-    virtual ~CClilocManager();
+    ClilocManager();
+    virtual ~ClilocManager();
 
-    CCliloc *Cliloc(const string &lang);
-    wstring ParseArgumentsToClilocString(int cliloc, bool toCamelCase, wstring args);
+    Cliloc* GetCliloc(const std::string& a_lang);
+    std::wstring
+    ParseArgumentsToClilocString(int a_cliloc, bool a_toCamelCase, const std::wstring& a_args);
+
+private:
+    class Cliloc* m_lastCliloc = nullptr;
+    class Cliloc* m_enuCliloc  = nullptr;
 };
 
-extern CClilocManager g_ClilocManager;
+extern ClilocManager g_ClilocManager;

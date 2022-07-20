@@ -1,7 +1,6 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/DataStream.h"
 
 class CMulti;
 class CMultiObject;
@@ -9,17 +8,17 @@ class CMultiObject;
 class CTarget
 {
 public:
-    uint8_t Type = 0;
-    uint8_t CursorType = 0;
-    uint16_t MultiGraphic = 0;
-    uint16_t MultiX = 0;
-    uint16_t MultiY = 0;
-    uint32_t CursorID = 0;
+    u8 Type = 0;
+    u8 CursorType = 0;
+    u16 MultiGraphic = 0;
+    u16 MultiX = 0;
+    u16 MultiY = 0;
+    u32 CursorID = 0;
     bool Targeting = false;
 
 private:
-    uint8_t m_Data[19];
-    uint8_t m_LastData[19];
+    u8 m_Data[19];
+    u8 m_LastData[19];
     CMulti *m_Multi{ nullptr };
 
     void AddMultiObject(CMultiObject *obj);
@@ -29,16 +28,16 @@ public:
     ~CTarget() {}
 
     void SetLastTargetObject(int serial);
-    void SetData(Wisp::CDataReader &reader);
-    void SetMultiData(Wisp::CDataReader &reader);
+    void SetData(Core::StreamReader & a_reader);
+    void SetMultiData(Core::StreamReader & a_reader);
     bool IsTargeting() const { return Targeting; }
     void Reset();
     void RequestFromCustomHouse();
     void SendTargetObject(int Serial);
-    void SendTargetTile(uint16_t tileID, short x, short Y, char z);
+    void SendTargetTile(u16 tileID, short x, short Y, char z);
     void SendCancelTarget();
     void Plugin_SendTargetObject(int Serial);
-    void Plugin_SendTargetTile(uint16_t tileID, short x, short Y, char z);
+    void Plugin_SendTargetTile(u16 tileID, short x, short Y, char z);
     void Plugin_SendCancelTarget();
     void Plugin_SendTarget();
     void SendLastTarget();

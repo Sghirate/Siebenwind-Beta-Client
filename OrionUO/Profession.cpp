@@ -1,8 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "Profession.h"
+#include "Core/StringUtils.h"
 #include "Managers/FontsManager.h"
+#include <cstring>
 
 CBaseProfession::CBaseProfession()
 {
@@ -12,39 +11,28 @@ CBaseProfession::~CBaseProfession()
 {
 }
 
-bool CBaseProfession::AddDescription(int desc, const string &name, const char *val)
+bool CBaseProfession::AddDescription(int a_desc, const std::string& a_name, const char* a_val)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    bool result = (DescriptionIndex == desc);
+    bool result = (DescriptionIndex == a_desc);
     if (result)
     {
         if (NameClilocID == 0u)
-        {
-            Name = name;
-        }
+            Name = a_name;
 
         g_FontManager.SetUseHTML(true);
-        if (desc == -2)
-        {
-            Description = ToWString(val);
-        }
+        if (a_desc == -2)
+            Description = Core::ToWString(a_val);
         else
-        {
-            Description = ToWString(name + "\n" + val);
-        }
+            Description = Core::ToWString(a_name + "\n" + a_val);
 
         g_FontManager.SetUseHTML(false);
     }
     else
     {
-        for (CBaseProfession *obj = (CBaseProfession *)m_Items; obj != nullptr && !result;
-             obj = (CBaseProfession *)obj->m_Next)
-        {
-            result = obj->AddDescription(desc, name, val);
-        }
+        for (CBaseProfession* obj = (CBaseProfession*)m_Items; obj != nullptr && !result;
+             obj                  = (CBaseProfession*)obj->m_Next)
+            result = obj->AddDescription(a_desc, a_name, a_val);
     }
-
     return result;
 }
 
@@ -57,9 +45,9 @@ CProfessionCategory::~CProfessionCategory()
 {
 }
 
-void CProfessionCategory::AddChildren(const string &child)
+void CProfessionCategory::AddChildren(const std::string& a_child)
 {
-    Childrens += child + "|";
+    Childrens += a_child + "|";
 }
 
 CProfession::CProfession()

@@ -1,6 +1,8 @@
-﻿
+
 #ifndef UOHuffmanH
 #define UOHuffmanH
+
+#include <stdint.h>
 
 class CDecompressingCopier
 {
@@ -20,7 +22,7 @@ public:
         treepos = 0;
     }
 
-    virtual void operator()(char *dest, const char *src, int &dest_size, intptr_t &src_size);
+    virtual void operator()(char* dest, const char* src, int& dest_size, intptr_t& src_size);
 };
 
 #endif

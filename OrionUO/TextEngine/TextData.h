@@ -1,9 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
+#include "GLEngine/GLTextTexture.h"
 #include "RenderTextObject.h"
+#include "plugin/enumlist.h"
+#include <string>
 
 class CRenderWorldObject;
 
@@ -12,12 +13,12 @@ class CTextData : public CRenderTextObject
 public:
     bool Unicode = false;
     TEXT_TYPE Type = TT_CLIENT;
-    uint8_t Font = 0;
-    uint32_t Timer = 0;
-    uint32_t MoveTimer = 0;
-    string Text = "";
-    wstring UnicodeText = {};
-    uint8_t Alpha = 0xFF;
+    u8 Font = 0;
+    u32 Timer = 0;
+    u32 MoveTimer = 0;
+    std::string Text = "";
+    std::wstring UnicodeText = {};
+    u8 Alpha = 0xFF;
     CRenderWorldObject *Owner = nullptr;
     CGLTextTexture m_Texture;
 
@@ -29,8 +30,8 @@ public:
     bool CanBeDrawedInJournalGump();
     void GenerateTexture(
         int maxWidth,
-        uint16_t flags = 0,
+        u16 flags = 0,
         TEXT_ALIGN_TYPE align = TS_LEFT,
-        uint8_t cell = 30,
+        u8 cell = 30,
         int font = -1);
 };

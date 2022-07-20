@@ -1,12 +1,10 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GameEffectMoving.h"
 #include "GameWorld.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../Managers/EffectManager.h"
-#include "../Managers/MapManager.h"
-#include "../GameObjects/GamePlayer.h"
+#include "Globals.h"
+#include "ScreenStages/GameScreen.h"
+#include "Managers/EffectManager.h"
+#include "Managers/MapManager.h"
+#include "GameObjects/GamePlayer.h"
 
 CGameEffectMoving::CGameEffectMoving()
 {
@@ -18,13 +16,10 @@ CGameEffectMoving::~CGameEffectMoving()
 
 void CGameEffectMoving::Update(CGameObject *parent)
 {
-    DEBUG_TRACE_FUNCTION;
-    if (LastMoveTime > g_Ticks)
-    {
+    if (!CanMove())
         return;
-    }
 
-    LastMoveTime = g_Ticks + MoveDelay;
+    OnMoved();
 
     CGameEffect::Update(parent);
 

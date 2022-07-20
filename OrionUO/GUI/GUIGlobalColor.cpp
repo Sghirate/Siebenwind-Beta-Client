@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) December 2016 Hotride
-
 #include "GUIGlobalColor.h"
 
 CGUIGlobalColor::CGUIGlobalColor(bool enabled, GLfloat r, GLfloat g, GLfloat b, GLfloat a)
@@ -19,7 +16,6 @@ CGUIGlobalColor::~CGUIGlobalColor()
 
 void CGUIGlobalColor::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled)
     {
         glColor4f(R, G, B, A);

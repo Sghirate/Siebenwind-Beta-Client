@@ -1,22 +1,21 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpSkills.h"
+#include "Globals.h"
 #include "GumpSkill.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../SkillGroup.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/SkillsManager.h"
-#include "../Managers/SkillGroupManager.h"
-#include "../Network/Packets.h"
-#include "../GameObjects/GamePlayer.h"
+#include "Platform.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "SkillGroup.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/MouseManager.h"
+#include "Managers/SkillsManager.h"
+#include "Managers/SkillGroupManager.h"
+#include "Network/Packets.h"
+#include "GameObjects/GamePlayer.h"
 
 enum
 {
@@ -34,7 +33,6 @@ enum
 CGumpSkills::CGumpSkills(short x, short y, bool minimized, int height)
     : CGumpBaseScroll(GT_SKILLS, 0, 0x1F40, height, x, y, true, 0, true, 15)
 {
-    DEBUG_TRACE_FUNCTION;
     m_Locker.Serial = ID_GS_LOCK_MOVING;
 
     if (minimized)
@@ -94,7 +92,7 @@ CGumpSkills::CGumpSkills(short x, short y, bool minimized, int height)
 
             for (int i = 0; i < count; i++)
             {
-                uint8_t index = group->GetItem(i); //Получаем индекс скилла по порядковому номеру
+                u8 index = group->GetItem(i); //Получаем индекс скилла по порядковому номеру
 
                 if (index < g_SkillsManager.Count)
                 { //Он валиден
@@ -128,8 +126,7 @@ CGumpSkills::~CGumpSkills()
 
 void CGumpSkills::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     if (!Minimized)
     {
@@ -191,7 +188,6 @@ void CGumpSkills::InitToolTip()
 
 void CGumpSkills::UpdateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     CGumpBaseScroll::UpdateHeight();
 
     m_BottomLine->SetY(Height - 48); //Bottom line
@@ -202,7 +198,6 @@ void CGumpSkills::UpdateHeight()
 
 void CGumpSkills::UpdateGroupPositions()
 {
-    DEBUG_TRACE_FUNCTION;
     int index = 0;
     int currentY = 0;
 
@@ -230,7 +225,6 @@ void CGumpSkills::UpdateGroupPositions()
 
 CGUISkillGroup *CGumpSkills::GetSkillGroup(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     int currentIndex = 0;
 
     QFOR(group, m_HTMLGump->m_Items, CBaseGUI *)
@@ -251,7 +245,6 @@ CGUISkillGroup *CGumpSkills::GetSkillGroup(int index)
 
 CGUISkillItem *CGumpSkills::GetSkill(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(group, m_HTMLGump->m_Items, CBaseGUI *)
     {
         if (group->Type == GOT_SKILLGROUP)
@@ -271,7 +264,6 @@ CGUISkillItem *CGumpSkills::GetSkill(int index)
 
 void CGumpSkills::UpdateSkillValue(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(group, m_HTMLGump->m_Items, CBaseGUI *)
     {
         if (group->Type == GOT_SKILLGROUP)
@@ -298,7 +290,6 @@ void CGumpSkills::UpdateSkillValue(int index)
 
 void CGumpSkills::UpdateSkillValues()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(group, m_HTMLGump->m_Items, CBaseGUI *)
     {
         if (group->Type == GOT_SKILLGROUP)
@@ -316,7 +307,6 @@ void CGumpSkills::UpdateSkillValues()
 
 void CGumpSkills::UpdateSkillsSum()
 {
-    DEBUG_TRACE_FUNCTION;
     char str[20] = { 0 };
     sprintf_s(str, "%.1f", g_SkillsManager.SkillsTotal);
     m_SkillSum->CreateTextureA(3, str);
@@ -324,7 +314,6 @@ void CGumpSkills::UpdateSkillsSum()
 
 void CGumpSkills::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     //Свернем все доступные группы
     QFOR(group, g_SkillGroupManager.m_Groups, CSkillGroupObject *)
     group->Maximized = false;
@@ -332,35 +321,33 @@ void CGumpSkills::Init()
 
 void CGumpSkills::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::CalculateGumpState();
 
     if (g_PressedObject.LeftGump == this && g_PressedObject.LeftSerial >= ID_GS_SKILL &&
         g_PressedObject.LeftSerial < ID_GS_SKILL_STATE)
     {
-        g_GumpMovingOffset.Reset();
+        g_GumpMovingOffset.set(0, 0);
 
         if (Minimized)
         {
-            g_GumpTranslate.X = (float)MinimizedX;
-            g_GumpTranslate.Y = (float)MinimizedY;
+            g_GumpTranslate.x = (float)MinimizedX;
+            g_GumpTranslate.y = (float)MinimizedY;
         }
         else
         {
-            g_GumpTranslate.X = (float)m_X;
-            g_GumpTranslate.Y = (float)m_Y;
+            g_GumpTranslate.x = (float)m_X;
+            g_GumpTranslate.y = (float)m_Y;
         }
     }
 }
 
 void CGumpSkills::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t serial = g_PressedObject.LeftSerial;
+    u32 serial = g_PressedObject.LeftSerial;
 
     if (g_PressedObject.LeftGump == this && serial >= ID_GS_SKILL && serial < ID_GS_SKILL_STATE)
     {
-        int y = g_MouseManager.Position.Y;
+        int y = g_MouseManager.GetPosition().y;
         int testY = m_Y + m_HTMLGump->GetY();
 
         if (y < testY)
@@ -471,11 +458,10 @@ void CGumpSkills::PrepareContent()
 
 CSkillGroupObject *CGumpSkills::GetGroupUnderCursor(int &index)
 {
-    DEBUG_TRACE_FUNCTION;
     index = 0;
 
     //Получить группу под курсором
-    int mouseY = g_MouseManager.Position.Y;
+    int mouseY = g_MouseManager.GetPosition().y;
 
     //mouse.X -= m_X + m_HTMLGump->GetX();
     mouseY -= m_Y + m_HTMLGump->GetY();
@@ -487,14 +473,14 @@ CSkillGroupObject *CGumpSkills::GetGroupUnderCursor(int &index)
     //Если назодимся в пределах гампа по оси Y
     if (mouseY >= 0 && mouseY < m_HTMLGump->Height) //Bounds of Y
     {
-        int drawY = m_HTMLGump->DataOffset.Y - m_HTMLGump->CurrentOffset.Y;
+        int drawY = m_HTMLGump->DataOffset.y - m_HTMLGump->CurrentOffset.y;
         CSkillGroupObject *group = g_SkillGroupManager.m_Groups;
 
         QFOR(item, m_HTMLGump->m_Items, CBaseGUI *)
         {
             if (item->Type == GOT_SKILLGROUP)
             {
-                int height = ((CGUISkillGroup *)item)->GetSize().Height;
+                int height = ((CGUISkillGroup *)item)->GetSize().y;
 
                 if (mouseY >= drawY && mouseY < drawY + height)
                 {
@@ -519,7 +505,6 @@ CSkillGroupObject *CGumpSkills::GetGroupUnderCursor(int &index)
 
 void CGumpSkills::UpdateGroupText()
 {
-    DEBUG_TRACE_FUNCTION;
     QFOR(item, m_HTMLGump->m_Items, CBaseGUI *)
     {
         if (item->Type == GOT_SKILLGROUP)
@@ -552,7 +537,6 @@ void CGumpSkills::UpdateGroupText()
 
 void CGumpSkills::SetGroupTextFromEntry()
 {
-    DEBUG_TRACE_FUNCTION;
     int index = 0;
     CSkillGroupObject *groupItem = g_SkillGroupManager.m_Groups;
 
@@ -591,7 +575,6 @@ void CGumpSkills::SetGroupTextFromEntry()
 
 void CGumpSkills::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     if (g_PressedObject.LeftGump == this && g_PressedObject.LeftSerial >= ID_GS_SKILL &&
@@ -601,17 +584,15 @@ void CGumpSkills::OnLeftMouseButtonUp()
 
         if (g_SelectedObject.Gump != this)
         {
-            CPoint2Di pos = g_MouseManager.Position;
-
+            Core::TMousePos pos = g_MouseManager.GetPosition();
             g_GumpManager.AddGump(
-                new CGumpSkill(g_PressedObject.LeftSerial - ID_GS_SKILL, pos.X - 70, pos.Y - 10));
+                new CGumpSkill(g_PressedObject.LeftSerial - ID_GS_SKILL, pos.x - 70, pos.y - 10));
         }
     }
 }
 
 void CGumpSkills::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GBS_BUTTON_MINIMIZE) //Сворачиваем гамп
     {
         Minimized = true;
@@ -654,7 +635,7 @@ void CGumpSkills::GUMP_BUTTON_EVENT_C
 
             if (skill != nullptr)
             {
-                uint8_t status = skill->Status;
+                u8 status = skill->Status;
 
                 if (status < 2)
                 {
@@ -719,7 +700,6 @@ void CGumpSkills::GUMP_BUTTON_EVENT_C
 
 void CGumpSkills::GUMP_CHECKBOX_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GS_SHOW_REAL) //Показать реальное значение
     {
         m_ShowReal = state;
@@ -738,15 +718,14 @@ void CGumpSkills::GUMP_CHECKBOX_EVENT_C
 
 void CGumpSkills::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     CGUISkillGroup *group = GetSkillGroup(serial - ID_GS_GROUP);
 
     if (group != nullptr)
     {
         if (group->m_Name->Focused)
         {
-            int x = g_MouseManager.Position.X - group->GetX();
-            int y = g_MouseManager.Position.Y - group->GetY();
+            int x = g_MouseManager.GetPosition().x - group->GetX();
+            int y = g_MouseManager.GetPosition().y - group->GetY();
 
             group->m_Name->OnClick(this, x, y);
         }
@@ -759,7 +738,6 @@ void CGumpSkills::GUMP_TEXT_ENTRY_EVENT_C
 
 bool CGumpSkills::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized) //При даблклике по мини-гампу - раскрываем его
     {
         Minimized = false;
@@ -772,11 +750,10 @@ bool CGumpSkills::OnLeftMouseButtonDoubleClick()
     return false;
 }
 
-void CGumpSkills::OnTextInput(const TextEvent &ev)
+void CGumpSkills::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     g_EntryPointer->Insert(ch);
     int val = g_FontManager.GetWidthA(6, g_EntryPointer->c_str());
     if (val > 170)
@@ -789,14 +766,11 @@ void CGumpSkills::OnTextInput(const TextEvent &ev)
     }
 }
 
-void CGumpSkills::OnKeyDown(const KeyEvent &ev)
+void CGumpSkills::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    const auto key = EvKey(ev);
     if (!EntryPointerHere())
     {
-        if (key == KEY_DELETE)
+        if (ev.key == Core::EKey::Key_Delete)
         {
             int index = 0;
             CSkillGroupObject *groupItem = g_SkillGroupManager.m_Groups;
@@ -826,7 +800,7 @@ void CGumpSkills::OnKeyDown(const KeyEvent &ev)
 
                                 for (int i = 0; i < count; i++)
                                 {
-                                    uint8_t index = groupItem->GetItem(i);
+                                    u8 index = groupItem->GetItem(i);
                                     if (index < g_SkillsManager.Count)
                                     {
                                         first->Add(new CGUISkillItem(
@@ -864,10 +838,10 @@ void CGumpSkills::OnKeyDown(const KeyEvent &ev)
         return;
     }
 
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             SetGroupTextFromEntry();
             if (g_ConfigManager.GetConsoleNeedEnter())
@@ -881,14 +855,14 @@ void CGumpSkills::OnKeyDown(const KeyEvent &ev)
             WantRedraw = true;
             break;
         }
-        case KEY_HOME:
-        case KEY_END:
-        case KEY_LEFT:
-        case KEY_RIGHT:
-        case KEY_BACK:
-        case KEY_DELETE:
+        case Core::EKey::Key_Home:
+        case Core::EKey::Key_End:
+        case Core::EKey::Key_Left:
+        case Core::EKey::Key_Right:
+        case Core::EKey::Key_Backspace:
+        case Core::EKey::Key_Delete:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
             break;
         }
         default:

@@ -1,10 +1,7 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
 #include "ContainerStack.h"
 
-deque<CContainerStackItem> g_ContainerStack;
-uint32_t g_CheckContainerStackTimer = 0;
+std::deque<CContainerStackItem> g_ContainerStack;
+u32 g_CheckContainerStackTimer = 0;
 
 CContainerStackItem::CContainerStackItem(
     int serial,

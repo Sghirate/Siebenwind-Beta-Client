@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "PartyObject.h"
 #include "GameWorld.h"
 #include "GameCharacter.h"
@@ -9,9 +6,8 @@ CPartyObject::CPartyObject()
 {
 }
 
-string CPartyObject::GetName(int index)
+std::string CPartyObject::GetName(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Serial != 0u)
     {
         if (Character == nullptr)
@@ -27,5 +23,5 @@ string CPartyObject::GetName(int index)
     char buf[10] = { 0 };
     sprintf_s(buf, "[%i]", index);
 
-    return string(buf);
+    return std::string(buf);
 }

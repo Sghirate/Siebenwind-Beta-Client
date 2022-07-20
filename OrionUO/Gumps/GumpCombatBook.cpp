@@ -1,34 +1,32 @@
-// MIT License
-// Copyright (C) December 2016 Hotride
-
 #include "GumpCombatBook.h"
+#include "Core/StringUtils.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GumpAbility.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../ToolTip.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../ClickObject.h"
-#include "../OrionWindow.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/ClilocManager.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "ToolTip.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "ClickObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/ClilocManager.h"
 
 CGumpCombatBook::CGumpCombatBook(int x, int y)
     : CGump(GT_COMBAT_BOOK, 0, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     Draw2Page = 1;
 
-    if (g_Config.ClientVersion < CV_7000)
+    if (GameVars::GetClientVersion() < CV_7000)
     {
-        if (g_Config.ClientVersion >= CV_500A)
+        if (GameVars::GetClientVersion() >= CV_500A)
         {
             AbilityCount = 29;
         }
         else
         {
-            AbilityCount = 13;
+            AbilityCount         = 13;
             DictionaryPagesCount = 2;
         }
     }
@@ -40,10 +38,9 @@ CGumpCombatBook::~CGumpCombatBook()
 {
 }
 
-vector<uint16_t> CGumpCombatBook::GetItemsList(uint8_t index)
+std::vector<u16> CGumpCombatBook::GetItemsList(u8 index)
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint16_t> list;
+    std::vector<u16> list;
 
     switch (index)
     {
@@ -346,8 +343,7 @@ vector<uint16_t> CGumpCombatBook::GetItemsList(uint8_t index)
             list.push_back(16487);
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
     return list;
@@ -355,21 +351,20 @@ vector<uint16_t> CGumpCombatBook::GetItemsList(uint8_t index)
 
 void CGumpCombatBook::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized)
     {
         g_ToolTip.Set(L"Double click to maximize book gump");
         return;
     }
 
-    uint32_t serial = g_SelectedObject.Serial;
+    u32 serial = g_SelectedObject.Serial;
 
     if (Page >= DictionaryPagesCount)
     {
-        if (serial >= (uint32_t)ID_GCB_ICON)
+        if (serial >= (u32)ID_GCB_ICON)
         {
             g_ToolTip.Set(
-                g_ClilocManager.Cliloc(g_Language)->GetW(1061693 + (serial - ID_GCB_ICON), true),
+                g_ClilocManager.GetCliloc(g_Language)->GetW(1061693 + (serial - ID_GCB_ICON), true),
                 150);
         }
     }
@@ -378,13 +373,15 @@ void CGumpCombatBook::InitToolTip()
         if (serial == ID_GCB_ICON_FIRST)
         {
             g_ToolTip.Set(
-                g_ClilocManager.Cliloc(g_Language)->GetW(1028838 + (g_Ability[0] & 0x7F) - 1, true),
+                g_ClilocManager.GetCliloc(g_Language)
+                    ->GetW(1028838 + (g_Ability[0] & 0x7F) - 1, true),
                 80);
         }
         else if (serial == ID_GCB_ICON_SECOND)
         {
             g_ToolTip.Set(
-                g_ClilocManager.Cliloc(g_Language)->GetW(1028838 + (g_Ability[1] & 0x7F) - 1, true),
+                g_ClilocManager.GetCliloc(g_Language)
+                    ->GetW(1028838 + (g_Ability[1] & 0x7F) - 1, true),
                 80);
         }
     }
@@ -392,29 +389,27 @@ void CGumpCombatBook::InitToolTip()
 
 void CGumpCombatBook::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.LeftGump == this && Page < DictionaryPagesCount &&
         (g_PressedObject.LeftSerial == ID_GCB_ICON_FIRST ||
          g_PressedObject.LeftSerial == ID_GCB_ICON_SECOND))
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
-        if ((abs(offset.X) >= DRAG_PIXEL_RANGE || abs(offset.Y) >= DRAG_PIXEL_RANGE) ||
+        if ((abs(offset.x) >= DRAG_PIXEL_RANGE || abs(offset.y) >= DRAG_PIXEL_RANGE) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
         {
             g_GumpManager.AddGump(new CGumpAbility(
                 static_cast<int>(g_PressedObject.LeftSerial == ID_GCB_ICON_SECOND),
-                g_MouseManager.Position.X - 20,
-                g_MouseManager.Position.Y - 20));
+                g_MouseManager.GetPosition().x - 20,
+                g_MouseManager.GetPosition().y - 20));
 
-            g_OrionWindow.EmulateOnLeftMouseButtonDown();
+            g_MouseManager.EmulateOnLeftMouseButtonDown();
         }
     }
 }
 
 void CGumpCombatBook::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     m_PrevPage = nullptr;
     m_NextPage = nullptr;
 
@@ -439,19 +434,19 @@ void CGumpCombatBook::UpdateContent()
     {
         Add(new CGUIPage((int)page));
 
-        int indexX = 96;
-        int dataX = 52;
-        int y = 0;
+        int indexX       = 96;
+        int dataX        = 52;
+        int y            = 0;
         int spellsOnPage = 9;
 
         if ((page % 2) != 0)
         {
-            indexX = 259;
-            dataX = 215;
+            indexX       = 259;
+            dataX        = 215;
             spellsOnPage = 4;
         }
 
-        CGUIText *text = (CGUIText *)Add(new CGUIText(0x0288, indexX, 6));
+        CGUIText* text = (CGUIText*)Add(new CGUIText(0x0288, indexX, 6));
         text->CreateTextureA(6, "INDEX");
 
         for (int i = 0; i < spellsOnPage; i++)
@@ -461,15 +456,15 @@ void CGumpCombatBook::UpdateContent()
                 break;
             }
 
-            CGUIHitBox *box =
-                (CGUIHitBox *)Add(new CGUIHitBox(ID_GCB_ICON + offs, dataX, 42 + y, 100, 16, true));
+            CGUIHitBox* box =
+                (CGUIHitBox*)Add(new CGUIHitBox(ID_GCB_ICON + offs, dataX, 42 + y, 100, 16, true));
             box->MoveOnDrag = true;
 
-            CGUITextEntry *entry = (CGUITextEntry *)Add(
+            CGUITextEntry* entry = (CGUITextEntry*)Add(
                 new CGUITextEntry(ID_GCB_ICON + offs, 0x0288, 0, 0, dataX, 42 + y, 0, false, 9));
             entry->m_Entry.SetTextA(m_AbilityName[offs]);
             entry->CheckOnSerial = true;
-            entry->ReadOnly = true;
+            entry->ReadOnly      = true;
 
             y += 15;
 
@@ -478,18 +473,17 @@ void CGumpCombatBook::UpdateContent()
 
         if (spellsOnPage == 4)
         {
-            CGUIGumppic *icon =
-                (CGUIGumppic *)Add(new CGUIGumppic(0x5200 + (g_Ability[0] & 0x7F) - 1, 215, 105));
+            CGUIGumppic* icon =
+                (CGUIGumppic*)Add(new CGUIGumppic(0x5200 + (g_Ability[0] & 0x7F) - 1, 215, 105));
             icon->Serial = ID_GCB_ICON_FIRST;
 
-            text = (CGUIText *)Add(new CGUIText(0x0288, 265, 105));
+            text = (CGUIText*)Add(new CGUIText(0x0288, 265, 105));
             text->CreateTextureA(6, "Primary Ability Icon", 80);
 
-            icon =
-                (CGUIGumppic *)Add(new CGUIGumppic(0x5200 + (g_Ability[1] & 0x7F) - 1, 215, 150));
+            icon = (CGUIGumppic*)Add(new CGUIGumppic(0x5200 + (g_Ability[1] & 0x7F) - 1, 215, 150));
             icon->Serial = ID_GCB_ICON_SECOND;
 
-            text = (CGUIText *)Add(new CGUIText(0x0288, 265, 150));
+            text = (CGUIText*)Add(new CGUIText(0x0288, 265, 150));
             text->CreateTextureA(6, "Secondary Ability Icon", 80);
         }
     }
@@ -501,15 +495,15 @@ void CGumpCombatBook::UpdateContent()
         Add(new CGUIPage(page));
         page += 2;
 
-        CGUIGumppic *icon = (CGUIGumppic *)Add(new CGUIGumppic(0x5200 + (int)i, 62, 40));
-        icon->Serial = ID_GCB_ICON + (int)i;
-        icon->MoveOnDrag = true;
+        CGUIGumppic* icon = (CGUIGumppic*)Add(new CGUIGumppic(0x5200 + (int)i, 62, 40));
+        icon->Serial      = ID_GCB_ICON + (int)i;
+        icon->MoveOnDrag  = true;
 
         Add(new CGUIGumppicTiled(0x0835, 62, 88, 128, 0));
 
-        vector<uint16_t> list = GetItemsList((uint8_t)i);
+        std::vector<u16> list = GetItemsList((u8)i);
 
-        int size = (int)list.size();
+        int size              = (int)list.size();
         size_t maxStaticCount = g_Orion.m_StaticData.size();
 
         int textX = 62;
@@ -523,15 +517,15 @@ void CGumpCombatBook::UpdateContent()
                 textY = 34;
             }
 
-            uint16_t &id = list[j];
+            u16& id = list[j];
 
             if (id >= maxStaticCount)
             {
                 continue;
             }
 
-            CGUIText *text = (CGUIText *)Add(new CGUIText(0x0288, textX, textY));
-            text->CreateTextureA(9, ToCamelCase(g_Orion.m_StaticData[id].Name));
+            CGUIText* text = (CGUIText*)Add(new CGUIText(0x0288, textX, textY));
+            text->CreateTextureA(9, Core::ToCamelCaseA(g_Orion.m_StaticData[id].Name));
 
             textY += 16;
         }
@@ -540,16 +534,15 @@ void CGumpCombatBook::UpdateContent()
     Add(new CGUIPage(-1));
 
     m_PrevPage =
-        (CGUIButton *)Add(new CGUIButton(ID_GCB_BUTTON_PREV, 0x08BB, 0x08BB, 0x08BB, 50, 8));
+        (CGUIButton*)Add(new CGUIButton(ID_GCB_BUTTON_PREV, 0x08BB, 0x08BB, 0x08BB, 50, 8));
     m_PrevPage->Visible = (Page != 0);
     m_NextPage =
-        (CGUIButton *)Add(new CGUIButton(ID_GCB_BUTTON_NEXT, 0x08BC, 0x08BC, 0x08BC, 321, 8));
+        (CGUIButton*)Add(new CGUIButton(ID_GCB_BUTTON_NEXT, 0x08BC, 0x08BC, 0x08BC, 321, 8));
     m_NextPage->Visible = (Page + 2 < PagesCount);
 }
 
 void CGumpCombatBook::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     int newPage = -1;
 
     if (serial == ID_GCB_BUTTON_PREV)
@@ -578,7 +571,7 @@ void CGumpCombatBook::GUMP_BUTTON_EVENT_C
     }
     else if (serial == ID_GCB_BUTTON_MINIMIZE)
     {
-        Minimized = true;
+        Minimized         = true;
         WantUpdateContent = true;
     }
     else if (serial == ID_GCB_LOCK_MOVING)
@@ -602,18 +595,17 @@ void CGumpCombatBook::GUMP_BUTTON_EVENT_C
 
         g_ClickObject.Init(g_PressedObject.LeftObject, this);
         g_ClickObject.Timer = g_Ticks + g_MouseManager.DoubleClickDelay;
-        g_ClickObject.Page = newPage;
+        g_ClickObject.Page  = newPage;
     }
 }
 
 bool CGumpCombatBook::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (Minimized)
     {
-        Minimized = false;
+        Minimized         = false;
         WantUpdateContent = true;
 
         result = true;
@@ -664,9 +656,8 @@ bool CGumpCombatBook::OnLeftMouseButtonDoubleClick()
     return result;
 }
 
-void CGumpCombatBook::DelayedClick(CRenderObject *obj)
+void CGumpCombatBook::DelayedClick(CRenderObject* obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj != nullptr)
     {
         ChangePage(g_ClickObject.Page);
@@ -676,7 +667,6 @@ void CGumpCombatBook::DelayedClick(CRenderObject *obj)
 
 void CGumpCombatBook::ChangePage(int newPage)
 {
-    DEBUG_TRACE_FUNCTION;
     Page = newPage;
 
     m_PrevPage->Visible = (Page != 0);
@@ -685,7 +675,7 @@ void CGumpCombatBook::ChangePage(int newPage)
     g_Orion.PlaySoundEffect(0x0055);
 }
 
-const string CGumpCombatBook::m_AbilityName[MAX_ABILITIES_COUNT]{
+const std::string CGumpCombatBook::m_AbilityName[MAX_ABILITIES_COUNT]{
     "Armor Ignore",       "Bleed Attack",    "Concussion Blow",
     "Crushing Blow",      "Disarm",          "Dismount",
     "Double Strike",      "Infecting",       "Mortal Strike",

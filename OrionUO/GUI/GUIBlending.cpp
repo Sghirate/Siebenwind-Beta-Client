@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUIBlending.h"
 
 CGUIBlending::CGUIBlending(bool enabled, GLenum sFactor, GLenum dFactor)
@@ -17,7 +14,6 @@ CGUIBlending::~CGUIBlending()
 
 void CGUIBlending::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Enabled)
     {
         glEnable(GL_BLEND);

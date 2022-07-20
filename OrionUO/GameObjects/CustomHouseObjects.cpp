@@ -1,11 +1,9 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
 #include "CustomHouseObjects.h"
+#include <cstring>
+#include <stdio.h>
 
-bool CCustomHouseObjectWall::Parse(const char *text)
+bool CCustomHouseObjectWall::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
@@ -44,7 +42,7 @@ bool CCustomHouseObjectWall::Parse(const char *text)
         if ((AltWindowE == 0) && (WindowE != 0))
         {
             AltWindowE = WindowE;
-            WindowE = 0;
+            WindowE    = 0;
         }
 
         if (WindowS != 0)
@@ -81,7 +79,7 @@ bool CCustomHouseObjectWall::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectWall::Contains(uint16_t graphic) const
+int CCustomHouseObjectWall::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -94,9 +92,8 @@ int CCustomHouseObjectWall::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectFloor::Parse(const char *text)
+bool CCustomHouseObjectFloor::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
@@ -121,16 +118,16 @@ bool CCustomHouseObjectFloor::Parse(const char *text)
 
     if (result)
     {
-        m_Graphics[0] = F1;
-        m_Graphics[1] = F2;
-        m_Graphics[2] = F3;
-        m_Graphics[3] = F4;
-        m_Graphics[4] = F5;
-        m_Graphics[5] = F6;
-        m_Graphics[6] = F7;
-        m_Graphics[7] = F8;
-        m_Graphics[8] = F9;
-        m_Graphics[9] = F10;
+        m_Graphics[0]  = F1;
+        m_Graphics[1]  = F2;
+        m_Graphics[2]  = F3;
+        m_Graphics[3]  = F4;
+        m_Graphics[4]  = F5;
+        m_Graphics[5]  = F6;
+        m_Graphics[6]  = F7;
+        m_Graphics[7]  = F8;
+        m_Graphics[8]  = F9;
+        m_Graphics[9]  = F10;
         m_Graphics[10] = F11;
         m_Graphics[11] = F12;
         m_Graphics[12] = F13;
@@ -142,7 +139,7 @@ bool CCustomHouseObjectFloor::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectFloor::Contains(uint16_t graphic) const
+int CCustomHouseObjectFloor::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -155,9 +152,8 @@ int CCustomHouseObjectFloor::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectDoor::Parse(const char *text)
+bool CCustomHouseObjectDoor::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d",
@@ -187,7 +183,7 @@ bool CCustomHouseObjectDoor::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectDoor::Contains(uint16_t graphic) const
+int CCustomHouseObjectDoor::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -200,9 +196,8 @@ int CCustomHouseObjectDoor::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectMisc::Parse(const char *text)
+bool CCustomHouseObjectMisc::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d %d %d",
@@ -234,7 +229,7 @@ bool CCustomHouseObjectMisc::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectMisc::Contains(uint16_t graphic) const
+int CCustomHouseObjectMisc::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -247,9 +242,8 @@ int CCustomHouseObjectMisc::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectStair::Parse(const char *text)
+bool CCustomHouseObjectStair::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
@@ -285,7 +279,7 @@ bool CCustomHouseObjectStair::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectStair::Contains(uint16_t graphic) const
+int CCustomHouseObjectStair::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -298,9 +292,8 @@ int CCustomHouseObjectStair::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectTeleport::Parse(const char *text)
+bool CCustomHouseObjectTeleport::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
@@ -325,16 +318,16 @@ bool CCustomHouseObjectTeleport::Parse(const char *text)
 
     if (result)
     {
-        m_Graphics[0] = F1;
-        m_Graphics[1] = F2;
-        m_Graphics[2] = F3;
-        m_Graphics[3] = F4;
-        m_Graphics[4] = F5;
-        m_Graphics[5] = F6;
-        m_Graphics[6] = F7;
-        m_Graphics[7] = F8;
-        m_Graphics[8] = F9;
-        m_Graphics[9] = F10;
+        m_Graphics[0]  = F1;
+        m_Graphics[1]  = F2;
+        m_Graphics[2]  = F3;
+        m_Graphics[3]  = F4;
+        m_Graphics[4]  = F5;
+        m_Graphics[5]  = F6;
+        m_Graphics[6]  = F7;
+        m_Graphics[7]  = F8;
+        m_Graphics[8]  = F9;
+        m_Graphics[9]  = F10;
         m_Graphics[10] = F11;
         m_Graphics[11] = F12;
         m_Graphics[12] = F13;
@@ -346,7 +339,7 @@ bool CCustomHouseObjectTeleport::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectTeleport::Contains(uint16_t graphic) const
+int CCustomHouseObjectTeleport::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -359,9 +352,8 @@ int CCustomHouseObjectTeleport::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectRoof::Parse(const char *text)
+bool CCustomHouseObjectRoof::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = sscanf(
                       text,
                       "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
@@ -388,16 +380,16 @@ bool CCustomHouseObjectRoof::Parse(const char *text)
 
     if (result)
     {
-        m_Graphics[0] = North;
-        m_Graphics[1] = East;
-        m_Graphics[2] = South;
-        m_Graphics[3] = West;
-        m_Graphics[4] = NSCrosspiece;
-        m_Graphics[5] = EWCrosspiece;
-        m_Graphics[6] = NDent;
-        m_Graphics[7] = SDent;
-        m_Graphics[8] = WDent;
-        m_Graphics[9] = NTPiece;
+        m_Graphics[0]  = North;
+        m_Graphics[1]  = East;
+        m_Graphics[2]  = South;
+        m_Graphics[3]  = West;
+        m_Graphics[4]  = NSCrosspiece;
+        m_Graphics[5]  = EWCrosspiece;
+        m_Graphics[6]  = NDent;
+        m_Graphics[7]  = SDent;
+        m_Graphics[8]  = WDent;
+        m_Graphics[9]  = NTPiece;
         m_Graphics[10] = ETPiece;
         m_Graphics[11] = STPiece;
         m_Graphics[12] = WTPiece;
@@ -409,7 +401,7 @@ bool CCustomHouseObjectRoof::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectRoof::Contains(uint16_t graphic) const
+int CCustomHouseObjectRoof::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {
@@ -422,9 +414,8 @@ int CCustomHouseObjectRoof::Contains(uint16_t graphic) const
     return -1;
 }
 
-bool CCustomHouseObjectPlaceInfo::Parse(const char *text)
+bool CCustomHouseObjectPlaceInfo::Parse(const char* text)
 {
-    DEBUG_TRACE_FUNCTION;
     char buf[50] = { 0 };
 
     bool result = sscanf(
@@ -455,7 +446,7 @@ bool CCustomHouseObjectPlaceInfo::Parse(const char *text)
     return result;
 }
 
-int CCustomHouseObjectPlaceInfo::Contains(uint16_t graphic) const
+int CCustomHouseObjectPlaceInfo::Contains(u16 graphic) const
 {
     for (int i = 0; i < GRAPHICS_COUNT; i++)
     {

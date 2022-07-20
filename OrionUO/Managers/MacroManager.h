@@ -1,39 +1,41 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../BaseQueue.h"
+#include "Core/Minimal.h"
+#include "Core/Keys.h"
+#include "BaseQueue.h"
+#include "Platform.h"
+#include "plugin/enumlist.h"
+#include <filesystem>
+#include <string>
+#include <vector>
 
-class CMacroObject;
-
-class CMacroManager : public CBaseQueue
+class MacroManager : public CBaseQueue
 {
 public:
-    bool WaitingBandageTarget = false;
-    uint32_t WaitForTargetTimer = 0;
+    bool WaitingBandageTarget     = false;
+    u32 WaitForTargetTimer        = 0;
     bool SendNotificationToPlugin = false;
 
 private:
-    uint32_t m_NextTimer{ 0 };
-    static uint8_t m_SkillIndexTable[24];
+    u32 m_NextTimer{ 0 };
+    static u8 m_SkillIndexTable[24];
 
     void ProcessSubMenu();
-    Keycode ConvertStringToKeyCode(const vector<string> &strings);
+    Core::EKey ConvertStringToKeyCode(const std::vector<std::string>& a_strings);
 
 public:
-    CMacroManager();
-    virtual ~CMacroManager();
+    MacroManager();
+    virtual ~MacroManager();
 
-    class CMacro *FindMacro(Keycode key, bool alt, bool ctrl, bool shift);
-    bool Convert(const os_path &path);
-    bool Load(const os_path &path, const os_path &originalPath);
-    void Save(const os_path &path);
+    class Macro* FindMacro(Core::EKey key, bool alt, bool ctrl, bool shift);
+    bool Convert(const std::filesystem::path& a_path);
+    bool Load(const std::filesystem::path& a_path, const std::filesystem::path& a_originalPath);
+    void Save(const std::filesystem::path& a_path);
     void LoadFromOptions();
-    void ChangePointer(CMacroObject *macro);
+    void ChangePointer(class MacroObject* macro);
     void Execute();
     MACRO_RETURN_CODE Process();
-    MACRO_RETURN_CODE Process(CMacroObject *macro);
+    MACRO_RETURN_CODE Process(class MacroObject* macro);
 };
 
-extern CMacroManager g_MacroManager;
+extern MacroManager g_MacroManager;

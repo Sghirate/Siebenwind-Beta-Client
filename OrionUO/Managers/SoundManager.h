@@ -1,9 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../IndexObject.h"
+#include "Audio/AudioTypes.h"
+#include "IndexObject.h"
 
 class CSoundManager
 {
@@ -25,7 +23,7 @@ public:
     bool UpdateSoundEffect(SoundHandle stream, float volume);
     void PlaySoundEffect(SoundHandle stream, float volume);
     void PlayMidi(int index, bool warmode);
-    void PlayMP3(const string &fileName, int index, bool loop, bool warmode = false);
+    void PlayMP3(const std::string &fileName, int index, bool loop, bool warmode = false);
     void StopMusic();
     void StopWarMusic();
     void SetMusicVolume(float volume);

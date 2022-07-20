@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "RenderTextObject.h"
 #include "TextRenderer.h"
 #include "SelectedObject.h"
@@ -12,13 +9,11 @@ CRenderTextObject::CRenderTextObject()
 
 CRenderTextObject::~CRenderTextObject()
 {
-    DEBUG_TRACE_FUNCTION;
     UnlinkDraw();
 }
 
 void CRenderTextObject::UnlinkDraw()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_NextDraw != nullptr)
     {
         m_NextDraw->m_PrevDraw = m_PrevDraw;
@@ -35,7 +30,6 @@ void CRenderTextObject::UnlinkDraw()
 
 void CRenderTextObject::ToTop()
 {
-    DEBUG_TRACE_FUNCTION;
     CRenderTextObject *obj = this;
 
     while (obj != nullptr)

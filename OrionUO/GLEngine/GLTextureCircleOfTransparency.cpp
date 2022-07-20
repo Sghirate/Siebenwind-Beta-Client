@@ -1,7 +1,4 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include "../Managers/ConfigManager.h"
+#include "Managers/ConfigManager.h"
 
 CGLTextureCircleOfTransparency g_CircleOfTransparency;
 
@@ -11,14 +8,12 @@ CGLTextureCircleOfTransparency::CGLTextureCircleOfTransparency()
 
 CGLTextureCircleOfTransparency::~CGLTextureCircleOfTransparency()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 }
 
 void CGLTextureCircleOfTransparency::CreatePixels(
-    int radius, short &width, short &height, vector<uint32_t> &pixels)
+    int radius, short &width, short &height, std::vector<u32> &pixels)
 {
-    DEBUG_TRACE_FUNCTION;
     int fixRadius = radius + 1;
     int mulRadius = fixRadius * 2;
 
@@ -35,7 +30,7 @@ void CGLTextureCircleOfTransparency::CreatePixels(
         for (int y = -fixRadius; y < fixRadius; y++)
         {
             int r = (int)sqrt(mulX + (y * y));
-            uint8_t pic = ((r <= radius) ? ((radius - r) & 0xFF) : 0);
+            u8 pic = ((r <= radius) ? ((radius - r) & 0xFF) : 0);
 
             int pos = posX + (int)y;
 
@@ -46,7 +41,6 @@ void CGLTextureCircleOfTransparency::CreatePixels(
 
 bool CGLTextureCircleOfTransparency::Create(int radius)
 {
-    DEBUG_TRACE_FUNCTION;
     if (radius <= 0)
     {
         return false;
@@ -62,7 +56,7 @@ bool CGLTextureCircleOfTransparency::Create(int radius)
         return true;
     }
 
-    vector<uint32_t> pixels;
+    std::vector<u32> pixels;
     CreatePixels(radius, Width, Height, pixels);
 
     Radius = radius;
@@ -77,7 +71,6 @@ bool CGLTextureCircleOfTransparency::Create(int radius)
 
 void CGLTextureCircleOfTransparency::Draw(int x, int y, bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         X = x - Width / 2;
@@ -103,7 +96,6 @@ void CGLTextureCircleOfTransparency::Draw(int x, int y, bool checktrans)
 
 void CGLTextureCircleOfTransparency::Redraw()
 {
-    DEBUG_TRACE_FUNCTION;
     glClear(GL_STENCIL_BUFFER_BIT);
 
     if (g_ConfigManager.UseCircleTrans && Texture != 0)

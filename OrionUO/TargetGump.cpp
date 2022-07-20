@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "TargetGump.h"
 #include "OrionUO.h"
 #include "Managers/ConfigManager.h"
@@ -19,7 +16,6 @@ CTargetGump::~CTargetGump()
 
 void CTargetGump::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Color != 0)
     {
         g_Orion.DrawGump(0x1068, Color, X, Y);
@@ -41,10 +37,9 @@ CNewTargetSystem::~CNewTargetSystem()
 
 void CNewTargetSystem::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.DisableNewTargetSystem && ColorGump != 0)
     {
-        CIndexObject &top = g_Orion.m_GumpDataIndex[GumpTop];
+        CIndexObject& top = g_Orion.m_GumpDataIndex[GumpTop];
 
         int x = X - (top.Width / 2);
 

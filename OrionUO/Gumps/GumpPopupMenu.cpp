@@ -1,43 +1,40 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpPopupMenu.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/IntlocManager.h"
-#include "../Network/Packets.h"
+#include "Core/PacketReader.h"
+#include "Globals.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/IntlocManager.h"
+#include "Network/Packets.h"
 
-CGumpPopupMenu *g_PopupMenu = nullptr;
+CGumpPopupMenu* g_PopupMenu = nullptr;
 
-CGumpPopupMenu::CGumpPopupMenu(uint32_t serial, short x, short y)
+CGumpPopupMenu::CGumpPopupMenu(u32 serial, short x, short y)
     : CGump(GT_POPUP_MENU, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
-    NoMove = true;
+    NoMove      = true;
     g_PopupMenu = this;
-    Page = 1;
+    Page        = 1;
 
-    m_Polygone = (CGUIColoredPolygone *)Add(new CGUIColoredPolygone(0, 0, 0, 0, 0, 0, 0xFFFFFFFE));
+    m_Polygone = (CGUIColoredPolygone*)Add(new CGUIColoredPolygone(0, 0, 0, 0, 0, 0, 0xFFFFFFFE));
     m_Polygone->DrawOnly = true;
-    m_Polygone->Visible = false;
+    m_Polygone->Visible  = false;
 }
 
 CGumpPopupMenu::~CGumpPopupMenu()
 {
-    DEBUG_TRACE_FUNCTION;
     g_PopupMenu = nullptr;
 }
 
-void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
+void CGumpPopupMenu::Parse(Core::PacketReader& reader)
 {
-    uint16_t mode = reader.ReadUInt16BE();
+    u16 mode          = reader.ReadBE<u16>();
     bool isNewClilocs = (mode >= 2);
-    uint32_t serial = reader.ReadUInt32BE();
-    uint8_t count = reader.ReadUInt8();
+    u32 serial        = reader.ReadBE<u32>();
+    u8 count          = reader.ReadBE<u8>();
 
-    vector<CPopupMenuItemInfo> items;
+    std::vector<CPopupMenuItemInfo> items;
 
     for (int i = 0; i < count; i++)
     {
@@ -46,15 +43,15 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 
         if (isNewClilocs)
         {
-            info.Cliloc = reader.ReadUInt32BE();
-            info.Index = reader.ReadUInt16BE() + 1;
-            info.Flags = reader.ReadUInt16BE();
+            info.Cliloc = reader.ReadBE<u32>();
+            info.Index  = reader.ReadBE<u16>() + 1;
+            info.Flags  = reader.ReadBE<u16>();
         }
         else
         {
-            info.Index = reader.ReadUInt16BE() + 1;
-            info.Cliloc = reader.ReadUInt16BE() + 3000000;
-            info.Flags = reader.ReadUInt16BE();
+            info.Index  = reader.ReadBE<u16>() + 1;
+            info.Cliloc = reader.ReadBE<u16>() + 3000000;
+            info.Flags  = reader.ReadBE<u16>();
 
             if ((info.Flags & 0x84) != 0)
             {
@@ -68,7 +65,7 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 
             if ((info.Flags & 0x20) != 0)
             {
-                info.ReplaceColor = reader.ReadUInt16BE() & 0x3FFF;
+                info.ReplaceColor = reader.ReadBE<u16>() & 0x3FFF;
             }
         }
 
@@ -80,24 +77,24 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
         items.push_back(info);
     }
 
-    CGumpPopupMenu *menu =
-        new CGumpPopupMenu(serial, g_MouseManager.Position.X, g_MouseManager.Position.Y);
+    CGumpPopupMenu* menu =
+        new CGumpPopupMenu(serial, g_MouseManager.GetPosition().x, g_MouseManager.GetPosition().y);
     menu->Add(new CGUIPage(0));
-    int width = 0;
+    int width  = 0;
     int height = 20;
 
     menu->Add(new CGUIAlphaBlending(true, 0.75f));
-    CGUIResizepic *resizepic = (CGUIResizepic *)menu->Add(new CGUIResizepic(0, 0x0A3C, 0, 0, 0, 0));
+    CGUIResizepic* resizepic = (CGUIResizepic*)menu->Add(new CGUIResizepic(0, 0x0A3C, 0, 0, 0, 0));
     menu->Add(new CGUIAlphaBlending(false, 1.0f));
 
-    int offsetY = 10;
+    int offsetY     = 10;
     bool arrowAdded = false;
 
-    for (const CPopupMenuItemInfo &info : items)
+    for (const CPopupMenuItemInfo& info : items)
     {
-        wstring str = g_IntlocManager.Intloc(g_Language, info.Cliloc, isNewClilocs);
+        std::wstring str = g_IntlocManager.GetIntloc(g_Language, info.Cliloc, isNewClilocs);
 
-        CGUITextEntry *item = new CGUITextEntry(
+        CGUITextEntry* item = new CGUITextEntry(
             info.Index,
             info.Color,
             info.Color,
@@ -127,11 +124,11 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 
         menu->Add(item);
 
-        CEntryText &entry = item->m_Entry;
+        CEntryText& entry = item->m_Entry;
         entry.SetTextW(str);
         entry.PrepareToDrawW(CONTEXT_MENU_FONT, info.Color);
 
-        CGLTextTexture &texture = entry.m_Texture;
+        CGLTextTexture& texture = entry.m_Texture;
 
         menu->Add(new CGUIHitBox(info.Index, 10, offsetY, texture.Width, texture.Height, true));
 
@@ -156,18 +153,18 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
     }
     else
     {
-        resizepic->Width = width;
+        resizepic->Width  = width;
         resizepic->Height = height;
 
-        QFOR(item, menu->m_Items, CBaseGUI *)
+        QFOR(item, menu->m_Items, CBaseGUI*)
         {
-            if (item->Type == GOT_PAGE && (((CGUIPage *)item)->Index != 0))
+            if (item->Type == GOT_PAGE && (((CGUIPage*)item)->Index != 0))
             {
                 break;
             }
             if (item->Type == GOT_HITBOX)
             {
-                ((CGUIHitBox *)item)->Width = width - 20;
+                ((CGUIHitBox*)item)->Width = width - 20;
             }
         }
 
@@ -177,11 +174,10 @@ void CGumpPopupMenu::Parse(Wisp::CPacketReader &reader)
 
 void CGumpPopupMenu::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump == this && g_SelectedObject.Object != nullptr &&
-        ((CBaseGUI *)g_SelectedObject.Object)->Type == GOT_HITBOX)
+        ((CBaseGUI*)g_SelectedObject.Object)->Type == GOT_HITBOX)
     {
-        CGUIHitBox *box = (CGUIHitBox *)g_SelectedObject.Object;
+        CGUIHitBox* box = (CGUIHitBox*)g_SelectedObject.Object;
 
         if (!m_Polygone->Visible || m_Polygone->GetY() != box->GetY())
         {
@@ -189,8 +185,8 @@ void CGumpPopupMenu::PrepareContent()
 
             m_Polygone->SetX(box->GetX());
             m_Polygone->SetY(box->GetY());
-            m_Polygone->Width = box->Width;
-            m_Polygone->Height = box->Height;
+            m_Polygone->Width   = box->Width;
+            m_Polygone->Height  = box->Height;
             m_Polygone->Visible = true;
         }
     }
@@ -204,23 +200,22 @@ void CGumpPopupMenu::PrepareContent()
 
 void CGumpPopupMenu::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GPM_MAXIMIZE)
     {
-        Page = 2;
-        CGUIResizepic *resizepic = nullptr;
-        int width = 0;
-        int height = 20;
+        Page                     = 2;
+        CGUIResizepic* resizepic = nullptr;
+        int width                = 0;
+        int height               = 20;
 
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item->Type == GOT_RESIZEPIC)
             {
-                resizepic = (CGUIResizepic *)item;
+                resizepic = (CGUIResizepic*)item;
             }
             else if (item->Type == GOT_TEXTENTRY)
             {
-                CGLTextTexture &texture = ((CGUITextEntry *)item)->m_Entry.m_Texture;
+                CGLTextTexture& texture = ((CGUITextEntry*)item)->m_Entry.m_Texture;
 
                 if (width < texture.Width)
                 {
@@ -233,21 +228,21 @@ void CGumpPopupMenu::GUMP_BUTTON_EVENT_C
 
         width += 20;
 
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item->Type == GOT_HITBOX)
             {
-                ((CGUIHitBox *)item)->Width = width - 20;
+                ((CGUIHitBox*)item)->Width = width - 20;
             }
         }
 
         if (resizepic != nullptr)
         {
-            resizepic->Width = width;
+            resizepic->Width  = width;
             resizepic->Height = height;
         }
 
-        WantRedraw = true;
+        WantRedraw          = true;
         m_Polygone->Visible = false;
     }
     else

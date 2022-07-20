@@ -1,63 +1,83 @@
-﻿// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Input.h"
+#include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
 #include "BaseQueue.h"
 #include "plugin/enumlist.h"
+#include <string>
 
-class CMacroObject : public CBaseQueueItem
+class MacroObject : public CBaseQueueItem
 {
 public:
-    MACRO_CODE Code = MC_NONE;
-    MACRO_SUB_CODE SubCode = MSC_NONE;
-    char HasSubMenu = 0;
+    MacroObject(const MACRO_CODE& a_code, const MACRO_SUB_CODE& a_subCode);
+    virtual ~MacroObject();
 
-    CMacroObject(const MACRO_CODE &code, const MACRO_SUB_CODE &subCode);
-    virtual ~CMacroObject();
+    MACRO_CODE GetCode() const { return m_code; }
+    void SetCode(MACRO_CODE a_code) { m_code = a_code; }
+    MACRO_SUB_CODE GetSubCode() const { return m_subCode; }
+    void SetSubCode(MACRO_SUB_CODE a_subCode) { m_subCode = a_subCode; }
+    char HasSubMenu() const { return m_hasSubMenu; }
+    virtual bool HasString() const { return false; }
+    const std::string& GetString() const { return Core::EmptyString; }
 
-    virtual bool HaveString() { return false; }
+private:
+    MACRO_CODE m_code = MC_NONE;
+    MACRO_SUB_CODE m_subCode = MSC_NONE;
+    char m_hasSubMenu = 0;
 };
 
-class CMacroObjectString : public CMacroObject
+class MacroObjectString : public MacroObject
 {
 public:
-    string m_String;
+    MacroObjectString(const MACRO_CODE& a_code, const MACRO_SUB_CODE& a_subCode, const std::string& a_str);
+    virtual ~MacroObjectString();
 
-    CMacroObjectString(const MACRO_CODE &code, const MACRO_SUB_CODE &subCode, const string &str);
-    virtual ~CMacroObjectString();
+    virtual bool HasString() const { return true; }
+    const std::string& GetString() const { return m_string; }
+    void SetString(const std::string& a_str) { m_string = a_str; }
 
-    virtual bool HaveString() { return true; }
+private:
+    std::string m_string;
 };
 
-class CMacro : public CBaseQueueItem
+class Macro : public CBaseQueueItem
 {
 public:
-    Keycode Key = 0;
-    bool Alt = false;
-    bool Ctrl = false;
-    bool Shift = false;
+    enum { kMacroActionNamesCount = 60 };
+    enum { kMacroActionsCount = 210 };
 
-    CMacro(Keycode key, bool alt, bool ctrl, bool shift);
-    virtual ~CMacro();
+    Macro(Core::EKey a_key, bool a_alt, bool a_ctrl, bool a_shift);
+    virtual ~Macro();
 
-    static const int MACRO_ACTION_NAME_COUNT = 60;
-    static const int MACRO_ACTION_COUNT = 210;
+    Core::EKey GetKey() const { return m_key; }
+    bool GetAlt() const { return m_alt; }
+    bool GetCtrl() const { return m_ctrl; }
+    bool GetShift() const { return m_shift; }
+    void SetKey(Core::EKey a_key) { m_key = a_key; }
+    void SetAlt(bool a_alt) { m_alt = m_alt; }
+    void SetCtrl(bool a_ctrl) { m_ctrl = m_ctrl; }
+    void SetShift(bool a_shift) { m_shift = m_shift; }
+    static const char *GetActionName(int a_index) { return s_macroActionName[a_index]; }
+    static const char *GetAction(int a_index) { return s_macroAction[a_index]; }
 
-    static const char *m_MacroActionName[MACRO_ACTION_NAME_COUNT];
-    static const char *m_MacroAction[MACRO_ACTION_COUNT];
+    void ChangeObject(MacroObject* a_source, MacroObject* a_obj);
+    void Save(Core::StreamWriter& a_writer);
 
-    static const char *GetActionName(int index) { return m_MacroActionName[index]; }
-    static const char *GetAction(int index) { return m_MacroAction[index]; }
+    Macro* GetCopy();
 
-    void ChangeObject(CMacroObject *source, CMacroObject *obj);
-    void Save(Wisp::CBinaryFileWriter &writer);
+    static Macro* Load(Core::MappedFile& a_file);
+    static Macro* CreateBlankMacro();
+    static MacroObject* CreateMacro(const MACRO_CODE& a_code);
+    static void GetBoundByCode(const MACRO_CODE& a_code, int& a_count, int& a_offset);
 
-    CMacro *GetCopy();
-
-    static CMacro *Load(Wisp::CMappedFile &file);
-    static CMacro *CreateBlankMacro();
-    static CMacroObject *CreateMacro(const MACRO_CODE &code);
-    static void GetBoundByCode(const MACRO_CODE &code, int &count, int &offset);
+private:
+    static const char* s_macroActionName[kMacroActionNamesCount];
+    static const char* s_macroAction[kMacroActionsCount];
+    Core::EKey m_key = Core::EKey::Key_Unknown;
+    bool m_alt = false;
+    bool m_ctrl = false;
+    bool m_shift = false;
 };
 
-extern CMacroObject *g_MacroPointer;
+extern MacroObject *g_MacroPointer;

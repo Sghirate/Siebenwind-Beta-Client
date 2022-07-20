@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -14,7 +11,7 @@ class CGumpShop : public CGump
 public:
     bool IsBuyGump = false;
 
-    CGumpShop(uint32_t serial, bool isBuyGump, short x, short y);
+    CGumpShop(u32 serial, bool isBuyGump, short x, short y);
     virtual ~CGumpShop();
 
     CGUIHTMLGump *m_ItemList[2];
@@ -23,12 +20,12 @@ public:
     CGUIText *m_NameText{ nullptr };
 
     void SendList();
-    virtual void PrepareContent() override;
+     void PrepareContent()  override;
     virtual bool CanBeDisplayed() override { return Visible; }
 
     GUMP_BUTTON_EVENT_H;
     GUMP_SCROLL_BUTTON_EVENT_H;
 
-    virtual void OnLeftMouseButtonUp() override;
-    virtual bool OnLeftMouseButtonDoubleClick() override;
+     void OnLeftMouseButtonUp()  override;
+     bool OnLeftMouseButtonDoubleClick()  override;
 };

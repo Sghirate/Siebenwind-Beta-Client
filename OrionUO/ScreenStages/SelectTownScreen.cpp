@@ -1,14 +1,12 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "SelectTownScreen.h"
 #include "CreateCharacterScreen.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../CityList.h"
-#include "../OrionWindow.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../Network/Packets.h"
+#include "GameVars.h"
+#include "GameWindow.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "CityList.h"
+#include "Managers/ScreenEffectManager.h"
+#include "Network/Packets.h"
 
 CSelectTownScreen g_SelectTownScreen;
 
@@ -23,8 +21,7 @@ CSelectTownScreen::~CSelectTownScreen()
 
 void CSelectTownScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
-    if (g_Config.ClientVersion >= CV_70130)
+    if (GameVars::GetClientVersion() >= CV_70130)
     {
         m_City = g_CityList.GetCity(0);
     }
@@ -45,9 +42,8 @@ void CSelectTownScreen::Init()
     m_Gump.WantUpdateContent = true;
 }
 
-void CSelectTownScreen::ProcessSmoothAction(uint8_t action)
+void CSelectTownScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -55,7 +51,7 @@ void CSelectTownScreen::ProcessSmoothAction(uint8_t action)
 
     if (action == ID_SMOOTH_STS_QUIT)
     {
-        g_OrionWindow.Destroy();
+        g_gameWindow.Close();
     }
     else if (action == ID_SMOOTH_STS_GO_SCREEN_CHARACTER)
     {

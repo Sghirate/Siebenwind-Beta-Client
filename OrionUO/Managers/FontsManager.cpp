@@ -1,25 +1,25 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "FontsManager.h"
+#include "Globals.h"
 #include "ColorManager.h"
+#include "Core/MappedFile.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
 #include "FileManager.h"
-#include "../OrionUO.h"
-#include "../DefinitionMacro.h"
-#include "../OrionApplication.h"
+#include "OrionUO.h"
+#include "DefinitionMacro.h"
+#include "OrionApplication.h"
+#include "plugin/mulstruct.h"
 
 CFontsManager g_FontManager;
 
 CFontsManager::CFontsManager()
 {
-    DEBUG_TRACE_FUNCTION;
     memset(m_UnicodeFontAddress, 0, sizeof(m_UnicodeFontAddress));
     memset(m_UnicodeFontSize, 0, sizeof(m_UnicodeFontSize));
 }
 
 CFontsManager::~CFontsManager()
 {
-    DEBUG_TRACE_FUNCTION;
     delete[] Font;
     FontCount = 0;
     m_WebLink.clear();
@@ -27,11 +27,8 @@ CFontsManager::~CFontsManager()
 
 bool CFontsManager::LoadFonts()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    Wisp::CMappedFile fontFile;
-
-    if (!fontFile.Load(g_App.UOFilesPath("fonts.mul")))
+    Core::MappedFile fontFile;
+    if (!fontFile.Load(g_App.GetGameDir() / "fonts.mul"))
     {
         return false;
     }
@@ -45,12 +42,12 @@ bool CFontsManager::LoadFonts()
 
         for (int i = 0; i < 224; i++)
         {
-            FONT_HEADER *fh = (FONT_HEADER *)fontFile.Ptr;
+            FONT_HEADER *fh = (FONT_HEADER *)fontFile.GetPtr();
             fontFile.Move(sizeof(FONT_HEADER));
 
             int bcount = fh->Width * fh->Height * 2;
 
-            if (fontFile.Ptr + bcount > fontFile.End) //Bad font file...
+            if (fontFile.GetPtr() + bcount > fontFile.GetEnd()) //Bad font file...
             {
                 exit = true;
 
@@ -83,25 +80,25 @@ bool CFontsManager::LoadFonts()
     for (int i = 0; i < FontCount; i++)
     {
         FONT_DATA &fd = Font[i];
-        fd.Header = fontFile.ReadUInt8();
+        fd.Header = fontFile.ReadBE<u8>();
 
         for (int j = 0; j < 224; j++)
         {
             FONT_CHARACTER_DATA &fcd = fd.Chars[j];
-            fcd.Width = fontFile.ReadUInt8();
-            fcd.Height = fontFile.ReadUInt8();
+            fcd.Width = fontFile.ReadBE<u8>();
+            fcd.Height = fontFile.ReadBE<u8>();
             fontFile.Move(1);
 
             int dataSize = fcd.Width * fcd.Height;
             fcd.Data.resize(dataSize);
-            fontFile.ReadDataLE((uint8_t *)&fcd.Data[0], dataSize * 2);
+            fontFile.ReadDataLE((u8 *)&fcd.Data[0], dataSize * 2);
         }
     }
 
     for (int i = 0; i < 20; i++)
     {
-        m_UnicodeFontAddress[i] = (size_t)g_FileManager.m_UnifontMul[i].Start;
-        m_UnicodeFontSize[i] = (uint32_t)g_FileManager.m_UnifontMul[i].Size;
+        m_UnicodeFontAddress[i] = (size_t)g_FileManager.m_UnifontMul[i].GetBuffer();
+        m_UnicodeFontSize[i] = (u32)g_FileManager.m_UnifontMul[i].GetSize();
     }
 
     if (m_UnicodeFontAddress[1] == 0)
@@ -121,15 +118,13 @@ bool CFontsManager::LoadFonts()
     return true;
 }
 
-bool CFontsManager::UnicodeFontExists(uint8_t font)
+bool CFontsManager::UnicodeFontExists(u8 font)
 {
-    DEBUG_TRACE_FUNCTION;
     return !(font >= 20 || m_UnicodeFontAddress[font] == 0);
 }
 
-void CFontsManager::GoToWebLink(uint16_t link)
+void CFontsManager::GoToWebLink(u16 link)
 {
-    DEBUG_TRACE_FUNCTION;
     WEBLINK_MAP::iterator it = m_WebLink.find(link);
 
     if (it != m_WebLink.end())
@@ -139,9 +134,8 @@ void CFontsManager::GoToWebLink(uint16_t link)
     }
 }
 
-int CFontsManager::GetFontOffsetY(uint8_t font, uint8_t index)
+int CFontsManager::GetFontOffsetY(u8 font, u8 index)
 {
-    DEBUG_TRACE_FUNCTION;
 
     if (index == 0xB8)
     {
@@ -167,11 +161,10 @@ int CFontsManager::GetFontOffsetY(uint8_t font, uint8_t index)
     return 0;
 }
 
-CPoint2Di CFontsManager::GetCaretPosA(
-    uint8_t font, const string &str, int pos, int width, TEXT_ALIGN_TYPE align, uint16_t flags)
+Core::Vec2<i32> CFontsManager::GetCaretPosA(
+    u8 font, const std::string &str, int pos, int width, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
-    CPoint2Di p;
+    Core::Vec2<i32> p;
 
     if (font >= FontCount || pos < 1 || str.empty())
     {
@@ -198,7 +191,7 @@ CPoint2Di CFontsManager::GetCaretPosA(
     //loop throgh lines to get width and height
     while (info != nullptr)
     {
-        p.X = 0;
+        p.x = 0;
         int len = info->CharCount;
         if (info->CharStart == pos)
         {
@@ -211,8 +204,8 @@ CPoint2Di CFontsManager::GetCaretPosA(
             for (int i = 0; i < len; i++)
             {
                 //collect data about width of each character
-                uint8_t index = m_FontIndex[(uint8_t)ptr->Data[i].item];
-                p.X += fd.Chars[index].Width;
+                u8 index = m_FontIndex[(u8)ptr->Data[i].item];
+                p.x += fd.Chars[index].Width;
 
                 if (info->CharStart + i + 1 == pos)
                 {
@@ -224,7 +217,7 @@ CPoint2Di CFontsManager::GetCaretPosA(
         //add to height if there's another line
         if (info->m_Next != nullptr)
         {
-            p.Y += info->MaxHeight;
+            p.y += info->MaxHeight;
         }
 
         PMULTILINES_FONT_INFO ptr = info;
@@ -239,9 +232,8 @@ CPoint2Di CFontsManager::GetCaretPosA(
 }
 
 int CFontsManager::CalculateCaretPosA(
-    uint8_t font, const string &str, int x, int y, int width, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, const std::string &str, int x, int y, int width, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= FontCount || x < 0 || y < 0 || str.empty())
     {
         return 0;
@@ -290,7 +282,7 @@ int CFontsManager::CalculateCaretPosA(
 
                 for (int i = 0; i < len; i++)
                 {
-                    uint8_t index = m_FontIndex[(uint8_t)ptr->Data[i].item];
+                    u8 index = m_FontIndex[(u8)ptr->Data[i].item];
 
                     width += fd.Chars[index].Width;
 
@@ -320,9 +312,8 @@ int CFontsManager::CalculateCaretPosA(
     return pos;
 }
 
-int CFontsManager::GetWidthA(uint8_t font, const string &str)
+int CFontsManager::GetWidthA(u8 font, const std::string &str)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= FontCount || str.empty())
     {
         return 0;
@@ -333,16 +324,15 @@ int CFontsManager::GetWidthA(uint8_t font, const string &str)
 
     for (char c : str)
     {
-        textLength += fd.Chars[m_FontIndex[(uint8_t)c]].Width;
+        textLength += fd.Chars[m_FontIndex[(u8)c]].Width;
     }
 
     return textLength;
 }
 
 int CFontsManager::GetWidthExA(
-    uint8_t font, const string &str, int maxWidth, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, const std::string &str, int maxWidth, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= FontCount || str.empty())
     {
         return 0;
@@ -371,9 +361,8 @@ int CFontsManager::GetWidthExA(
 }
 
 int CFontsManager::GetHeightA(
-    uint8_t font, const string &str, int width, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, const std::string &str, int width, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= FontCount || str.empty())
     {
         return 0;
@@ -405,7 +394,6 @@ int CFontsManager::GetHeightA(
 
 int CFontsManager::GetHeightA(PMULTILINES_FONT_INFO info)
 {
-    DEBUG_TRACE_FUNCTION;
     int textHeight = 0;
 
     while (info != nullptr)
@@ -418,26 +406,25 @@ int CFontsManager::GetHeightA(PMULTILINES_FONT_INFO info)
     return textHeight;
 }
 
-string CFontsManager::GetTextByWidthA(uint8_t font, const string &str, int width, bool isCropped)
+std::string CFontsManager::GetTextByWidthA(u8 font, const std::string &str, int width, bool isCropped)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= FontCount || str.empty())
     {
-        return string("");
+        return std::string("");
     }
 
     FONT_DATA &fd = Font[font];
 
     if (isCropped)
     {
-        width -= fd.Chars[m_FontIndex[(uint8_t)'.']].Width * 3;
+        width -= fd.Chars[m_FontIndex[(u8)'.']].Width * 3;
     }
 
     int textLength = 0;
-    string result = {};
+    std::string result = {};
     for (char c : str)
     {
-        textLength += fd.Chars[m_FontIndex[(uint8_t)c]].Width;
+        textLength += fd.Chars[m_FontIndex[(u8)c]].Width;
 
         if (textLength > width)
         {
@@ -456,9 +443,8 @@ string CFontsManager::GetTextByWidthA(uint8_t font, const string &str, int width
 }
 
 PMULTILINES_FONT_INFO CFontsManager::GetInfoA(
-    uint8_t font, const char *str, int len, TEXT_ALIGN_TYPE align, uint16_t flags, int width)
+    u8 font, const char *str, int len, TEXT_ALIGN_TYPE align, u16 flags, int width)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= FontCount)
     {
         return nullptr;
@@ -506,7 +492,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoA(
             charCount = 0;
         }
 
-        FONT_CHARACTER_DATA &fcd = fd.Chars[m_FontIndex[(uint8_t)si]];
+        FONT_CHARACTER_DATA &fcd = fd.Chars[m_FontIndex[(u8)si]];
 
         if (si == '\n' || ptr->Width + readWidth + fcd.Width > width)
         {
@@ -593,7 +579,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoA(
                 if (isFixed)
                 {
                     MULTILINES_FONT_DATA mfd = {
-                        (uint16_t)si, flags, font, 0, 0xFFFFFFFF, nullptr
+                        (u16)si, flags, font, 0, 0xFFFFFFFF, nullptr
                     };
                     ptr->Data.push_back(mfd);
 
@@ -652,7 +638,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoA(
             }
         }
 
-        MULTILINES_FONT_DATA mfd = { (uint16_t)si, flags, font, 0, 0xFFFFFFFF, nullptr };
+        MULTILINES_FONT_DATA mfd = { (u16)si, flags, font, 0, 0xFFFFFFFF, nullptr };
         ptr->Data.push_back(mfd);
 
         readWidth += fcd.Width;
@@ -697,15 +683,14 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoA(
 }
 
 bool CFontsManager::GenerateA(
-    uint8_t font,
+    u8 font,
     CGLTextTexture &th,
-    const string &str,
-    uint16_t color,
+    const std::string &str,
+    u16 color,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (((flags & UOFONT_FIXED) != 0) || ((flags & UOFONT_CROPPED) != 0))
     {
         th.Clear();
@@ -719,7 +704,7 @@ bool CFontsManager::GenerateA(
 
         if (realWidth > width)
         {
-            string newstr = GetTextByWidthA(font, str, width, (flags & UOFONT_CROPPED) != 0);
+            std::string newstr = GetTextByWidthA(font, str, width, (flags & UOFONT_CROPPED) != 0);
             return GenerateABase(font, th, newstr, color, width, align, flags);
         }
     }
@@ -727,17 +712,16 @@ bool CFontsManager::GenerateA(
     return GenerateABase(font, th, str, color, width, align, flags);
 }
 
-vector<uint32_t> CFontsManager::GeneratePixelsA(
-    uint8_t font,
+std::vector<u32> CFontsManager::GeneratePixelsA(
+    u8 font,
     CGLTextTexture &th,
     const char *str,
-    uint16_t color,
+    u16 color,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint32_t> pData;
+    std::vector<u32> pData;
 
     th.Clear();
 
@@ -832,13 +816,13 @@ vector<uint32_t> CFontsManager::GeneratePixelsA(
         int count = (int)ptr->Data.size();
         for (int i = 0; i < count; i++)
         {
-            uint8_t index = (uint8_t)ptr->Data[i].item;
+            u8 index = (u8)ptr->Data[i].item;
             int offsY = GetFontOffsetY(font, index);
 
             FONT_CHARACTER_DATA &fcd = fd.Chars[m_FontIndex[index]];
             int dw = fcd.Width;
             int dh = fcd.Height;
-            uint16_t charColor = color;
+            u16 charColor = color;
             for (int y = 0; y < dh; y++)
             {
                 int testY = y + lineOffsY + offsY;
@@ -854,10 +838,10 @@ vector<uint32_t> CFontsManager::GeneratePixelsA(
                         break;
                     }
 
-                    uint16_t pic = fcd.Data[(y * dw) + x];
+                    u16 pic = fcd.Data[(y * dw) + x];
                     if (pic != 0u)
                     {
-                        uint32_t pcl = 0;
+                        u32 pcl = 0;
                         if (partialHue)
                         {
                             pcl = g_ColorManager.GetPartialHueColor(pic, charColor);
@@ -894,16 +878,15 @@ vector<uint32_t> CFontsManager::GeneratePixelsA(
 }
 
 bool CFontsManager::GenerateABase(
-    uint8_t font,
+    u8 font,
     CGLTextTexture &th,
-    const string &str,
-    uint16_t color,
+    const std::string &str,
+    u16 color,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint32_t> pixels = GeneratePixelsA(font, th, str.c_str(), color, width, align, flags);
+    std::vector<u32> pixels = GeneratePixelsA(font, th, str.c_str(), color, width, align, flags);
     bool result = false;
 
     if (static_cast<unsigned int>(!pixels.empty()) != 0u)
@@ -917,16 +900,15 @@ bool CFontsManager::GenerateABase(
 }
 
 void CFontsManager::DrawA(
-    uint8_t font,
-    const string &str,
-    uint16_t color,
+    u8 font,
+    const std::string &str,
+    u16 color,
     int x,
     int y,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTextTexture th;
 
     if (GenerateA(font, th, str, color, width, align, flags))
@@ -935,12 +917,11 @@ void CFontsManager::DrawA(
     }
 }
 
-CPoint2Di CFontsManager::GetCaretPosW(
-    uint8_t font, const wstring &str, int pos, int width, TEXT_ALIGN_TYPE align, uint16_t flags)
+Core::Vec2<i32> CFontsManager::GetCaretPosW(
+    u8 font, const std::wstring &str, int pos, int width, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    CPoint2Di p;
+    Core::Vec2<i32> p;
     if (pos < 1 || font >= 20 || (m_UnicodeFontAddress[font] == 0u) || str.empty())
     {
         return p;
@@ -958,11 +939,11 @@ CPoint2Di CFontsManager::GetCaretPosW(
         return p;
     }
 
-    uint32_t *table = (uint32_t *)m_UnicodeFontAddress[font];
+    u32 *table = (u32 *)m_UnicodeFontAddress[font];
     //loop throgh lines to get width and height
     while (info != nullptr)
     {
-        p.X = 0;
+        p.x = 0;
         int len = info->CharCount;
         if (info->CharStart == pos)
         {
@@ -977,15 +958,15 @@ CPoint2Di CFontsManager::GetCaretPosW(
             {
                 //collect data about width of each character
                 const wchar_t &ch = info->Data[i].item;
-                uint32_t offset = table[ch];
+                u32 offset = table[ch];
                 if ((offset != 0u) && offset != 0xFFFFFFFF)
                 {
-                    uint8_t *cptr = (uint8_t *)((size_t)table + offset);
-                    p.X += ((char)cptr[0] + (char)cptr[2] + 1);
+                    u8 *cptr = (u8 *)((size_t)table + offset);
+                    p.x += ((char)cptr[0] + (char)cptr[2] + 1);
                 }
                 else if (ch == L' ')
                 {
-                    p.X += UNICODE_SPACE_WIDTH;
+                    p.x += UNICODE_SPACE_WIDTH;
                 }
 
                 if (info->CharStart + i + 1 == pos)
@@ -998,7 +979,7 @@ CPoint2Di CFontsManager::GetCaretPosW(
         //add to height if there's another line
         if (info->m_Next != nullptr)
         {
-            p.Y += info->MaxHeight;
+            p.y += info->MaxHeight;
         }
 
         PMULTILINES_FONT_INFO ptr = info;
@@ -1011,15 +992,14 @@ CPoint2Di CFontsManager::GetCaretPosW(
 }
 
 int CFontsManager::CalculateCaretPosW(
-    uint8_t font,
-    const wstring &str,
+    u8 font,
+    const std::wstring &str,
     int x,
     int y,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (x < 0 || y < 0 || font >= 20 || (m_UnicodeFontAddress[font] == 0u) || str.empty())
     {
         return 0;
@@ -1044,7 +1024,7 @@ int CFontsManager::CalculateCaretPosW(
 
     int height = 0;
 
-    uint32_t *table = (uint32_t *)m_UnicodeFontAddress[font];
+    u32 *table = (u32 *)m_UnicodeFontAddress[font];
     int pos = 0;
     bool found = false;
 
@@ -1066,7 +1046,7 @@ int CFontsManager::CalculateCaretPosW(
 
                     if ((offset != 0) && offset != 0xFFFFFFFF)
                     {
-                        uint8_t *cptr = (uint8_t *)((size_t)table + offset);
+                        u8 *cptr = (u8 *)((size_t)table + offset);
                         width += ((char)cptr[0] + (char)cptr[2] + 1);
                     }
                     else if (ch == L' ')
@@ -1107,23 +1087,22 @@ int CFontsManager::CalculateCaretPosW(
     return pos;
 }
 
-int CFontsManager::GetWidthW(uint8_t font, const wstring &str)
+int CFontsManager::GetWidthW(u8 font, const std::wstring &str)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= 20 || (m_UnicodeFontAddress[font] == 0u) || str.empty())
     {
         return 0;
     }
 
-    auto table = (uint32_t *)m_UnicodeFontAddress[font];
+    auto table = (u32 *)m_UnicodeFontAddress[font];
     int textLength = 0;
     int maxTextLength = 0;
     for (const auto &c : str)
     {
-        uint32_t &offset = table[c];
+        u32 &offset = table[c];
         if ((offset != 0u) && offset != 0xFFFFFFFF)
         {
-            uint8_t *ptr = (uint8_t *)((size_t)table + offset);
+            u8 *ptr = (u8 *)((size_t)table + offset);
             textLength += ((char)ptr[0] + (char)ptr[2] + 1);
         }
         else if (c == L' ')
@@ -1132,18 +1111,17 @@ int CFontsManager::GetWidthW(uint8_t font, const wstring &str)
         }
         else if (c == L'\n' || c == L'\r')
         {
-            maxTextLength = std::max(maxTextLength, textLength);
+            maxTextLength = Core::Max(maxTextLength, textLength);
             textLength = 0;
         }
     }
 
-    return std::max(maxTextLength, textLength);
+    return Core::Max(maxTextLength, textLength);
 }
 
 int CFontsManager::GetWidthExW(
-    uint8_t font, const wstring &str, int maxWidth, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, const std::wstring &str, int maxWidth, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= 20 || (m_UnicodeFontAddress[font] == 0u) || str.empty())
     {
         return 0;
@@ -1170,9 +1148,8 @@ int CFontsManager::GetWidthExW(
 }
 
 int CFontsManager::GetHeightW(
-    uint8_t font, const wstring &str, int width, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, const std::wstring &str, int width, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= 20 || (m_UnicodeFontAddress[font] == 0u) || str.empty())
     {
         return 0;
@@ -1212,7 +1189,6 @@ int CFontsManager::GetHeightW(
 
 int CFontsManager::GetHeightW(PMULTILINES_FONT_INFO info)
 {
-    DEBUG_TRACE_FUNCTION;
 
     int textHeight = 0;
 
@@ -1231,37 +1207,36 @@ int CFontsManager::GetHeightW(PMULTILINES_FONT_INFO info)
     return textHeight;
 }
 
-wstring CFontsManager::GetTextByWidthW(uint8_t font, const wstring &str, int width, bool isCropped)
+std::wstring CFontsManager::GetTextByWidthW(u8 font, const std::wstring &str, int width, bool isCropped)
 {
-    DEBUG_TRACE_FUNCTION;
     if (font >= 20 || (m_UnicodeFontAddress[font] == 0u) || str.empty())
     {
-        return wstring({});
+        return std::wstring({});
     }
 
-    uint32_t *table = (uint32_t *)m_UnicodeFontAddress[font];
+    u32 *table = (u32 *)m_UnicodeFontAddress[font];
 
     if (isCropped)
     {
-        uint32_t offset = table[L'.'];
+        u32 offset = table[L'.'];
 
         if ((offset != 0u) && offset != 0xFFFFFFFF)
         {
-            width -= ((*((uint8_t *)((size_t)table + offset + 2)) * 3) + 3);
+            width -= ((*((u8 *)((size_t)table + offset + 2)) * 3) + 3);
         }
     }
 
     int textLength = 0;
-    wstring result = {};
+    std::wstring result = {};
 
     for (const wchar_t &c : str)
     {
-        uint32_t offset = table[c];
+        u32 offset = table[c];
         char charWidth = 0;
 
         if ((offset != 0u) && offset != 0xFFFFFFFF)
         {
-            uint8_t *ptr = (uint8_t *)((size_t)table + offset);
+            u8 *ptr = (u8 *)((size_t)table + offset);
             charWidth = ((char)ptr[0] + (char)ptr[2] + 1);
         }
         else if (c == L' ')
@@ -1290,16 +1265,14 @@ wstring CFontsManager::GetTextByWidthW(uint8_t font, const wstring &str, int wid
     return result;
 }
 
-uint16_t CFontsManager::GetWebLinkID(const wstring &link, uint32_t &color)
+u16 CFontsManager::GetWebLinkID(const std::wstring &link, u32 &color)
 {
-    DEBUG_TRACE_FUNCTION;
-    return GetWebLinkID(ToString(link), color);
+    return GetWebLinkID(Core::ToString(link), color);
 }
 
-uint16_t CFontsManager::GetWebLinkID(const string &link, uint32_t &color)
+u16 CFontsManager::GetWebLinkID(const std::string &link, u32 &color)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t linkID = 0;
+    u16 linkID = 0;
 
     WEBLINK_MAP::iterator it = m_WebLink.begin();
 
@@ -1313,7 +1286,7 @@ uint16_t CFontsManager::GetWebLinkID(const string &link, uint32_t &color)
 
     if (it == m_WebLink.end())
     {
-        linkID = (uint16_t)m_WebLink.size() + 1;
+        linkID = (u16)m_WebLink.size() + 1;
         WEB_LINK wl = { false, link };
         m_WebLink[linkID] = wl;
     }
@@ -1331,9 +1304,8 @@ uint16_t CFontsManager::GetWebLinkID(const string &link, uint32_t &color)
 }
 
 HTMLCHAR_LIST CFontsManager::GetHTMLData(
-    uint8_t font, const wchar_t *str, int &len, TEXT_ALIGN_TYPE align, uint16_t flags)
+    u8 font, const wchar_t *str, int &len, TEXT_ALIGN_TYPE align, u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     HTMLCHAR_LIST data;
 
     if (len < 1)
@@ -1346,7 +1318,7 @@ HTMLCHAR_LIST CFontsManager::GetHTMLData(
 
     HTML_DATA_INFO info = { HTT_NONE, align, flags, font, m_HTMLColor, 0 };
 
-    vector<HTML_DATA_INFO> stack;
+    std::vector<HTML_DATA_INFO> stack;
     stack.push_back(info);
 
     HTML_DATA_INFO currentInfo = info;
@@ -1470,7 +1442,6 @@ HTMLCHAR_LIST CFontsManager::GetHTMLData(
 
 HTML_DATA_INFO CFontsManager::GetHTMLInfoFromTag(const HTML_TAG_TYPE &tag)
 {
-    DEBUG_TRACE_FUNCTION;
     HTML_DATA_INFO info = { tag, TS_LEFT, 0, 0xFF, 0, 0 };
 
     switch (tag)
@@ -1537,7 +1508,6 @@ HTML_DATA_INFO CFontsManager::GetHTMLInfoFromTag(const HTML_TAG_TYPE &tag)
 
 HTML_DATA_INFO CFontsManager::GetCurrentHTMLInfo(const HTMLINFO_LIST &list)
 {
-    DEBUG_TRACE_FUNCTION;
     HTML_DATA_INFO info = { HTT_NONE, TS_LEFT, 0, 0xFF, 0, 0 };
 
     for (int i = 0; i < (int)list.size(); i++)
@@ -1616,9 +1586,8 @@ HTML_DATA_INFO CFontsManager::GetCurrentHTMLInfo(const HTMLINFO_LIST &list)
     return info;
 }
 
-void CFontsManager::TrimHTMLString(string &str)
+void CFontsManager::TrimHTMLString(std::string &str)
 {
-    DEBUG_TRACE_FUNCTION;
     if (str.length() >= 2 && str[0] == '"' && str[str.length() - 1] == '"')
     {
         str.resize(str.length() - 1);
@@ -1626,10 +1595,9 @@ void CFontsManager::TrimHTMLString(string &str)
     }
 }
 
-uint32_t CFontsManager::GetHTMLColorFromText(string &str)
+u32 CFontsManager::GetHTMLColorFromText(std::string &str)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint32_t color = 0;
+    u32 color = 0;
 
     if (str.length() > 1)
     {
@@ -1638,12 +1606,12 @@ uint32_t CFontsManager::GetHTMLColorFromText(string &str)
             char *end;
             color = strtoul(str.c_str() + 1, &end, 16);
 
-            uint8_t *clrBuf = (uint8_t *)&color;
+            u8 *clrBuf = (u8 *)&color;
             color = (clrBuf[0] << 24) | (clrBuf[1] << 16) | (clrBuf[2] << 8) | 0xFF;
         }
         else
         {
-            str = ToLowerA(str);
+            str = Core::ToLowerA(str);
 
             if (str == "red")
             {
@@ -1723,12 +1691,10 @@ uint32_t CFontsManager::GetHTMLColorFromText(string &str)
     return color;
 }
 
-void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const string &content)
+void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const std::string &content)
 {
-    DEBUG_TRACE_FUNCTION;
-    Wisp::CTextFileParser parser({}, " =", "", "\"\"");
-
-    vector<string> strings = parser.GetTokens(content.c_str());
+    Core::TextFileParser parser({}, " =", "", "\"\"");
+    std::vector<std::string> strings = parser.GetTokens(content.c_str());
     int size = (int)strings.size();
 
     for (int i = 0; i < size; i += 2)
@@ -1738,8 +1704,8 @@ void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const string &c
             break;
         }
 
-        string str = ToLowerA(strings[i]);
-        string &value = strings[i + 1];
+        std::string str = Core::ToLowerA(strings[i]);
+        std::string&value = strings[i + 1];
         TrimHTMLString(value);
 
         if (value.length() == 0u)
@@ -1794,7 +1760,7 @@ void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const string &c
                 }
                 else if (str == "size")
                 {
-                    uint8_t font = atoi(value.c_str());
+                    u8 font = atoi(value.c_str());
 
                     if ((font == 0) || (font == 4))
                     {
@@ -1827,7 +1793,7 @@ void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const string &c
             {
                 if (str == "align")
                 {
-                    str = ToLowerA(value);
+                    str = Core::ToLowerA(value);
 
                     if (str == "left")
                     {
@@ -1854,7 +1820,6 @@ void CFontsManager::GetHTMLInfoFromContent(HTML_DATA_INFO &info, const string &c
 HTML_TAG_TYPE
 CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, HTML_DATA_INFO &info)
 {
-    DEBUG_TRACE_FUNCTION;
     HTML_TAG_TYPE tag = HTT_NONE;
 
     i++;
@@ -1885,11 +1850,11 @@ CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, H
     {
         int cmdLen = i - j;
         //LOG("cmdLen = %i\n", cmdLen);
-        wstring cmd;
+        std::wstring cmd;
         cmd.resize(cmdLen);
         memcpy(&cmd[0], &str[j], cmdLen * 2);
         //LOG(L"cmd[%s] = %s\n", (endTag ? L"end" : L"start"), cmd.c_str());
-        cmd = ToLowerW(cmd);
+        cmd = Core::ToLowerW(cmd);
 
         j = i;
 
@@ -1996,7 +1961,7 @@ CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, H
                     case HTT_A:
                     case HTT_DIV:
                     {
-                        wstring content = {};
+                        std::wstring content = {};
                         cmdLen = i - j;
                         //LOG("contentCmdLen = %i\n", cmdLen);
                         content.resize(cmdLen);
@@ -2005,7 +1970,7 @@ CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, H
 
                         if (static_cast<unsigned int>(!content.empty()) != 0u)
                         {
-                            GetHTMLInfoFromContent(info, ToString(content));
+                            GetHTMLInfoFromContent(info, Core::ToString(content));
                         }
 
                         break;
@@ -2021,9 +1986,8 @@ CFontsManager::ParseHTMLTag(const wchar_t *str, int len, int &i, bool &endTag, H
 }
 
 PMULTILINES_FONT_INFO CFontsManager::GetInfoHTML(
-    uint8_t font, const wchar_t *str, int len, TEXT_ALIGN_TYPE align, uint16_t flags, int width)
+    u8 font, const wchar_t *str, int len, TEXT_ALIGN_TYPE align, u16 flags, int width)
 {
-    DEBUG_TRACE_FUNCTION;
     HTMLCHAR_LIST htmlData = GetHTMLData(font, str, len, align, flags);
 
     if (htmlData.empty())
@@ -2056,7 +2020,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoHTML(
     for (int i = 0; i < len; i++)
     {
         wchar_t si = htmlData[i].Char;
-        uint32_t *table = (uint32_t *)m_UnicodeFontAddress[htmlData[i].Font];
+        u32 *table = (u32 *)m_UnicodeFontAddress[htmlData[i].Font];
 
         if (si == 0x000D || si == L'\n')
         {
@@ -2075,7 +2039,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoHTML(
             continue;
         }
 
-        uint8_t *data = (uint8_t *)((size_t)table + table[si]);
+        u8 *data = (u8 *)((size_t)table + table[si]);
 
         if (si == L' ')
         {
@@ -2265,9 +2229,8 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoHTML(
 }
 
 PMULTILINES_FONT_INFO CFontsManager::GetInfoW(
-    uint8_t font, const wchar_t *str, int len, TEXT_ALIGN_TYPE align, uint16_t flags, int width)
+    u8 font, const wchar_t *str, int len, TEXT_ALIGN_TYPE align, u16 flags, int width)
 {
-    DEBUG_TRACE_FUNCTION;
     m_WebLinkColor = 0xFF0000FF;
     m_VisitedWebLinkColor = 0x0000FFFF;
     m_BackgroundColor = 0;
@@ -2286,7 +2249,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoW(
         return GetInfoHTML(font, str, len, align, flags, width);
     }
 
-    uint32_t *table = (uint32_t *)m_UnicodeFontAddress[font];
+    u32 *table = (u32 *)m_UnicodeFontAddress[font];
 
     PMULTILINES_FONT_INFO info = new MULTILINES_FONT_INFO();
     info->Reset();
@@ -2306,12 +2269,12 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoW(
     bool isCropped = ((flags & UOFONT_CROPPED) != 0);
 
     TEXT_ALIGN_TYPE current_align = align;
-    uint16_t current_flags = flags;
-    uint8_t current_font = font;
-    uint32_t charcolor = 0xFFFFFFFF;
-    uint32_t current_charcolor = 0xFFFFFFFF;
-    uint32_t lastspace_charcolor = 0xFFFFFFFF;
-    uint32_t lastspace_current_charcolor = 0xFFFFFFFF;
+    u16 current_flags = flags;
+    u8 current_font = font;
+    u32 charcolor = 0xFFFFFFFF;
+    u32 current_charcolor = 0xFFFFFFFF;
+    u32 lastspace_charcolor = 0xFFFFFFFF;
+    u32 lastspace_current_charcolor = 0xFFFFFFFF;
 
     for (int i = 0; i < len; i++)
     {
@@ -2334,7 +2297,7 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoW(
             continue;
         }
 
-        uint8_t *data = (uint8_t *)((size_t)table + table[si]);
+        u8 *data = (u8 *)((size_t)table + table[si]);
 
         if (si == L' ')
         {
@@ -2533,16 +2496,15 @@ PMULTILINES_FONT_INFO CFontsManager::GetInfoW(
 }
 
 bool CFontsManager::GenerateW(
-    uint8_t font,
+    u8 font,
     CGLTextTexture &th,
-    const wstring &str,
-    uint16_t color,
-    uint8_t cell,
+    const std::wstring &str,
+    u16 color,
+    u8 cell,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     if (((flags & UOFONT_FIXED) != 0) || ((flags & UOFONT_CROPPED) != 0))
     {
         th.Clear();
@@ -2556,7 +2518,7 @@ bool CFontsManager::GenerateW(
 
         if (realWidth > width)
         {
-            wstring newstr = GetTextByWidthW(font, str, width, (flags & UOFONT_CROPPED) != 0);
+            std::wstring newstr = GetTextByWidthW(font, str, width, (flags & UOFONT_CROPPED) != 0);
             return GenerateWBase(font, th, newstr, color, cell, width, align, flags);
         }
     }
@@ -2564,18 +2526,17 @@ bool CFontsManager::GenerateW(
     return GenerateWBase(font, th, str, color, cell, width, align, flags);
 }
 
-vector<uint32_t> CFontsManager::GeneratePixelsW(
-    uint8_t font,
+std::vector<u32> CFontsManager::GeneratePixelsW(
+    u8 font,
     CGLTextTexture &th,
     const wchar_t *str,
-    uint16_t color,
-    uint8_t cell,
+    u16 color,
+    u8 cell,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint32_t> pData;
+    std::vector<u32> pData;
 
     if (font >= 20 || (m_UnicodeFontAddress[font] == 0u))
     {
@@ -2676,13 +2637,13 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
 
     pData.resize(blocksize, 0);
 
-    uint32_t *table = (uint32_t *)m_UnicodeFontAddress[font];
+    u32 *table = (u32 *)m_UnicodeFontAddress[font];
 
     int lineOffsY = 1 + m_TopMargin;
 
     PMULTILINES_FONT_INFO ptr = info;
 
-    uint32_t datacolor = 0;
+    u32 datacolor = 0;
 
     if (/*m_UseHTML &&*/ color == 0xFFFF)
     {
@@ -2697,7 +2658,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
     bool isSolid = (flags & UOFONT_SOLID) != 0;
     bool isBlackBorder = (flags & UOFONT_BLACK_BORDER) != 0;
     bool isUnderline = (flags & UOFONT_UNDERLINE) != 0;
-    uint32_t blackColor = 0x010101FF;
+    u32 blackColor = 0x010101FF;
 
     bool isLink = false;
     int linkStartX = 0;
@@ -2733,7 +2694,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
             w += ptr->IndentionOffset;
         }
 
-        uint16_t oldLink = 0;
+        u16 oldLink = 0;
 
         int dataSize = (int)ptr->Data.size();
         for (int i = 0; i < dataSize; i++)
@@ -2741,7 +2702,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
             const MULTILINES_FONT_DATA &dataPtr = ptr->Data[i];
             const wchar_t &si = dataPtr.item;
 
-            table = (uint32_t *)m_UnicodeFontAddress[dataPtr.font];
+            table = (u32 *)m_UnicodeFontAddress[dataPtr.font];
 
             if (!isLink)
             {
@@ -2774,7 +2735,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
                 }
                 else
                 {
-                    uint8_t *xData = (uint8_t *)((size_t)table + table[si]);
+                    u8 *xData = (u8 *)((size_t)table + table[si]);
                     ofsX = (char)xData[2];
                 }
 
@@ -2794,7 +2755,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
                 continue;
             }
 
-            uint8_t *data = (uint8_t *)((size_t)table + table[si]);
+            u8 *data = (u8 *)((size_t)table + table[si]);
 
             int offsX = 0;
             int offsY = 0;
@@ -2817,7 +2778,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
             }
 
             int tmpW = w;
-            uint32_t charcolor = datacolor;
+            u32 charcolor = datacolor;
             bool isBlackPixel =
                 (((charcolor >> 24) & 0xFF) <= 8 && ((charcolor >> 16) & 0xFF) <= 8 &&
                  ((charcolor >> 8) & 0xFF) <= 8);
@@ -2851,7 +2812,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
                         break;
                     }
 
-                    uint8_t *scanlines = data;
+                    u8 *scanlines = data;
                     data += scanlineCount;
 
                     int italicOffset = 0;
@@ -2880,7 +2841,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
                                 break;
                             }
 
-                            uint8_t cl = scanlines[c] & (1 << (7 - j));
+                            u8 cl = scanlines[c] & (1 << (7 - j));
 
                             int block = (testY * width) + nowX;
 
@@ -2894,7 +2855,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
 
                 if (isSolid)
                 {
-                    uint32_t solidColor = blackColor;
+                    u32 solidColor = blackColor;
 
                     if (solidColor == charcolor)
                     {
@@ -3095,7 +3056,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
                 int minXOk = ((tmpW + offsX) > 0) ? -1 : 0;
                 int maxXOk = ((w + offsX + dw) < width) ? 1 : 0;
 
-                uint8_t *aData = (uint8_t *)((size_t)table + table[L'a']);
+                u8 *aData = (u8 *)((size_t)table + table[L'a']);
 
                 int testY = lineOffsY + (char)aData[1] + (char)aData[3];
 
@@ -3138,7 +3099,7 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
 
             for (int x = 0; x < width; x++)
             {
-                uint32_t &p = pData[yPos + x];
+                u32 &p = pData[yPos + x];
 
                 if (p == 0u)
                 {
@@ -3155,17 +3116,16 @@ vector<uint32_t> CFontsManager::GeneratePixelsW(
 }
 
 bool CFontsManager::GenerateWBase(
-    uint8_t font,
+    u8 font,
     CGLTextTexture &th,
-    const wstring &str,
-    uint16_t color,
-    uint8_t cell,
+    const std::wstring &str,
+    u16 color,
+    u8 cell,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint32_t> pixels =
+    std::vector<u32> pixels =
         GeneratePixelsW(font, th, str.c_str(), color, cell, width, align, flags);
     bool result = false;
 
@@ -3180,17 +3140,16 @@ bool CFontsManager::GenerateWBase(
 }
 
 void CFontsManager::DrawW(
-    uint8_t font,
-    const wstring &str,
-    uint16_t color,
+    u8 font,
+    const std::wstring &str,
+    u16 color,
     int x,
     int y,
-    uint8_t cell,
+    u8 cell,
     int width,
     TEXT_ALIGN_TYPE align,
-    uint16_t flags)
+    u16 flags)
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTextTexture th;
 
     if (GenerateW(font, th, str, color, cell, width, align, flags))
@@ -3199,7 +3158,7 @@ void CFontsManager::DrawW(
     }
 }
 
-uint8_t CFontsManager::m_FontIndex[256] = {
+u8 CFontsManager::m_FontIndex[256] = {
     0xFF, //0
     0xFF, //1
     0xFF, //2

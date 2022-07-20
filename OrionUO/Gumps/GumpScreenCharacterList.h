@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -17,5 +14,5 @@ public:
     GUMP_BUTTON_EVENT_H;
     GUMP_TEXT_ENTRY_EVENT_H;
 
-    virtual bool OnLeftMouseButtonDoubleClick() override;
+     bool OnLeftMouseButtonDoubleClick()  override;
 };

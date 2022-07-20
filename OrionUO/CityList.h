@@ -1,16 +1,16 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "Managers/CityManager.h"
+#include <string>
+#include <vector>
 
 class CCityItem
 {
 public:
-    uint8_t LocationIndex = 0;
-    string Name = "";
-    string Area = "";
+    u8 LocationIndex = 0;
+    std::string Name = "";
+    std::string Area = "";
     bool Selected = false;
 
     CCityItem();
@@ -25,11 +25,11 @@ public:
 class CCityItemNew : public CCityItem
 {
 public:
-    uint32_t X = 0;
-    uint32_t Y = 0;
-    uint32_t Z = 0;
-    uint32_t MapIndex = 0;
-    uint32_t Cliloc = 0;
+    u32 X = 0;
+    u32 Y = 0;
+    u32 Z = 0;
+    u32 MapIndex = 0;
+    u32 Cliloc = 0;
 
     CCityItemNew();
     virtual ~CCityItemNew();
@@ -40,7 +40,7 @@ public:
 class CCityList
 {
 private:
-    vector<CCityItem *> m_CityList;
+    std::vector<CCityItem *> m_CityList;
 
 public:
     CCityList();

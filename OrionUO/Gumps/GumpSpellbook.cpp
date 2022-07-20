@@ -1,20 +1,18 @@
-// MIT License
-// Copyright (C) September 2016 Hotride
-
 #include "GumpSpellbook.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GumpSpell.h"
-#include "../Config.h"
-#include "../ToolTip.h"
-#include "../OrionUO.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../ClickObject.h"
-#include "../OrionWindow.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ClilocManager.h"
-#include "../Managers/GumpManager.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../GameObjects/GameWorld.h"
+#include "Config.h"
+#include "ToolTip.h"
+#include "OrionUO.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "ClickObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/GumpManager.h"
+#include "GameObjects/GamePlayer.h"
+#include "GameObjects/GameWorld.h"
 
 enum
 {
@@ -30,11 +28,11 @@ enum
     ID_GSB_SPELL_ICON_RIGHT = 1000,
 };
 
-static string s_SpellCircleName[] = { "First Circle",   "Second Circle", "Third Circle",
+static std::string s_SpellCircleName[] = { "First Circle",   "Second Circle", "Third Circle",
                                       "Fourth Circle",  "Fifth Circle",  "Sixth Circle",
                                       "Seventh Circle", "Eighth Circle" };
 
-CGumpSpellbook::CGumpSpellbook(uint32_t serial, int x, int y)
+CGumpSpellbook::CGumpSpellbook(u32 serial, int x, int y)
     : CGump(GT_SPELLBOOK, serial, x, y)
 {
     Draw2Page = 1;
@@ -49,96 +47,95 @@ void CGumpSpellbook::InitStaticData()
 {
     return;
 
-    s_SpellCircleName[0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028384, false, "First Circle");
+    s_SpellCircleName[0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028384, false, "First Circle");
     s_SpellCircleName[1] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028385, false, "Second Circle");
-    s_SpellCircleName[2] = g_ClilocManager.Cliloc(g_Language)->GetA(1028386, false, "Third Circle");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028385, false, "Second Circle");
+    s_SpellCircleName[2] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028386, false, "Third Circle");
     s_SpellCircleName[3] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028387, false, "Fourth Circle");
-    s_SpellCircleName[4] = g_ClilocManager.Cliloc(g_Language)->GetA(1028388, false, "Fifth Circle");
-    s_SpellCircleName[5] = g_ClilocManager.Cliloc(g_Language)->GetA(1028389, false, "Sixth Circle");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028387, false, "Fourth Circle");
+    s_SpellCircleName[4] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028388, false, "Fifth Circle");
+    s_SpellCircleName[5] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028389, false, "Sixth Circle");
     s_SpellCircleName[6] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028390, false, "Seventh Circle");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028390, false, "Seventh Circle");
     s_SpellCircleName[7] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028391, false, "Eighth Circle");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028391, false, "Eighth Circle");
 
-    m_SpellName1[0][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028320, false, "Clumsy");
-    m_SpellName1[1][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028321, false, "Create Food");
-    m_SpellName1[2][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028322, false, "Feeblemind");
-    m_SpellName1[3][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028323, false, "Heal");
-    m_SpellName1[4][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028324, false, "Magic Arrow");
-    m_SpellName1[5][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028325, false, "Night Sight");
-    m_SpellName1[6][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028326, false, "Reactive Armor");
-    m_SpellName1[7][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028327, false, "Weaken");
-    m_SpellName1[8][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028328, false, "Agility");
-    m_SpellName1[9][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028329, false, "Cunning");
-    m_SpellName1[10][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028330, false, "Cure");
-    m_SpellName1[11][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028331, false, "Harm");
-    m_SpellName1[12][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028332, false, "Magic Trap");
-    m_SpellName1[13][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028333, false, "Magic Untrap");
-    m_SpellName1[14][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028334, false, "Protection");
-    m_SpellName1[15][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028335, false, "Strength");
-    m_SpellName1[16][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028336, false, "Bless");
-    m_SpellName1[17][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028337, false, "Fireball");
-    m_SpellName1[18][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028338, false, "Magic Lock");
-    m_SpellName1[19][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028339, false, "Poison");
-    m_SpellName1[20][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028340, false, "Telekinesis");
-    m_SpellName1[21][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028341, false, "Teleport");
-    m_SpellName1[22][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028342, false, "Unlock");
-    m_SpellName1[23][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028343, false, "Wall of Stone");
-    m_SpellName1[24][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028344, false, "Arch Cure");
+    m_SpellName1[0][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028320, false, "Clumsy");
+    m_SpellName1[1][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028321, false, "Create Food");
+    m_SpellName1[2][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028322, false, "Feeblemind");
+    m_SpellName1[3][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028323, false, "Heal");
+    m_SpellName1[4][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028324, false, "Magic Arrow");
+    m_SpellName1[5][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028325, false, "Night Sight");
+    m_SpellName1[6][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028326, false, "Reactive Armor");
+    m_SpellName1[7][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028327, false, "Weaken");
+    m_SpellName1[8][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028328, false, "Agility");
+    m_SpellName1[9][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028329, false, "Cunning");
+    m_SpellName1[10][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028330, false, "Cure");
+    m_SpellName1[11][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028331, false, "Harm");
+    m_SpellName1[12][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028332, false, "Magic Trap");
+    m_SpellName1[13][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028333, false, "Magic Untrap");
+    m_SpellName1[14][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028334, false, "Protection");
+    m_SpellName1[15][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028335, false, "Strength");
+    m_SpellName1[16][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028336, false, "Bless");
+    m_SpellName1[17][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028337, false, "Fireball");
+    m_SpellName1[18][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028338, false, "Magic Lock");
+    m_SpellName1[19][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028339, false, "Poison");
+    m_SpellName1[20][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028340, false, "Telekinesis");
+    m_SpellName1[21][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028341, false, "Teleport");
+    m_SpellName1[22][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028342, false, "Unlock");
+    m_SpellName1[23][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028343, false, "Wall of Stone");
+    m_SpellName1[24][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028344, false, "Arch Cure");
     m_SpellName1[25][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028345, false, "Arch Protection");
-    m_SpellName1[26][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028346, false, "Curse");
-    m_SpellName1[27][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028347, false, "Fire Field");
-    m_SpellName1[28][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028348, false, "Greater Heal");
-    m_SpellName1[29][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028349, false, "Lightning");
-    m_SpellName1[30][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028350, false, "Mana Drain");
-    m_SpellName1[31][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028351, false, "Recall");
-    m_SpellName1[32][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028352, false, "Blade Spirits");
-    m_SpellName1[33][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028353, false, "Dispel Field");
-    m_SpellName1[34][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028354, false, "Incognito");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028345, false, "Arch Protection");
+    m_SpellName1[26][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028346, false, "Curse");
+    m_SpellName1[27][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028347, false, "Fire Field");
+    m_SpellName1[28][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028348, false, "Greater Heal");
+    m_SpellName1[29][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028349, false, "Lightning");
+    m_SpellName1[30][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028350, false, "Mana Drain");
+    m_SpellName1[31][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028351, false, "Recall");
+    m_SpellName1[32][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028352, false, "Blade Spirits");
+    m_SpellName1[33][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028353, false, "Dispel Field");
+    m_SpellName1[34][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028354, false, "Incognito");
     m_SpellName1[35][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028355, false, "Magic Reflection");
-    m_SpellName1[36][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028356, false, "Mind Blast");
-    m_SpellName1[37][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028357, false, "Paralyze");
-    m_SpellName1[38][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028358, false, "Poison Field");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028355, false, "Magic Reflection");
+    m_SpellName1[36][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028356, false, "Mind Blast");
+    m_SpellName1[37][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028357, false, "Paralyze");
+    m_SpellName1[38][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028358, false, "Poison Field");
     m_SpellName1[39][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028359, false, "Summ. Creature");
-    m_SpellName1[40][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028360, false, "Dispel");
-    m_SpellName1[41][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028361, false, "Energy Bolt");
-    m_SpellName1[42][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028362, false, "Explosion");
-    m_SpellName1[43][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028363, false, "Invisibility");
-    m_SpellName1[44][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028364, false, "Mark");
-    m_SpellName1[45][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028365, false, "Mass Curse");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028359, false, "Summ. Creature");
+    m_SpellName1[40][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028360, false, "Dispel");
+    m_SpellName1[41][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028361, false, "Energy Bolt");
+    m_SpellName1[42][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028362, false, "Explosion");
+    m_SpellName1[43][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028363, false, "Invisibility");
+    m_SpellName1[44][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028364, false, "Mark");
+    m_SpellName1[45][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028365, false, "Mass Curse");
     m_SpellName1[46][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028366, false, "Paralyze Field");
-    m_SpellName1[47][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028367, false, "Reveal");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028366, false, "Paralyze Field");
+    m_SpellName1[47][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028367, false, "Reveal");
     m_SpellName1[48][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028368, false, "Chain Lightning");
-    m_SpellName1[49][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028369, false, "Energy Field");
-    m_SpellName1[50][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028370, false, "Flame Strike");
-    m_SpellName1[51][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028371, false, "Gate Travel");
-    m_SpellName1[52][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028372, false, "Mana Vampire");
-    m_SpellName1[53][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028373, false, "Mass Dispel");
-    m_SpellName1[54][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028374, false, "Meteor Swarm");
-    m_SpellName1[55][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028375, false, "Polymorph");
-    m_SpellName1[56][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028376, false, "Earthquake");
-    m_SpellName1[57][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028377, false, "Energy Vortex");
-    m_SpellName1[58][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028378, false, "Resurrection");
-    m_SpellName1[59][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028379, false, "Air Elemental");
-    m_SpellName1[60][0] = g_ClilocManager.Cliloc(g_Language)->GetA(1028380, false, "Summon Daemon");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028368, false, "Chain Lightning");
+    m_SpellName1[49][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028369, false, "Energy Field");
+    m_SpellName1[50][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028370, false, "Flame Strike");
+    m_SpellName1[51][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028371, false, "Gate Travel");
+    m_SpellName1[52][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028372, false, "Mana Vampire");
+    m_SpellName1[53][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028373, false, "Mass Dispel");
+    m_SpellName1[54][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028374, false, "Meteor Swarm");
+    m_SpellName1[55][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028375, false, "Polymorph");
+    m_SpellName1[56][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028376, false, "Earthquake");
+    m_SpellName1[57][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028377, false, "Energy Vortex");
+    m_SpellName1[58][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028378, false, "Resurrection");
+    m_SpellName1[59][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028379, false, "Air Elemental");
+    m_SpellName1[60][0] = g_ClilocManager.GetCliloc(g_Language)->GetA(1028380, false, "Summon Daemon");
     m_SpellName1[61][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028381, false, "Earth Elemental");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028381, false, "Earth Elemental");
     m_SpellName1[62][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028382, false, "Fire Elemental");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028382, false, "Fire Elemental");
     m_SpellName1[63][0] =
-        g_ClilocManager.Cliloc(g_Language)->GetA(1028383, false, "Water Elemental");
+        g_ClilocManager.GetCliloc(g_Language)->GetA(1028383, false, "Water Elemental");
 }
 
-void CGumpSpellbook::UpdateGraphic(uint16_t parentGraphic)
+void CGumpSpellbook::UpdateGraphic(u16 parentGraphic)
 {
-    DEBUG_TRACE_FUNCTION;
     SPELLBOOK_TYPE bookType = BookType;
 
     switch (parentGraphic)
@@ -193,7 +190,6 @@ void CGumpSpellbook::UpdateGraphic(uint16_t parentGraphic)
 
 void CGumpSpellbook::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized)
     {
         g_ToolTip.Set(L"Double click to maximize book gump");
@@ -207,11 +203,11 @@ void CGumpSpellbook::InitToolTip()
 
     if (Page >= dictionaryPagesCount)
     {
-        uint32_t serial = g_SelectedObject.Serial;
+        u32 serial = g_SelectedObject.Serial;
 
-        if (serial >= (uint32_t)ID_GSB_SPELL_ICON_LEFT)
+        if (serial >= (u32)ID_GSB_SPELL_ICON_LEFT)
         {
-            if (serial >= (uint32_t)ID_GSB_SPELL_ICON_RIGHT)
+            if (serial >= (u32)ID_GSB_SPELL_ICON_RIGHT)
             {
                 serial -= ID_GSB_SPELL_ICON_RIGHT;
             }
@@ -221,21 +217,20 @@ void CGumpSpellbook::InitToolTip()
             }
 
             g_ToolTip.Set(
-                g_ClilocManager.Cliloc(g_Language)->GetW(tooltipOffset + serial, true), 150);
+                g_ClilocManager.GetCliloc(g_Language)->GetW(tooltipOffset + serial, true), 150);
         }
     }
 }
 
 void CGumpSpellbook::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     int maxSpellsCount = 0;
     int spellsOnPage = 0;
     int dictionaryPagesCount = 0;
     int spellIndexOffset = 0;
-    uint16_t graphic = 0;
-    uint16_t minimizedGraphic = 0;
-    uint16_t iconStartGraphic = 0;
+    u16 graphic = 0;
+    u16 minimizedGraphic = 0;
+    u16 iconStartGraphic = 0;
 
     GetSummaryBookInfo(
         maxSpellsCount,
@@ -247,11 +242,11 @@ void CGumpSpellbook::PrepareContent()
         iconStartGraphic);
 
     if (g_PressedObject.LeftGump == this && Page >= dictionaryPagesCount &&
-        g_PressedObject.LeftSerial >= (uint32_t)ID_GSB_SPELL_ICON_LEFT)
+        g_PressedObject.LeftSerial >= (u32)ID_GSB_SPELL_ICON_LEFT)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
-        if ((abs(offset.X) >= DRAG_PIXEL_RANGE || abs(offset.Y) >= DRAG_PIXEL_RANGE) ||
+        if ((abs(offset.x) >= DRAG_PIXEL_RANGE || abs(offset.y) >= DRAG_PIXEL_RANGE) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
         {
             int index = g_PressedObject.LeftSerial;
@@ -272,12 +267,12 @@ void CGumpSpellbook::PrepareContent()
 
             g_GumpManager.AddGump(new CGumpSpell(
                 index + spellIndexOffset + 1,
-                g_MouseManager.Position.X - 20,
-                g_MouseManager.Position.Y - 20,
+                g_MouseManager.GetPosition().x - 20,
+                g_MouseManager.GetPosition().y - 20,
                 iconStartGraphic + index,
                 BookType));
 
-            g_OrionWindow.EmulateOnLeftMouseButtonDown();
+            g_MouseManager.EmulateOnLeftMouseButtonDown();
         }
     }
 
@@ -286,8 +281,8 @@ void CGumpSpellbook::PrepareContent()
         spellIndexOffset = (int)BookType * 100;
 
         bool wantVisible = false;
-        uint16_t graphicBookmark = 0x08AD;
-        uint16_t graphicPointer = 0x08AF;
+        u16 graphicBookmark = 0x08AD;
+        u16 graphicPointer = 0x08AF;
         int wantX = m_LastSpellPointer->GetX();
         int wantY = m_LastSpellPointer->GetY();
 
@@ -386,7 +381,6 @@ void CGumpSpellbook::PrepareContent()
 
 void CGumpSpellbook::GetTooltipBookInfo(int &dictionaryPagesCount, int &tooltipOffset)
 {
-    DEBUG_TRACE_FUNCTION;
     int maxSpellsCount = 0;
 
     switch (BookType)
@@ -457,11 +451,10 @@ void CGumpSpellbook::GetSummaryBookInfo(
     int &dictionaryPagesCount,
     int &spellsOnPage,
     int &spellIndexOffset,
-    uint16_t &graphic,
-    uint16_t &minimizedGraphic,
-    uint16_t &iconStartGraphic)
+    u16 &graphic,
+    u16 &minimizedGraphic,
+    u16 &iconStartGraphic)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (BookType)
     {
         case ST_MAGE:
@@ -538,7 +531,7 @@ void CGumpSpellbook::GetSummaryBookInfo(
             break;
     }
 
-    spellsOnPage = std::min(maxSpellsCount / 2, 8);
+    spellsOnPage = Core::Min(maxSpellsCount / 2, 8);
 
     dictionaryPagesCount = (int)ceilf(maxSpellsCount / 8.0f);
 
@@ -548,9 +541,8 @@ void CGumpSpellbook::GetSummaryBookInfo(
     }
 }
 
-string CGumpSpellbook::GetSpellName(int offset, string &abbreviature, string &reagents)
+std::string CGumpSpellbook::GetSpellName(int offset,std::string&abbreviature,std::string&reagents)
 {
-    DEBUG_TRACE_FUNCTION;
     switch (BookType)
     {
         case ST_MAGE:
@@ -581,9 +573,8 @@ string CGumpSpellbook::GetSpellName(int offset, string &abbreviature, string &re
     return "";
 }
 
-string CGumpSpellbook::GetSpellRequries(int offset, int &y)
+std::string CGumpSpellbook::GetSpellRequries(int offset, int &y)
 {
-    DEBUG_TRACE_FUNCTION;
     char buf[100] = { 0 };
     y = 162;
 
@@ -650,7 +641,6 @@ string CGumpSpellbook::GetSpellRequries(int offset, int &y)
 
 void CGumpSpellbook::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Body = nullptr;
     m_PrevPage = nullptr;
     m_NextPage = nullptr;
@@ -666,9 +656,9 @@ void CGumpSpellbook::UpdateContent()
     int spellsOnPage = 0;
     int dictionaryPagesCount = 0;
     int spellIndexOffset = 0;
-    uint16_t graphic = 0;
-    uint16_t minimizedGraphic = 0;
-    uint16_t iconStartGraphic = 0;
+    u16 graphic = 0;
+    u16 minimizedGraphic = 0;
+    u16 iconStartGraphic = 0;
 
     GetSummaryBookInfo(
         maxSpellsCount,
@@ -742,7 +732,7 @@ void CGumpSpellbook::UpdateContent()
         if ((page == 0) && BookType == ST_PALADIN)
         {
             m_TithingPointsText = (CGUIText *)Add(new CGUIText(0x0288, 62, 162));
-            string textData =
+            std::string textData =
                 "Tithing points\nAvailable: " + std::to_string(g_Player->TithingPoints);
             m_TithingPointsText->CreateTextureA(6, textData);
         }
@@ -750,7 +740,7 @@ void CGumpSpellbook::UpdateContent()
         int indexX = 106;
         int dataX = 62;
         int y = 0;
-        uint32_t spellSerial = ID_GSB_SPELL_ICON_LEFT;
+        u32 spellSerial = ID_GSB_SPELL_ICON_LEFT;
 
         if ((page % 2) != 0)
         {
@@ -778,8 +768,8 @@ void CGumpSpellbook::UpdateContent()
 
                 CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
                     spellSerial + offs, 0x0288, 0, 0, dataX, 52 + y, 0, false, 9));
-                string abbreviature;
-                string reagents;
+                std::string abbreviature;
+                std::string reagents;
                 entry->m_Entry.SetTextA(GetSpellName(offs, abbreviature, reagents));
                 entry->CheckOnSerial = true;
                 entry->ReadOnly = true;
@@ -807,7 +797,7 @@ void CGumpSpellbook::UpdateContent()
         int iconX = 62;
         int topTextX = 87;
         int iconTextX = 112;
-        uint32_t iconSerial = ID_GSB_SPELL_ICON_LEFT + (uint32_t)i;
+        u32 iconSerial = ID_GSB_SPELL_ICON_LEFT + (u32)i;
 
         if ((page % 2) != 0)
         {
@@ -820,9 +810,9 @@ void CGumpSpellbook::UpdateContent()
         Add(new CGUIPage(page));
         page++;
 
-        string spellAbbreviature{};
-        string reagents{};
-        string spellName = GetSpellName((int)i, spellAbbreviature, reagents);
+        std::string spellAbbreviature{};
+        std::string reagents{};
+        std::string spellName = GetSpellName((int)i, spellAbbreviature, reagents);
 
         CGUIText *text = (CGUIText *)Add(new CGUIText(0x0288, topTextX, topTextY));
 
@@ -874,7 +864,7 @@ void CGumpSpellbook::UpdateContent()
         if (!isMageSpellbook)
         {
             int requriesY = 0;
-            string requries = GetSpellRequries((int)i, requriesY);
+            std::string requries = GetSpellRequries((int)i, requriesY);
 
             text = (CGUIText *)Add(new CGUIText(0x0288, iconX, requriesY));
             text->CreateTextureA(6, requries);
@@ -896,7 +886,6 @@ void CGumpSpellbook::UpdateContent()
 
 void CGumpSpellbook::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     int newPage = -1;
 
     if (serial == ID_GSB_BUTTON_PREV)
@@ -954,9 +943,9 @@ void CGumpSpellbook::GUMP_BUTTON_EVENT_C
         int dictionaryPagesCount = 0;
         int spellsOnPage = 0;
         int spellIndexOffset = 0;
-        uint16_t graphic = 0;
-        uint16_t minimizedGraphic = 0;
-        uint16_t iconStartGraphic = 0;
+        u16 graphic = 0;
+        u16 minimizedGraphic = 0;
+        u16 iconStartGraphic = 0;
 
         GetSummaryBookInfo(
             maxSpellsCount,
@@ -1022,7 +1011,6 @@ void CGumpSpellbook::GUMP_BUTTON_EVENT_C
 
 void CGumpSpellbook::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial >= ID_GSB_SPELL_ICON_LEFT)
     {
         OnButton(serial);
@@ -1031,7 +1019,6 @@ void CGumpSpellbook::GUMP_TEXT_ENTRY_EVENT_C
 
 bool CGumpSpellbook::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
 
     if (Minimized)
@@ -1068,19 +1055,19 @@ bool CGumpSpellbook::OnLeftMouseButtonDoubleClick()
         }
         else
         {
-            if (g_PressedObject.LeftSerial >= (uint32_t)ID_GSB_SPELL_ICON_LEFT)
+            if (g_PressedObject.LeftSerial >= (u32)ID_GSB_SPELL_ICON_LEFT)
             {
                 int spellIndex = g_PressedObject.LeftSerial - ID_GSB_SPELL_ICON_RIGHT + 1;
 
                 //Было использовано заклинание
-                if (g_PressedObject.LeftSerial < (uint32_t)ID_GSB_SPELL_ICON_RIGHT)
+                if (g_PressedObject.LeftSerial < (u32)ID_GSB_SPELL_ICON_RIGHT)
                 {
                     spellIndex = g_PressedObject.LeftSerial - ID_GSB_SPELL_ICON_LEFT + 1;
                 }
 
                 spellIndex += ((int)BookType * 100);
 
-                if (g_Config.ClientVersion < CV_308Z)
+                if (GameVars::GetClientVersion() < CV_308Z)
                 {
                     g_Orion.CastSpellFromBook(spellIndex, Serial);
                 }
@@ -1103,7 +1090,6 @@ bool CGumpSpellbook::OnLeftMouseButtonDoubleClick()
 
 void CGumpSpellbook::DelayedClick(CRenderObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj != nullptr)
     {
         ChangePage(g_ClickObject.Page);
@@ -1113,7 +1099,6 @@ void CGumpSpellbook::DelayedClick(CRenderObject *obj)
 
 void CGumpSpellbook::ChangePage(int newPage)
 {
-    DEBUG_TRACE_FUNCTION;
     Page = newPage;
 
     m_PrevPage->Visible = (Page != 0);
@@ -1122,7 +1107,7 @@ void CGumpSpellbook::ChangePage(int newPage)
     g_Orion.PlaySoundEffect(0x0055);
 }
 
-string CGumpSpellbook::m_SpellName1[SPELLBOOK_1_SPELLS_COUNT][2] = {
+std::string CGumpSpellbook::m_SpellName1[SPELLBOOK_1_SPELLS_COUNT][2] = {
     { "Clumsy", "U J" },
     { "Create Food", "I M Y" },
     { "Feeblemind", "R W" },
@@ -1189,7 +1174,7 @@ string CGumpSpellbook::m_SpellName1[SPELLBOOK_1_SPELLS_COUNT][2] = {
     { "Water Elemental", "K V X A" }
 };
 
-string CGumpSpellbook::m_SpellReagents1[SPELLBOOK_1_SPELLS_COUNT] = {
+std::string CGumpSpellbook::m_SpellReagents1[SPELLBOOK_1_SPELLS_COUNT] = {
     "Bloodmoss\nNightshade",
     "Garlic\nGinseng\nMandrake root",
     "Ginseng\nNightshade",
@@ -1256,7 +1241,7 @@ string CGumpSpellbook::m_SpellReagents1[SPELLBOOK_1_SPELLS_COUNT] = {
     "Bloodmoss\nMandrake root\nSpiders silk"
 };
 
-const string CGumpSpellbook::m_SpellName2[SPELLBOOK_2_SPELLS_COUNT][2]{
+const std::string CGumpSpellbook::m_SpellName2[SPELLBOOK_2_SPELLS_COUNT][2]{
     { "Animate Dead", "Uus Corp" },
     { "Blood Oath", "In Jux Mani Xen" },
     { "Corpse Skin", "In Aglo Corp Ylem" },
@@ -1276,7 +1261,7 @@ const string CGumpSpellbook::m_SpellName2[SPELLBOOK_2_SPELLS_COUNT][2]{
     { "Exorcism", "Ort Corp Grav" }
 };
 
-const string CGumpSpellbook::m_SpellReagents2[SPELLBOOK_2_SPELLS_COUNT] = {
+const std::string CGumpSpellbook::m_SpellReagents2[SPELLBOOK_2_SPELLS_COUNT] = {
     "Daemon Blood\nGrave Dust",
     "Daemon Blood",
     "Batwing\nGrave Dust",
@@ -1296,7 +1281,7 @@ const string CGumpSpellbook::m_SpellReagents2[SPELLBOOK_2_SPELLS_COUNT] = {
     "Nox Crystal\nGrave Dust"
 };
 
-const string CGumpSpellbook::m_SpellName3[SPELLBOOK_3_SPELLS_COUNT][2]{
+const std::string CGumpSpellbook::m_SpellName3[SPELLBOOK_3_SPELLS_COUNT][2]{
     { "Cleanse by Fire", "Expor Flamus" },     { "Close Wounds", "Obsu Vulni" },
     { "Consecrate Weapon", "Consecrus Arma" }, { "Dispel Evil", "Dispiro Malas" },
     { "Divine Fury", "Divinum Furis" },        { "Enemy of One", "Forul Solum" },
@@ -1304,17 +1289,17 @@ const string CGumpSpellbook::m_SpellName3[SPELLBOOK_3_SPELLS_COUNT][2]{
     { "Remove Curse", "Extermo Vomica" },      { "Sacred Journey", "Sanctum Viatas" }
 };
 
-const string CGumpSpellbook::m_SpellName4[SPELLBOOK_4_SPELLS_COUNT]{
+const std::string CGumpSpellbook::m_SpellName4[SPELLBOOK_4_SPELLS_COUNT]{
     "Honorable Execution", "Confidence",       "Evasion",
     "Counter Attack",      "Lightning Strike", "Momentum Strike"
 };
 
-const string CGumpSpellbook::m_SpellName5[SPELLBOOK_5_SPELLS_COUNT]{
+const std::string CGumpSpellbook::m_SpellName5[SPELLBOOK_5_SPELLS_COUNT]{
     "Focus Attack",    "Death Strike", "Animal Form", "Ki Attack",
     "Surprise Attack", "Backstab",     "Shadowjump",  "Mirror Image"
 };
 
-const string CGumpSpellbook::m_SpellName6[SPELLBOOK_6_SPELLS_COUNT][2]{
+const std::string CGumpSpellbook::m_SpellName6[SPELLBOOK_6_SPELLS_COUNT][2]{
     { "Arcane Circle", "Myrshalee" },     { "Gift of Renewal", "Olorisstra" },
     { "Immolating Weapon", "Thalshara" }, { "Attunement", "Haeldril" },
     { "Thunderstorm", "Erelonia" },       { "Nature's Fury", "Rauvvrae" },
@@ -1325,7 +1310,7 @@ const string CGumpSpellbook::m_SpellName6[SPELLBOOK_6_SPELLS_COUNT][2]{
     { "Gift of Life", "Illorae" },        { "Arcane Empowerment", "Aslavdra" }
 };
 
-const string CGumpSpellbook::m_SpellName7[SPELLBOOK_7_SPELLS_COUNT][2]{
+const std::string CGumpSpellbook::m_SpellName7[SPELLBOOK_7_SPELLS_COUNT][2]{
     { "Nether Bolt", "In Corp Ylem" },
     { "Healing Stone", "Kal In Mani" },
     { "Purge Magic", "An Ort Sanct" },

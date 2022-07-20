@@ -1,51 +1,111 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include <SDL_rect.h>
-
 #include "GameScreen.h"
+#include "Core/StringUtils.h"
+#include "DefinitionMacro.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GameBlockedScreen.h"
-#include "../Config.h"
-#include "../Macro.h"
-#include "../Target.h"
-#include "../Weather.h"
-#include "../TargetGump.h"
-#include "../OrionUO.h"
-#include "../QuestArrow.h"
-#include "../PressedObject.h"
-#include "../SelectedObject.h"
-#include "../ClickObject.h"
-#include "../OrionWindow.h"
-#include "../Profiler.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/MapManager.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/AnimationManager.h"
-#include "../Managers/GumpManager.h"
-#include "../Managers/FontsManager.h"
-#include "../Managers/ClilocManager.h"
-#include "../Managers/PluginManager.h"
-#include "../Managers/MacroManager.h"
-#include "../Managers/ObjectPropertiesManager.h"
-#include "../Managers/ScreenEffectManager.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../GameObjects/MapBlock.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../GameObjects/LandObject.h"
-#include "../GameObjects/CustomHouseMultiObject.h"
-#include "../Gumps/GumpMap.h"
-#include "../Gumps/GumpDrag.h"
-#include "../Gumps/GumpPaperdoll.h"
-#include "../Gumps/GumpCustomHouse.h"
-#include "../Gumps/GumpConsoleType.h"
-#include "../Gumps/GumpTargetSystem.h"
-#include "../Gumps/GumpSkills.h"
-#include "../Gumps/GumpContainer.h"
-#include "../Gumps/GumpPopupMenu.h"
-#include "../Network/Packets.h"
-#include "../Walker/PathFinder.h"
-#include "../TextEngine/GameConsole.h"
-#include "../TextEngine/TextData.h"
+#include "GameWindow.h"
+#include "Platform.h"
+#include "Config.h"
+#include "Macro.h"
+#include "Target.h"
+#include "Weather.h"
+#include "TargetGump.h"
+#include "OrionUO.h"
+#include "QuestArrow.h"
+#include "PressedObject.h"
+#include "SelectedObject.h"
+#include "ClickObject.h"
+#include "Profiler.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/MapManager.h"
+#include "Managers/MouseManager.h"
+#include "Managers/AnimationManager.h"
+#include "Managers/GumpManager.h"
+#include "Managers/FontsManager.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/MacroManager.h"
+#include "Managers/ObjectPropertiesManager.h"
+#include "Managers/ScreenEffectManager.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "GameObjects/MapBlock.h"
+#include "GameObjects/GamePlayer.h"
+#include "GameObjects/LandObject.h"
+#include "GameObjects/CustomHouseMultiObject.h"
+#include "Gumps/GumpMap.h"
+#include "Gumps/GumpDrag.h"
+#include "Gumps/GumpPaperdoll.h"
+#include "Gumps/GumpCustomHouse.h"
+#include "Gumps/GumpConsoleType.h"
+#include "Gumps/GumpTargetSystem.h"
+#include "Gumps/GumpSkills.h"
+#include "Gumps/GumpContainer.h"
+#include "Gumps/GumpPopupMenu.h"
+#include "Network/Packets.h"
+#include "Walker/PathFinder.h"
+#include "TextEngine/GameConsole.h"
+#include "TextEngine/TextData.h"
+
+namespace
+{
+
+static int Sgn(int val)
+{
+    return static_cast<int>(0 < val) - static_cast<int>(val < 0);
+}
+static int GetFacing(int shiftX, int shiftY, int current_facing)
+{
+    int hashf = 100 * (Sgn(shiftX) + 2) + 10 * (Sgn(shiftY) + 2);
+    if ((shiftX != 0) && (shiftY != 0))
+    {
+        shiftX = std::abs(shiftX);
+        shiftY = std::abs(shiftY);
+
+        if ((shiftY * 5) <= (shiftX * 2))
+        {
+            hashf = hashf + 1;
+        }
+        else if ((shiftY * 2) >= (shiftX * 5))
+        {
+            hashf = hashf + 3;
+        }
+        else
+        {
+            hashf = hashf + 2;
+        }
+    }
+    else if (shiftX == 0)
+    {
+        if (shiftY == 0)
+        {
+            return current_facing;
+        }
+    }
+    switch (hashf)
+    {
+        case 111: return DT_W;  // W
+        case 112: return DT_NW; // NW
+        case 113: return DT_N;  // N
+        case 120: return DT_W;  // W
+        case 131: return DT_W;  // W
+        case 132: return DT_SW; // SW
+        case 133: return DT_S;  // S
+        case 210: return DT_N;  // N
+        case 230: return DT_S;  // S
+        case 311: return DT_E;  // E
+        case 312: return DT_NE; // NE
+        case 313: return DT_N;  // N
+        case 320: return DT_E;  // E
+        case 331: return DT_E;  // E
+        case 332: return DT_SE; // SE
+        case 333: return DT_S;  // S
+        default: break;
+    }
+
+    return current_facing;
+}
+
+} // namespace
 
 CGameScreen g_GameScreen;
 RENDER_VARIABLES_FOR_GAME_WINDOW g_RenderBounds;
@@ -53,7 +113,6 @@ RENDER_VARIABLES_FOR_GAME_WINDOW g_RenderBounds;
 CGameScreen::CGameScreen()
     : CBaseScreen(m_GameScreenGump)
 {
-    DEBUG_TRACE_FUNCTION;
     m_RenderList.resize(1000);
 
     memset(&g_RenderBounds, 0, sizeof(g_RenderBounds));
@@ -64,31 +123,20 @@ CGameScreen::CGameScreen()
 
 CGameScreen::~CGameScreen()
 {
-    DEBUG_TRACE_FUNCTION;
 }
 
 void CGameScreen::Init()
 {
-    DEBUG_TRACE_FUNCTION;
-
-#if USE_WISP
-    g_OrionWindow.NoResize = false;
-#else
-    g_OrionWindow.SetWindowResizable(true);
-
+    g_gameWindow.SetIsResizeable(true);
     if (m_zoom)
-    {
-        g_OrionWindow.MaximizeWindow();
-    }
-#endif
+        g_gameWindow.Maximize();
 
     g_ScreenEffectManager.UseSunrise();
     SmoothScreenAction = 0;
 }
 
-void CGameScreen::ProcessSmoothAction(uint8_t action)
+void CGameScreen::ProcessSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (action == 0xFF)
     {
         action = SmoothScreenAction;
@@ -102,14 +150,12 @@ void CGameScreen::ProcessSmoothAction(uint8_t action)
 
 void CGameScreen::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    CRenderObject *obj = g_SelectedObject.Object;
-    CGump *gump = g_SelectedObject.Gump;
+    CRenderObject* obj = g_SelectedObject.Object;
+    CGump* gump        = g_SelectedObject.Gump;
 
     if (obj != nullptr && g_TooltipsEnabled)
     {
-        uint32_t serial = 0;
+        u32 serial = 0;
 
         if (obj->IsGameObject())
         {
@@ -118,7 +164,7 @@ void CGameScreen::InitToolTip()
         else if (gump != nullptr && obj->IsGUI())
         {
             if (gump->GumpType == GT_TRADE ||
-                (gump->GumpType == GT_SHOP && ((CBaseGUI *)obj)->Type == GOT_SHOPITEM))
+                (gump->GumpType == GT_SHOP && ((CBaseGUI*)obj)->Type == GOT_SHOPITEM))
             {
                 serial = g_SelectedObject.Serial;
             }
@@ -134,11 +180,11 @@ void CGameScreen::InitToolTip()
                     gump->GumpType == GT_PAPERDOLL &&
                     g_SelectedObject.Serial >= CGumpPaperdoll::ID_GP_ITEMS && g_World != nullptr)
                 {
-                    CGameCharacter *character = g_World->FindWorldCharacter(gump->Serial);
+                    CGameCharacter* character = g_World->FindWorldCharacter(gump->Serial);
 
                     if (character != nullptr)
                     {
-                        CGameObject *item = character->FindLayer(
+                        CGameObject* item = character->FindLayer(
                             g_SelectedObject.Serial - CGumpPaperdoll::ID_GP_ITEMS);
 
                         if (item != nullptr)
@@ -172,7 +218,6 @@ void CGameScreen::InitToolTip()
 
 void CGameScreen::UpdateMaxDrawZ()
 {
-    DEBUG_TRACE_FUNCTION;
     int playerX = g_Player->GetX();
     int playerY = g_Player->GetY();
     int playerZ = g_Player->GetZ();
@@ -189,16 +234,16 @@ void CGameScreen::UpdateMaxDrawZ()
     int maxZ1 = g_MaxGroundZ;
     int maxZ2 = m_MaxDrawZ;
 
-    g_NoDrawRoof = g_ConfigManager.GetNoDrawRoofs();
+    g_NoDrawRoof    = g_ConfigManager.GetNoDrawRoofs();
     char maxGroundZ = 127;
-    g_MaxGroundZ = 127;
-    m_MaxDrawZ = 127;
+    g_MaxGroundZ    = 127;
+    m_MaxDrawZ      = 127;
 
     int bx = playerX / 8;
     int by = playerY / 8;
 
-    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
-    CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
+    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
+    CMapBlock* mb  = g_MapManager.GetBlock(blockIndex);
 
     if (mb != nullptr)
     {
@@ -208,7 +253,7 @@ void CGameScreen::UpdateMaxDrawZ()
         int pz14 = playerZ + 14;
         int pz16 = playerZ + 16;
 
-        for (CRenderWorldObject *ro = mb->GetRender(x, y); ro != nullptr; ro = ro->m_NextXY)
+        for (CRenderWorldObject* ro = mb->GetRender(x, y); ro != nullptr; ro = ro->m_NextXY)
         {
             char tileZ = ro->GetZ();
 
@@ -218,9 +263,9 @@ void CGameScreen::UpdateMaxDrawZ()
                 {
                     if (pz16 <= tileZ)
                     {
-                        maxGroundZ = pz16;
+                        maxGroundZ   = pz16;
                         g_MaxGroundZ = pz16;
-                        m_MaxDrawZ = g_MaxGroundZ;
+                        m_MaxDrawZ   = g_MaxGroundZ;
 
                         break;
                     }
@@ -232,13 +277,13 @@ void CGameScreen::UpdateMaxDrawZ()
                     continue;
                 }
             }
-            else if (((CGameObject *)ro)->NPC)
+            else if (((CGameObject*)ro)->NPC)
             {
                 continue;
             }
 
             if (tileZ > pz14 && m_MaxDrawZ > tileZ &&
-                ((((CRenderStaticObject *)ro)->GetStaticData()->Flags & 0x20004) == 0u) &&
+                ((((CRenderStaticObject*)ro)->GetStaticData()->Flags & 0x20004) == 0u) &&
                 (!ro->IsRoof() || ro->IsSurface()))
             {
                 m_MaxDrawZ = tileZ;
@@ -247,7 +292,7 @@ void CGameScreen::UpdateMaxDrawZ()
             }
         }
 
-        int tempZ = m_MaxDrawZ;
+        int tempZ    = m_MaxDrawZ;
         g_MaxGroundZ = m_MaxDrawZ;
 
         playerX++;
@@ -256,15 +301,15 @@ void CGameScreen::UpdateMaxDrawZ()
         bx = playerX / 8;
         by = playerY / 8;
 
-        blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
-        CMapBlock *mb11 = g_MapManager.GetBlock(blockIndex);
+        blockIndex      = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
+        CMapBlock* mb11 = g_MapManager.GetBlock(blockIndex);
 
         if (mb11 != nullptr)
         {
             x = playerX % 8;
             y = playerY % 8;
 
-            for (CRenderWorldObject *ro = mb11->GetRender(x, y); ro != nullptr; ro = ro->m_NextXY)
+            for (CRenderWorldObject* ro = mb11->GetRender(x, y); ro != nullptr; ro = ro->m_NextXY)
             {
                 if (!ro->IsGameObject())
                 {
@@ -273,7 +318,7 @@ void CGameScreen::UpdateMaxDrawZ()
                         continue;
                     }
                 }
-                else if (((CGameObject *)ro)->NPC)
+                else if (((CGameObject*)ro)->NPC)
                 {
                     continue;
                 }
@@ -281,7 +326,7 @@ void CGameScreen::UpdateMaxDrawZ()
                 char tileZ = ro->GetZ();
 
                 if (tileZ > pz14 && m_MaxDrawZ > tileZ &&
-                    ((((CRenderStaticObject *)ro)->GetStaticData()->Flags & 0x204) == 0u) &&
+                    ((((CRenderStaticObject*)ro)->GetStaticData()->Flags & 0x204) == 0u) &&
                     ro->IsRoof())
                 {
                     m_MaxDrawZ = tileZ;
@@ -299,7 +344,7 @@ void CGameScreen::UpdateMaxDrawZ()
 
         if (tempZ < pz16)
         {
-            m_MaxDrawZ = pz16;
+            m_MaxDrawZ   = pz16;
             g_MaxGroundZ = pz16;
         }
 
@@ -307,27 +352,26 @@ void CGameScreen::UpdateMaxDrawZ()
     }
 }
 
-void CGameScreen::ApplyTransparentFoliageToUnion(uint16_t graphic, int x, int y, int z)
+void CGameScreen::ApplyTransparentFoliageToUnion(u16 graphic, int x, int y, int z)
 {
-    DEBUG_TRACE_FUNCTION;
     int bx = x / 8;
     int by = y / 8;
 
-    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
-    CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
+    int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
+    CMapBlock* mb  = g_MapManager.GetBlock(blockIndex);
 
     if (mb != nullptr)
     {
         int tx = x % 8;
         int ty = y % 8;
 
-        for (CRenderWorldObject *obj = mb->GetRender(tx, ty); obj != nullptr; obj = obj->m_NextXY)
+        for (CRenderWorldObject* obj = mb->GetRender(tx, ty); obj != nullptr; obj = obj->m_NextXY)
         {
-            uint16_t testGraphic = obj->Graphic;
+            u16 testGraphic = obj->Graphic;
 
-            if (obj->IsGameObject() && !((CGameObject *)obj)->NPC && ((CGameItem *)obj)->MultiBody)
+            if (obj->IsGameObject() && !((CGameObject*)obj)->NPC && ((CGameItem*)obj)->MultiBody)
             {
-                testGraphic = ((CGameItem *)obj)->MultiTileGraphic;
+                testGraphic = ((CGameItem*)obj)->MultiTileGraphic;
             }
 
             if (testGraphic == graphic && obj->GetZ() == z)
@@ -338,13 +382,11 @@ void CGameScreen::ApplyTransparentFoliageToUnion(uint16_t graphic, int x, int y,
     }
 }
 
-void CGameScreen::CheckFoliageUnion(uint16_t graphic, int x, int y, int z)
+void CGameScreen::CheckFoliageUnion(u16 graphic, int x, int y, int z)
 {
-    DEBUG_TRACE_FUNCTION;
-
     for (int i = 0; i < TREE_COUNT; i++)
     {
-        const TREE_UNIONS &info = TREE_INFO[i];
+        const TREE_UNIONS& info = TREE_INFO[i];
 
         if (info.GraphicStart <= graphic && graphic <= info.GraphicEnd)
         {
@@ -368,7 +410,6 @@ void CGameScreen::CheckFoliageUnion(uint16_t graphic, int x, int y, int z)
 void CGameScreen::CalculateRenderList()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     m_RenderListCount = 0;
 
     if (g_Player == nullptr)
@@ -379,14 +420,14 @@ void CGameScreen::CalculateRenderList()
     if (g_Target.IsTargeting() && (g_Target.MultiGraphic != 0u) &&
         g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsWorldObject())
     {
-        int grZ = 0;
-        int stZ = 0;
-        CRenderObject *sel = g_SelectedObject.Object;
+        int grZ            = 0;
+        int stZ            = 0;
+        CRenderObject* sel = g_SelectedObject.Object;
         g_MapManager.GetMapZ(sel->GetX(), sel->GetY(), grZ, stZ);
 
-        if (((CRenderWorldObject *)sel)->IsStaticObject() && ((CRenderWorldObject *)sel)->IsWet())
+        if (((CRenderWorldObject*)sel)->IsStaticObject() && ((CRenderWorldObject*)sel)->IsWet())
         {
-            grZ = ((CRenderWorldObject *)sel)->GetZ();
+            grZ = ((CRenderWorldObject*)sel)->GetZ();
         }
 
         g_Target.LoadMulti(sel->GetX() - g_Target.MultiX, sel->GetY() - g_Target.MultiY, grZ);
@@ -430,7 +471,7 @@ void CGameScreen::CalculateRenderList()
     bool useObjectHandles =
         (!g_GrayedPixels && g_ConfigManager.ObjectHandles && g_ShiftPressed && g_CtrlPressed);
 
-    QFOR(go, g_World->m_Items, CGameObject *)
+    QFOR(go, g_World->m_Items, CGameObject*)
     {
         if (go->NPC || go->IsCorpse())
         {
@@ -440,13 +481,13 @@ void CGameScreen::CalculateRenderList()
             {
                 int playerZOffset = (g_Player->GetZ() * 4) - g_Player->OffsetZ;
 
-                DRAW_FRAME_INFORMATION &dfInfo = go->m_FrameInfo;
+                DRAW_FRAME_INFORMATION& dfInfo = go->m_FrameInfo;
 
                 g_PlayerRect.X =
                     g_RenderBounds.GameWindowCenterX - dfInfo.OffsetX + g_Player->OffsetX;
                 g_PlayerRect.Y = g_RenderBounds.GameWindowCenterY + g_Player->OffsetY -
                                  playerZOffset - dfInfo.OffsetY;
-                g_PlayerRect.Width = dfInfo.Width;
+                g_PlayerRect.Width  = dfInfo.Width;
                 g_PlayerRect.Height = dfInfo.Height;
             }
         }
@@ -459,8 +500,8 @@ void CGameScreen::CalculateRenderList()
     int maxX = g_RenderBounds.RealMaxRangeX;
     int maxY = g_RenderBounds.RealMaxRangeY;
 
-    int mapBlockHeight = g_MapBlockSize[g_MapManager.GetActualMap()].Height;
-    uint32_t maxBlockIndex = g_MapManager.MaxBlockIndex;
+    int mapBlockHeight = g_MapBlockSize[g_MapManager.GetActualMap()].y;
+    u32 maxBlockIndex  = g_MapManager.MaxBlockIndex;
 
     for (int i = 0; i < 2; i++)
     {
@@ -494,15 +535,15 @@ void CGameScreen::CalculateRenderList()
                 int blockX = x / 8;
                 int blockY = y / 8;
 
-                uint32_t blockIndex = (blockX * mapBlockHeight) + blockY;
+                u32 blockIndex = (blockX * mapBlockHeight) + blockY;
 
                 if (blockIndex < maxBlockIndex)
                 {
-                    CMapBlock *block = g_MapManager.GetBlock(blockIndex);
+                    CMapBlock* block = g_MapManager.GetBlock(blockIndex);
 
                     if (block == nullptr)
                     {
-                        block = g_MapManager.AddBlock(blockIndex);
+                        block    = g_MapManager.AddBlock(blockIndex);
                         block->X = blockX;
                         block->Y = blockY;
                         g_MapManager.LoadBlock(block);
@@ -525,11 +566,11 @@ void CGameScreen::CalculateRenderList()
         {
             int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
 
-            CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
+            CMapBlock* mb = g_MapManager.GetBlock(blockIndex);
 
             if (mb == nullptr)
             {
-                mb = g_MapManager.AddBlock(blockIndex);
+                mb    = g_MapManager.AddBlock(blockIndex);
                 mb->X = bx;
                 mb->Y = by;
                 g_MapManager.LoadBlock(mb);
@@ -562,11 +603,11 @@ void CGameScreen::CalculateRenderList()
     {
         for (int i = 0; i < m_RenderListCount; i++)
         {
-            CRenderWorldObject *obj = m_RenderList[i].Object;
+            CRenderWorldObject* obj = m_RenderList[i].Object;
 
             if (obj != nullptr && obj->IsStaticGroupObject())
             {
-                CRenderStaticObject *rst = obj->StaticGroupObjectPtr();
+                CRenderStaticObject* rst = obj->StaticGroupObjectPtr();
 
                 if (rst->IsFoliage())
                 {
@@ -588,7 +629,7 @@ void CGameScreen::CalculateRenderList()
         m_ObjectHandlesCount = MAX_OBJECT_HANDLES;
     }
 
-    QFOR(go, g_World->m_Items, CGameObject *)
+    QFOR(go, g_World->m_Items, CGameObject*)
     {
         if (go->UseInRender != RenderIndex && (go->NPC || go->IsCorpse()) &&
             go->m_TextControl->m_Items != nullptr)
@@ -611,14 +652,13 @@ void CGameScreen::CalculateRenderList()
 }
 
 void CGameScreen::AddTileToRenderList(
-    CRenderWorldObject *obj, int worldX, int worldY, bool useObjectHandles, int maxZ)
+    CRenderWorldObject* obj, int worldX, int worldY, bool useObjectHandles, int maxZ)
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t grayColor = 0;
+    u16 grayColor = 0;
 
     if (g_ConfigManager.GrayOutOfRangeObjects)
     {
-        if (GetDistance(g_Player, CPoint2Di(worldX, worldY)) > g_ConfigManager.UpdateRange)
+        if (GetDistance(g_Player, Core::Vec2<i32>(worldX, worldY)) > g_ConfigManager.UpdateRange)
         {
             grayColor = 0x038E;
         }
@@ -626,13 +666,12 @@ void CGameScreen::AddTileToRenderList(
 
     if (g_CustomHouseGump != nullptr)
     {
-        SDL_Rect rect = { g_CustomHouseGump->StartPos.X,
-                          g_CustomHouseGump->StartPos.Y,
-                          g_CustomHouseGump->EndPos.X,
-                          g_CustomHouseGump->EndPos.Y + 1 };
-        SDL_Point pos = { worldX, worldY };
-
-        if (SDL_PointInRect(&pos, &rect) == 0u)
+        Core::Rect<int> rect(
+            g_CustomHouseGump->StartPos.x,
+            g_CustomHouseGump->StartPos.y,
+            g_CustomHouseGump->EndPos.x,
+            g_CustomHouseGump->EndPos.y + 1);
+        if (!rect.contains(worldX, worldY))
         {
             grayColor = 0x038E;
         }
@@ -653,8 +692,8 @@ void CGameScreen::AddTileToRenderList(
         }
 
         obj->UseInRender = 0xFF;
-        int drawX = obj->DrawX;
-        int drawY = obj->DrawY;
+        int drawX        = obj->DrawX;
+        int drawY        = obj->DrawY;
 
         if (drawX < g_RenderBounds.MinPixelsX || drawX > g_RenderBounds.MaxPixelsX)
         {
@@ -667,13 +706,13 @@ void CGameScreen::AddTileToRenderList(
 #if UO_RENDER_LIST_SORT == 1
         int maxObjectZ = obj->PriorityZ;
 
-        CRenderStaticObject *rso = obj->StaticGroupObjectPtr();
+        CRenderStaticObject* rso = obj->StaticGroupObjectPtr();
 
         if (rso != nullptr)
         {
             if (rso->IsGameObject())
             {
-                if (((CGameObject *)rso)->NPC)
+                if (((CGameObject*)rso)->NPC)
                 {
                     maxObjectZ += DEFAULT_CHARACTER_HEIGHT;
                 }
@@ -748,7 +787,7 @@ void CGameScreen::AddTileToRenderList(
         int testMinZ = drawY + (z * 4);
         int testMaxZ = drawY;
 
-        CLandObject *land = obj->LandObjectPtr();
+        CLandObject* land = obj->LandObjectPtr();
 
         if (land != nullptr && land->IsStretched)
         {
@@ -766,13 +805,13 @@ void CGameScreen::AddTileToRenderList(
 
         if (obj->IsGameObject())
         {
-            CGameObject *go = (CGameObject *)obj;
+            CGameObject* go = (CGameObject*)obj;
 
             if (go->NPC)
             {
-                CGameCharacter *character = go->GameCharacterPtr();
+                CGameCharacter* character = go->GameCharacterPtr();
 
-                CTextContainer &textContainer = character->m_DamageTextControl;
+                CTextContainer& textContainer = character->m_DamageTextControl;
 
                 if (!textContainer.Empty())
                 {
@@ -782,9 +821,9 @@ void CGameScreen::AddTileToRenderList(
                     int textDrawY = drawY + character->OffsetY -
                                     (character->OffsetZ + dims.Height + dims.CenterY);
 
-                    for (CTextData *text = (CTextData *)textContainer.m_Items; text != nullptr;)
+                    for (CTextData* text = (CTextData*)textContainer.m_Items; text != nullptr;)
                     {
-                        CTextData *next = (CTextData *)text->m_Next;
+                        CTextData* next = (CTextData*)text->m_Next;
 
                         if (text->m_Texture.Empty())
                         {
@@ -801,9 +840,9 @@ void CGameScreen::AddTileToRenderList(
                                 continue;
                             }
 
-                            text->Timer = g_Ticks + DAMAGE_TEXT_TRANSPARENT_DELAY;
+                            text->Timer       = g_Ticks + DAMAGE_TEXT_TRANSPARENT_DELAY;
                             text->Transparent = true;
-                            text->Color = 0x00FF;
+                            text->Color       = 0x00FF;
                         }
 
                         text->RealDrawX = textDrawX - text->GetX();
@@ -811,7 +850,7 @@ void CGameScreen::AddTileToRenderList(
 
                         if (text->Transparent)
                         {
-                            if ((uint8_t)text->Color >= DAMAGE_TEXT_ALPHA_STEP)
+                            if ((u8)text->Color >= DAMAGE_TEXT_ALPHA_STEP)
                             {
                                 text->Color -= DAMAGE_TEXT_ALPHA_STEP;
                             }
@@ -832,7 +871,7 @@ void CGameScreen::AddTileToRenderList(
                 }
             }
 
-            if ((go->NPC || (!go->Locked() && !((CGameItem *)go)->MultiBody)) && useObjectHandles &&
+            if ((go->NPC || (!go->Locked() && !((CGameItem*)go)->MultiBody)) && useObjectHandles &&
                 !go->ClosedObjectHandle) // && m_ObjectHandlesCount < MAX_OBJECT_HANDLES)
             {
                 int index = m_ObjectHandlesCount % MAX_OBJECT_HANDLES;
@@ -872,11 +911,11 @@ void CGameScreen::AddTileToRenderList(
 
             if (foliageCanBeChecked)
             {
-                CGLTexture *texturePtr = g_Orion.ExecuteStaticArt(obj->Graphic);
+                CGLTexture* texturePtr = g_Orion.ExecuteStaticArt(obj->Graphic);
 
                 if (texturePtr != nullptr)
                 {
-                    CGLTexture &texture = *texturePtr;
+                    CGLTexture& texture = *texturePtr;
 
                     CImageBounds fib(
                         drawX - texture.Width / 2 + texture.ImageOffsetX,
@@ -917,13 +956,18 @@ void CGameScreen::AddTileToRenderList(
 
             if (m_RenderList.size() != newSize)
             {
-                LOG("Allocation pixels memory for Render List failed (want size: %zi)\n", newSize);
+                LOG_ERROR(
+                    "GameScreen",
+                    "Allocation pixels memory for Render List failed (want size: %zi)",
+                    newSize);
 
                 m_RenderList.resize(newSize - 1000);
 
                 if (m_RenderList.size() != newSize - 1000)
                 {
-                    LOG("Allocation pixels memory for Render List failed SECOND STEP!!! (want size: %zi)\n",
+                    LOG_ERROR(
+                        "GameScreen",
+                        "Allocation pixels memory for Render List failed SECOND STEP!!! (want size: %zi)",
                         newSize - 1000);
                     m_RenderListCount = 0;
                     return;
@@ -933,9 +977,9 @@ void CGameScreen::AddTileToRenderList(
 
         //LOG("Item[0x%04X]: x=%i y=%i (dx=%i, dy=%i)\n", obj->Graphic, drawX, drawY, obj->DrawX, obj->DrawY);
 
-        m_RenderList[m_RenderListCount].Object = obj;
+        m_RenderList[m_RenderListCount].Object    = obj;
         m_RenderList[m_RenderListCount].GrayColor = grayColor;
-        obj->UseInRender = RenderIndex;
+        obj->UseInRender                          = RenderIndex;
 
         if ((grayColor == 0u) && g_CustomHouseGump != nullptr && g_Target.IsTargeting() &&
             obj == g_SelectedObject.Object)
@@ -969,13 +1013,12 @@ void CGameScreen::AddTileToRenderList(
     }
 }
 
-void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject *obj, bool useObjectHandles)
+void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject* obj, bool useObjectHandles)
 {
-    DEBUG_TRACE_FUNCTION;
     int characterX = obj->GetX();
     int characterY = obj->GetY();
 
-    CGameCharacter *character = obj->GameCharacterPtr();
+    CGameCharacter* character = obj->GameCharacterPtr();
 
     // Make all characters draw in right order.
     // TODO: Some cases are still broken. It moves tiles to different layers etc. But it should not be directly player related.
@@ -985,26 +1028,26 @@ void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject *obj, bool useO
          (!character->m_Steps.empty() && ((character->m_Steps.back().Direction & 7) == 6 ||
                                           (character->m_Steps.back().Direction & 7) == 2)));
 
-    DRAW_FRAME_INFORMATION &dfInfo = obj->m_FrameInfo;
-    int offsetY = dfInfo.Height - dfInfo.OffsetY;
+    DRAW_FRAME_INFORMATION& dfInfo = obj->m_FrameInfo;
+    int offsetY                    = dfInfo.Height - dfInfo.OffsetY;
 
-    vector<pair<int, int>> coordinates;
+    std::vector<std::pair<int, int>> coordinates;
 
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY - 1));
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY - 2));
-    coordinates.push_back(pair<int, int>(characterX + 2, characterY - 2));
-    coordinates.push_back(pair<int, int>(characterX - 1, characterY + 2));
-    coordinates.push_back(pair<int, int>(characterX, characterY + 1));
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY));
-    coordinates.push_back(pair<int, int>(characterX + 2, characterY - 1));
-    coordinates.push_back(pair<int, int>(characterX + 1, characterY + 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY - 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY - 2));
+    coordinates.push_back(std::pair<int, int>(characterX + 2, characterY - 2));
+    coordinates.push_back(std::pair<int, int>(characterX - 1, characterY + 2));
+    coordinates.push_back(std::pair<int, int>(characterX, characterY + 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY));
+    coordinates.push_back(std::pair<int, int>(characterX + 2, characterY - 1));
+    coordinates.push_back(std::pair<int, int>(characterX + 1, characterY + 1));
 
     const auto size = (int)coordinates.size();
 
     int maxZ = obj->PriorityZ;
 
-    int mapBlockHeight = g_MapBlockSize[g_CurrentMap].Height;
-    uint32_t maxBlockIndex = g_MapManager.MaxBlockIndex;
+    int mapBlockHeight = g_MapBlockSize[g_CurrentMap].y;
+    u32 maxBlockIndex  = g_MapManager.MaxBlockIndex;
 
     for (int i = 0; i < size; i++)
     {
@@ -1025,15 +1068,15 @@ void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject *obj, bool useO
         int blockX = x / 8;
         int blockY = y / 8;
 
-        uint32_t blockIndex = (blockX * mapBlockHeight) + blockY;
+        u32 blockIndex = (blockX * mapBlockHeight) + blockY;
 
         if (blockIndex < maxBlockIndex)
         {
-            CMapBlock *block = g_MapManager.GetBlock(blockIndex);
+            CMapBlock* block = g_MapManager.GetBlock(blockIndex);
 
             if (block == nullptr)
             {
-                block = g_MapManager.AddBlock(blockIndex);
+                block    = g_MapManager.AddBlock(blockIndex);
                 block->X = blockX;
                 block->Y = blockY;
                 g_MapManager.LoadBlock(block);
@@ -1054,7 +1097,6 @@ void CGameScreen::AddOffsetCharacterTileToRenderList(CGameObject *obj, bool useO
 void CGameScreen::CalculateGameWindowBounds()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     g_GrayedPixels = g_Player->Dead();
 
     if (g_GrayedPixels && g_Season != ST_DESOLATION)
@@ -1072,7 +1114,7 @@ void CGameScreen::CalculateGameWindowBounds()
     g_RenderBounds.GameWindowPosX = g_ConfigManager.GameWindowX;
     g_RenderBounds.GameWindowPosY = g_ConfigManager.GameWindowY;
 
-    g_RenderBounds.GameWindowWidth = g_ConfigManager.GameWindowWidth;
+    g_RenderBounds.GameWindowWidth  = g_ConfigManager.GameWindowWidth;
     g_RenderBounds.GameWindowHeight = g_ConfigManager.GameWindowHeight;
 
     m_GameScreenGump.UpdateContent();
@@ -1085,12 +1127,12 @@ void CGameScreen::CalculateGameWindowBounds()
         (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight / 2) +
         (g_Player->GetZ() * 4);
 
-    /*int earthquakeMagnitude = RandomInt(11);
+    /*int earthquakeMagnitude = Core::Random::Get().GetNextWrapped(11);
 
 	if (earthquakeMagnitude)
 	{
-		g_RenderBounds.GameWindowCenterX += RandomInt(earthquakeMagnitude * 3);
-		g_RenderBounds.GameWindowCenterY += RandomInt(earthquakeMagnitude * 3);
+		g_RenderBounds.GameWindowCenterX += Core::Random::Get().GetNextWrapped(earthquakeMagnitude * 3);
+		g_RenderBounds.GameWindowCenterY += Core::Random::Get().GetNextWrapped(earthquakeMagnitude * 3);
 	}*/
 
     g_RenderBounds.GameWindowCenterX -= g_Player->OffsetX;
@@ -1101,14 +1143,14 @@ void CGameScreen::CalculateGameWindowBounds()
     g_RenderBounds.WindowDrawOffsetY =
         ((g_Player->GetX() + g_Player->GetY()) * 22) - g_RenderBounds.GameWindowCenterY;
 
-    if (g_ConfigManager.GetUseScaling())
+    if (uo_use_scaling.GetValue() > 0)
     {
-        GLdouble left = (GLdouble)g_RenderBounds.GameWindowPosX;
-        GLdouble right = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
-        GLdouble top = (GLdouble)g_RenderBounds.GameWindowPosY;
+        GLdouble left   = (GLdouble)g_RenderBounds.GameWindowPosX;
+        GLdouble right  = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
+        GLdouble top    = (GLdouble)g_RenderBounds.GameWindowPosY;
         GLdouble bottom = (GLdouble)(g_RenderBounds.GameWindowHeight + top);
 
-        GLdouble newRight = right * g_GlobalScale;
+        GLdouble newRight  = right * g_GlobalScale;
         GLdouble newBottom = bottom * g_GlobalScale;
 
         g_RenderBounds.GameWindowScaledOffsetX = (int)((left * g_GlobalScale) - (newRight - right));
@@ -1127,7 +1169,7 @@ void CGameScreen::CalculateGameWindowBounds()
         g_RenderBounds.GameWindowScaledOffsetX = 0;
         g_RenderBounds.GameWindowScaledOffsetY = 0;
 
-        g_RenderBounds.GameWindowScaledWidth = 0;
+        g_RenderBounds.GameWindowScaledWidth  = 0;
         g_RenderBounds.GameWindowScaledHeight = 0;
     }
 
@@ -1152,9 +1194,9 @@ void CGameScreen::CalculateGameWindowBounds()
 
     g_RenderBounds.RealMaxRangeX = g_Player->GetX() + rangeX;
 
-    if (g_RenderBounds.RealMaxRangeX >= g_MapSize[g_CurrentMap].Width)
+    if (g_RenderBounds.RealMaxRangeX >= g_MapSize[g_CurrentMap].x)
     {
-        g_RenderBounds.RealMaxRangeX = g_MapSize[g_CurrentMap].Width;
+        g_RenderBounds.RealMaxRangeX = g_MapSize[g_CurrentMap].x;
     }
 
     g_RenderBounds.RealMinRangeY = g_Player->GetY() - rangeY;
@@ -1166,9 +1208,9 @@ void CGameScreen::CalculateGameWindowBounds()
 
     g_RenderBounds.RealMaxRangeY = g_Player->GetY() + rangeY;
 
-    if (g_RenderBounds.RealMaxRangeY >= g_MapSize[g_CurrentMap].Height)
+    if (g_RenderBounds.RealMaxRangeY >= g_MapSize[g_CurrentMap].y)
     {
-        g_RenderBounds.RealMaxRangeY = g_MapSize[g_CurrentMap].Height;
+        g_RenderBounds.RealMaxRangeY = g_MapSize[g_CurrentMap].y;
     }
 
     g_RenderBounds.MinBlockX = (g_RenderBounds.RealMinRangeX / 8) - 1;
@@ -1186,22 +1228,22 @@ void CGameScreen::CalculateGameWindowBounds()
         g_RenderBounds.MinBlockY = 0;
     }
 
-    if (g_RenderBounds.MaxBlockX >= g_MapBlockSize[g_CurrentMap].Width)
+    if (g_RenderBounds.MaxBlockX >= g_MapBlockSize[g_CurrentMap].x)
     {
-        g_RenderBounds.MaxBlockX = g_MapBlockSize[g_CurrentMap].Width - 1;
+        g_RenderBounds.MaxBlockX = g_MapBlockSize[g_CurrentMap].x - 1;
     }
 
-    if (g_RenderBounds.MaxBlockY >= g_MapBlockSize[g_CurrentMap].Height)
+    if (g_RenderBounds.MaxBlockY >= g_MapBlockSize[g_CurrentMap].y)
     {
-        g_RenderBounds.MaxBlockY = g_MapBlockSize[g_CurrentMap].Height - 1;
+        g_RenderBounds.MaxBlockY = g_MapBlockSize[g_CurrentMap].y - 1;
     }
 
     int drawOffset = (int)(g_GlobalScale * 40.0);
 
-    GLdouble maxX = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth + drawOffset;
-    GLdouble maxY = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight + drawOffset;
-    GLdouble newMaxX = maxX * g_GlobalScale;
-    GLdouble newMaxY = maxY * g_GlobalScale;
+    GLdouble maxX    = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth + drawOffset;
+    GLdouble maxY    = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight + drawOffset;
+    GLdouble newMaxX = maxX * g_GlobalScale + uo_render_extra_pixels.GetValue();
+    GLdouble newMaxY = maxY * g_GlobalScale + uo_render_extra_pixels.GetValue();
 
     g_RenderBounds.MinPixelsX =
         (int)(((g_RenderBounds.GameWindowPosX - drawOffset) * g_GlobalScale) - (newMaxX - maxX));
@@ -1214,7 +1256,7 @@ void CGameScreen::CalculateGameWindowBounds()
     if (UpdateDrawPos || oldDrawOffsetX != g_RenderBounds.WindowDrawOffsetX ||
         oldDrawOffsetX != g_RenderBounds.WindowDrawOffsetY)
     {
-        UpdateDrawPos = true;
+        UpdateDrawPos        = true;
         RenderListInitalized = false;
     }
 
@@ -1224,12 +1266,12 @@ void CGameScreen::CalculateGameWindowBounds()
 
     if (UseLight && g_GL.CanUseFrameBuffer)
     {
-        int testWidth = g_RenderBounds.GameWindowWidth;
+        int testWidth  = g_RenderBounds.GameWindowWidth;
         int testHeight = g_RenderBounds.GameWindowHeight;
 
-        if (g_ConfigManager.GetUseScaling())
+        if (uo_use_scaling.GetValue() > 0)
         {
-            testWidth = g_RenderBounds.GameWindowScaledWidth;
+            testWidth  = g_RenderBounds.GameWindowScaledWidth;
             testHeight = g_RenderBounds.GameWindowScaledHeight;
         }
 
@@ -1240,10 +1282,8 @@ void CGameScreen::CalculateGameWindowBounds()
     }
 }
 
-void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObject, int x, int y)
+void CGameScreen::AddLight(CRenderWorldObject* rwo, CRenderWorldObject* lightObject, int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (m_LightCount < MAX_LIGHT_SOURCES)
     {
         bool canBeAdded = true;
@@ -1254,8 +1294,8 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
         int bx = testX / 8;
         int by = testY / 8;
 
-        int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].Height) + by;
-        CMapBlock *mb = g_MapManager.GetBlock(blockIndex);
+        int blockIndex = (bx * g_MapBlockSize[g_CurrentMap].y) + by;
+        CMapBlock* mb  = g_MapManager.GetBlock(blockIndex);
 
         if (mb != nullptr)
         {
@@ -1264,11 +1304,11 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
 
             char z5 = rwo->GetZ() + 5;
 
-            for (CRenderWorldObject *obj = mb->GetRender(bx, by); obj != nullptr;
-                 obj = obj->m_NextXY)
+            for (CRenderWorldObject* obj = mb->GetRender(bx, by); obj != nullptr;
+                 obj                     = obj->m_NextXY)
             {
                 if (!obj->IsStaticGroupObject() ||
-                    (obj->IsGameObject() && ((CGameObject *)obj)->NPC) || obj->NoDrawTile ||
+                    (obj->IsGameObject() && ((CGameObject*)obj)->NPC) || obj->NoDrawTile ||
                     obj->IsTransparent())
                 {
                     continue;
@@ -1284,9 +1324,9 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
 
         if (canBeAdded)
         {
-            LIGHT_DATA &light = m_Light[m_LightCount];
+            LIGHT_DATA& light = m_Light[m_LightCount];
 
-            uint16_t graphic = lightObject->Graphic;
+            u16 graphic = lightObject->Graphic;
 
             if ((graphic >= 0x3E02 && graphic <= 0x3E0B) ||
                 (graphic >= 0x3914 && graphic <= 0x3929))
@@ -1295,11 +1335,11 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
             }
             else if (rwo == lightObject && rwo->IsGameObject())
             {
-                light.ID = ((CGameItem *)lightObject)->LightID;
+                light.ID = ((CGameItem*)lightObject)->LightID;
             }
             else
             {
-                light.ID = (uint8_t)lightObject->GetLightID();
+                light.ID = (u8)lightObject->GetLightID();
             }
 
             if (light.ID >= MAX_LIGHTS_DATA_INDEX_COUNT)
@@ -1327,7 +1367,6 @@ void CGameScreen::AddLight(CRenderWorldObject *rwo, CRenderWorldObject *lightObj
 void CGameScreen::DrawGameWindow(bool render)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     const int playerZPlus5 = g_RenderBounds.PlayerZ + 5;
     if (render)
     {
@@ -1346,8 +1385,8 @@ void CGameScreen::DrawGameWindow(bool render)
         m_HitsStack.clear();
         for (int i = 0; i < m_RenderListCount; i++)
         {
-            RENDER_OBJECT_DATA &rod = m_RenderList[i];
-            CRenderWorldObject *obj = rod.Object;
+            RENDER_OBJECT_DATA& rod = m_RenderList[i];
+            CRenderWorldObject* obj = rod.Object;
             if (obj != nullptr)
             {
                 g_OutOfRangeColor = rod.GrayColor;
@@ -1358,17 +1397,17 @@ void CGameScreen::DrawGameWindow(bool render)
                 int y = obj->DrawY;
                 obj->Draw(x, y);
                 if ((g_ConfigManager.GetDrawStatusState() != 0u) && obj->IsGameObject() &&
-                    ((CGameObject *)obj)->NPC && !((CGameCharacter *)obj)->Dead())
+                    ((CGameObject*)obj)->NPC && !((CGameCharacter*)obj)->Dead())
                 {
-                    CGameCharacter *gc = (CGameCharacter *)obj;
+                    CGameCharacter* gc = (CGameCharacter*)obj;
                     if (g_ConfigManager.DrawStatusForHumanoids && !gc->IsHuman())
                     {
                         continue;
                     }
 
-                    uint16_t color = g_ConfigManager.GetColorByNotoriety(gc->Notoriety);
-                    uint16_t healthColor = 90;
-                    int width = gc->MaxHits;
+                    u16 color       = g_ConfigManager.GetColorByNotoriety(gc->Notoriety);
+                    u16 healthColor = 90;
+                    int width       = gc->MaxHits;
                     if (width > 0)
                     {
                         width = (gc->Hits * 100) / width;
@@ -1447,8 +1486,6 @@ void CGameScreen::DrawGameWindow(bool render)
         {
             m_ObjectHandlesList[i]->DrawObjectHandlesTexture();
         }
-
-        g_PluginManager.WorldDraw();
     }
     else
     {
@@ -1458,7 +1495,7 @@ void CGameScreen::DrawGameWindow(bool render)
 
         for (int i = 0; i < m_RenderListCount; i++)
         {
-            CRenderWorldObject *obj = m_RenderList[i].Object;
+            CRenderWorldObject* obj = m_RenderList[i].Object;
             if (obj != nullptr)
             {
                 g_UseCircleTrans = (useCircleTrans && obj->TranparentTest(playerZPlus5));
@@ -1476,7 +1513,6 @@ void CGameScreen::DrawGameWindow(bool render)
 void CGameScreen::DrawGameWindowLight()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     if (!UseLight)
@@ -1507,7 +1543,7 @@ void CGameScreen::DrawGameWindowLight()
             int offsetX = 0;
             int offsetY = 0;
 
-            if (g_ConfigManager.GetUseScaling())
+            if (uo_use_scaling.GetValue() > 0)
             {
                 offsetX = g_RenderBounds.GameWindowPosX - g_RenderBounds.GameWindowScaledOffsetX;
                 offsetY = g_RenderBounds.GameWindowPosY - g_RenderBounds.GameWindowScaledOffsetY;
@@ -1539,7 +1575,7 @@ void CGameScreen::DrawGameWindowLight()
 
             glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 
-            if (g_ConfigManager.GetUseScaling())
+            if (uo_use_scaling.GetValue() > 0)
             {
                 g_LightBuffer.Draw(
                     g_RenderBounds.GameWindowScaledOffsetX, g_RenderBounds.GameWindowScaledOffsetY);
@@ -1571,7 +1607,6 @@ void CGameScreen::DrawGameWindowLight()
 void CGameScreen::DrawGameWindowText(bool render)
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     if (render)
     {
         g_FontColorizerShader.Use();
@@ -1583,11 +1618,11 @@ void CGameScreen::DrawGameWindowText(bool render)
         {
             if (g_ConfigManager.GetDrawStatusState() == DCSS_ABOVE)
             {
-                for (vector<OBJECT_HITS_INFO>::iterator it = m_HitsStack.begin();
+                for (std::vector<OBJECT_HITS_INFO>::iterator it = m_HitsStack.begin();
                      it != m_HitsStack.end();
                      ++it)
                 {
-                    CGLTextTexture *texture = it->HitsTexture;
+                    CGLTextTexture* texture = it->HitsTexture;
                     texture->Draw(it->X, it->Y);
                 }
             }
@@ -1596,7 +1631,7 @@ void CGameScreen::DrawGameWindowText(bool render)
                 g_ColorizerShader.Use();
                 for (int i = 0; i < 2; i++)
                 {
-                    for (vector<OBJECT_HITS_INFO>::iterator it = m_HitsStack.begin();
+                    for (std::vector<OBJECT_HITS_INFO>::iterator it = m_HitsStack.begin();
                          it != m_HitsStack.end();
                          ++it)
                     {
@@ -1614,17 +1649,17 @@ void CGameScreen::DrawGameWindowText(bool render)
             }
         }
 
-        QFOR(obj, g_World->m_Items, CGameObject *)
+        QFOR(obj, g_World->m_Items, CGameObject*)
         {
             if (obj->NPC)
             {
-                CTextContainer &textContainer = obj->GameCharacterPtr()->m_DamageTextControl;
+                CTextContainer& textContainer = obj->GameCharacterPtr()->m_DamageTextControl;
                 if (textContainer.Empty())
                 {
                     continue;
                 }
 
-                QFOR(text, textContainer.m_Items, CTextData *)
+                QFOR(text, textContainer.m_Items, CTextData*)
                 {
                     if (!text->m_Texture.Empty())
                     {
@@ -1633,7 +1668,7 @@ void CGameScreen::DrawGameWindowText(bool render)
                             glEnable(GL_BLEND);
                             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-                            glColor4ub(0xFF, 0xFF, 0xFF, (uint8_t)text->Color);
+                            glColor4ub(0xFF, 0xFF, 0xFF, (u8)text->Color);
 
                             text->m_Texture.Draw(text->RealDrawX, text->RealDrawY);
 
@@ -1658,7 +1693,6 @@ void CGameScreen::DrawGameWindowText(bool render)
 void CGameScreen::PrepareContent()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     g_WorldTextRenderer.CalculateWorldPositions(false);
 
     m_GameScreenGump.PrepareContent();
@@ -1681,12 +1715,12 @@ void CGameScreen::PrepareContent()
     if (g_PressedObject.LeftObject != nullptr && g_PressedObject.LeftObject->IsGameObject() &&
         g_MouseManager.LastLeftButtonClickTimer < g_Ticks)
     {
-        CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+        Core::Vec2<i32> offset = g_MouseManager.GetLeftDroppedOffset();
 
         if (CanBeDraggedByOffset(offset) ||
             (g_MouseManager.LastLeftButtonClickTimer + g_MouseManager.DoubleClickDelay < g_Ticks))
         {
-            CGameItem *selobj = g_World->FindWorldItem(g_PressedObject.LeftSerial);
+            CGameItem* selobj = g_World->FindWorldItem(g_PressedObject.LeftSerial);
 
             if (selobj != nullptr && !g_ObjectInHand.Enabled && !selobj->Locked() &&
                 GetDistance(g_Player, selobj) <= DRAG_ITEMS_DISTANCE)
@@ -1695,13 +1729,13 @@ void CGameScreen::PrepareContent()
                 {
                     if (selobj->IsStackable() && selobj->Count > 1 && !g_ShiftPressed)
                     {
-                        CGumpDrag *newgump = new CGumpDrag(
+                        CGumpDrag* newgump = new CGumpDrag(
                             g_PressedObject.LeftSerial,
-                            g_MouseManager.Position.X - 80,
-                            g_MouseManager.Position.Y - 34);
+                            g_MouseManager.GetPosition().x - 80,
+                            g_MouseManager.GetPosition().y - 34);
 
                         g_GumpManager.AddGump(newgump);
-                        g_OrionWindow.EmulateOnLeftMouseButtonDown();
+                        g_MouseManager.EmulateOnLeftMouseButtonDown();
                         selobj->Dragged = true;
                     }
                     else if (!g_Target.IsTargeting())
@@ -1713,16 +1747,30 @@ void CGameScreen::PrepareContent()
             }
             else if (!g_ObjectInHand.Enabled)
             {
-                CGameCharacter *selchar = g_World->FindWorldCharacter(g_PressedObject.LeftSerial);
+                CGameCharacter* selchar = g_World->FindWorldCharacter(g_PressedObject.LeftSerial);
 
                 if (selchar != nullptr) //Character selection
                 {
                     g_Orion.OpenStatus(selchar->Serial);
                     g_GeneratedMouseDown = true;
-                    g_OrionWindow.EmulateOnLeftMouseButtonDown();
-                    PLUGIN_EVENT(UOMSG_STATUS_REQUEST, selchar->Serial);
+                    g_MouseManager.EmulateOnLeftMouseButtonDown();
                 }
             }
+        }
+    }
+
+    if (!g_PathFinder.AutoWalking)
+    {
+        Core::IGamepad* gamepad = Core::Input::GetGamepad(0);
+        Core::Vec2<float> stick = gamepad->GetStickValues(Core::EGamepadStick::Left);
+        int shiftX              = (int)(stick.x * 1000.0f);
+        int shiftY              = (int)(stick.y * 1000.0f);
+        if (stick.length() > 0.2f)
+        {
+            int dir = GetFacing(shiftX, shiftY, 1);
+            if (dir == 0)
+                dir = 8;
+            g_PathFinder.Walk(stick.length() > 0.75f, dir - 1);
         }
     }
 }
@@ -1753,17 +1801,15 @@ void CGameScreen::PreRender()
 void CGameScreen::Render()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
     PreRender();
 
-    static uint32_t lastRender = 0;
+    static u32 lastRender = 0;
     static int currentFPS = 0;
-    static int FPScount = 0;
+    static int FPScount   = 0;
 
     if (lastRender < g_Ticks)
     {
-        LOG("FPS=%i\n", FPScount);
-        FPScount = currentFPS;
+        FPScount   = currentFPS;
         currentFPS = 1;
         lastRender = g_Ticks + 1000;
     }
@@ -1778,7 +1824,7 @@ void CGameScreen::Render()
         return;
     }
 
-    uint32_t deathScreenTimer = g_DeathScreenTimer;
+    u32 deathScreenTimer = g_DeathScreenTimer;
     if ((deathScreenTimer != 0u) && g_ScreenEffectManager.Mode != SEM_NONE)
     {
         deathScreenTimer = 0;
@@ -1794,13 +1840,13 @@ void CGameScreen::Render()
         g_PressedObject.ClearAll();
     }
 
-    g_RenderedObjectsCountInGameWindow = 0;
-    g_TargetGump.Color = 0;
-    g_TargetGump.TargetedCharacter = nullptr;
-    g_AttackTargetGump.Color = 0;
+    g_RenderedObjectsCountInGameWindow   = 0;
+    g_TargetGump.Color                   = 0;
+    g_TargetGump.TargetedCharacter       = nullptr;
+    g_AttackTargetGump.Color             = 0;
     g_AttackTargetGump.TargetedCharacter = nullptr;
-    g_NewTargetSystem.ColorGump = 0;
-    g_NewTargetSystem.TargetedCharacter = nullptr;
+    g_NewTargetSystem.ColorGump          = 0;
+    g_NewTargetSystem.TargetedCharacter  = nullptr;
 
     m_LightCount = 0;
 
@@ -1868,7 +1914,7 @@ void CGameScreen::Render()
     }
 
     g_OutOfRangeColor = 0;
-    g_GrayedPixels = false;
+    g_GrayedPixels    = false;
     UnuseShader();
     if (deathScreenTimer == 0u)
     {
@@ -1887,13 +1933,24 @@ void CGameScreen::Render()
     {
         char dbf[100] = { 0 };
 
+        Core::TMousePos pos         = g_MouseManager.GetPosition();
+        Core::IGamepad* gamepad     = Core::Input::GetGamepad(0);
+        Core::Vec2<float> leftStick = gamepad->GetStickValues(Core::EGamepadStick::Left);
+
         sprintf_s(
             dbf,
-            "FPS=%i (%ims) scale=%.1f\n%s",
+            "FPS=%i (%ims) scale=%.1f\n%s\nX=%i , Y=%i\nL=%i M=%i R=%i\nX=%i Y=%i",
             FPScount,
             g_FrameDelay[WINDOW_ACTIVE],
             g_GlobalScale,
-            g_PingString.c_str());
+            g_Orion.GetPingString().c_str(),
+            pos.x,
+            pos.y,
+            g_MouseManager.IsLeftButtonDown() ? 1 : 0,
+            g_MouseManager.IsMiddleButtonDown() ? 1 : 0,
+            g_MouseManager.IsRightButtonDown() ? 1 : 0,
+            g_MouseManager.GetLeftDroppedOffset().x,
+            g_MouseManager.GetLeftDroppedOffset().y);
 
         g_FontManager.DrawA(
             3,
@@ -1911,7 +1968,7 @@ void CGameScreen::Render()
             "FPS=%i (%ims) %sDir=%i Z=%i (MDZ=%i) scale=%.1f",
             FPScount,
             g_FrameDelay[WINDOW_ACTIVE],
-            g_PingString.c_str(),
+            g_Orion.GetPingString().c_str(),
             g_Player->Direction,
             g_RenderBounds.PlayerZ,
             m_MaxDrawZ,
@@ -1933,9 +1990,9 @@ void CGameScreen::Render()
 
         if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsWorldObject())
         {
-            CRenderWorldObject *selRwo = (CRenderWorldObject *)g_SelectedObject.Object;
-            CLandObject *land = selRwo->LandObjectPtr();
-            char soName[20] = "UnknownObject";
+            CRenderWorldObject* selRwo = (CRenderWorldObject*)g_SelectedObject.Object;
+            CLandObject* land          = selRwo->LandObjectPtr();
+            char soName[20]            = "UnknownObject";
 
             switch (selRwo->RenderType)
             {
@@ -1966,9 +2023,9 @@ void CGameScreen::Render()
                 {
                     sprintf_s(soName, "Multi");
 
-                    if (((CMultiObject *)selRwo)->IsCustomHouseMulti())
+                    if (((CMultiObject*)selRwo)->IsCustomHouseMulti())
                     {
-                        sprintf_s(soName, "Multi CH %04X", ((CMultiObject *)selRwo)->State);
+                        sprintf_s(soName, "Multi CH %04X", ((CMultiObject*)selRwo)->State);
                     }
                     else
                     {
@@ -1976,8 +2033,7 @@ void CGameScreen::Render()
                     }
                     break;
                 }
-                default:
-                    break;
+                default: break;
             }
 
             int tz = selRwo->GetZ();
@@ -1988,7 +2044,7 @@ void CGameScreen::Render()
                 tz = (char)land->Serial;
             }
 
-            uint32_t tiledataFlags = (uint32_t)(
+            u32 tiledataFlags = (u32)(
                 selRwo->IsStaticGroupObject() ?
                     ((CRenderStaticObject *)selRwo)->GetStaticData()->Flags :
                     0);
@@ -2006,25 +2062,25 @@ void CGameScreen::Render()
                 tz,
                 selRwo->PriorityZ);
 
-            const string flagNames[] = { "Background", "Weapon",     "Transparent", "Translucent",
-                                         "Wall",       "Damaging",   "Impassable",  "Wet",
-                                         "Unknown",    "Surface",    "Bridge",      "Stackable",
-                                         "Window",     "NoShoot",    "PrefixA",     "PrefixAn",
-                                         "Internal",   "Foliage",    "PartialHue",  "Unknown1",
-                                         "Map",        "Container",  "Wearable",    "LightSource",
-                                         "Animated",   "NoDiagonal", "Unknown2",    "Armor",
-                                         "Roof",       "Door",       "StairBack",   "StairRight" };
+            const std::string flagNames[] = {
+                "Background", "Weapon",     "Transparent", "Translucent", "Wall",     "Damaging",
+                "Impassable", "Wet",        "Unknown",     "Surface",     "Bridge",   "Stackable",
+                "Window",     "NoShoot",    "PrefixA",     "PrefixAn",    "Internal", "Foliage",
+                "PartialHue", "Unknown1",   "Map",         "Container",   "Wearable", "LightSource",
+                "Animated",   "NoDiagonal", "Unknown2",    "Armor",       "Roof",     "Door",
+                "StairBack",  "StairRight"
+            };
 
-            string flagsData{};
+            std::string flagsData{};
             for (int f = 0; f < 32; f++)
             {
                 if ((tiledataFlags & (1 << f)) != 0u)
                 {
-                    flagsData += string("\n") + flagNames[f];
+                    flagsData += std::string("\n") + flagNames[f];
                 }
             }
 
-            flagsData = string(dbf) + flagsData;
+            flagsData = std::string(dbf) + flagsData;
 
             g_FontManager.DrawA(3, flagsData, 0x0035, 20, 102);
         }
@@ -2033,14 +2089,13 @@ void CGameScreen::Render()
 
     g_GumpManager.Draw(false);
     g_GameConsole.DrawW(
-        (uint8_t)g_ConfigManager.SpeechFont,
+        (u8)g_ConfigManager.SpeechFont,
         g_ConfigManager.SpeechColor,
         g_RenderBounds.GameWindowPosX,
         g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight - 18,
         TS_LEFT,
         UOFONT_BLACK_BORDER | UOFONT_FIXED);
 
-    g_PluginManager.SceneDraw();
     if (g_GameState == GS_GAME_BLOCKED)
     {
         g_SelectedObject.Init(tempSelected);
@@ -2051,17 +2106,16 @@ void CGameScreen::Render()
     else
     {
         InitToolTip();
-        g_MouseManager.Draw(g_MouseManager.GetGameCursor()); //Game Gump mouse cursor
+        g_MouseManager.Draw(MouseCursors::Directional);
     }
     g_GL.EndDraw();
 }
 
 void CGameScreen::SelectObject()
 {
-    DEBUG_TRACE_FUNCTION;
-
+    PROFILER_EVENT();
     GLdouble oldScale = g_GlobalScale;
-    g_GlobalScale = 1.0;
+    g_GlobalScale     = 1.0;
     g_SelectedObject.Clear();
     g_StatusbarUnderMouse = 0;
     g_GumpManager.Select(false);
@@ -2069,7 +2123,7 @@ void CGameScreen::SelectObject()
     {
         if (g_SelectedObject.Object->IsText())
         {
-            ((CRenderTextObject *)g_SelectedObject.Object)->ToTop();
+            ((CRenderTextObject*)g_SelectedObject.Object)->ToTop();
         }
     }
     else if (m_GameScreenGump.Select() == nullptr)
@@ -2079,61 +2133,84 @@ void CGameScreen::SelectObject()
             DrawGameWindowText(false);
             if (g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsText())
             {
-                g_WorldTextRenderer.ToTop((CRenderTextObject *)g_SelectedObject.Object);
+                g_WorldTextRenderer.ToTop((CRenderTextObject*)g_SelectedObject.Object);
             }
         }
 
         if (g_SelectedObject.Object == nullptr) //Если ничего не выбралось - пройдемся по объектам
         {
             //Если курсор мыши в игровом окне - просканируем его
-            if (g_MouseManager.Position.X < g_RenderBounds.GameWindowPosX ||
-                g_MouseManager.Position.Y < g_RenderBounds.GameWindowPosY ||
-                g_MouseManager.Position.X >
+            if (g_MouseManager.GetPosition().x < g_RenderBounds.GameWindowPosX ||
+                g_MouseManager.GetPosition().y < g_RenderBounds.GameWindowPosY ||
+                g_MouseManager.GetPosition().x >
                     (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth) ||
-                g_MouseManager.Position.Y >
+                g_MouseManager.GetPosition().y >
                     (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight))
             {
                 // do nothing
             }
             else
             {
+                // TODO: FIX
+                Core::TMousePos oldMouse = g_MouseManager.GetPosition();
+                // int centerX = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth / 2;
+                // int centerY = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight / 2;
+                // int offsetX = oldMouse.x - centerX;
+                // int offsetY = oldMouse.y - centerY;
+                // g_MouseManager.SetPosition(Core::Vec2<i32>(
+                //     centerX + (int)roundf((float)offsetX * g_GlobalScale),
+                //     centerY + (int)roundf((float)offsetY * g_GlobalScale)));
+
                 g_GlobalScale = oldScale;
-                CPoint2Di oldMouse = g_MouseManager.Position;
 
-                //g_MouseManager.Position = CPoint2Di((int)((oldMouse.X - (g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale)) * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX, (int)((oldMouse.Y - (g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)) * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY);
+                // g_MouseManager.SetPosition(Core::Vec2<i32>(
+                //     (int)((oldMouse.x - (g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale)) * g_GlobalScale) +
+                //         g_RenderBounds.GameWindowScaledOffsetX,
+                //     (int)((oldMouse.y - (g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)) * g_GlobalScale) +
+                //         g_RenderBounds.GameWindowScaledOffsetY));
+                // g_MouseManager.SetPosition(Core::Vec2<i32>(
+                //     (int)((oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale),
+                //     (int)((oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)));
 
-                //g_MouseManager.Position = CPoint2Di((int)((oldMouse.X * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale), (int)((oldMouse.Y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale));
+                //int mouseX = (int)(oldMouse.x + offsetX);
+                //(int)((oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale);
+                //int mouseY = (int)(oldMouse.y + offsetY);
+                //(int)((oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale);
 
-                int mouseX =
-                    (int)((oldMouse.X * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale);
-                int mouseY =
-                    (int)((oldMouse.Y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale);
+                /*int newX = (int)(oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale;
+                int newY = (int)(oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale;
+                g_MouseManager.SetPosition(Core::Vec2<i32>(newX, newY));*/
 
-                /*g_MouseManager.Position = CPoint2Di
-                (
-                    //(int)((oldMouse.X * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX)
-                    mouseX
-                    ,
-                    //(int)((oldMouse.Y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY)
-                    mouseY
-                );*/
-
-                /*GLdouble left = (GLdouble)g_RenderBounds.GameWindowPosX;
-                GLdouble right = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
-                GLdouble top = (GLdouble)g_RenderBounds.GameWindowPosY;
+                GLdouble left   = (GLdouble)g_RenderBounds.GameWindowPosX;
+                GLdouble right  = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
+                GLdouble top    = (GLdouble)g_RenderBounds.GameWindowPosY;
                 GLdouble bottom = (GLdouble)(g_RenderBounds.GameWindowHeight + top);
 
-                GLdouble newRight = right * g_GlobalScale;
+                GLdouble newRight  = right * g_GlobalScale;
                 GLdouble newBottom = bottom * g_GlobalScale;
 
-                g_RenderBounds.GameWindowScaledOffsetX = (int)((left * g_GlobalScale) - (newRight - right));
-                g_RenderBounds.GameWindowScaledOffsetY = (int)((top * g_GlobalScale) - (newBottom - bottom));
+                g_RenderBounds.GameWindowScaledOffsetX =
+                    (int)((left * g_GlobalScale) - (newRight - right));
+                g_RenderBounds.GameWindowScaledOffsetY =
+                    (int)((top * g_GlobalScale) - (newBottom - bottom));
 
-                g_RenderBounds.GameWindowScaledWidth = (int)(newRight - g_RenderBounds.GameWindowScaledOffsetX);
-                g_RenderBounds.GameWindowScaledHeight = (int)(newBottom - g_RenderBounds.GameWindowScaledOffsetY);*/
+                g_RenderBounds.GameWindowScaledWidth =
+                    (int)(newRight - g_RenderBounds.GameWindowScaledOffsetX);
+                g_RenderBounds.GameWindowScaledHeight =
+                    (int)(newBottom - g_RenderBounds.GameWindowScaledOffsetY);
+
+                int newX =
+                    g_RenderBounds.GameWindowScaledOffsetX +
+                    g_RenderBounds.GameWindowScaledWidth / 2 +
+                    (int)((float)(oldMouse.x - (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth / 2)) / g_GlobalScale);
+                int newY =
+                    g_RenderBounds.GameWindowScaledOffsetY +
+                    g_RenderBounds.GameWindowScaledHeight / 2 +
+                    (int)((float)(oldMouse.y - (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight / 2)) / g_GlobalScale);
+                g_MouseManager.SetPosition(Core::Vec2<i32>(newX, newY));
 
                 DrawGameWindow(false);
-                g_MouseManager.Position = oldMouse;
+                g_MouseManager.SetPosition(oldMouse);
             }
         }
     }
@@ -2157,9 +2234,7 @@ void CGameScreen::SelectObject()
 
 void CGameScreen::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
-
-    CGumpSkills *skillGump = (CGumpSkills *)g_GumpManager.GetGump(0, 0, GT_SKILLS);
+    CGumpSkills* skillGump = (CGumpSkills*)g_GumpManager.GetGump(0, 0, GT_SKILLS);
     if (skillGump != nullptr)
     {
         skillGump->UpdateGroupText();
@@ -2184,14 +2259,12 @@ void CGameScreen::OnLeftMouseButtonDown()
 
 void CGameScreen::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (g_PressedObject.LeftGump == &m_GameScreenGump)
     {
         m_GameScreenGump.OnLeftMouseButtonUp();
         return;
     }
-    if (g_MouseManager.LeftButtonPressed &&
+    if (g_MouseManager.IsLeftButtonDown() &&
         (g_PressedObject.LeftGump != nullptr || g_ObjectInHand.Enabled))
     {
         if (g_GumpManager.OnLeftMouseButtonUp(false))
@@ -2202,19 +2275,20 @@ void CGameScreen::OnLeftMouseButtonUp()
 
     int gameWindowPosX = g_ConfigManager.GameWindowX - 4;
     int gameWindowPosY = g_ConfigManager.GameWindowY - 4;
-    if (g_MouseManager.Position.X < gameWindowPosX || g_MouseManager.Position.Y < gameWindowPosY ||
-        g_MouseManager.Position.X > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
-        g_MouseManager.Position.Y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
+    if (g_MouseManager.GetPosition().x < gameWindowPosX ||
+        g_MouseManager.GetPosition().y < gameWindowPosY ||
+        g_MouseManager.GetPosition().x > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
+        g_MouseManager.GetPosition().y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
     {
         return;
     }
 
     if (g_SelectedObject.Object != nullptr)
     {
-        CRenderWorldObject *rwo = nullptr;
+        CRenderWorldObject* rwo = nullptr;
         if (g_SelectedObject.Object->IsWorldObject())
         {
-            rwo = (CRenderWorldObject *)g_SelectedObject.Object;
+            rwo = (CRenderWorldObject*)g_SelectedObject.Object;
         }
 
         if (g_CustomHouseGump != nullptr && g_Target.IsTargeting())
@@ -2228,10 +2302,10 @@ void CGameScreen::OnLeftMouseButtonUp()
         {
             if (g_SelectedObject.Object->IsText())
             {
-                CTextData *td = (CTextData *)g_SelectedObject.Object;
+                CTextData* td = (CTextData*)g_SelectedObject.Object;
                 if (td->Type == TT_OBJECT)
                 {
-                    CGameObject *obj = g_World->FindWorldObject(td->Serial);
+                    CGameObject* obj = g_World->FindWorldObject(td->Serial);
                     if (obj != nullptr && (obj->NPC || obj->IsCorpse()))
                     {
                         g_Target.SendTargetObject(td->Serial);
@@ -2253,10 +2327,10 @@ void CGameScreen::OnLeftMouseButtonUp()
                 }
                 else if (rwo->IsStaticObject() || rwo->IsMultiObject())
                 {
-                    STATIC_TILES *st = nullptr;
-                    if (g_Config.ClientVersion >= CV_7090 && rwo->IsSurface())
+                    STATIC_TILES* st = nullptr;
+                    if (GameVars::GetClientVersion() >= CV_7090 && rwo->IsSurface())
                     {
-                        st = ((CRenderStaticObject *)rwo)->GetStaticData();
+                        st = ((CRenderStaticObject*)rwo)->GetStaticData();
                     }
 
                     short targetZ = rwo->GetZ();
@@ -2274,22 +2348,22 @@ void CGameScreen::OnLeftMouseButtonUp()
 
         if (rwo != nullptr)
         {
-            uint32_t drop_container = 0xFFFFFFFF;
-            bool can_drop = false;
-            uint16_t dropX = 0;
-            uint16_t dropY = 0;
-            char dropZ = 0;
+            u32 drop_container = 0xFFFFFFFF;
+            bool can_drop      = false;
+            u16 dropX          = 0;
+            u16 dropY          = 0;
+            char dropZ         = 0;
             if (rwo->IsGameObject() && g_ObjectInHand.Enabled)
             {
-                CGameObject *target = (CGameObject *)rwo;
-                can_drop = (GetDistance(g_Player, target) <= DRAG_ITEMS_DISTANCE);
+                CGameObject* target = (CGameObject*)rwo;
+                can_drop            = (GetDistance(g_Player, target) <= DRAG_ITEMS_DISTANCE);
                 if (can_drop && target != nullptr)
                 {
                     if (target->IsContainer() || target->NPC)
                     {
-                        dropX = 0xFFFF;
-                        dropY = 0xFFFF;
-                        dropZ = 0;
+                        dropX          = 0xFFFF;
+                        dropY          = 0xFFFF;
+                        dropZ          = 0;
                         drop_container = target->Serial;
                     }
                     else if (
@@ -2315,7 +2389,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                 g_ObjectInHand.Enabled)
             {
                 can_drop =
-                    (GetDistance(g_Player, CPoint2Di(rwo->GetX(), rwo->GetY())) <=
+                    (GetDistance(g_Player, Core::Vec2<i32>(rwo->GetX(), rwo->GetY())) <=
                      DRAG_ITEMS_DISTANCE);
                 if (can_drop)
                 {
@@ -2355,17 +2429,17 @@ void CGameScreen::OnLeftMouseButtonUp()
                 {
                     if (rwo->IsStaticObject() || rwo->IsMultiObject())
                     {
-                        CTextData *td =
-                            (CTextData *)rwo->StaticGroupObjectPtr()->m_TextControl->m_Items;
+                        CTextData* td =
+                            (CTextData*)rwo->StaticGroupObjectPtr()->m_TextControl->m_Items;
                         if (td == nullptr || td->Timer < g_Ticks)
                         {
-                            uint16_t id = rwo->Graphic;
-                            wstring str =
-                                g_ClilocManager.Cliloc(g_Language)
+                            u16 id = rwo->Graphic;
+                            std::wstring str =
+                                g_ClilocManager.GetCliloc(g_Language)
                                     ->GetW(1020000 + id, true, g_Orion.m_StaticData[id].Name);
                             if (str.length() != 0u)
                             {
-                                if (g_Config.ClientVersion >= CV_6000)
+                                if (GameVars::GetClientVersion() >= CV_6000)
                                 {
                                     g_Orion.CreateUnicodeTextMessage(
                                         TT_CLIENT, 0, 1, 0x03B2, str, rwo);
@@ -2373,7 +2447,7 @@ void CGameScreen::OnLeftMouseButtonUp()
                                 else
                                 {
                                     g_Orion.CreateTextMessage(
-                                        TT_CLIENT, 0, 3, 0x03B2, ToString(str), rwo);
+                                        TT_CLIENT, 0, 3, 0x03B2, Core::ToString(str), rwo);
                                 }
                             }
                         }
@@ -2385,7 +2459,7 @@ void CGameScreen::OnLeftMouseButtonUp()
 
     if (g_EntryPointer != &g_GameConsole && g_EntryPointer != nullptr)
     {
-        CGump *gumpEntry = g_GumpManager.GetTextEntryOwner();
+        CGump* gumpEntry = g_GumpManager.GetTextEntryOwner();
         if (g_ConfigManager.GetConsoleNeedEnter())
         {
             g_EntryPointer = nullptr;
@@ -2404,9 +2478,8 @@ void CGameScreen::OnLeftMouseButtonUp()
 
 bool CGameScreen::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
-    bool result = false;
-    uint32_t charUnderMouse = 0;
+    bool result        = false;
+    u32 charUnderMouse = 0;
     if ((g_SelectedObject.Gump != nullptr) && g_GumpManager.OnLeftMouseButtonDoubleClick(false))
     {
         result = true;
@@ -2415,7 +2488,7 @@ bool CGameScreen::OnLeftMouseButtonDoubleClick()
     {
         if (g_SelectedObject.Object->IsGameObject())
         {
-            CGameObject *obj = (CGameObject *)g_SelectedObject.Object;
+            CGameObject* obj = (CGameObject*)g_SelectedObject.Object;
             if (!obj->NPC)
             {
                 g_Orion.DoubleClick(g_SelectedObject.Serial);
@@ -2428,11 +2501,11 @@ bool CGameScreen::OnLeftMouseButtonDoubleClick()
         }
         else if (g_SelectedObject.Object->IsText())
         {
-            CTextData *td = (CTextData *)g_SelectedObject.Object;
+            CTextData* td = (CTextData*)g_SelectedObject.Object;
             if (td->Type == TT_OBJECT)
             {
-                uint32_t serial = td->Serial;
-                CGameObject *obj = g_World->FindWorldObject(serial);
+                u32 serial       = td->Serial;
+                CGameObject* obj = g_World->FindWorldObject(serial);
                 if (obj != nullptr && (obj->NPC || obj->IsCorpse()))
                 {
                     if (obj->NPC)
@@ -2478,7 +2551,6 @@ bool CGameScreen::OnLeftMouseButtonDoubleClick()
 
 void CGameScreen::OnRightMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.RightGump != nullptr)
     {
         g_GumpManager.OnRightMouseButtonDown(false);
@@ -2492,7 +2564,6 @@ void CGameScreen::OnRightMouseButtonDown()
 
 void CGameScreen::OnRightMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.RightGump != nullptr)
     {
         g_GumpManager.OnRightMouseButtonUp(false);
@@ -2501,7 +2572,7 @@ void CGameScreen::OnRightMouseButtonUp()
         g_PressedObject.RightObject != nullptr && g_PressedObject.RightObject->IsGameObject() &&
         g_SelectedGameObjectHandle == g_PressedObject.RightSerial)
     {
-        ((CGameObject *)g_PressedObject.RightObject)->ClosedObjectHandle = true;
+        ((CGameObject*)g_PressedObject.RightObject)->ClosedObjectHandle = true;
     }
 
     if ((g_ShiftPressed && !g_CtrlPressed && !g_AltPressed) &&
@@ -2509,7 +2580,7 @@ void CGameScreen::OnRightMouseButtonUp()
         g_SelectedObject.Object != nullptr && g_SelectedObject.Object->IsWorldObject() &&
         !g_PathFinder.AutoWalking)
     {
-        CRenderWorldObject *rwo = (CRenderWorldObject *)g_SelectedObject.Object;
+        CRenderWorldObject* rwo = (CRenderWorldObject*)g_SelectedObject.Object;
         if (rwo->IsLandObject() || rwo->IsSurface())
         {
             if (g_PathFinder.WalkTo(rwo->GetX(), rwo->GetY(), rwo->GetZ(), 0))
@@ -2522,11 +2593,10 @@ void CGameScreen::OnRightMouseButtonUp()
 
 bool CGameScreen::OnRightMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ConfigManager.EnablePathfind && g_SelectedObject.Object != nullptr &&
         g_SelectedObject.Object->IsWorldObject() && !g_PathFinder.AutoWalking)
     {
-        CRenderWorldObject *rwo = (CRenderWorldObject *)g_SelectedObject.Object;
+        CRenderWorldObject* rwo = (CRenderWorldObject*)g_SelectedObject.Object;
         if (rwo->IsLandObject() || rwo->IsSurface())
         {
             if (g_PathFinder.WalkTo(rwo->GetX(), rwo->GetY(), rwo->GetZ(), 0))
@@ -2542,20 +2612,19 @@ bool CGameScreen::OnRightMouseButtonDoubleClick()
 
 void CGameScreen::OnMidMouseButtonScroll(bool up)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_SelectedObject.Gump != nullptr)
     {
         g_GumpManager.OnMidMouseButtonScroll(up, false);
     }
-    else if (g_ConfigManager.GetUseScaling())
+    else if (uo_use_scaling.GetValue() > 0)
     {
         int gameWindowPosX = g_ConfigManager.GameWindowX - 4;
         int gameWindowPosY = g_ConfigManager.GameWindowY - 4;
 
-        if (g_MouseManager.Position.X < gameWindowPosX ||
-            g_MouseManager.Position.Y < gameWindowPosY ||
-            g_MouseManager.Position.X > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
-            g_MouseManager.Position.Y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
+        if (g_MouseManager.GetPosition().x < gameWindowPosX ||
+            g_MouseManager.GetPosition().y < gameWindowPosY ||
+            g_MouseManager.GetPosition().x > (gameWindowPosX + g_ConfigManager.GameWindowWidth) ||
+            g_MouseManager.GetPosition().y > (gameWindowPosY + g_ConfigManager.GameWindowHeight))
         {
             return;
         }
@@ -2582,23 +2651,20 @@ void CGameScreen::OnMidMouseButtonScroll(bool up)
 
 void CGameScreen::OnDragging()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_PressedObject.LeftGump != nullptr)
     {
         g_GumpManager.OnDragging(false);
     }
 }
 
-void CGameScreen::OnTextInput(const TextEvent &ev)
+void CGameScreen::OnTextInput(const Core::TextEvent& ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (g_EntryPointer == nullptr)
     {
         return; //Ignore no print keys
     }
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (g_EntryPointer != &g_GameConsole && ch != 0x11 && ch != 0x17)
     {
         if (g_GumpManager.OnTextInput(ev, false))
@@ -2607,17 +2673,10 @@ void CGameScreen::OnTextInput(const TextEvent &ev)
         }
     }
 
-#if USE_WISP
-    bool altGR = (GetAsyncKeyState(KEY_RMENU) & 0x80000000);
-    bool altPressed = (GetAsyncKeyState(KEY_MENU) & 0x80000000);
-    bool ctrlPressed = (GetAsyncKeyState(KEY_CONTROL) & 0x80000000);
-    //bool shiftPressed = GetAsyncKeyState(KEY_SHIFT) & 0x80000000;
-#else
-    const auto mod = SDL_GetModState();
-    const bool altGR = (mod & KMOD_RALT) != 0;
-    const bool altPressed = (mod & KMOD_ALT) != 0;
+    const auto mod         = SDL_GetModState();
+    const bool altGR       = (mod & KMOD_RALT) != 0;
+    const bool altPressed  = (mod & KMOD_ALT) != 0;
     const bool ctrlPressed = (mod & KMOD_CTRL) != 0;
-#endif
 
     if (g_EntryPointer == &g_GameConsole && (ch == 0x11 || ch == 0x17) && ctrlPressed)
     {
@@ -2625,24 +2684,16 @@ void CGameScreen::OnTextInput(const TextEvent &ev)
     }
     else if (
         (altGR || (!altPressed && !ctrlPressed)) &&
-        (int)g_EntryPointer->Length() < std::max(g_EntryPointer->MaxLength, 60))
+        (int)g_EntryPointer->Length() < Core::Max(g_EntryPointer->MaxLength, 60))
     {
         g_EntryPointer->Insert(ch);
     }
 }
 
-void CGameScreen::OnKeyDown(const KeyEvent &ev)
+void CGameScreen::OnKeyDown(const Core::KeyEvent& ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    const auto key = EvKey(ev);
-#if USE_WISP
-    if (key == KEY_TAB && ((LPARAM)ev.lParam & 0x40000000))
+    if (ev.key == Core::EKey::Key_Tab && ev.repeat)
         return;
-#else
-    if (key == KEY_TAB && ev.repeat)
-        return;
-#endif
 
     if (g_GumpManager.OnKeyDown(ev, false))
     {
@@ -2651,13 +2702,14 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
 
     if (g_EntryPointer == &g_GameConsole)
     {
-        g_EntryPointer->OnKey(nullptr, key);
+        g_EntryPointer->OnKey(nullptr, ev.key);
     }
 
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
+        case Core::EKey::Key_KpEnter:
         {
             if (g_EntryPointer != nullptr)
             {
@@ -2695,7 +2747,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_PAGEUP:
+        case Core::EKey::Key_PageUp:
         {
             //walk N (0)
             if (!g_PathFinder.AutoWalking)
@@ -2704,7 +2756,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_PAGEDOWN:
+        case Core::EKey::Key_PageDown:
         {
             //walk E (2)
             if (!g_PathFinder.AutoWalking)
@@ -2713,7 +2765,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_HOME:
+        case Core::EKey::Key_Home:
         {
             //walk W (6)
             if (!g_PathFinder.AutoWalking)
@@ -2722,7 +2774,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_END:
+        case Core::EKey::Key_End:
         {
             //walk S (4)
             if (!g_PathFinder.AutoWalking)
@@ -2731,7 +2783,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_UP:
+        case Core::EKey::Key_Up:
         {
             //Walk NW (7)
             if (!g_PathFinder.AutoWalking)
@@ -2740,7 +2792,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_LEFT:
+        case Core::EKey::Key_Left:
         {
             //Walk SW (5)
             if (!g_PathFinder.AutoWalking)
@@ -2749,7 +2801,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_DOWN:
+        case Core::EKey::Key_Down:
         {
             //Walk SE (3)
             if (!g_PathFinder.AutoWalking)
@@ -2758,7 +2810,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_RIGHT:
+        case Core::EKey::Key_Right:
         {
             //Walk NE (1)
             if (!g_PathFinder.AutoWalking)
@@ -2767,7 +2819,7 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_ESCAPE:
+        case Core::EKey::Key_Escape:
         {
             if (g_Target.IsTargeting())
             {
@@ -2790,11 +2842,10 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
-    if (key == KEY_TAB)
+    if (ev.key == Core::EKey::Key_Tab)
     {
         if (g_ConfigManager.HoldTabForCombat)
         {
@@ -2806,16 +2857,10 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
         }
     }
 
-#if USE_WISP
-    bool altPressed = GetAsyncKeyState(KEY_MENU) & 0x80000000;
-    bool ctrlPressed = GetAsyncKeyState(KEY_CONTROL) & 0x80000000;
-    bool shiftPressed = GetAsyncKeyState(KEY_SHIFT) & 0x80000000;
-#else
-    const auto mod = SDL_GetModState();
-    const bool altPressed = (mod & KMOD_ALT) != 0;
-    const bool ctrlPressed = (mod & KMOD_CTRL) != 0;
+    const auto mod          = SDL_GetModState();
+    const bool altPressed   = (mod & KMOD_ALT) != 0;
+    const bool ctrlPressed  = (mod & KMOD_CTRL) != 0;
     const bool shiftPressed = (mod & KMOD_SHIFT) != 0;
-#endif
 
     // Disable macros to avoid mixing with a chat input.
     // If you activate the chat, you want to write a message not run a macro.
@@ -2824,25 +2869,22 @@ void CGameScreen::OnKeyDown(const KeyEvent &ev)
         return;
     }
 
-    auto macro = g_MacroManager.FindMacro(key, altPressed, ctrlPressed, shiftPressed);
+    auto macro = g_MacroManager.FindMacro(ev.key, altPressed, ctrlPressed, shiftPressed);
     const bool canExecuteMacro =
         !(g_ConfigManager.DisableMacroInChat && g_EntryPointer == &g_GameConsole &&
           g_GameConsole.InChat());
     if (macro != nullptr && canExecuteMacro)
     {
-        g_MacroManager.ChangePointer((CMacroObject *)macro->m_Items);
+        g_MacroManager.ChangePointer((MacroObject*)macro->m_Items);
         g_MacroManager.WaitingBandageTarget = false;
-        g_MacroManager.WaitForTargetTimer = 0;
+        g_MacroManager.WaitForTargetTimer   = 0;
         g_MacroManager.Execute();
     }
 }
 
-void CGameScreen::OnKeyUp(const KeyEvent &ev)
+void CGameScreen::OnKeyUp(const Core::KeyEvent& ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    const auto key = EvKey(ev);
-    if (key == KEY_TAB && g_GameState == GS_GAME)
+    if (ev.key == Core::EKey::Key_Tab && g_GameState == GS_GAME)
     {
         if (g_ConfigManager.HoldTabForCombat)
         {

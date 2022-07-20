@@ -1,12 +1,9 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
 #pragma once
 
-#include <SDL_rect.h>
+#include "Core/Minimal.h"
 #include "Gump.h"
-#include "../GameObjects/CustomHouseObjects.h"
-#include "../Managers/CustomHousesManager.h"
+#include "GameObjects/CustomHouseObjects.h"
+#include "Managers/CustomHousesManager.h"
 
 class CMulti;
 class CRenderWorldObject;
@@ -44,60 +41,60 @@ enum CUSTOM_HOUSE_BUILD_TYPE
 enum CUSTOM_HOUSE_MULTI_OBJECT_FLAGS
 {
     CHMOF_GENERIC_INTERNAL = 0x01,
-    CHMOF_FLOOR = 0x02,
-    CHMOF_STAIR = 0x04,
-    CHMOF_ROOF = 0x08,
-    CHMOF_FIXTURE = 0x10,
-    CHMOF_TRANSPARENT = 0x20,
+    CHMOF_FLOOR            = 0x02,
+    CHMOF_STAIR            = 0x04,
+    CHMOF_ROOF             = 0x08,
+    CHMOF_FIXTURE          = 0x10,
+    CHMOF_TRANSPARENT      = 0x20,
     CHMOF_IGNORE_IN_RENDER = 0x40,
-    CHMOF_VALIDATED_PLACE = 0x80,
-    CHMOF_INCORRECT_PLACE = 0x100
+    CHMOF_VALIDATED_PLACE  = 0x80,
+    CHMOF_INCORRECT_PLACE  = 0x100
 };
 
 enum CUSTOM_HOUSE_VALIDATE_CHECK_FLAGS
 {
-    CHVCF_TOP = 0x01,
-    CHVCF_BOTTOM = 0x02,
-    CHVCF_N = 0x04,
-    CHVCF_E = 0x08,
-    CHVCF_S = 0x10,
-    CHVCF_W = 0x20,
+    CHVCF_TOP            = 0x01,
+    CHVCF_BOTTOM         = 0x02,
+    CHVCF_N              = 0x04,
+    CHVCF_E              = 0x08,
+    CHVCF_S              = 0x10,
+    CHVCF_W              = 0x20,
     CHVCF_DIRECT_SUPPORT = 0x40,
-    CHVCF_CANGO_W = 0x80,
-    CHVCF_CANGO_N = 0x100
+    CHVCF_CANGO_W        = 0x80,
+    CHVCF_CANGO_N        = 0x100
 };
 
 class CGumpCustomHouse : public CGump
 {
 public:
     CUSTOM_HOUSE_GUMP_STATE State = CHGS_WALL;
-    int Category = -1;
-    int MaxPage = 1;
-    uint16_t SelectedGraphic = 0;
-    int CurrentFloor = 1;
-    int FloorCount = 4;
-    int RoofZ = 1;
-    int MinHouseZ = -120;
-    int Components = 0;
-    int Fixtures = 0;
-    int MaxComponents = 0;
-    int MaxFixtures = 0;
-    bool Erasing = false;
-    bool SeekTile = false;
-    bool ShowWindow = false;
-    bool CombinedStair = false;
-    CPoint2Di StartPos = CPoint2Di();
-    CPoint2Di EndPos = CPoint2Di();
+    int Category                  = -1;
+    int MaxPage                   = 1;
+    u16 SelectedGraphic           = 0;
+    int CurrentFloor              = 1;
+    int FloorCount                = 4;
+    int RoofZ                     = 1;
+    int MinHouseZ                 = -120;
+    int Components                = 0;
+    int Fixtures                  = 0;
+    int MaxComponents             = 0;
+    int MaxFixtures               = 0;
+    bool Erasing                  = false;
+    bool SeekTile                 = false;
+    bool ShowWindow               = false;
+    bool CombinedStair            = false;
+    Core::Vec2<i32> StartPos      = Core::Vec2<i32>();
+    Core::Vec2<i32> EndPos        = Core::Vec2<i32>();
 
 private:
-    vector<CCustomHouseObjectWallCategory> m_Walls;
-    vector<CCustomHouseObjectFloor> m_Floors;
-    vector<CCustomHouseObjectDoor> m_Doors;
-    vector<CCustomHouseObjectMiscCategory> m_Miscs;
-    vector<CCustomHouseObjectStair> m_Stairs;
-    vector<CCustomHouseObjectTeleport> m_Teleports;
-    vector<CCustomHouseObjectRoofCategory> m_Roofs;
-    vector<CCustomHouseObjectPlaceInfo> m_ObjectsInfo;
+    std::vector<CCustomHouseObjectWallCategory> m_Walls;
+    std::vector<CCustomHouseObjectFloor> m_Floors;
+    std::vector<CCustomHouseObjectDoor> m_Doors;
+    std::vector<CCustomHouseObjectMiscCategory> m_Miscs;
+    std::vector<CCustomHouseObjectStair> m_Stairs;
+    std::vector<CCustomHouseObjectTeleport> m_Teleports;
+    std::vector<CCustomHouseObjectRoofCategory> m_Roofs;
+    std::vector<CCustomHouseObjectPlaceInfo> m_ObjectsInfo;
 
     int m_FloorVisionState[4];
 
@@ -145,14 +142,14 @@ private:
         ID_GCH_ITEM_IN_LIST
     };
 
-    CGUIDataBox *m_DataBox{ nullptr };
-    CGUIDataBox *m_DataBoxGUI{ nullptr };
+    CGUIDataBox* m_DataBox{ nullptr };
+    CGUIDataBox* m_DataBoxGUI{ nullptr };
 
-    CGUIGumppic *m_Gumppic{ nullptr };
+    CGUIGumppic* m_Gumppic{ nullptr };
 
-    CGUIText *m_TextComponents{ nullptr };
-    CGUIText *m_TextFixtures{ nullptr };
-    CGUIText *m_TextCost{ nullptr };
+    CGUIText* m_TextComponents{ nullptr };
+    CGUIText* m_TextFixtures{ nullptr };
+    CGUIText* m_TextCost{ nullptr };
 
     void DrawWallSection();
     void DrawDoorSection();
@@ -164,10 +161,10 @@ private:
 
     void UpdateMaxPage();
 
-    pair<int, int> ExistsInList(CUSTOM_HOUSE_GUMP_STATE &state, uint16_t graphic);
+    std::pair<int, int> ExistsInList(CUSTOM_HOUSE_GUMP_STATE& state, u16 graphic);
 
     bool
-    ValidatePlaceStructure(CGameItem *foundationItem, CMulti *multi, int minZ, int maxZ, int flags);
+    ValidatePlaceStructure(CGameItem* foundationItem, CMulti* multi, int minZ, int maxZ, int flags);
 
 protected:
     virtual void CalculateGumpState();
@@ -182,23 +179,23 @@ public:
 
     void GenerateFloorPlace();
 
-    void SeekGraphic(uint16_t graphic);
+    void SeekGraphic(u16 graphic);
 
     bool CanBuildHere(
-        vector<CBuildObject> &list, CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type);
+        std::vector<CBuildObject>& list, CRenderWorldObject* place, CUSTOM_HOUSE_BUILD_TYPE& type);
 
-    bool ValidateItemPlace(const SDL_Rect &rect, uint16_t graphic, int x, int y);
+    bool ValidateItemPlace(const Core::Rect<int>& rect, u16 graphic, int x, int y);
 
     bool ValidateItemPlace(
-        CGameItem *foundationItem,
-        CMultiObject *item,
+        CGameItem* foundationItem,
+        CMultiObject* item,
         int minZ,
         int maxZ,
-        vector<CPoint2Di> &validatedFloors);
+        std::vector<Core::Vec2<i32>>& validatedFloors);
 
-    bool CanEraseHere(CRenderWorldObject *place, CUSTOM_HOUSE_BUILD_TYPE &type);
+    bool CanEraseHere(CRenderWorldObject* place, CUSTOM_HOUSE_BUILD_TYPE& type);
 
-    void OnTargetWorld(CRenderWorldObject *place);
+    void OnTargetWorld(CRenderWorldObject* place);
 
     GUMP_BUTTON_EVENT_H;
     GUMP_TEXT_ENTRY_EVENT_H;
@@ -206,4 +203,4 @@ public:
     virtual void OnLeftMouseButtonUp();
 };
 
-extern CGumpCustomHouse *g_CustomHouseGump;
+extern CGumpCustomHouse* g_CustomHouseGump;

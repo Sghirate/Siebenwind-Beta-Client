@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GUIDrawObject.h"
@@ -8,10 +5,10 @@
 class CGUITilepic : public CGUIDrawObject
 {
 public:
-    CGUITilepic(uint16_t graphic, uint16_t color, int x, int y);
+    CGUITilepic(u16 graphic, u16 color, int x, int y);
     virtual ~CGUITilepic();
 
-    virtual CSize GetSize();
+    virtual Core::Vec2<i32> GetSize();
 
     virtual void PrepareTextures();
 

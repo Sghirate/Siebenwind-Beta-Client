@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GUIButton.h"
@@ -8,10 +5,10 @@
 class CGUIButtonTileart : public CGUIButton
 {
     //!ИД картинки статики
-    uint16_t TileGraphic = 0;
+    u16 TileGraphic = 0;
 
     //!Цвет картинки статики
-    uint16_t TileColor = 0;
+    u16 TileColor = 0;
 
     //!Координата по оси X для отображения статики
     int TileX = 0;
@@ -22,18 +19,18 @@ class CGUIButtonTileart : public CGUIButton
 public:
     CGUIButtonTileart(
         int serial,
-        uint16_t graphic,
-        uint16_t graphicSelected,
-        uint16_t graphicPressed,
+        u16 graphic,
+        u16 graphicSelected,
+        u16 graphicPressed,
         int x,
         int y,
-        uint16_t tileGraphic,
-        uint16_t tileColor,
+        u16 tileGraphic,
+        u16 tileColor,
         int tileX,
         int tileY);
     virtual ~CGUIButtonTileart();
 
-    virtual CSize GetSize();
+    virtual Core::Vec2<i32> GetSize();
 
     virtual void PrepareTextures();
 

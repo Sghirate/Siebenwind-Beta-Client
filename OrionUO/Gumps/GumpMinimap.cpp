@@ -1,20 +1,20 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpMinimap.h"
-#include "../OrionUO.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/MapManager.h"
-#include "../Managers/UOFileReader.h"
-#include "../GameObjects/GameItem.h"
-#include "../GameObjects/MapBlock.h"
-#include "../GameObjects/GamePlayer.h"
+#include "Core/Time.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/ColorManager.h"
+#include "Managers/MapManager.h"
+#include "Managers/UOFileReader.h"
+#include "GameObjects/GameItem.h"
+#include "GameObjects/MapBlock.h"
+#include "GameObjects/GamePlayer.h"
+
+using namespace Core::TimeLiterals;
 
 CGumpMinimap::CGumpMinimap(short x, short y, bool minimized)
     : CGump(GT_MINIMAP, 0, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
     Minimized = minimized;
     m_Locker.Serial = ID_GMM_LOCK_MOVING;
     GenerateMap();
@@ -22,13 +22,11 @@ CGumpMinimap::CGumpMinimap(short x, short y, bool minimized)
 
 CGumpMinimap::~CGumpMinimap()
 {
-    DEBUG_TRACE_FUNCTION;
     m_Texture.Clear();
 }
 
 void CGumpMinimap::CalculateGumpState()
 {
-    DEBUG_TRACE_FUNCTION;
     bool minimized = Minimized;
     Minimized = false;
 
@@ -39,66 +37,65 @@ void CGumpMinimap::CalculateGumpState()
 
 void CGumpMinimap::GenerateMap()
 {
-    DEBUG_TRACE_FUNCTION;
 
-    /*const CPoint2Di foliageOffsetTable[17 * 3] =
+    /*const Core::Vec2<i32> foliageOffsetTable[17 * 3] =
 	{
-		CPoint2Di(0, 0),
-		CPoint2Di(-2, 1),
-		CPoint2Di(-2, -2),
-		CPoint2Di(-1, -1),
-		CPoint2Di(-1, 0),
-		CPoint2Di(-1, 1),
-		CPoint2Di(-1, 2),
-		CPoint2Di(-1, -1),
-		CPoint2Di(0, 1),
-		CPoint2Di(0, 2),
-		CPoint2Di(0, -2),
-		CPoint2Di(1, -1),
-		CPoint2Di(1, 0),
-		CPoint2Di(1, 1),
-		CPoint2Di(1, -1),
-		CPoint2Di(2, 0),
-		CPoint2Di(2, 0),
+		Core::Vec2<i32>(0, 0),
+		Core::Vec2<i32>(-2, 1),
+		Core::Vec2<i32>(-2, -2),
+		Core::Vec2<i32>(-1, -1),
+		Core::Vec2<i32>(-1, 0),
+		Core::Vec2<i32>(-1, 1),
+		Core::Vec2<i32>(-1, 2),
+		Core::Vec2<i32>(-1, -1),
+		Core::Vec2<i32>(0, 1),
+		Core::Vec2<i32>(0, 2),
+		Core::Vec2<i32>(0, -2),
+		Core::Vec2<i32>(1, -1),
+		Core::Vec2<i32>(1, 0),
+		Core::Vec2<i32>(1, 1),
+		Core::Vec2<i32>(1, -1),
+		Core::Vec2<i32>(2, 0),
+		Core::Vec2<i32>(2, 0),
 
-		CPoint2Di(0, -1),
-		CPoint2Di(-2, 0),
-		CPoint2Di(-2, -1),
-		CPoint2Di(-1, 0),
-		CPoint2Di(-1, 1),
-		CPoint2Di(-1, 2),
-		CPoint2Di(-1, -2),
-		CPoint2Di(0, -1),
-		CPoint2Di(0, 1),
-		CPoint2Di(0, 2),
-		CPoint2Di(0, -2),
-		CPoint2Di(1, -1),
-		CPoint2Di(1, 0),
-		CPoint2Di(1, 1),
-		CPoint2Di(1, 0),
-		CPoint2Di(2, 1),
-		CPoint2Di(2, 0),
+		Core::Vec2<i32>(0, -1),
+		Core::Vec2<i32>(-2, 0),
+		Core::Vec2<i32>(-2, -1),
+		Core::Vec2<i32>(-1, 0),
+		Core::Vec2<i32>(-1, 1),
+		Core::Vec2<i32>(-1, 2),
+		Core::Vec2<i32>(-1, -2),
+		Core::Vec2<i32>(0, -1),
+		Core::Vec2<i32>(0, 1),
+		Core::Vec2<i32>(0, 2),
+		Core::Vec2<i32>(0, -2),
+		Core::Vec2<i32>(1, -1),
+		Core::Vec2<i32>(1, 0),
+		Core::Vec2<i32>(1, 1),
+		Core::Vec2<i32>(1, 0),
+		Core::Vec2<i32>(2, 1),
+		Core::Vec2<i32>(2, 0),
 
-		CPoint2Di(0, -1),
-		CPoint2Di(-2, 1),
-		CPoint2Di(-2, -2),
-		CPoint2Di(-1, -1),
-		CPoint2Di(-1, 0),
-		CPoint2Di(-1, 1),
-		CPoint2Di(-1, 2),
-		CPoint2Di(-1, -1),
-		CPoint2Di(0, 1),
-		CPoint2Di(0, -2),
-		CPoint2Di(1, -1),
-		CPoint2Di(1, 0),
-		CPoint2Di(1, 1),
-		CPoint2Di(1, 2),
-		CPoint2Di(1, -1),
-		CPoint2Di(2, 1),
-		CPoint2Di(2, 0)
+		Core::Vec2<i32>(0, -1),
+		Core::Vec2<i32>(-2, 1),
+		Core::Vec2<i32>(-2, -2),
+		Core::Vec2<i32>(-1, -1),
+		Core::Vec2<i32>(-1, 0),
+		Core::Vec2<i32>(-1, 1),
+		Core::Vec2<i32>(-1, 2),
+		Core::Vec2<i32>(-1, -1),
+		Core::Vec2<i32>(0, 1),
+		Core::Vec2<i32>(0, -2),
+		Core::Vec2<i32>(1, -1),
+		Core::Vec2<i32>(1, 0),
+		Core::Vec2<i32>(1, 1),
+		Core::Vec2<i32>(1, 2),
+		Core::Vec2<i32>(1, -1),
+		Core::Vec2<i32>(2, 1),
+		Core::Vec2<i32>(2, 0)
 	};*/
 
-    const CPoint2Di originalOffsetTable[2] = { CPoint2Di(0, 0), CPoint2Di(0, 1) };
+    const Core::Vec2<i32> originalOffsetTable[2] = { Core::Vec2<i32>(0, 0), Core::Vec2<i32>(0, 1) };
 
     if (g_Player != nullptr)
     {
@@ -108,13 +105,13 @@ void CGumpMinimap::GenerateMap()
 
     m_Texture.Clear();
 
-    uint16_t gumpID = 0x1393 - (int)Minimized;
+    u16 gumpID = 0x1393 - (int)Minimized;
     CIndexObject &io = g_Orion.m_GumpDataIndex[gumpID];
 
     int gumpWidth = io.Width;
     int gumpHeight = io.Height;
 
-    vector<uint16_t> data = g_UOFileReader.GetGumpPixels(io);
+    std::vector<u16> data = g_UOFileReader.GetGumpPixels(io);
 
     if (data.empty())
     {
@@ -146,16 +143,16 @@ void CGumpMinimap::GenerateMap()
     }
 
     int map = g_MapManager.GetActualMap();
-    uint32_t maxBlockIndex = g_MapManager.MaxBlockIndex;
-    int mapBlockHeight = g_MapBlockSize[map].Height;
+    u32 maxBlockIndex = g_MapManager.MaxBlockIndex;
+    int mapBlockHeight = g_MapBlockSize[map].y;
 
     for (int i = minBlockX; i <= maxBlockX; i++)
     {
-        uint32_t blockIndexOffset = i * mapBlockHeight;
+        u32 blockIndexOffset = i * mapBlockHeight;
 
         for (int j = minBlockY; j <= maxBlockY; j++)
         {
-            uint32_t blockIndex = blockIndexOffset + j;
+            u32 blockIndex = blockIndexOffset + j;
 
             if (blockIndex >= maxBlockIndex)
             {
@@ -181,12 +178,12 @@ void CGumpMinimap::GenerateMap()
                     int gx = px - py;
                     int gy = px + py;
 
-                    uint32_t color = mb.Cells[x][y].Graphic;
+                    u32 color = mb.Cells[x][y].Graphic;
                     char &isLand = mb.Cells[x][y].IsLand;
 
                     if (mapBlock != nullptr)
                     {
-                        uint16_t multiColor = mapBlock->GetRadarColor((int)x, (int)y);
+                        u16 multiColor = mapBlock->GetRadarColor((int)x, (int)y);
 
                         if (multiColor != 0u)
                         {
@@ -205,7 +202,7 @@ void CGumpMinimap::GenerateMap()
                     }
 
                     int tableSize = 2;
-                    const CPoint2Di *table = &originalOffsetTable[0];
+                    const Core::Vec2<i32> *table = &originalOffsetTable[0];
 
                     /*if (color > 0x4000 && ::IsFoliage(g_Orion.GetStaticFlags(color - 0x4000)))
 					{
@@ -227,13 +224,13 @@ void CGumpMinimap::GenerateMap()
 }
 
 void CGumpMinimap::CreatePixels(
-    vector<uint16_t> &data,
+    std::vector<u16> &data,
     int color,
     int x,
     int y,
     int width,
     int height,
-    const CPoint2Di *table,
+    const Core::Vec2<i32> *table,
     int count)
 {
     int px = x;
@@ -241,8 +238,8 @@ void CGumpMinimap::CreatePixels(
 
     for (int i = 0; i < count; i++)
     {
-        px += table[i].X;
-        py += table[i].Y;
+        px += table[i].x;
+        py += table[i].y;
         int gx = px;
 
         if (gx < 0 || gx >= width)
@@ -268,7 +265,6 @@ void CGumpMinimap::CreatePixels(
 
 void CGumpMinimap::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_Player->GetX() != LastX || g_Player->GetY() != LastY || m_Texture.Texture == 0)
     {
         GenerateMap();
@@ -278,12 +274,13 @@ void CGumpMinimap::PrepareContent()
         WantUpdateContent = true;
     }
 
-    static uint32_t ticks = 0;
-
-    if (ticks < g_Ticks)
+    Core::TimeStamp now = Core::FrameTimer::Now();
+    static Core::TimeStamp nextInc = now;
+    static const Core::TimeDiff kIncDelayMs = 300_ms;
+    if (nextInc <= now)
     {
         m_Count += 7;
-        ticks = g_Ticks + 300;
+        nextInc = now + kIncDelayMs;
     }
 
     if (m_Count > 12)
@@ -294,8 +291,7 @@ void CGumpMinimap::PrepareContent()
 
 void CGumpMinimap::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
-    uint16_t graphic = 0x1393 - (int)Minimized;
+    u16 graphic = 0x1393 - (int)Minimized;
 
     CGLTexture *th = g_Orion.ExecuteGump(graphic);
 
@@ -339,12 +335,12 @@ void CGumpMinimap::UpdateContent()
 
             if (go->NPC && !go->IsPlayer())
             {
-                uint16_t color =
+                u16 color =
                     g_ConfigManager.GetColorByNotoriety(go->GameCharacterPtr()->Notoriety);
 
                 if (color != 0u)
                 {
-                    uint32_t pcl = g_ColorManager.GetPolygoneColor(16, color);
+                    u32 pcl = g_ColorManager.GetPolygoneColor(16, color);
 
                     int x = go->GetX() - playerX;
                     int y = go->GetY() - playerY;
@@ -364,7 +360,6 @@ void CGumpMinimap::UpdateContent()
 
 void CGumpMinimap::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GMM_LOCK_MOVING)
     {
         LockMoving = !LockMoving;
@@ -373,7 +368,6 @@ void CGumpMinimap::GUMP_BUTTON_EVENT_C
 
 bool CGumpMinimap::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_Orion.OpenMinimap();
 

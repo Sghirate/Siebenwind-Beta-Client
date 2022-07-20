@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GUISlider.h"
@@ -14,10 +11,10 @@ public:
     CGUIHTMLSlider(
         class CGUIHTMLGump *htmlGump,
         int serial,
-        uint16_t graphic,
-        uint16_t graphicSelected,
-        uint16_t graphicPressed,
-        uint16_t backgroundGraphic,
+        u16 graphic,
+        u16 graphicSelected,
+        u16 graphicPressed,
+        u16 backgroundGraphic,
         bool compositeBackground,
         bool vertical,
         int x,

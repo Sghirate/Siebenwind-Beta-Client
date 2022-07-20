@@ -1,21 +1,17 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpProfile.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Managers/ConfigManager.h"
-#include "../Network/Packets.h"
+#include "TextEngine/GameConsole.h"
+#include "Managers/ConfigManager.h"
+#include "Network/Packets.h"
 
 CGumpProfile::CGumpProfile(
-    uint32_t serial,
+    u32 serial,
     short x,
     short y,
-    const wstring &topText,
-    const wstring &bottomText,
-    const wstring &dataText)
+    const std::wstring &topText,
+    const std::wstring &bottomText,
+    const std::wstring &dataText)
     : CGumpBaseScroll(GT_PROFILE, serial, 0x0820, 250, x, y, true)
 {
-    DEBUG_TRACE_FUNCTION;
     Changed = false;
     Add(new CGUIPage(1));
     Add(new CGUIGumppic(0x09D4, 0, 0));
@@ -65,7 +61,6 @@ CGumpProfile::CGumpProfile(
 
 CGumpProfile::~CGumpProfile()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Changed && m_Entry != nullptr)
     {
         CPacketProfileUpdate(Serial, m_Entry->m_Entry.Data(), m_Entry->m_Entry.Length()).Send();
@@ -74,7 +69,6 @@ CGumpProfile::~CGumpProfile()
 
 void CGumpProfile::RecalculateHeight()
 {
-    DEBUG_TRACE_FUNCTION;
     int offsetY = m_Entry->GetY();
     m_Entry->m_Entry.CreateTextureW(0, m_Entry->m_Entry.Data(), 0, 210, TS_LEFT, 0);
 
@@ -99,7 +93,6 @@ void CGumpProfile::RecalculateHeight()
 
 void CGumpProfile::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GBS_BUTTON_MINIMIZE)
     {
         Minimized = true;
@@ -128,7 +121,6 @@ void CGumpProfile::GUMP_BUTTON_EVENT_C
 
 bool CGumpProfile::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Minimized)
     {
         Minimized = false;
@@ -141,23 +133,19 @@ bool CGumpProfile::OnLeftMouseButtonDoubleClick()
     return false;
 }
 
-void CGumpProfile::OnTextInput(const TextEvent &ev)
+void CGumpProfile::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     g_EntryPointer->Insert(ch);
     RecalculateHeight();
     Changed = true;
     WantRedraw = true;
 }
 
-void CGumpProfile::OnKeyDown(const KeyEvent &ev)
+void CGumpProfile::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    const auto key = EvKey(ev);
-    if (key == KEY_RETURN || key == KEY_RETURN2)
+    if (ev.key == Core::EKey::Key_Return || ev.key == Core::EKey::Key_Return)
     {
         g_EntryPointer->Insert(0x000D);
         RecalculateHeight();
@@ -165,7 +153,7 @@ void CGumpProfile::OnKeyDown(const KeyEvent &ev)
     }
     else
     {
-        g_EntryPointer->OnKey(this, key);
+        g_EntryPointer->OnKey(this, ev.key);
         if (WantRedraw)
         {
             RecalculateHeight();

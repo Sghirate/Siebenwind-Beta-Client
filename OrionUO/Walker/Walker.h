@@ -1,21 +1,21 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
+#include "Constants.h"
 
 class CStepInfo
 {
 public:
-    uint8_t Direction = 0;
-    uint8_t OldDirection = 0;
-    uint8_t Sequence = 0;
+    u8 Direction = 0;
+    u8 OldDirection = 0;
+    u8 Sequence = 0;
     bool Accepted = false;
     bool Running = false;
     bool NoRotation = false;
-    uint32_t Timer = 0;
-    uint16_t X = 0;
-    uint16_t Y = 0;
-    uint8_t Z = 0;
+    u32 Timer = 0;
+    u16 X = 0;
+    u16 Y = 0;
+    u8 Z = 0;
 
     CStepInfo() {}
     ~CStepInfo() {}
@@ -24,16 +24,16 @@ public:
 class CWalker
 {
 public:
-    uint32_t LastStepRequestTime = 0;
+    u32 LastStepRequestTime = 0;
     int UnacceptedPacketsCount = 0;
     int StepsCount = 0;
-    uint8_t WalkSequence = 0;
-    uint8_t CurrentWalkSequence = 0;
+    u8 WalkSequence = 0;
+    u8 CurrentWalkSequence = 0;
     bool ResendPacketSended = false;
     bool WantChangeCoordinates = false;
     bool WalkingFailed = false;
-    uint16_t CurrentPlayerZ = 0;
-    uint16_t NewPlayerZ = 0;
+    u16 CurrentPlayerZ = 0;
+    u16 NewPlayerZ = 0;
 
     CWalker();
     ~CWalker() {}
@@ -41,8 +41,8 @@ public:
     CStepInfo m_Step[MAX_STEPS_COUNT];
 
     void Reset();
-    void DenyWalk(uint8_t sequence, int x, int y, char z);
-    void ConfirmWalk(uint8_t sequence);
+    void DenyWalk(u8 sequence, int x, int y, char z);
+    void ConfirmWalk(u8 sequence);
 };
 
 extern CWalker g_Walker;

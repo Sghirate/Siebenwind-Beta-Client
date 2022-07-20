@@ -1,27 +1,23 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "RenderStaticObject.h"
 #include "GamePlayer.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../plugin/mulstruct.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../TextEngine/TextContainer.h"
-#include "../TextEngine/TextData.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "plugin/mulstruct.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/GameScreen.h"
+#include "TextEngine/TextContainer.h"
+#include "TextEngine/TextData.h"
 
 CRenderStaticObject::CRenderStaticObject(
     RENDER_OBJECT_TYPE renderType,
     int serial,
-    uint16_t graphic,
-    uint16_t color,
+    u16 graphic,
+    u16 color,
     short x,
     short y,
     char z)
     : CMapObject(renderType, serial, graphic, color, x, y, z)
 {
-    DEBUG_TRACE_FUNCTION;
     m_TiledataPtr = &g_Orion.m_StaticData[graphic];
 
     if (m_TiledataPtr->Height > 5)
@@ -73,7 +69,6 @@ CRenderStaticObject::CRenderStaticObject(
 
 CRenderStaticObject::~CRenderStaticObject()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextControl != nullptr)
     {
         delete m_TextControl;
@@ -177,7 +172,7 @@ void CRenderStaticObject::FixTextCoordinates()
     }
 }
 
-bool CRenderStaticObject::IsNoDrawTile(uint16_t graphic)
+bool CRenderStaticObject::IsNoDrawTile(u16 graphic)
 {
     switch (graphic)
     {
@@ -213,7 +208,6 @@ bool CRenderStaticObject::IsNoDrawTile(uint16_t graphic)
 
 void CRenderStaticObject::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
 #if UO_DEBUG_INFO != 0
     g_RenderedObjectsCountInGameWindow++;
 #endif
@@ -254,7 +248,6 @@ void CRenderStaticObject::Draw(int x, int y)
 
 void CRenderStaticObject::Select(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_DrawTextureColor[3] != 0xFF)
     {
         if (!IsTranslucent() || m_DrawTextureColor[3] != TRANSLUCENT_ALPHA)
@@ -271,7 +264,6 @@ void CRenderStaticObject::Select(int x, int y)
 
 void CRenderStaticObject::AddText(CTextData *msg)
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextControl != nullptr)
     {
         msg->Owner = this;
@@ -284,7 +276,6 @@ void CRenderStaticObject::AddText(CTextData *msg)
 
 bool CRenderStaticObject::TextCanBeTransparent(CRenderTextObject *text)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = true;
 
     QFOR(item, m_TextControl->m_Items, CTextData *)
@@ -301,7 +292,6 @@ bool CRenderStaticObject::TextCanBeTransparent(CRenderTextObject *text)
 
 bool CRenderStaticObject::TranparentTest(int playerZPlus5)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = true;
 
     if (m_Z <= playerZPlus5 - m_TiledataPtr->Height)

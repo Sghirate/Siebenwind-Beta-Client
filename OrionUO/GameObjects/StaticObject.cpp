@@ -1,15 +1,11 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "StaticObject.h"
 #include "GameCharacter.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
 
-CStaticObject::CStaticObject(int serial, uint16_t graphic, uint16_t color, short x, short y, char z)
+CStaticObject::CStaticObject(int serial, u16 graphic, u16 color, short x, short y, char z)
     : CRenderStaticObject(ROT_STATIC_OBJECT, serial, graphic, color, x, y, z)
 {
-    DEBUG_TRACE_FUNCTION;
     OriginalGraphic = graphic;
     UpdateGraphicBySeason();
 
@@ -25,8 +21,7 @@ CStaticObject::CStaticObject(int serial, uint16_t graphic, uint16_t color, short
 
 void CStaticObject::UpdateGraphicBySeason()
 {
-    DEBUG_TRACE_FUNCTION;
-    //uint16_t graphic = Graphic;
+    //u16 graphic = Graphic;
 
     Graphic = g_Orion.GetSeasonGraphic(OriginalGraphic);
 
@@ -40,7 +35,6 @@ void CStaticObject::UpdateGraphicBySeason()
 
 void CStaticObject::Draw(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     RenderGraphic = Graphic;
 
     if (g_DeveloperMode == DM_DEBUGGING && g_SelectedObject.Object == this)
@@ -57,7 +51,6 @@ void CStaticObject::Draw(int x, int y)
 
 void CStaticObject::Select(int x, int y)
 {
-    DEBUG_TRACE_FUNCTION;
     RenderGraphic = Graphic;
 
     CRenderStaticObject::Select(x, y);

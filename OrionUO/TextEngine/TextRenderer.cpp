@@ -1,13 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "TextRenderer.h"
 #include "TextData.h"
-#include "../SelectedObject.h"
-#include "../Managers/ColorManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/GameScreen.h"
-#include "../GameObjects/GameWorld.h"
+#include "SelectedObject.h"
+#include "Managers/ColorManager.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/GameScreen.h"
+#include "GameObjects/GameWorld.h"
 
 CTextRenderer g_WorldTextRenderer;
 
@@ -19,13 +16,11 @@ CTextRenderer::CTextRenderer()
 
 CTextRenderer::~CTextRenderer()
 {
-    DEBUG_TRACE_FUNCTION;
     m_TextItems = nullptr;
 }
 
 CRenderTextObject *CTextRenderer::AddText(CRenderTextObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     if (obj != nullptr)
     {
         CRenderTextObject *item = m_TextItems;
@@ -55,7 +50,6 @@ CRenderTextObject *CTextRenderer::AddText(CRenderTextObject *obj)
 
 void CTextRenderer::ToTop(CRenderTextObject *obj)
 {
-    DEBUG_TRACE_FUNCTION;
     obj->UnlinkDraw();
 
     CRenderTextObject *next = m_TextItems->m_NextDraw;
@@ -72,7 +66,6 @@ void CTextRenderer::ToTop(CRenderTextObject *obj)
 
 bool CTextRenderer::InRect(CTextData *text, CRenderWorldObject *rwo)
 {
-    DEBUG_TRACE_FUNCTION;
     bool result = false;
     CTextImageBounds rect(text);
 
@@ -117,7 +110,7 @@ bool CTextRenderer::ProcessTextRemoveBlending(CTextData &text)
 
             if (!text.Transparent || delta <= 0x7F)
             {
-                text.Alpha = (uint8_t)delta;
+                text.Alpha = (u8)delta;
             }
 
             text.Transparent = true;
@@ -131,7 +124,6 @@ bool CTextRenderer::ProcessTextRemoveBlending(CTextData &text)
 
 bool CTextRenderer::CalculatePositions(bool noCalculate)
 {
-    DEBUG_TRACE_FUNCTION;
     bool changed = false;
 
     if (!noCalculate)
@@ -179,7 +171,6 @@ bool CTextRenderer::CalculatePositions(bool noCalculate)
 
 void CTextRenderer::Draw()
 {
-    DEBUG_TRACE_FUNCTION;
     CalculatePositions(true);
 
     for (CRenderTextObject *item = m_DrawPointer; item != nullptr; item = item->m_PrevDraw)
@@ -193,7 +184,7 @@ void CTextRenderer::Draw()
 
         if (text.Timer >= g_Ticks)
         {
-            uint16_t textColor = text.Color;
+            u16 textColor = text.Color;
 
             if (textColor != 0u)
             {
@@ -219,7 +210,7 @@ void CTextRenderer::Draw()
 
             if (text.Transparent)
             {
-                uint8_t alpha = text.Alpha;
+                u8 alpha = text.Alpha;
 
                 if (alpha == 0xFF)
                 {
@@ -245,7 +236,6 @@ void CTextRenderer::Draw()
 
 void CTextRenderer::Select(CGump *gump)
 {
-    DEBUG_TRACE_FUNCTION;
     if (gump != nullptr)
     {
         CalculatePositions(true);
@@ -289,7 +279,6 @@ void CTextRenderer::Select(CGump *gump)
 
 bool CTextRenderer::CalculateWorldPositions(bool noCalculate)
 {
-    DEBUG_TRACE_FUNCTION;
     bool changed = false;
 
     if (!noCalculate)
@@ -326,7 +315,6 @@ bool CTextRenderer::CalculateWorldPositions(bool noCalculate)
 
 void CTextRenderer::WorldDraw()
 {
-    DEBUG_TRACE_FUNCTION;
     CalculateWorldPositions(true);
 
     int renderIndex = g_GameScreen.RenderIndex - 1;
@@ -354,7 +342,7 @@ void CTextRenderer::WorldDraw()
                 continue;
             }
 
-            uint16_t textColor = text.Color;
+            u16 textColor = text.Color;
 
             if (text.Type == TT_OBJECT && g_SelectedObject.Object == item &&
                 (((CGameObject *)rwo)->NPC || ((CGameObject *)rwo)->IsCorpse()))
@@ -386,7 +374,7 @@ void CTextRenderer::WorldDraw()
 
             if (text.Transparent)
             {
-                uint8_t alpha = text.Alpha;
+                u8 alpha = text.Alpha;
 
                 if (alpha == 0xFF)
                 {

@@ -94,7 +94,7 @@ static BOOL VMQueryHelp(HANDLE hProcess, LPCVOID pvAddress, VMQUERY_HELP *pVMQHe
             pVMQHelp->dwRgnStorage = mbi.Type;
 
         // Get the address of the next block.
-        pvAddressBlk = (void *)((uint8_t *)pvAddressBlk + mbi.RegionSize);
+        pvAddressBlk = (void *)((u8 *)pvAddressBlk + mbi.RegionSize);
     }
 
     // After examining the region, check to see whether it is a thread stack

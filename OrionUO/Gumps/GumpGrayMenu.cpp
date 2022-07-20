@@ -1,16 +1,13 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpGrayMenu.h"
-#include "../OrionUO.h"
-#include "../ScreenStages/GameBlockedScreen.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "ScreenStages/GameBlockedScreen.h"
+#include "Network/Packets.h"
 
-CGumpGrayMenu::CGumpGrayMenu(uint32_t serial, uint32_t id, short x, short y)
+CGumpGrayMenu::CGumpGrayMenu(u32 serial, u32 id, short x, short y)
     : CGump(GT_GRAY_MENU, serial, x, y)
 {
-    DEBUG_TRACE_FUNCTION;
-    NoMove = true;
+    NoMove  = true;
     Blocked = true;
 
     ID = id;
@@ -30,18 +27,17 @@ CGumpGrayMenu::~CGumpGrayMenu()
 
 void CGumpGrayMenu::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GGM_CANCEL)
     {
         SendMenuResponse(0);
     }
     else if (serial == ID_GGM_CONTINUE)
     {
-        QFOR(item, m_Items, CBaseGUI *)
+        QFOR(item, m_Items, CBaseGUI*)
         {
             if (item->Type == GOT_RADIO)
             {
-                if (((CGUIRadio *)item)->Checked)
+                if (((CGUIRadio*)item)->Checked)
                 {
                     SendMenuResponse(item->Serial);
 
@@ -58,7 +54,6 @@ void CGumpGrayMenu::GUMP_BUTTON_EVENT_C
 
 void CGumpGrayMenu::SendMenuResponse(int index)
 {
-    DEBUG_TRACE_FUNCTION;
     //Ответ на меню
     CPacketGrayMenuResponse(this, index).Send();
 

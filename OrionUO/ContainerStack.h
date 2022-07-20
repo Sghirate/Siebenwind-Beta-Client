@@ -1,18 +1,18 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
+#include <deque>
 
 class CContainerStackItem
 {
 public:
-    uint32_t Serial = 0;
-    short X = 0;
-    short Y = 0;
+    u32 Serial       = 0;
+    short X          = 0;
+    short Y          = 0;
     short MinimizedX = 0;
     short MinimizedY = 0;
-    bool Minimized = false;
-    bool LockMoving = false;
+    bool Minimized   = false;
+    bool LockMoving  = false;
 
     CContainerStackItem(
         int serial,
@@ -25,6 +25,6 @@ public:
     ~CContainerStackItem() {}
 };
 
-extern deque<CContainerStackItem> g_ContainerStack;
+extern std::deque<CContainerStackItem> g_ContainerStack;
 
-extern uint32_t g_CheckContainerStackTimer;
+extern u32 g_CheckContainerStackTimer;

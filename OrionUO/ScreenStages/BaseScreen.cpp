@@ -1,11 +1,8 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "BaseScreen.h"
-#include "../Profiler.h"
-#include "../SelectedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Managers/ScreenEffectManager.h"
+#include "Profiler.h"
+#include "SelectedObject.h"
+#include "Managers/MouseManager.h"
+#include "Managers/ScreenEffectManager.h"
 
 CBaseScreen *g_CurrentScreen = nullptr;
 
@@ -17,7 +14,6 @@ CBaseScreen::CBaseScreen(CGump &gump)
 void CBaseScreen::Render()
 {
     PROFILER_EVENT();
-    DEBUG_TRACE_FUNCTION;
 
     g_GL.BeginDraw();
     if (DrawSmoothMonitor() != 0)
@@ -29,13 +25,12 @@ void CBaseScreen::Render()
     m_Gump.Draw();
     InitToolTip();
     DrawSmoothMonitorEffect();
-    g_MouseManager.Draw(CursorGraphic);
+    g_MouseManager.Draw(Cursor);
     g_GL.EndDraw();
 }
 
 void CBaseScreen::SelectObject()
 {
-    DEBUG_TRACE_FUNCTION;
 
     g_SelectedObject.Clear();
     CRenderObject *selected = m_Gump.Select();
@@ -62,7 +57,6 @@ void CBaseScreen::SelectObject()
 
 int CBaseScreen::DrawSmoothMonitor()
 {
-    DEBUG_TRACE_FUNCTION;
     if ((g_ScreenEffectManager.Process() != 0) && (SmoothScreenAction != 0u))
     {
         ProcessSmoothAction();
@@ -74,13 +68,12 @@ int CBaseScreen::DrawSmoothMonitor()
 
 void CBaseScreen::DrawSmoothMonitorEffect()
 {
-    DEBUG_TRACE_FUNCTION;
+    PROFILER_EVENT();
     g_ScreenEffectManager.Draw();
 }
 
-void CBaseScreen::CreateSmoothAction(uint8_t action)
+void CBaseScreen::CreateSmoothAction(u8 action)
 {
-    DEBUG_TRACE_FUNCTION;
     if (g_ScreenEffectManager.UseSunset())
     {
         SmoothScreenAction = action;

@@ -1,16 +1,13 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
-#include "OrionUO.h"
 #include "UseItemsList.h"
+#include "Globals.h"
+#include "OrionUO.h"
 #include "GameObjects/GameWorld.h"
 
 CUseItemActions g_UseItemActions;
 
 void CUseItemActions::Add(int serial)
 {
-    DEBUG_TRACE_FUNCTION;
-    for (deque<uint32_t>::iterator i = m_List.begin(); i != m_List.end(); ++i)
+    for (std::deque<u32>::iterator i = m_List.begin(); i != m_List.end(); ++i)
     {
         if (*i == serial)
         {
@@ -23,7 +20,6 @@ void CUseItemActions::Add(int serial)
 
 void CUseItemActions::Process()
 {
-    DEBUG_TRACE_FUNCTION;
     if (Timer <= g_Ticks)
     {
         Timer = g_Ticks + 1000;
@@ -33,7 +29,7 @@ void CUseItemActions::Process()
             return;
         }
 
-        uint32_t serial = m_List.front();
+        u32 serial = m_List.front();
         m_List.pop_front();
 
         if (g_World->FindWorldObject(serial) != nullptr)

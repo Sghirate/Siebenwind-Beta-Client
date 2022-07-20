@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GUIPolygonal.h"
@@ -15,10 +12,10 @@ class CGUIHTMLGump : public CGUIPolygonal
 public:
     bool HaveBackground = false;
     bool HaveScrollbar = false;
-    CSize DataSize = CSize();
-    CPoint2Di DataOffset = CPoint2Di();
-    CPoint2Di CurrentOffset = CPoint2Di();
-    CPoint2Di AvailableOffset = CPoint2Di();
+    Core::Vec2<i32> DataSize = Core::Vec2<i32>();
+    Core::Vec2<i32> DataOffset = Core::Vec2<i32>();
+    Core::Vec2<i32> CurrentOffset = Core::Vec2<i32>();
+    Core::Vec2<i32> AvailableOffset = Core::Vec2<i32>();
 
 private:
     void CalculateDataSize(CBaseGUI *item, int &startX, int &startY, int &endX, int &endY);
@@ -26,7 +23,7 @@ private:
 public:
     CGUIHTMLGump(
         int serial,
-        uint16_t graphic,
+        u16 graphic,
         int x,
         int y,
         int width,

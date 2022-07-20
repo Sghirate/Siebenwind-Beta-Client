@@ -1,4 +1,4 @@
-﻿
+
 #include "UOHuffman.h"
 
 int CDecompressingCopier::tree[] = {
@@ -260,14 +260,14 @@ int CDecompressingCopier::tree[] = {
     /* 255*/ -245, -247,
 };
 
-void CDecompressingCopier::
-operator()(char *dest, const char *src, int &dest_size, intptr_t &src_size)
+void CDecompressingCopier::operator()(
+    char* dest, const char* src, int& dest_size, intptr_t& src_size)
 {
-    unsigned char *pdest = reinterpret_cast<unsigned char *>(dest);
-    const unsigned char *src2 = reinterpret_cast<const unsigned char *>(src);
-    const unsigned char *psrc = src2;
-    intptr_t len = src_size; // len will decrease
-    int dest_index = 0;
+    unsigned char* pdest      = reinterpret_cast<unsigned char*>(dest);
+    const unsigned char* src2 = reinterpret_cast<const unsigned char*>(src);
+    const unsigned char* psrc = src2;
+    intptr_t len              = src_size; // len will decrease
+    int dest_index            = 0;
 
     while (true)
     {
@@ -281,9 +281,9 @@ operator()(char *dest, const char *src, int &dest_size, intptr_t &src_size)
                 return;
             }
             len--;
-            value = *psrc++;
+            value   = *psrc++;
             bit_num = 0;
-            mask = 0x80;
+            mask    = 0x80;
         }
         if ((value & mask) != 0)
         {
@@ -307,11 +307,11 @@ operator()(char *dest, const char *src, int &dest_size, intptr_t &src_size)
             if (dest_index == dest_size) // Buffer full
             {
                 dest_size = dest_index;
-                src_size = psrc - src2;
+                src_size  = psrc - src2;
                 return;
             }
             pdest[dest_index++] = -treepos; // data is negative value
-            treepos = 0;                    // start on tree top again
+            treepos             = 0;        // start on tree top again
         }
     }
 }

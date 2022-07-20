@@ -1,11 +1,14 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
+#include "Core/Minimal.h"
 #include "GameObject.h"
-#include "../Walker/WalkData.h"
-#include "../TextEngine/TextContainer.h"
+#include "GLEngine/GLTextTexture.h"
+#include "Globals.h"
+#include "Walker/WalkData.h"
+#include "TextEngine/TextContainer.h"
+#include "plugin/enumlist.h"
+#include <deque>
+#include <string>
 
 class CGameCharacter : public CGameObject
 {
@@ -35,25 +38,25 @@ public:
     RACE_TYPE Race = RT_HUMAN;
 
     //!Current direction
-    uint8_t Direction = 0;
+    u8 Direction = 0;
 
     //!Character's notoriety
-    uint8_t Notoriety = 0;
+    u8 Notoriety = 0;
 
     //!Player can change the name for this character
     bool CanChangeName = false;
 
     //!Interval between animation playback
-    uint8_t AnimationInterval = 0;
+    u8 AnimationInterval = 0;
 
     //!Current animation frame count
-    uint8_t AnimationFrameCount = 0;
+    u8 AnimationFrameCount = 0;
 
     //!Current animation repeat mode
-    uint8_t AnimationRepeatMode = 1;
+    u8 AnimationRepeatMode = 1;
 
     //!Current animation group
-    uint8_t AnimationGroup = 0xFF;
+    u8 AnimationGroup = 0xFF;
 
     //!Current animation is repeat
     bool AnimationRepeat = false;
@@ -65,13 +68,13 @@ public:
     bool AnimationFromServer = false;
 
     //!Last step sound time stamp
-    uint32_t LastStepSoundTime = 0;
+    u32 LastStepSoundTime = 0;
 
     //!Time stamp to fidget animation
-    uint32_t TimeToRandomFidget = 0;
+    u32 TimeToRandomFidget = 0;
 
     //!Offset to step sound
-    uint8_t StepSoundOffset = 0;
+    u8 StepSoundOffset = 0;
 
     //!Sprite offset by X coordinate on the tile
     int OffsetX = 0;
@@ -83,16 +86,16 @@ public:
     int OffsetZ = 0;
 
     //!Last step time stamp
-    uint32_t LastStepTime = 0;
+    u32 LastStepTime = 0;
 
     //!Character's title
-    string Title = "";
+    std::string Title = "";
 
     //!Percent of hits
-    uint8_t HitsPercent = 0;
+    u8 HitsPercent = 0;
 
 protected:
-    void CorrectAnimationGroup(uint16_t graphic, ANIMATION_GROUPS group, uint8_t &animation);
+    void CorrectAnimationGroup(u16 graphic, ANIMATION_GROUPS group, u8 &animation);
     bool m_Dead = false;
 
 public:
@@ -100,38 +103,38 @@ public:
     virtual ~CGameCharacter();
 
     CTextContainer m_DamageTextControl{ CTextContainer(10) };
-    deque<CWalkData> m_Steps;
+    std::deque<CWalkData> m_Steps;
     CGLTextTexture m_HitsTexture{ CGLTextTexture() };
 
     virtual void UpdateTextCoordinates();
-    void UpdateHitsTexture(uint8_t hits);
+    void UpdateHitsTexture(u8 hits);
     void ProcessGargoyleAnims(int &animGroup);
     int IsSitting();
     virtual void Draw(int x, int y);
     virtual void Select(int x, int y);
     void OnGraphicChange(int direction = 0);
-    void ResetAnimationGroup(uint8_t val);
+    void ResetAnimationGroup(u8 val);
     void SetRandomFidgetAnimation();
     void SetAnimation(
-        uint8_t id,
-        uint8_t interval = 0,
-        uint8_t frameCount = 0,
-        uint8_t repeatCount = 0,
+        u8 id,
+        u8 interval = 0,
+        u8 frameCount = 0,
+        u8 repeatCount = 0,
         bool repeat = false,
         bool frameDirection = false);
 
-    uint16_t GetMountAnimation();
-    uint8_t GetAnimationGroup(uint16_t checkGraphic = 0);
-    void GetAnimationGroup(ANIMATION_GROUPS group, uint8_t &animation);
+    u16 GetMountAnimation();
+    u8 GetAnimationGroup(u16 checkGraphic = 0);
+    void GetAnimationGroup(ANIMATION_GROUPS group, u8 &animation);
     bool Staying() { return AnimationGroup == 0xFF && m_Steps.empty(); }
-    bool TestStepNoChangeDirection(uint8_t group);
-    virtual bool Walking() { return (LastStepTime > (uint32_t)(g_Ticks - WALKING_DELAY)); }
+    bool TestStepNoChangeDirection(u8 group);
+    virtual bool Walking() { return (LastStepTime > (u32)(g_Ticks - WALKING_DELAY)); }
     virtual bool NoIterateAnimIndex()
     {
-        return ((LastStepTime > (uint32_t)(g_Ticks - WALKING_DELAY)) && m_Steps.empty());
+        return ((LastStepTime > (u32)(g_Ticks - WALKING_DELAY)) && m_Steps.empty());
     }
 
-    void UpdateAnimationInfo(uint8_t &dir, bool canChange = false);
+    void UpdateAnimationInfo(u8 &dir, bool canChange = false);
 
     bool IsHuman()
     {

@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "GUIResizepic.h"
@@ -14,7 +11,7 @@ public:
     CGUIHTMLResizepic(
         class CGUIHTMLGump *htmlGump,
         int serial,
-        uint16_t graphic,
+        u16 graphic,
         int x,
         int y,
         int width,

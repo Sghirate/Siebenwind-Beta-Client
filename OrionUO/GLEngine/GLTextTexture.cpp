@@ -1,5 +1,5 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
+#include "GLTextTexture.h"
+#include "GLEngine/GLEngine.h"
 
 CGLTextTexture::CGLTextTexture()
 
@@ -12,14 +12,12 @@ CGLTextTexture::~CGLTextTexture()
 
 void CGLTextTexture::Clear()
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture::Clear();
     LinesCount = 0;
 }
 
 void CGLTextTexture::Draw(int x, int y, bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     if (Texture != 0)
     {
         if (checktrans)

@@ -1,15 +1,13 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenCharacterList.h"
+#include "GameVars.h"
 #include <SDL_timer.h>
-#include "../Config.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../CharacterList.h"
-#include "../Managers/ClilocManager.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/CharacterListScreen.h"
+#include "Config.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "CharacterList.h"
+#include "Managers/ClilocManager.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/CharacterListScreen.h"
 
 enum
 {
@@ -38,17 +36,16 @@ CGumpScreenCharacterList::~CGumpScreenCharacterList()
 
 void CGumpScreenCharacterList::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     int count = g_CharacterList.Count;
-    bool testField = (g_Config.ClientVersion >= CV_305D);
+    bool testField = (GameVars::GetClientVersion() >= CV_305D);
     int posInList = 0;
     int yOffset = 150;
     int yBonus = 0;
     int listTitleY = 106;
 
-    if (g_Config.ClientVersion >= CV_6040)
+    if (GameVars::GetClientVersion() >= CV_6040)
     {
         listTitleY = 96;
         yOffset = 125;
@@ -63,7 +60,7 @@ void CGumpScreenCharacterList::UpdateContent()
 
     CGUIText *obj = new CGUIText(0x0386, 267, listTitleY);
     obj->CreateTextureA(
-        2, g_ClilocManager.Cliloc(g_Language)->GetA(3000050, false, "Character Selection"));
+        2, g_ClilocManager.GetCliloc(g_Language)->GetA(3000050, false, "Character Selection"));
     Add(obj);
 
     for (int i = 0; i < count; i++)
@@ -113,13 +110,12 @@ void CGumpScreenCharacterList::UpdateContent()
 
 void CGumpScreenCharacterList::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.UseToolTips)
     {
         return;
     }
 
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     switch (id)
     {
@@ -154,7 +150,7 @@ void CGumpScreenCharacterList::InitToolTip()
 
     if (id >= ID_CS_CHARACTERS)
     {
-        bool testField = (g_Config.ClientVersion >= CV_305D);
+        bool testField = (GameVars::GetClientVersion() >= CV_305D);
 
         for (int i = 0; i < g_CharacterList.Count; i++)
         {
@@ -173,7 +169,6 @@ void CGumpScreenCharacterList::InitToolTip()
 
 void CGumpScreenCharacterList::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_CS_QUIT)
     { //x button
         g_CharacterListScreen.CreateSmoothAction(CCharacterListScreen::ID_SMOOTH_CLS_QUIT);
@@ -201,7 +196,6 @@ void CGumpScreenCharacterList::GUMP_BUTTON_EVENT_C
 
 void CGumpScreenCharacterList::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < g_CharacterList.Count; i++)
     {
         if (serial == (ID_CS_CHARACTERS + (int)i))
@@ -223,7 +217,6 @@ void CGumpScreenCharacterList::GUMP_TEXT_ENTRY_EVENT_C
 
 bool CGumpScreenCharacterList::OnLeftMouseButtonDoubleClick()
 {
-    DEBUG_TRACE_FUNCTION;
     for (int i = 0; i < g_CharacterList.Count; i++)
     {
         if (g_SelectedObject.Serial == (ID_CS_CHARACTERS + i))

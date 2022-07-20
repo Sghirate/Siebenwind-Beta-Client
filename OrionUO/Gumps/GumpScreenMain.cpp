@@ -1,13 +1,13 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpScreenMain.h"
+#include "GameVars.h"
+#include "Globals.h"
 #include "GitRevision.h"
-#include "../Config.h"
-#include "../ToolTip.h"
-#include "../SelectedObject.h"
-#include "../Managers/ConfigManager.h"
-#include "../ScreenStages/MainScreen.h"
+#include "SiebenwindClient.h"
+#include "Config.h"
+#include "ToolTip.h"
+#include "SelectedObject.h"
+#include "Managers/ConfigManager.h"
+#include "ScreenStages/MainScreen.h"
 
 enum
 {
@@ -36,8 +36,7 @@ CGumpScreenMain::~CGumpScreenMain()
 
 void CGumpScreenMain::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
-    static uint32_t lastArrowTick = 0;
+    static u32 lastArrowTick = 0;
     static bool arrowLighted = false;
 
     if (lastArrowTick < g_Ticks && m_Arrow != nullptr)
@@ -61,7 +60,6 @@ void CGumpScreenMain::PrepareContent()
 
 void CGumpScreenMain::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_Items != nullptr)
     {
         return;
@@ -73,7 +71,7 @@ void CGumpScreenMain::UpdateContent()
 
     Add(new CGUIGumppic(0x157C, 0, 0));
 
-    if (g_Config.ClientVersion >= CV_500A)
+    if (GameVars::GetClientVersion() >= CV_500A)
     {
         Add(new CGUIGumppic(0x2329, 0, 0));
     }
@@ -81,7 +79,7 @@ void CGumpScreenMain::UpdateContent()
     Add(new CGUIGumppic(0x15A0, 0, 4));
     Add(new CGUIResizepic(0, 0x13BE, 128, 288, 451, 157));
 
-    if (g_Config.ClientVersion < CV_500A)
+    if (GameVars::GetClientVersion() < CV_500A)
     {
         Add(new CGUIGumppic(0x058A, 286, 45));
     }
@@ -111,10 +109,10 @@ void CGumpScreenMain::UpdateContent()
 
     text = (CGUIText *)Add(new CGUIText(0x034E, 286, 455));
 
-    text->CreateTextureA(9, SiebenwindClient::WindowTitle);
+    text->CreateTextureA(9, SiebenwindClient::GetWindowTitle());
 
     text = (CGUIText *)Add(new CGUIText(0x034E, 286, 467));
-    text->CreateTextureA(9, string("based on OrionUO beta ") + RC_PRODUCE_VERSION_STR);
+    text->CreateTextureA(9, std::string("based on OrionUO beta ") + RC_PRODUCE_VERSION_STR);
 
     CGUITextEntry *entry = (CGUITextEntry *)Add(new CGUITextEntry(
         ID_MS_ACCOUNT, 0x034F, 0x03E3, 0x0021, 335, 343, 190, false, 5, TS_LEFT, 0, 32));
@@ -129,13 +127,12 @@ void CGumpScreenMain::UpdateContent()
 
 void CGumpScreenMain::InitToolTip()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.UseToolTips || g_SelectedObject.Object == nullptr)
     {
         return;
     }
 
-    uint32_t id = g_SelectedObject.Serial;
+    u32 id = g_SelectedObject.Serial;
 
     switch (id)
     {
@@ -176,7 +173,6 @@ void CGumpScreenMain::InitToolTip()
 
 void CGumpScreenMain::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_MS_QUIT)
     { //x button
         g_MainScreen.CreateSmoothAction(CMainScreen::ID_SMOOTH_MS_QUIT);
@@ -189,7 +185,6 @@ void CGumpScreenMain::GUMP_BUTTON_EVENT_C
 
 void CGumpScreenMain::GUMP_TEXT_ENTRY_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_MS_PASSWORD)
     {
         g_MainScreen.m_Password->SetPos(m_PasswordFake->Pos());

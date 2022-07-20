@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -25,8 +22,8 @@ public:
     CGumpScreenCreateCharacter();
     virtual ~CGumpScreenCreateCharacter();
 
-    virtual void UpdateContent() override;
-    virtual void InitToolTip() override;
+     void UpdateContent()  override;
+     void InitToolTip()  override;
 
     GUMP_BUTTON_EVENT_H;
     GUMP_RADIO_EVENT_H;

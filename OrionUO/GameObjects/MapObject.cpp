@@ -1,10 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "MapObject.h"
 
 CMapObject::CMapObject(
-    RENDER_OBJECT_TYPE type, int serial, uint16_t graphic, uint16_t color, short x, short y, char z)
+    RENDER_OBJECT_TYPE type, int serial, u16 graphic, u16 color, short x, short y, char z)
     : CRenderWorldObject(type, serial, graphic, color, x, y, z)
 {
 }

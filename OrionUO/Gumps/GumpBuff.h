@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "Gump.h"
@@ -19,13 +16,13 @@ private:
     const int ID_GB_BUFF_ITEM = 10;
 
     void GetGumpStatus(
-        CPoint2Di &ball,
-        CPoint2Di &items,
+        Core::Vec2<i32> &ball,
+        Core::Vec2<i32> &items,
         bool &useX,
         bool &decX,
         bool &decY,
-        CPoint2Di &startGump,
-        CSize &endGump);
+        Core::Vec2<i32> &startGump,
+        Core::Vec2<i32> &endGump);
 
 public:
     CGumpBuff(short x, short y);
@@ -33,9 +30,9 @@ public:
 
     virtual bool CanBeDisplayed();
 
-    void AddBuff(uint16_t id, uint16_t timer, const wstring &text);
+    void AddBuff(u16 id, u16 timer, const std::wstring &text);
 
-    void DeleteBuff(uint16_t id);
+    void DeleteBuff(u16 id);
 
     void UpdateBuffIcons();
 

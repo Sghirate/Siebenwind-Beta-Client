@@ -1,17 +1,15 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "RenderTextObject.h"
 #include "ImageBounds.h"
+#include <deque>
 
 class CRenderWorldObject;
 
 class CTextRenderer : public CRenderTextObject
 {
 private:
-    deque<CTextImageBounds> m_TextRect;
+    std::deque<CTextImageBounds> m_TextRect;
     bool ProcessTextRemoveBlending(CTextData &text);
 
 public:

@@ -1,26 +1,21 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "Wisp/WispApplication.h"
+#include "Core/App.h"
 
-class COrionApplication : public Wisp::CApplication
+class COrionApplication : public Core::App
 {
-#if USE_TIMERTHREAD
-public:
-    uint32_t NextRenderTime = 0;
-    uint32_t NextUpdateTime = 0;
-#endif // USE_TIMERTHREAD
-protected:
-    virtual void OnMainLoop();
-
 public:
     COrionApplication()
-        : Wisp::CApplication()
+        : Core::App()
     {
     }
-    virtual ~COrionApplication() {}
+    virtual ~COrionApplication()
+    {
+    }
+
+protected:
+    void TickFrame() override;
+    bool IsTerminating() const override;
 };
 
 extern COrionApplication g_App;

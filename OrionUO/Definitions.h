@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Minimal.h"
+
 #define USE_DEBUG_TRACE_FUNCTION 0
 
 #if USE_DEBUG_TRACE_FUNCTION != 0
@@ -18,11 +20,8 @@
 #define DEBUGGING_OUTPUT 1
 
 #if DEBUGGING_OUTPUT == 1
-void DebugMsg(const char *format, ...);
-void DebugMsg(const wchar_t *format, ...);
-void DebugDump(uint8_t *data, int size);
+void DebugDump(u8 *data, int size);
 #else
-#define DebugMsg(...)
 #define DebugDump(buf, size)
 #endif
 

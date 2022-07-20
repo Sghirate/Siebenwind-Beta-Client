@@ -1,30 +1,26 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
+#include "GumpTextEntryDialog.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "Managers/GumpManager.h"
+#include "ScreenStages/GameBlockedScreen.h"
+#include "Network/Packets.h"
 #include <utility>
 
-#include "GumpTextEntryDialog.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../Managers/GumpManager.h"
-#include "../ScreenStages/GameBlockedScreen.h"
-#include "../Network/Packets.h"
-
 CGumpTextEntryDialog::CGumpTextEntryDialog(
-    uint32_t serial,
+    u32 serial,
     short x,
     short y,
-    uint8_t variant,
+    u8 variant,
     int maxLength,
-    string text,
-    string description)
+    std::string text,
+    std::string description)
     : CGump(GT_TEXT_ENTRY_DIALOG, serial, x, y)
     , Text(std::move(text))
     , m_Description(std::move(description))
     , Variant(variant)
     , m_MaxLength(maxLength)
 {
-    DEBUG_TRACE_FUNCTION;
     NoMove = true;
     Blocked = true;
 
@@ -43,10 +39,9 @@ CGumpTextEntryDialog::~CGumpTextEntryDialog()
 
 void CGumpTextEntryDialog::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_TextField != nullptr && m_Entry != nullptr)
     {
-        uint16_t newGraphic = 0x0475; //Text field
+        u16 newGraphic = 0x0475; //Text field
 
         if (g_EntryPointer == &m_Entry->m_Entry)
         {
@@ -67,7 +62,6 @@ void CGumpTextEntryDialog::PrepareContent()
 
 void CGumpTextEntryDialog::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Add(new CGUIGumppic(0x0474, 0, 0));
@@ -105,7 +99,6 @@ void CGumpTextEntryDialog::UpdateContent()
 
 void CGumpTextEntryDialog::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GTED_BUTTON_OKAY)
     { //Button okay
         SendTextEntryDialogResponse(true);
@@ -116,11 +109,10 @@ void CGumpTextEntryDialog::GUMP_BUTTON_EVENT_C
     }
 }
 
-void CGumpTextEntryDialog::OnTextInput(const TextEvent &ev)
+void CGumpTextEntryDialog::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (Variant == 2) // Only numbers
     {
         if (ch >= '0' && ch <= '9')
@@ -147,28 +139,25 @@ void CGumpTextEntryDialog::OnTextInput(const TextEvent &ev)
     }
 }
 
-void CGumpTextEntryDialog::OnKeyDown(const KeyEvent &ev)
+void CGumpTextEntryDialog::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    const auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
-        case KEY_ESCAPE:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
+        case Core::EKey::Key_Escape:
         {
-            SendTextEntryDialogResponse(key == KEY_RETURN);
+            SendTextEntryDialogResponse(ev.key == Core::EKey::Key_Return);
             break;
         }
-        case KEY_HOME:
-        case KEY_END:
-        case KEY_LEFT:
-        case KEY_RIGHT:
-        case KEY_BACK:
-        case KEY_DELETE:
+        case Core::EKey::Key_Home:
+        case Core::EKey::Key_End:
+        case Core::EKey::Key_Left:
+        case Core::EKey::Key_Right:
+        case Core::EKey::Key_Backspace:
+        case Core::EKey::Key_Delete:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
             WantRedraw = true;
             break;
         }
@@ -179,7 +168,6 @@ void CGumpTextEntryDialog::OnKeyDown(const KeyEvent &ev)
 
 void CGumpTextEntryDialog::SendTextEntryDialogResponse(bool mode)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!RemoveMark &&
         m_Entry != nullptr) //Непредвиденная ошибка при отсутствии поля ввода текста в гампе
     {

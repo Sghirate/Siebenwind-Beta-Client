@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "RenderWorldObject.h"
 #include "Managers/ConfigManager.h"
 #include "ScreenStages/GameScreen.h"
@@ -8,16 +5,15 @@
 CRenderWorldObject::CRenderWorldObject(
     RENDER_OBJECT_TYPE renderType,
     int serial,
-    uint16_t graphic,
-    uint16_t color,
+    u16 graphic,
+    u16 color,
     int x,
     int y,
     char z)
     : CRenderObject(serial, graphic, color, x, y)
-    , RenderType(renderType)
     , m_Z(z)
+    , RenderType(renderType)
 {
-    DEBUG_TRACE_FUNCTION;
     m_DrawTextureColor[0] = 0xFF;
     m_DrawTextureColor[1] = 0xFF;
     m_DrawTextureColor[2] = 0xFF;
@@ -28,16 +24,14 @@ CRenderWorldObject::CRenderWorldObject(
 
 CRenderWorldObject::~CRenderWorldObject()
 {
-    DEBUG_TRACE_FUNCTION;
     RemoveRender();
 }
 
 bool CRenderWorldObject::ProcessAlpha(int maxAlpha)
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ConfigManager.RemoveOrCreateObjectsWithBlending)
     {
-        m_DrawTextureColor[3] = (uint8_t)maxAlpha;
+        m_DrawTextureColor[3] = (u8)maxAlpha;
 
         return (maxAlpha != 0);
     }
@@ -68,14 +62,13 @@ bool CRenderWorldObject::ProcessAlpha(int maxAlpha)
         result = true;
     }
 
-    m_DrawTextureColor[3] = (uint8_t)alpha;
+    m_DrawTextureColor[3] = (u8)alpha;
 
     return result;
 }
 
 void CRenderWorldObject::RemoveRender()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_PrevXY != nullptr)
     {
         m_PrevXY->m_NextXY = m_NextXY;
@@ -97,7 +90,6 @@ bool CRenderWorldObject::RemovedFromRender()
 
 CLandObject *CRenderWorldObject::GetLand()
 {
-    DEBUG_TRACE_FUNCTION;
 
     for (CRenderWorldObject *land = this; land != nullptr; land = land->m_NextXY)
     {

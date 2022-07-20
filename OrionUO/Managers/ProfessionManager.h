@@ -1,9 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
-#include "../BaseQueue.h"
+#include "BaseQueue.h"
+#include "Core/TextFileParser.h"
 
 class CBaseProfession;
 
@@ -11,7 +9,7 @@ class CProfessionManager : public CBaseQueue
 {
 private:
     static const int m_KeyCount = 18;
-    static const string m_Keys[m_KeyCount];
+    static const std::string m_Keys[m_KeyCount];
 
     enum
     {
@@ -35,18 +33,18 @@ private:
         PM_CODE_DESCRIPTION_CLILOC_ID
     };
 
-    int GetKeyCode(const string &key);
-    bool ParseFilePart(Wisp::CTextFileParser &file);
-    bool AddChild(CBaseProfession *parent, CBaseProfession *child);
+    int GetKeyCode(const std::string& key);
+    bool ParseFilePart(Core::TextFileParser& file);
+    bool AddChild(CBaseProfession* parent, CBaseProfession* child);
     void LoadProfessionDescription();
 
 public:
     CProfessionManager();
     virtual ~CProfessionManager();
 
-    CBaseProfession *Selected;
+    CBaseProfession* Selected;
 
-    CBaseProfession *GetParent(CBaseProfession *obj, CBaseProfession *check = nullptr);
+    CBaseProfession* GetParent(CBaseProfession* obj, CBaseProfession* check = nullptr);
     bool Load();
 };
 

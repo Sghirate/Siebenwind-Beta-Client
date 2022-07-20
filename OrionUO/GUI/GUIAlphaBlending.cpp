@@ -1,6 +1,3 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUIAlphaBlending.h"
 
 CGUIAlphaBlending::CGUIAlphaBlending(bool enabled, float alpha)
@@ -15,7 +12,6 @@ CGUIAlphaBlending::~CGUIAlphaBlending()
 
 void CGUIAlphaBlending::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGUIBlending::Draw(checktrans);
 
     if (Enabled)

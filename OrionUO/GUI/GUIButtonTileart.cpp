@@ -1,19 +1,15 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GUIButtonTileart.h"
-#include "../OrionUO.h"
-#include "../Point.h"
+#include "OrionUO.h"
 
 CGUIButtonTileart::CGUIButtonTileart(
     int serial,
-    uint16_t graphic,
-    uint16_t graphicSelected,
-    uint16_t graphicPressed,
+    u16 graphic,
+    u16 graphicSelected,
+    u16 graphicPressed,
     int x,
     int y,
-    uint16_t tileGraphic,
-    uint16_t tileColor,
+    u16 tileGraphic,
+    u16 tileColor,
     int tileX,
     int tileY)
     : CGUIButton(serial, graphic, graphicSelected, graphicPressed, x, y)
@@ -29,52 +25,50 @@ CGUIButtonTileart::~CGUIButtonTileart()
 {
 }
 
-CSize CGUIButtonTileart::GetSize()
+Core::Vec2<i32> CGUIButtonTileart::GetSize()
 {
-    DEBUG_TRACE_FUNCTION;
-    CSize gumpSize = CGUIDrawObject::GetSize();
-    CSize tileSize;
+    Core::Vec2<i32> gumpSize = CGUIDrawObject::GetSize();
+    Core::Vec2<i32> tileSize;
 
     CGLTexture *th = g_Orion.ExecuteStaticArt(TileGraphic);
 
     if (th != nullptr)
     {
-        tileSize.Width = th->Width;
-        tileSize.Height = th->Height;
+        tileSize.x = th->Width;
+        tileSize.y = th->Height;
     }
 
     int startX = m_X;
-    int endX = m_X + gumpSize.Width;
+    int endX = m_X + gumpSize.x;
 
     if (TileX < startX)
     {
         startX = TileX;
     }
 
-    if (TileX + tileSize.Width > endX)
+    if (TileX + tileSize.x > endX)
     {
-        endX = TileX + tileSize.Width;
+        endX = TileX + tileSize.x;
     }
 
     int startY = m_Y;
-    int endY = m_Y + gumpSize.Height;
+    int endY = m_Y + gumpSize.y;
 
     if (TileY < startY)
     {
         startY = TileY;
     }
 
-    if (TileY + tileSize.Height > endY)
+    if (TileY + tileSize.y > endY)
     {
-        endY = TileY + tileSize.Height;
+        endY = TileY + tileSize.y;
     }
 
-    return CSize(abs(endX) - abs(startX), abs(endY) - abs(startY));
+    return Core::Vec2<i32>(abs(endX) - abs(startX), abs(endY) - abs(startY));
 }
 
 void CGUIButtonTileart::PrepareTextures()
 {
-    DEBUG_TRACE_FUNCTION;
     CGUIButton::PrepareTextures();
 
     g_Orion.ExecuteStaticArt(TileGraphic);
@@ -82,7 +76,6 @@ void CGUIButtonTileart::PrepareTextures()
 
 void CGUIButtonTileart::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGUIDrawObject::Draw(checktrans);
 
     CGLTexture *th = g_Orion.ExecuteStaticArt(TileGraphic);
@@ -97,7 +90,6 @@ void CGUIButtonTileart::Draw(bool checktrans)
 
 bool CGUIButtonTileart::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     if (CGUIDrawObject::Select())
     {
         return true;

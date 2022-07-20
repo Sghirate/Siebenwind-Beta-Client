@@ -1,14 +1,14 @@
-﻿// MIT License
-// Copyright (C) September 2017 Hotride
-
 #pragma once
+
+#include "Core/Minimal.h"
+#include <deque>
 
 class CUseItemActions
 {
-    uint32_t Timer = 0;
+    u32 Timer = 0;
 
 private:
-    deque<uint32_t> m_List;
+    std::deque<u32> m_List;
 
 public:
     CUseItemActions() {}

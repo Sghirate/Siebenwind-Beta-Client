@@ -1,13 +1,7 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #define UO_RENDER_LIST_SORT 1
 #define UO_CHECKERBOARD_SEQUENCE_RENDER_LIST 1
-
-#define UO_USE_SHADER_FILES 0
-
 #define UO_DEBUG_INFO 1
 
 #define UOFONT_SOLID 0x01  //!Жирный

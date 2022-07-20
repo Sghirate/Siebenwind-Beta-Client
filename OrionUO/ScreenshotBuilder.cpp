@@ -1,13 +1,12 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ScreenshotBuilder.h"
-#include "FileSystem.h"
-#include "OrionWindow.h"
+#include "GameWindow.h"
 #include "OrionApplication.h"
-#include <time.h>
+#include "Globals.h"
 #include "OrionUO.h"
+#include "Profiler.h"
 #include "Managers/ConfigManager.h"
+#include "plugin/enumlist.h"
+#include <time.h>
 
 #define STBIWDEF static inline
 #define STB_IMAGE_WRITE_STATIC
@@ -16,24 +15,21 @@
 
 CScreenshotBuilder g_ScreenshotBuilder;
 
-static vector<uint32_t> GetScenePixels(int x, int y, int width, int height)
+static std::vector<u32> GetScenePixels(int x, int y, int width, int height)
 {
-    DEBUG_TRACE_FUNCTION;
-    vector<uint32_t> pixels(width * height);
+    std::vector<u32> pixels(width * height);
 
     glReadPixels(
         x,
-        g_OrionWindow.GetSize().Height - y - height,
+        g_gameWindow.GetSize().y - y - height,
         width,
         height,
         GL_RGBA,
         GL_UNSIGNED_INT_8_8_8_8_REV,
         &pixels[0]);
 
-    for (uint32_t &i : pixels)
-    {
+    for (u32 &i : pixels)
         i |= 0xFF000000;
-    }
 
     return pixels;
 }
@@ -48,16 +44,14 @@ CScreenshotBuilder::~CScreenshotBuilder()
 
 void CScreenshotBuilder::SaveScreen()
 {
-    DEBUG_TRACE_FUNCTION;
-    SaveScreen(0, 0, g_OrionWindow.GetSize().Width, g_OrionWindow.GetSize().Height);
+    SaveScreen(0, 0, g_gameWindow.GetSize().x, g_gameWindow.GetSize().y);
 }
 
-void CScreenshotBuilder::SaveScreen(int x, int y, int width, int height)
+void CScreenshotBuilder::SaveScreen(int a_x, int a_y, int a_w, int a_h)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    auto path = g_App.ExeFilePath("screenshots");
-    fs_path_create(path);
+    PROFILER_EVENT();
+    std::filesystem::path path = g_App.GetExeDir() / "screenshots";
+    std::filesystem::create_directory(path);
 
     auto t = time(nullptr);
     auto now = *localtime(&t);
@@ -71,9 +65,9 @@ void CScreenshotBuilder::SaveScreen(int x, int y, int width, int height)
         now.tm_hour,
         now.tm_min,
         now.tm_sec);
-    path += ToPath(buf);
+    path /= buf;
 
-    auto pixels = GetScenePixels(x, y, width, height);
+    auto pixels = GetScenePixels(a_x, a_y, a_w, a_h);
     int result = 0;
     auto data = (void *)&pixels[0];
     stbi_flip_vertically_on_write(true);
@@ -81,26 +75,26 @@ void CScreenshotBuilder::SaveScreen(int x, int y, int width, int height)
     {
         case SF_PNG:
         {
-            path += ToPath(".png");
-            result = stbi_write_png(CStringFromPath(path), width, height, 4, data, width * 4);
+            path.replace_extension(".png");
+            result = stbi_write_png(path.string().c_str(), a_w, a_h, 4, data, a_w * 4);
             break;
         }
         case SF_TGA:
         {
-            path += ToPath(".tga");
-            result = stbi_write_tga(CStringFromPath(path), width, height, 4, data);
+            path.replace_extension(".tga");
+            result = stbi_write_tga(path.string().c_str(), a_w, a_h, 4, data);
             break;
         }
         case SF_JPG:
         {
-            path += ToPath(".jpg");
-            result = stbi_write_jpg(CStringFromPath(path), width, height, 4, data, 100);
+            path.replace_extension(".jpg");
+            result = stbi_write_jpg(path.string().c_str(), a_w, a_h, 4, data, 100);
             break;
         }
         default:
         {
-            path += ToPath(".bmp");
-            result = stbi_write_bmp(CStringFromPath(path), width, height, 4, data);
+            path.replace_extension(".bmp");
+            result = stbi_write_bmp(path.string().c_str(), a_w, a_h, 4, data);
             break;
         }
     }
@@ -112,6 +106,6 @@ void CScreenshotBuilder::SaveScreen(int x, int y, int width, int height)
 
     if (g_GameState >= GS_GAME)
     {
-        g_Orion.CreateTextMessageF(3, 0, "Screenshot saved to: %s", CStringFromPath(path));
+        g_Orion.CreateTextMessageF(3, 0, "Screenshot saved to: %s", path.string().c_str());
     }
 }

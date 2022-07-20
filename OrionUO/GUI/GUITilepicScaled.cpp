@@ -1,11 +1,8 @@
-﻿// MIT License
-// Copyright (C) December 2016 Hotride
-
 #include "GUITilepicScaled.h"
-#include "../OrionUO.h"
+#include "OrionUO.h"
 
 CGUITilepicScaled::CGUITilepicScaled(
-    uint16_t graphic, uint16_t color, int x, int y, int width, int height)
+    u16 graphic, u16 color, int x, int y, int width, int height)
     : CGUITilepic(graphic, color, x, y)
     , Width(width)
     , Height(height)
@@ -18,7 +15,6 @@ CGUITilepicScaled::~CGUITilepicScaled()
 
 void CGUITilepicScaled::Draw(bool checktrans)
 {
-    DEBUG_TRACE_FUNCTION;
     CGLTexture *th = g_Orion.ExecuteStaticArt(Graphic);
     if (th != nullptr)
     {

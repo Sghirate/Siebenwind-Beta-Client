@@ -1,22 +1,21 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "FileManager.h"
 #include "AnimationManager.h"
 #include "ClilocManager.h"
-#include "../OrionUO.h"
-#include "../OrionApplication.h"
-#include "../FileSystem.h"
-#include "../Config.h"
-#include "../Network/PluginPackets.h"
+#include "Core/Log.h"
+#include "GameVars.h"
+#include "OrionUO.h"
+#include "OrionApplication.h"
+#include "Config.h"
+#include "Network/PluginPackets.h"
+#include "plugin/enumlist.h"
 
 #define MINIZ_IMPLEMENTATION
 #include <miniz.h>
+#include <thread>
 
 CFileManager g_FileManager;
 
 CUopMappedFile::CUopMappedFile()
-
 {
 }
 
@@ -24,12 +23,12 @@ CUopMappedFile::~CUopMappedFile()
 {
 }
 
-void CUopMappedFile::Add(uint64_t hash, const CUopBlockHeader &item)
+void CUopMappedFile::Add(u64 hash, const CUopBlockHeader& item)
 {
     m_Map[hash] = item;
 }
 
-CUopBlockHeader *CUopMappedFile::GetBlock(uint64_t hash)
+CUopBlockHeader* CUopMappedFile::GetBlock(u64 hash)
 {
     auto found = m_Map.find(hash);
     if (found != m_Map.end())
@@ -40,32 +39,31 @@ CUopBlockHeader *CUopMappedFile::GetBlock(uint64_t hash)
     return nullptr;
 }
 
-vector<uint8_t> CUopMappedFile::GetData(const CUopBlockHeader &block)
+std::vector<u8> CUopMappedFile::GetData(const CUopBlockHeader& block)
 {
     ResetPtr();
     Move((int)block.Offset);
 
-    uLongf compressedSize = block.CompressedSize;
+    uLongf compressedSize   = block.CompressedSize;
     uLongf decompressedSize = block.DecompressedSize;
-    vector<uint8_t> result(decompressedSize, 0);
+    std::vector<u8> result(decompressedSize, 0);
     if ((compressedSize != 0u) && compressedSize != decompressedSize)
     {
-        int z_err = mz_uncompress(&result[0], &decompressedSize, Ptr, compressedSize);
+        int z_err = mz_uncompress(&result[0], &decompressedSize, m_ptr, compressedSize);
         if (z_err != Z_OK)
         {
-            LOG("Uncompress error: %i\n", z_err);
+            LOG_ERROR("FileManager", "Uncompress error: %i", z_err);
             result.clear();
         }
     }
     else
     {
-        memcpy(&result[0], &Ptr[0], decompressedSize);
+        memcpy(&result[0], &m_ptr[0], decompressedSize);
     }
     return result;
 }
 
 CFileManager::CFileManager()
-
 {
 }
 
@@ -75,133 +73,70 @@ CFileManager::~CFileManager()
 
 bool CFileManager::Load()
 {
-    DEBUG_TRACE_FUNCTION;
-    if (g_Config.ClientVersion >= CV_7000 && LoadUOPFile(m_MainMisc, "MainMisc.uop"))
+    if (GameVars::GetClientVersion() >= CV_7000 && LoadUOPFile(m_MainMisc, "MainMisc.uop"))
     {
         return LoadWithUOP();
     }
-    if (!m_ArtIdx.Load(g_App.UOFilesPath("artidx.mul")))
-    {
-        return false;
-    }
-    if (!m_ArtMul.Load(g_App.UOFilesPath("art.mul")))
-    {
-        return false;
-    }
-    if (!m_GumpIdx.Load(g_App.UOFilesPath("gumpidx.mul")))
-    {
-        return false;
-    }
-    if (!m_GumpMul.Load(g_App.UOFilesPath("gumpart.mul")))
-    {
-        return false;
-    }
-    if (!m_SoundIdx.Load(g_App.UOFilesPath("soundidx.mul")))
-    {
-        return false;
-    }
-    if (!m_SoundMul.Load(g_App.UOFilesPath("sound.mul")))
-    {
-        return false;
-    }
-    if (!m_AnimIdx[0].Load(g_App.UOFilesPath("anim.idx")))
-    {
-        return false;
-    }
-    if (!m_LightIdx.Load(g_App.UOFilesPath("lightidx.mul")))
-    {
-        return false;
-    }
-    if (!m_MultiIdx.Load(g_App.UOFilesPath("multi.idx")))
-    {
-        return false;
-    }
-    if (!m_SkillsIdx.Load(g_App.UOFilesPath("Skills.idx")))
-    { // FIXME: need be case insensitive
-        return false;
-    }
-    if (!m_MultiMap.Load(g_App.UOFilesPath("Multimap.rle")))
-    { // FIXME: need be case insensitive
-        return false;
-    }
-    if (!m_TextureIdx.Load(g_App.UOFilesPath("texidx.mul")))
-    {
-        return false;
-    }
-    if (!TryOpenFileStream(m_AnimMul[0], g_App.UOFilesPath("anim.mul")))
-    {
-        return false;
-    }
-    if (!m_AnimdataMul.Load(g_App.UOFilesPath("animdata.mul")))
-    {
-        return false;
-    }
-    if (!m_HuesMul.Load(g_App.UOFilesPath("hues.mul")))
-    {
-        return false;
-    }
-    if (!m_LightMul.Load(g_App.UOFilesPath("light.mul")))
-    {
-        return false;
-    }
-    if (!m_MultiMul.Load(g_App.UOFilesPath("multi.mul")))
-    {
-        return false;
-    }
-    if (!m_RadarcolMul.Load(g_App.UOFilesPath("radarcol.mul")))
-    {
-        return false;
-    }
-    if (!m_SkillsMul.Load(g_App.UOFilesPath("skills.mul")))
-    {
-        return false;
-    }
-    if (!m_TextureMul.Load(g_App.UOFilesPath("texmaps.mul")))
-    {
-        return false;
-    }
-    if (!m_TiledataMul.Load(g_App.UOFilesPath("tiledata.mul")))
-    {
-        return false;
-    }
 
-    m_SpeechMul.Load(g_App.UOFilesPath("speech.mul"));
-    m_LangcodeIff.Load(g_App.UOFilesPath("Langcode.iff"));
+    struct
+    {
+        Core::MappedFile& file;
+        const char* name;
+    } muls[] = {
+        { m_ArtIdx, "artidx.mul" },        { m_ArtIdx, "artidx.mul" },
+        { m_ArtMul, "art.mul" },           { m_GumpIdx, "gumpidx.mul" },
+        { m_GumpMul, "gumpart.mul" },      { m_SoundIdx, "soundidx.mul" },
+        { m_SoundMul, "sound.mul" },       { m_AnimIdx[0], "anim.idx" },
+        { m_LightIdx, "lightidx.mul" },    { m_MultiIdx, "multi.idx" },
+        { m_SkillsIdx, "skills.idx" },     { m_MultiMap, "multimap.rle" },
+        { m_TextureIdx, "texidx.mul" },    { m_AnimdataMul, "animdata.mul" },
+        { m_HuesMul, "hues.mul" },         { m_LightMul, "light.mul" },
+        { m_MultiMul, "multi.mul" },       { m_RadarcolMul, "radarcol.mul" },
+        { m_SkillsMul, "skills.mul" },     { m_TextureMul, "texmaps.mul" },
+        { m_TiledataMul, "tiledata.mul" },
+    };
+    for (int i = 0; i < sizeof(muls) / sizeof(muls[0]); ++i)
+    {
+        if (!muls[i].file.Load(g_App.GetGameDir() / muls[i].name))
+            return false;
+    }
+    if (!TryOpenFileStream(m_AnimMul[0], g_App.GetGameDir() / "anim.mul"))
+        return false;
+
+    m_SpeechMul.Load(g_App.GetGameDir() / "speech.mul");
+    m_LangcodeIff.Load(g_App.GetGameDir() / "Langcode.iff");
     for (int i = 0; i < 6; i++)
     {
         if (i > 1)
         {
-            m_AnimIdx[i].Load(g_App.UOFilesPath("anim%i.idx", i));
-            TryOpenFileStream(m_AnimMul[i], g_App.UOFilesPath("anim%i.mul", i));
+            m_AnimIdx[i].Load(g_App.GetGameDir() / ("anim" + std::to_string(i) + ".idx"));
+            TryOpenFileStream(
+                m_AnimMul[i], g_App.GetGameDir() / ("anim" + std::to_string(i) + ".mul"));
         }
 
-        m_MapMul[i].Load(g_App.UOFilesPath("map%i.mul", i));
+        m_MapMul[i].Load(g_App.GetGameDir() / ("map" + std::to_string(i) + ".mul"));
 
-        m_StaticIdx[i].Load(g_App.UOFilesPath("staidx%i.mul", i));
-        m_StaticMul[i].Load(g_App.UOFilesPath("statics%i.mul", i));
-        m_FacetMul[i].Load(g_App.UOFilesPath("facet0%i.mul", i));
+        m_StaticIdx[i].Load(g_App.GetGameDir() / ("staidx" + std::to_string(i) + ".mul"));
+        m_StaticMul[i].Load(g_App.GetGameDir() / ("statics" + std::to_string(i) + ".mul"));
+        m_FacetMul[i].Load(g_App.GetGameDir() / ("facet0" + std::to_string(i) + ".mul"));
 
-        m_MapDifl[i].Load(g_App.UOFilesPath("mapdifl%i.mul", i));
-        m_MapDif[i].Load(g_App.UOFilesPath("mapdif%i.mul", i));
+        m_MapDifl[i].Load(g_App.GetGameDir() / ("mapdifl" + std::to_string(i) + ".mul"));
+        m_MapDif[i].Load(g_App.GetGameDir() / ("mapdif" + std::to_string(i) + ".mul"));
 
-        m_StaDifl[i].Load(g_App.UOFilesPath("stadifl%i.mul", i));
-        m_StaDifi[i].Load(g_App.UOFilesPath("stadifi%i.mul", i));
-        m_StaDif[i].Load(g_App.UOFilesPath("stadif%i.mul", i));
+        m_StaDifl[i].Load(g_App.GetGameDir() / ("stadifl" + std::to_string(i) + ".mul"));
+        m_StaDifi[i].Load(g_App.GetGameDir() / ("stadifi" + std::to_string(i) + ".mul"));
+        m_StaDif[i].Load(g_App.GetGameDir() / ("stadif" + std::to_string(i) + ".mul"));
     }
 
     for (int i = 0; i < 20; i++)
     {
-        auto s = i != 0 ? g_App.UOFilesPath("unifont%i.mul", i) : g_App.UOFilesPath("unifont.mul");
-        if (m_UnifontMul[i].Load(s))
-        {
+        std::string fileName = i != 0 ? ("unifont" + std::to_string(i) + ".mul") : "unifont.mul";
+        if (m_UnifontMul[i].Load(g_App.GetGameDir() / fileName))
             UnicodeFontsCount++;
-        }
     }
 
-    if (g_Config.UseVerdata && !m_VerdataMul.Load(g_App.UOFilesPath("verdata.mul")))
-    {
+    if (g_Config.UseVerdata && !m_VerdataMul.Load(g_App.GetGameDir() / "verdata.mul"))
         g_Config.UseVerdata = false;
-    }
 
     return true;
 }
@@ -211,27 +146,16 @@ bool CFileManager::LoadWithUOP()
     //Try to use map uop files first, if we can, we will use them.
     if (!LoadUOPFile(m_ArtLegacyMUL, "artLegacyMUL.uop"))
     {
-        if (!m_ArtIdx.Load(g_App.UOFilesPath("artidx.mul")))
-        {
+        if (!m_ArtIdx.Load(g_App.GetGameDir() / "artidx.mul") ||
+            !m_ArtMul.Load(g_App.GetGameDir() / "art.mul"))
             return false;
-        }
-        if (!m_ArtMul.Load(g_App.UOFilesPath("art.mul")))
-        {
-            return false;
-        }
     }
 
     if (!LoadUOPFile(m_GumpartLegacyMUL, "gumpartLegacyMUL.uop"))
     {
-        if (!m_GumpIdx.Load(g_App.UOFilesPath("gumpidx.mul")))
-        {
+        if (!m_GumpIdx.Load(g_App.GetGameDir() / "gumpidx.mul") ||
+            !m_GumpMul.Load(g_App.GetGameDir() / "gumpart.mul"))
             return false;
-        }
-        if (!m_GumpMul.Load(g_App.UOFilesPath("gumpart.mul")))
-        {
-            return false;
-        }
-
         UseUOPGumps = false;
     }
     else
@@ -241,26 +165,16 @@ bool CFileManager::LoadWithUOP()
 
     if (!LoadUOPFile(m_SoundLegacyMUL, "soundLegacyMUL.uop"))
     {
-        if (!m_SoundIdx.Load(g_App.UOFilesPath("soundidx.mul")))
-        {
+        if (!m_SoundIdx.Load(g_App.GetGameDir() / "soundidx.mul") ||
+            !m_SoundMul.Load(g_App.GetGameDir() / "sound.mul"))
             return false;
-        }
-        if (!m_SoundMul.Load(g_App.UOFilesPath("sound.mul")))
-        {
-            return false;
-        }
     }
 
     if (!LoadUOPFile(m_MultiCollection, "MultiCollection.uop"))
     {
-        if (!m_MultiIdx.Load(g_App.UOFilesPath("multi.idx")))
-        {
+        if (!m_MultiIdx.Load(g_App.GetGameDir() / "multi.idx") ||
+            !m_MultiMul.Load(g_App.GetGameDir() / "multi.mul"))
             return false;
-        }
-        if (!m_MultiMul.Load(g_App.UOFilesPath("multi.mul")))
-        {
-            return false;
-        }
     }
 
     LoadUOPFile(m_AnimationSequence, "AnimationSequence.uop");
@@ -273,101 +187,65 @@ bool CFileManager::LoadWithUOP()
 	return false;
 	*/
 
-    if (!m_AnimIdx[0].Load(g_App.UOFilesPath("anim.idx")))
+    struct
     {
-        return false;
-    }
-    if (!m_LightIdx.Load(g_App.UOFilesPath("lightidx.mul")))
+        Core::MappedFile& file;
+        const char* name;
+    } muls[] = {
+        { m_AnimIdx[0], "anim.idx" },      { m_LightIdx, "lightidx.mul" },
+        { m_SkillsIdx, "Skills.idx" },     { m_MultiMap, "Multimap.rle" },
+        { m_TextureIdx, "texidx.mul" },    { m_AnimdataMul, "animdata.mul" },
+        { m_HuesMul, "hues.mul" },         { m_LightMul, "light.mul" },
+        { m_RadarcolMul, "radarcol.mul" }, { m_SkillsMul, "skills.mul" },
+        { m_TextureMul, "texmaps.mul" },   { m_TiledataMul, "tiledata.mul" },
+    };
+    for (int i = 0; i < sizeof(muls) / sizeof(muls[0]); ++i)
     {
-        return false;
+        if (!muls[i].file.Load(g_App.GetGameDir() / muls[i].name))
+            return false;
     }
-    if (!m_SkillsIdx.Load(g_App.UOFilesPath("Skills.idx")))
-    { // FIXME: need be case insensitive
+    if (!TryOpenFileStream(m_AnimMul[0], g_App.GetGameDir() / "anim.mul"))
         return false;
-    }
-    if (!m_MultiMap.Load(g_App.UOFilesPath("Multimap.rle")))
-    { // FIXME: need be case insensitive
-        return false;
-    }
-    if (!m_TextureIdx.Load(g_App.UOFilesPath("texidx.mul")))
-    {
-        return false;
-    }
-    if (!TryOpenFileStream(m_AnimMul[0], g_App.UOFilesPath("anim.mul")))
-    {
-        return false;
-    }
-    if (!m_AnimdataMul.Load(g_App.UOFilesPath("animdata.mul")))
-    {
-        return false;
-    }
-    if (!m_HuesMul.Load(g_App.UOFilesPath("hues.mul")))
-    {
-        return false;
-    }
-    if (!m_LightMul.Load(g_App.UOFilesPath("light.mul")))
-    {
-        return false;
-    }
-    if (!m_RadarcolMul.Load(g_App.UOFilesPath("radarcol.mul")))
-    {
-        return false;
-    }
-    if (!m_SkillsMul.Load(g_App.UOFilesPath("skills.mul")))
-    {
-        return false;
-    }
-    if (!m_TextureMul.Load(g_App.UOFilesPath("texmaps.mul")))
-    {
-        return false;
-    }
-    if (!m_TiledataMul.Load(g_App.UOFilesPath("tiledata.mul")))
-    {
-        return false;
-    }
 
-    m_SpeechMul.Load(g_App.UOFilesPath("speech.mul"));
-    m_LangcodeIff.Load(g_App.UOFilesPath("Langcode.iff"));
+    m_SpeechMul.Load(g_App.GetGameDir() / "speech.mul");
+    m_LangcodeIff.Load(g_App.GetGameDir() / "Langcode.iff");
     for (int i = 0; i < 6; i++)
     {
         if (i > 1)
         {
-            m_AnimIdx[i].Load(g_App.UOFilesPath("anim%i.idx", i));
-            TryOpenFileStream(m_AnimMul[i], g_App.UOFilesPath("anim%i.mul", i));
+            m_AnimIdx[i].Load(g_App.GetGameDir() / ("anim" + std::to_string(i) + ".idx"));
+            TryOpenFileStream(
+                m_AnimMul[i], g_App.GetGameDir() / ("anim" + std::to_string(i) + ".mul"));
         }
 
-        string mapName = string("map") + std::to_string(i);
+        std::string mapName = std::string("map") + std::to_string(i);
 
         if (!LoadUOPFile(m_MapUOP[i], (mapName + "LegacyMUL.uop").c_str()))
         {
-            m_MapMul[i].Load(g_App.UOFilesPath((mapName + ".mul")));
+            m_MapMul[i].Load(g_App.GetGameDir() / (mapName + ".mul"));
         }
 
-        m_StaticIdx[i].Load(g_App.UOFilesPath("staidx%i.mul", i));
-        m_StaticMul[i].Load(g_App.UOFilesPath("statics%i.mul", i));
-        m_FacetMul[i].Load(g_App.UOFilesPath("facet0%i.mul", i));
+        m_StaticIdx[i].Load(g_App.GetGameDir() / ("staidx" + std::to_string(i) + ".mul"));
+        m_StaticMul[i].Load(g_App.GetGameDir() / ("statics" + std::to_string(i) + ".mul"));
+        m_FacetMul[i].Load(g_App.GetGameDir() / ("facet0" + std::to_string(i) + ".mul"));
 
-        m_MapDifl[i].Load(g_App.UOFilesPath("mapdifl%i.mul", i));
-        m_MapDif[i].Load(g_App.UOFilesPath("mapdif%i.mul", i));
+        m_MapDifl[i].Load(g_App.GetGameDir() / ("mapdifl" + std::to_string(i) + ".mul"));
+        m_MapDif[i].Load(g_App.GetGameDir() / ("mapdif" + std::to_string(i) + ".mul"));
 
-        m_StaDifl[i].Load(g_App.UOFilesPath("stadifl%i.mul", i));
-        m_StaDifi[i].Load(g_App.UOFilesPath("stadifi%i.mul", i));
-        m_StaDif[i].Load(g_App.UOFilesPath("stadif%i.mul", i));
+        m_StaDifl[i].Load(g_App.GetGameDir() / ("stadifl" + std::to_string(i) + ".mul"));
+        m_StaDifi[i].Load(g_App.GetGameDir() / ("stadifi" + std::to_string(i) + ".mul"));
+        m_StaDif[i].Load(g_App.GetGameDir() / ("stadif" + std::to_string(i) + ".mul"));
     }
 
     for (int i = 0; i < 20; i++)
     {
-        auto s = i != 0 ? g_App.UOFilesPath("unifont%i.mul", i) : g_App.UOFilesPath("unifont.mul");
-        if (m_UnifontMul[i].Load(s))
-        {
+        std::string fileName = i != 0 ? ("unifont" + std::to_string(i) + ".mul") : "unifont.mul";
+        if (m_UnifontMul[i].Load(g_App.GetGameDir() / fileName))
             UnicodeFontsCount++;
-        }
     }
 
-    if (g_Config.UseVerdata && !m_VerdataMul.Load(g_App.UOFilesPath("verdata.mul")))
-    {
+    if (g_Config.UseVerdata && !m_VerdataMul.Load(g_App.GetGameDir() / "verdata.mul"))
         g_Config.UseVerdata = false;
-    }
 
     return true;
 }
@@ -439,136 +317,163 @@ void CFileManager::Unload()
 
 void CFileManager::SendFilesInfo()
 {
-    if (m_TiledataMul.Start != nullptr)
+    if (m_TiledataMul.GetBuffer() != nullptr)
     {
         CPluginPacketFileInfo(
-            OFI_TILEDATA_MUL, (uint64_t)m_TiledataMul.Start, (uint64_t)m_TiledataMul.Size)
+            OFI_TILEDATA_MUL,
+            (u64)m_TiledataMul.GetBuffer(),
+            (u64)m_TiledataMul.GetSize())
             .SendToPlugin();
     }
 
-    if (m_MultiIdx.Start != nullptr)
-    {
-        CPluginPacketFileInfo(OFI_MULTI_IDX, (uint64_t)m_MultiIdx.Start, (uint64_t)m_MultiIdx.Size)
-            .SendToPlugin();
-    }
-
-    if (m_MultiMul.Start != nullptr)
-    {
-        CPluginPacketFileInfo(OFI_MULTI_MUL, (uint64_t)m_MultiMul.Start, (uint64_t)m_MultiMul.Size)
-            .SendToPlugin();
-    }
-
-    if (m_MultiCollection.Start != nullptr)
+    if (m_MultiIdx.GetBuffer() != nullptr)
     {
         CPluginPacketFileInfo(
-            OFI_MULTI_UOP, (uint64_t)m_MultiCollection.Start, (uint64_t)m_MultiCollection.Size)
+            OFI_MULTI_IDX, (u64)m_MultiIdx.GetBuffer(), (u64)m_MultiIdx.GetSize())
             .SendToPlugin();
     }
 
-    if (m_HuesMul.Start != nullptr)
+    if (m_MultiMul.GetBuffer() != nullptr)
     {
-        CPluginPacketFileInfo(OFI_HUES_MUL, (uint64_t)m_HuesMul.Start, (uint64_t)m_HuesMul.Size)
+        CPluginPacketFileInfo(
+            OFI_MULTI_MUL, (u64)m_MultiMul.GetBuffer(), (u64)m_MultiMul.GetSize())
+            .SendToPlugin();
+    }
+
+    if (m_MultiCollection.GetBuffer() != nullptr)
+    {
+        CPluginPacketFileInfo(
+            OFI_MULTI_UOP,
+            (u64)m_MultiCollection.GetBuffer(),
+            (u64)m_MultiCollection.GetSize())
+            .SendToPlugin();
+    }
+
+    if (m_HuesMul.GetBuffer() != nullptr)
+    {
+        CPluginPacketFileInfo(
+            OFI_HUES_MUL, (u64)m_HuesMul.GetBuffer(), (u64)m_HuesMul.GetSize())
             .SendToPlugin();
     }
 
     for (int i = 0; i < 6; i++)
     {
-        if (m_MapMul[i].Start != nullptr)
+        if (m_MapMul[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_MAP_0_MUL + i, (uint64_t)m_MapMul[i].Start, (uint64_t)m_MapMul[i].Size)
+                OFI_MAP_0_MUL + i,
+                (u64)m_MapMul[i].GetBuffer(),
+                (u64)m_MapMul[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_MapUOP[i].Start != nullptr)
+        if (m_MapUOP[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_MAP_0_UOP + i, (uint64_t)m_MapUOP[i].Start, (uint64_t)m_MapUOP[i].Size)
+                OFI_MAP_0_UOP + i,
+                (u64)m_MapUOP[i].GetBuffer(),
+                (u64)m_MapUOP[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_MapXUOP[i].Start != nullptr)
+        if (m_MapXUOP[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_MAPX_0_UOP + i, (uint64_t)m_MapXUOP[i].Start, (uint64_t)m_MapXUOP[i].Size)
+                OFI_MAPX_0_UOP + i,
+                (u64)m_MapXUOP[i].GetBuffer(),
+                (u64)m_MapXUOP[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_StaticIdx[i].Start != nullptr)
+        if (m_StaticIdx[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_STAIDX_0_MUL + i, (uint64_t)m_StaticIdx[i].Start, (uint64_t)m_StaticIdx[i].Size)
+                OFI_STAIDX_0_MUL + i,
+                (u64)m_StaticIdx[i].GetBuffer(),
+                (u64)m_StaticIdx[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_StaticMul[i].Start != nullptr)
+        if (m_StaticMul[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
                 OFI_STATICS_0_MUL + i,
-                (uint64_t)m_StaticMul[i].Start,
-                (uint64_t)m_StaticMul[i].Size)
+                (u64)m_StaticMul[i].GetBuffer(),
+                (u64)m_StaticMul[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_MapDif[i].Start != nullptr)
+        if (m_MapDif[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_MAP_DIF_0_MUL + i, (uint64_t)m_MapDif[i].Start, (uint64_t)m_MapDif[i].Size)
+                OFI_MAP_DIF_0_MUL + i,
+                (u64)m_MapDif[i].GetBuffer(),
+                (u64)m_MapDif[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_MapDifl[i].Start != nullptr)
+        if (m_MapDifl[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_MAP_DIFL_0_MUL + i, (uint64_t)m_MapDifl[i].Start, (uint64_t)m_MapDifl[i].Size)
+                OFI_MAP_DIFL_0_MUL + i,
+                (u64)m_MapDifl[i].GetBuffer(),
+                (u64)m_MapDifl[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_StaDif[i].Start != nullptr)
+        if (m_StaDif[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_STA_DIF_0_MUL + i, (uint64_t)m_StaDif[i].Start, (uint64_t)m_StaDif[i].Size)
+                OFI_STA_DIF_0_MUL + i,
+                (u64)m_StaDif[i].GetBuffer(),
+                (u64)m_StaDif[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_StaDifi[i].Start != nullptr)
+        if (m_StaDifi[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_STA_DIFI_0_MUL + i, (uint64_t)m_StaDifi[i].Start, (uint64_t)m_StaDifi[i].Size)
+                OFI_STA_DIFI_0_MUL + i,
+                (u64)m_StaDifi[i].GetBuffer(),
+                (u64)m_StaDifi[i].GetSize())
                 .SendToPlugin();
         }
 
-        if (m_StaDifl[i].Start != nullptr)
+        if (m_StaDifl[i].GetBuffer() != nullptr)
         {
             CPluginPacketFileInfo(
-                OFI_STA_DIFL_0_MUL + i, (uint64_t)m_StaDifl[i].Start, (uint64_t)m_StaDifl[i].Size)
+                OFI_STA_DIFL_0_MUL + i,
+                (u64)m_StaDifl[i].GetBuffer(),
+                (u64)m_StaDifl[i].GetSize())
                 .SendToPlugin();
         }
     }
 
-    if (m_VerdataMul.Start != nullptr)
+    if (m_VerdataMul.GetBuffer() != nullptr)
     {
         CPluginPacketFileInfo(
-            OFI_VERDATA_MUL, (uint64_t)m_VerdataMul.Start, (uint64_t)m_VerdataMul.Size)
+            OFI_VERDATA_MUL, (u64)m_VerdataMul.GetBuffer(), (u64)m_VerdataMul.GetSize())
             .SendToPlugin();
     }
 
-    if (m_RadarcolMul.Start != nullptr)
+    if (m_RadarcolMul.GetBuffer() != nullptr)
     {
         CPluginPacketFileInfo(
-            OFI_RADARCOL_MUL, (uint64_t)m_RadarcolMul.Start, (uint64_t)m_RadarcolMul.Size)
+            OFI_RADARCOL_MUL,
+            (u64)m_RadarcolMul.GetBuffer(),
+            (u64)m_RadarcolMul.GetSize())
             .SendToPlugin();
     }
 
-    QFOR(item, g_ClilocManager.m_Items, CCliloc *)
+    QFOR(item, g_ClilocManager.m_Items, Cliloc*)
     {
-        if (item->Loaded && item->m_File.Start != nullptr)
+        if (item->IsLoaded() && item->GetFile().GetBuffer() != nullptr)
         {
             CPluginPacketFileInfoLocalized(
                 OFI_CLILOC_MUL,
-                (uint64_t)item->m_File.Start,
-                (uint64_t)item->m_File.Size,
-                item->Language)
+                (u64)item->GetFile().GetBuffer(),
+                (u64)item->GetFile().GetSize(),
+                item->GetLanguage())
                 .SendToPlugin();
         }
     }
@@ -582,7 +487,7 @@ void CFileManager::TryReadUOPAnimations()
 
 void CFileManager::ReadTask()
 {
-    std::unordered_map<uint64_t, UOPAnimationData> hashes;
+    std::unordered_map<u64, UOPAnimationData> hashes;
     for (int i = 1; i < 5; i++)
     {
         char magic[4];
@@ -590,24 +495,23 @@ void CFileManager::ReadTask()
         char signature[4];
         char nextBlock[8];
 
-        std::fstream *animFile = new std::fstream();
+        std::fstream* animFile = new std::fstream();
         if (animFile == nullptr)
         {
             continue;
         }
 
-        auto path{ g_App.UOFilesPath("AnimationFrame%i.uop", i) };
-        if (!FileExists(path))
-        {
+        std::filesystem::path path =
+            g_App.GetGameDir() / ("AnimationFrame" + std::to_string(i) + ".uop");
+        if (!std::filesystem::exists(path))
             continue;
-        }
 
         animFile->open(path, std::ios::binary | std::ios::in);
         animFile->read(magic, 4);
         animFile->read(version, 4);
         animFile->read(signature, 4);
         animFile->read(nextBlock, 8);
-        animFile->seekg(*reinterpret_cast<uint64_t *>(nextBlock), std::ios::beg);
+        animFile->seekg(*reinterpret_cast<u64*>(nextBlock), std::ios::beg);
 
         do
         {
@@ -622,7 +526,7 @@ void CFileManager::ReadTask()
 
             animFile->read(fileCount, 4);
             animFile->read(nextBlock, 8);
-            int count = *reinterpret_cast<unsigned int *>(fileCount);
+            int count = *reinterpret_cast<unsigned int*>(fileCount);
             for (int i = 0; i < count; i++)
             {
                 animFile->read(offset, 8);
@@ -633,38 +537,38 @@ void CFileManager::ReadTask()
                 animFile->read(skip1, 4);
                 animFile->read(skip2, 2);
 
-                auto hashVal = *reinterpret_cast<uint64_t *>(hash);
-                auto offsetVal = *reinterpret_cast<uint64_t *>(offset);
+                auto hashVal   = *reinterpret_cast<u64*>(hash);
+                auto offsetVal = *reinterpret_cast<u64*>(offset);
                 if (offsetVal == 0)
                 {
                     continue;
                 }
 
                 UOPAnimationData dataStruct;
-                dataStruct.offset = static_cast<uint32_t>(
-                    offsetVal + *reinterpret_cast<unsigned int *>(headerlength));
-                dataStruct.compressedLength = *reinterpret_cast<unsigned int *>(compressedlength);
+                dataStruct.offset = static_cast<u32>(
+                    offsetVal + *reinterpret_cast<unsigned int*>(headerlength));
+                dataStruct.compressedLength = *reinterpret_cast<unsigned int*>(compressedlength);
                 dataStruct.decompressedLength =
-                    *reinterpret_cast<unsigned int *>(decompressedlength);
+                    *reinterpret_cast<unsigned int*>(decompressedlength);
 
                 dataStruct.fileStream = animFile;
-                dataStruct.path = path;
-                hashes[hashVal] = dataStruct;
+                dataStruct.path       = path;
+                hashes[hashVal]       = dataStruct;
             }
 
-            animFile->seekg(*reinterpret_cast<uint64_t *>(nextBlock), std::ios::beg);
-        } while (*reinterpret_cast<uint64_t *>(nextBlock) != 0);
+            animFile->seekg(*reinterpret_cast<u64*>(nextBlock), std::ios::beg);
+        } while (*reinterpret_cast<u64*>(nextBlock) != 0);
     }
 
     int maxGroup = 0;
 
     for (int animId = 0; animId < MAX_ANIMATIONS_DATA_INDEX_COUNT; animId++)
     {
-        CIndexAnimation *indexAnim = &g_AnimationManager.m_DataIndex[animId];
+        CIndexAnimation* indexAnim = &g_AnimationManager.m_DataIndex[animId];
 
         for (int grpId = 0; grpId < ANIMATION_GROUPS_COUNT; grpId++)
         {
-            CTextureAnimationGroup *group = &(*indexAnim).m_Groups[grpId];
+            CTextureAnimationGroup* group = &(*indexAnim).m_Groups[grpId];
             char hashString[100];
             sprintf_s(hashString, "build/animationlegacyframe/%06i/%02i.bin", animId, grpId);
             auto hash = COrion::CreateHash(hashString);
@@ -676,14 +580,14 @@ void CFileManager::ReadTask()
                 }
 
                 UOPAnimationData dataStruct = hashes.at(hash);
-                indexAnim->IsUOP = true;
-                group->m_UOPAnimData = dataStruct;
+                indexAnim->IsUOP            = true;
+                group->m_UOPAnimData        = dataStruct;
                 for (int dirId = 0; dirId < 5; dirId++)
                 {
-                    CTextureAnimationDirection *dir = &group->m_Direction[dirId];
-                    dir->IsUOP = true;
-                    dir->BaseAddress = 0;
-                    dir->Address = 0;
+                    CTextureAnimationDirection* dir = &group->m_Direction[dirId];
+                    dir->IsUOP                      = true;
+                    dir->BaseAddress                = 0;
+                    dir->Address                    = 0;
                 }
             }
         }
@@ -697,158 +601,142 @@ void CFileManager::ReadTask()
     m_AutoResetEvent.Set();
 }
 
-bool CFileManager::FileExists(const os_path &filename)
-{
-    DEBUG_TRACE_FUNCTION;
-    auto r = fs_path_exists(filename);
-    LOG("FileExists: %s = %d\n", CStringFromPath(filename), r);
-    return r;
-}
-
-char *CFileManager::ReadUOPDataFromFileStream(UOPAnimationData &animData)
+char* CFileManager::ReadUOPDataFromFileStream(UOPAnimationData& animData)
 {
     animData.fileStream->clear();
     animData.fileStream->seekg(animData.offset, std::ios::beg);
     //reading into buffer on the heap
-    char *buf = new char[animData.compressedLength];
+    char* buf = new char[animData.compressedLength];
     animData.fileStream->read(buf, animData.compressedLength);
     return buf;
 }
 
 bool CFileManager::DecompressUOPFileData(
-    UOPAnimationData &animData, vector<uint8_t> &decLayoutData, char *buf)
+    UOPAnimationData& animData, std::vector<u8>& decLayoutData, char* buf)
 {
     uLongf cLen = animData.compressedLength;
     uLongf dLen = animData.decompressedLength;
 
     int z_err =
-        mz_uncompress(&decLayoutData[0], &dLen, reinterpret_cast<unsigned char const *>(buf), cLen);
+        mz_uncompress(&decLayoutData[0], &dLen, reinterpret_cast<unsigned char const*>(buf), cLen);
     delete[] buf;
     if (z_err != Z_OK)
     {
-        LOG("UOP anim decompression failed %d\n", z_err);
-        LOG("Anim file: %s\n", CStringFromPath(animData.path));
-        LOG("Anim offset: %d\n", animData.offset);
+        LOG_ERROR("FileManager", "UOP anim decompression failed %d", z_err);
+        LOG_ERROR("FileManager", "Anim file: %s", animData.path.string().c_str());
+        LOG_ERROR("FileManager", "Anim offset: %d", animData.offset);
         return false;
     }
     return true;
 }
 
-bool CFileManager::LoadUOPFile(CUopMappedFile &file, const char *fileName)
+bool CFileManager::LoadUOPFile(CUopMappedFile& a_file, const char* a_fileName)
 {
-    LOG("Loading UOP fileName: %s\n", fileName);
-    if (!file.Load(g_App.UOFilesPath(fileName)))
+    LOG_INFO("FileManager", "Loading UOP fileName: %s", a_fileName);
+    if (!a_file.Load(g_App.GetGameDir() / a_fileName))
     {
         return false;
     }
 
-    uint32_t formatID = file.ReadUInt32LE();
-
+    u32 formatID = a_file.ReadLE<u32>();
     if (formatID != 0x0050594D)
     {
-        LOG("WARNING!!! UOP file '%s' formatID is %i!\n", fileName, formatID);
+        LOG_WARNING("FileManager", "WARNING!!! UOP file '%s' formatID is %i!", a_fileName, formatID);
         return false;
     }
 
-    uint32_t formatVersion = file.ReadUInt32LE();
-
+    u32 formatVersion = a_file.ReadLE<u32>();
     if (formatVersion > 5)
     {
-        LOG("WARNING!!! UOP file '%s' version is %i!\n", fileName, formatVersion);
+        LOG_WARNING("FileManager", "WARNING!!! UOP file '%s' version is %i!", a_fileName, formatVersion);
     }
 
-    file.Move(4); //Signature?
-    uint64_t next = file.ReadUInt64LE();
+    a_file.Move(4); //Signature?
+    u64 next = a_file.ReadLE<u64>();
 
-    file.Move(4); //Block capacity?
-    uint32_t filesCount = file.ReadUInt32LE();
+    a_file.Move(4); //Block capacity?
+    u32 filesCount = a_file.ReadLE<u32>();
 
-    file.ResetPtr();
-    file.Move((int)next);
+    a_file.ResetPtr();
+    a_file.Move((int)next);
 
     do
     {
-        int count = file.ReadInt32LE();
-        next = file.ReadInt64LE();
+        int count = a_file.ReadLE<i32>();
+        next      = a_file.ReadLE<i64>();
 
         for (int i = 0; i < count; i++)
         {
-            uint64_t offset = file.ReadInt64LE();
+            u64 offset = a_file.ReadLE<u64>();
 
-            uint32_t headerSize = file.ReadInt32LE();
-            uint32_t compressedSize = file.ReadInt32LE();
-            uint32_t decompressedSize = file.ReadInt32LE();
+            u32 headerSize       = a_file.ReadLE<u32>();
+            u32 compressedSize   = a_file.ReadLE<u32>();
+            u32 decompressedSize = a_file.ReadLE<u32>();
 
-            uint64_t hash = file.ReadInt64LE();
-            uint32_t unknown = file.ReadInt32LE();
-            uint16_t flag = file.ReadInt16LE();
+            u64 hash    = a_file.ReadLE<u64>();
+            u32 unknown = a_file.ReadLE<u32>();
+            u16 flag    = a_file.ReadLE<u16>();
 
             if ((offset == 0u) || (decompressedSize == 0u))
-            {
                 continue;
-            }
 
             if (flag == 0u)
-            {
                 compressedSize = 0;
-            }
 
             CUopBlockHeader item;
-            item.Offset = offset + headerSize;
-            item.CompressedSize = compressedSize;
+            item.Offset           = offset + headerSize;
+            item.CompressedSize   = compressedSize;
             item.DecompressedSize = decompressedSize;
-
-            file.Add(hash, item);
+            a_file.Add(hash, item);
         }
-
-        file.ResetPtr();
-        file.Move((int)next);
+        a_file.ResetPtr();
+        a_file.Move((int)next);
     } while (next != 0);
 
-    file.ResetPtr();
+    a_file.ResetPtr();
 
     //if (string("MainMisc.uop") != fileName)
     //if (string("AnimationSequence.uop") != fileName)
     //if (string("tileart.uop") != fileName)
     return true;
 
-    for (std::unordered_map<uint64_t, CUopBlockHeader>::iterator i = file.m_Map.begin();
-         i != file.m_Map.end();
+    for (std::unordered_map<u64, CUopBlockHeader>::iterator i = a_file.m_Map.begin();
+         i != a_file.m_Map.end();
          ++i)
     {
-        LOG("item dump start: %016llX, %i\n", i->first, i->second.CompressedSize);
+        LOG_INFO("FileManager", "item dump start: %016llX, %i\n", i->first, i->second.CompressedSize);
 
-        vector<uint8_t> data = file.GetData(i->second);
+        std::vector<u8> data = a_file.GetData(i->second);
 
         if (data.empty())
         {
             continue;
         }
 
-        Wisp::CDataReader reader(&data[0], data.size());
+        Core::StreamReader reader(&data[0], data.size());
 
         //LOG("%s\n", reader.ReadString(decompressedSize));
 
-        LOG_DUMP(reader.Start, (int)reader.Size);
+        //LOG_DUMP(reader.GetBuffer(), (int)reader.GetSize());
 
-        LOG("item dump end:\n");
+        LOG_INFO("FileManager", "item dump end:\n");
     }
 
-    file.ResetPtr();
+    a_file.ResetPtr();
 
     return true;
 }
 
-bool CFileManager::TryOpenFileStream(std::fstream &fileStream, const os_path &filePath)
+bool CFileManager::TryOpenFileStream(std::fstream& a_stream, const std::filesystem::path& a_path)
 {
-    LOG("Trying to open file stream for %s\n", CStringFromPath(filePath));
-    if (!FileExists(filePath))
+    LOG_INFO("FileManager", "Trying to open file stream for %s", a_path.string().c_str());
+    if (!std::filesystem::exists(a_path))
     {
-        LOG("%s doesnt exist\n", CStringFromPath(filePath));
+        LOG_ERROR("FileManager", "File doesnt exist");
         return false;
     }
-    fileStream.open(filePath, std::ios::binary | std::ios::in);
-    LOG("Opened file stream for %s\n", CStringFromPath(filePath));
+    a_stream.open(a_path, std::ios::binary | std::ios::in);
+    LOG_INFO("FileManager", "File stream opened");
     return true;
 }
 
@@ -863,10 +751,10 @@ bool CFileManager::IsMulFileOpen(int idx) const
 }
 
 void CFileManager::ReadAnimMulDataFromFileStream(
-    vector<char> &animData, CTextureAnimationDirection &direction)
+    std::vector<char>& animData, CTextureAnimationDirection& direction)
 {
-    std::fstream *fileStream = &m_AnimMul[direction.FileIndex];
+    std::fstream* fileStream = &m_AnimMul[direction.FileIndex];
     fileStream->clear();
     fileStream->seekg(direction.Address, std::ios::beg);
-    fileStream->read(static_cast<char *>(animData.data()), direction.Size);
+    fileStream->read(static_cast<char*>(animData.data()), direction.Size);
 }

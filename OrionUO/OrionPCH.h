@@ -1,6 +1,3 @@
-// MIT License
-// Copyright (C) August 2017 Hotride
-
 #pragma once
 
 #if defined(__GNUC__) && __GNUC__ <= 5 && !__clang__
@@ -55,15 +52,6 @@ using std::wstring;
 #define ToColorB(x) ((x >> 16) & 0xff)
 #define ToColorA(x) ((x >> 24) & 0xff)
 
-#if USE_BASS
-typedef DWORD SoundHandle;
-#define SOUND_NULL 0
-#else
-struct SoundInfo;
-typedef SoundInfo *SoundHandle;
-#define SOUND_NULL nullptr
-#endif
-
 #if defined(ORION_WINDOWS)
 
 #define HAVE_M_PI // SDL conflicting with winsdk10
@@ -76,20 +64,6 @@ typedef SoundInfo *SoundHandle;
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #endif
 
-#include <time.h>
-#include <process.h>
-#include <Shlwapi.h>
-#include <Shellapi.h>
-#include <windows.h>
-#include <windowsx.h>
-#include <Mmsystem.h>
-#include <tchar.h>
-
-#if USE_BASS
-#include "../external/GLEW/include/bass.h"
-#include "../external/GLEW/include/bassmidi.h"
-#endif
-
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -98,10 +72,6 @@ typedef SoundInfo *SoundHandle;
 #if !defined(ORION_CMAKE)
 #if defined(_M_IX86)
 #pragma comment(lib, "../external/GLEW/x86/lib/glew32.lib")
-#if USE_BASS
-#pragma comment(lib, "../external/BASS/x86/lib/bass.lib")
-#pragma comment(lib, "../external/BASS/x86/lib/bassmidi.lib")
-#endif
 #pragma comment(lib, "../external/psapi/x86/lib/Psapi.lib")
 #pragma comment(lib, "../external/SDL2/x86/lib/SDL2.lib")
 #pragma comment(lib, "../external/SDL2/x86/lib/SDL2main.lib")
@@ -109,10 +79,6 @@ typedef SoundInfo *SoundHandle;
 
 #else
 #pragma comment(lib, "../external/GLEW/x64/lib/glew32.lib")
-#if USE_BASS
-#pragma comment(lib, "../external/BASS/x64/lib/bass.lib")
-#pragma comment(lib, "../external/BASS/x64/lib/bassmidi.lib")
-#endif
 #pragma comment(lib, "../external/psapi/x64/lib/Psapi.lib")
 #pragma comment(lib, "../external/SDL2/x64/lib/SDL2.lib")
 #pragma comment(lib, "../external/SDL2/x64/lib/SDL2main.lib")
@@ -135,13 +101,11 @@ typedef SoundInfo *SoundHandle;
 
 #if USE_PCH
 
-#include "Wisp.h"
 #include "Backend.h"
 
 #include "Platform.h"
 #include "plugin/mulstruct.h"
 #include "BaseQueue.h"
-#include "Utility/PingThread.h"
 #include "Utility/AutoResetEvent.h"
 
 #include "CharacterList.h"
@@ -158,7 +122,6 @@ typedef SoundInfo *SoundHandle;
 #include "MultiMap.h"
 #include "OrionApplication.h"
 #include "OrionUO.h"
-#include "OrionWindow.h"
 #include "PartyObject.h"
 #include "Party.h"
 #include "SelectedObject.h"
@@ -169,7 +132,6 @@ typedef SoundInfo *SoundHandle;
 #include "RenderWorldObject.h"
 #include "ScreenshotBuilder.h"
 #include "ServerList.h"
-#include "ShaderData.h"
 #include "SkillGroup.h"
 #include "StumpsData.h"
 #include "TargetGump.h"
@@ -177,9 +139,6 @@ typedef SoundInfo *SoundHandle;
 #include "Weather.h"
 
 #if defined(ORION_WINDOWS)
-#include "ExceptionFilter.h"
-#include "StackWalker.h"
-#include "OrionStackWalker.h"
 #include "VMQuery.h"
 #endif
 
@@ -298,7 +257,6 @@ typedef SoundInfo *SoundHandle;
 #include "Managers/MouseManager.h"
 #include "Managers/OptionsMacroManager.h"
 #include "Managers/PacketManager.h"
-#include "Managers/PluginManager.h"
 #include "Managers/ProfessionManager.h"
 #include "Managers/ScreenEffectManager.h"
 #include "Managers/SkillGroupManager.h"

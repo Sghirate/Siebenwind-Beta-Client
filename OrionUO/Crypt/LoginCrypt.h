@@ -1,24 +1,24 @@
-// MIT License
-
 #pragma once
+
+#include "Core/Minimal.h"
 
 class CLoginCrypt
 {
 private:
-    uint32_t m_k1;
-    uint32_t m_k2;
-    uint32_t m_k3;
-    uint32_t m_key[2];
-    uint8_t m_seed[4];
+    u32 m_k1;
+    u32 m_k2;
+    u32 m_k3;
+    u32 m_key[2];
+    u8 m_seed[4];
 
 public:
     CLoginCrypt();
     ~CLoginCrypt() {}
 
-    void Init(uint8_t ps[4]);
-    void Encrypt(const uint8_t *in, uint8_t *out, int size);
-    void Encrypt_Old(const uint8_t *in, uint8_t *out, int size);
-    void Encrypt_1_25_36(const uint8_t *in, uint8_t *out, int size);
+    void Init(u8 ps[4]);
+    void Encrypt(const u8* in, u8* out, int size);
+    void Encrypt_Old(const u8* in, u8* out, int size);
+    void Encrypt_1_25_36(const u8* in, u8* out, int size);
 };
 
 extern CLoginCrypt g_LoginCrypt;

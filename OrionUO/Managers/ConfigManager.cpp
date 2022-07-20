@@ -1,26 +1,27 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "ConfigManager.h"
+#include "Core/File.h"
+#include "Core/Platform.h"
+#include "Core/StringUtils.h"
+#include "Core/TextFileParser.h"
+#include "GameVars.h"
+#include "GameWindow.h"
+#include "Globals.h"
 #include "GumpManager.h"
 #include "SoundManager.h"
 #include "ObjectPropertiesManager.h"
-#include "../Point.h"
-#include "../FileSystem.h"
-#include "../Config.h"
-#include "../OrionUO.h"
-#include "../Party.h"
-#include "../ServerList.h"
-#include "../OrionWindow.h"
-#include "../Container.h"
-#include "../CharacterList.h"
-#include "../TextEngine/GameConsole.h"
-#include "../Gumps/Gump.h"
-#include "../Gumps/GumpSpell.h"
-#include "../Gumps/GumpPropertyIcon.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/GamePlayer.h"
-#include "../Network/Packets.h"
+#include "Config.h"
+#include "OrionUO.h"
+#include "Party.h"
+#include "ServerList.h"
+#include "Container.h"
+#include "CharacterList.h"
+#include "TextEngine/GameConsole.h"
+#include "Gumps/Gump.h"
+#include "Gumps/GumpSpell.h"
+#include "Gumps/GumpPropertyIcon.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/GamePlayer.h"
+#include "Network/Packets.h"
 
 CConfigManager g_ConfigManager;
 CConfigManager g_OptionsConfig;
@@ -161,8 +162,8 @@ namespace cmkc
 {
 struct ConfigEntry
 {
-    uint32_t key;
-    const char *key_name;
+    u32 key;
+    const char* key_name;
 };
 
 static const ConfigEntry s_Keys[] = {
@@ -295,9 +296,9 @@ static const ConfigEntry s_Keys[] = {
 
 static_assert(countof(s_Keys) == CMKC_COUNT + 1, "Missing key string for configuration option");
 
-static uint32_t GetConfigKey(const string &key)
+static u32 GetConfigKey(const std::string& key)
 {
-    auto str = ToLowerA(key);
+    auto str = Core::ToLowerA(key);
     for (int i = 0; s_Keys[i].key_name; i++)
     {
         if (str == s_Keys[i].key_name)
@@ -316,7 +317,6 @@ CConfigManager::CConfigManager()
 
 void CConfigManager::Init()
 {
-    DEBUG_TRACE_FUNCTION;
     DefaultPage1();
     DefaultPage2();
     DefaultPage3();
@@ -328,16 +328,16 @@ void CConfigManager::Init()
 
     g_CircleOfTransparency.Create(CircleTransRadius);
 
-    FilterPWOn = false;
+    FilterPWOn      = false;
     ObscenityFilter = false;
-    FilterPassword = "";
+    FilterPassword  = "";
 
     ToggleBufficonWindow = true;
 
     GameWindowX = 0;
     GameWindowY = 0;
 
-    if (g_Config.ClientVersion >= CV_70331)
+    if (GameVars::GetClientVersion() >= CV_70331)
     {
         g_MaxViewRange = MAX_VIEW_RANGE_NEW;
     }
@@ -351,154 +351,146 @@ void CConfigManager::Init()
 
 void CConfigManager::DefaultPage1()
 {
-    DEBUG_TRACE_FUNCTION;
-    m_Sound = true;
-    m_Music = true;
-    FootstepsSound = true;
-    CombatMusic = true;
-    m_SoundVolume = 255;
-    m_MusicVolume = 255;
+    m_Sound         = true;
+    m_Music         = true;
+    FootstepsSound  = true;
+    CombatMusic     = true;
+    m_SoundVolume   = 255;
+    m_MusicVolume   = 255;
     BackgroundSound = false;
 }
 
 void CConfigManager::DefaultPage2()
 {
-    DEBUG_TRACE_FUNCTION;
-    m_ClientFPS = 32;
-    m_ReduceFPSUnactiveWindow = true;
-    StandartCharactersAnimationDelay = false;
-    StandartItemsAnimationDelay = true;
-    m_UseScaling = false;
-    RemoveTextWithBlending = true;
-    m_DrawStatusState = DCSS_NO_DRAW;
-    DrawStatusConditionState = DCSCS_LOWER;
-    DrawStatusConditionValue = 70;
-    m_DrawStumps = false;
-    m_MarkingCaves = false;
-    m_NoVegetation = false;
-    m_NoAnimateFields = false;
-    LockGumpsMoving = true;
-    m_ConsoleNeedEnter = false;
-    HiddenCharactersRenderMode = 0;
-    HiddenAlpha = 0x7F;
-    UseHiddenModeOnlyForSelf = true;
-    TransparentSpellIcons = 1u;
-    m_SpellIconAlpha = 0x7F;
-    m_OldStyleStatusbar = false;
-    m_ApplyStateColorOnCharacters = false;
-    m_OriginalPartyStatusbar = false;
-    m_ChangeFieldsGraphic = false;
-    m_PaperdollSlots = true;
-    RemoveStatusbarsWithoutObjects = false;
-    ShowDefaultConsoleEntryMode = true;
-    m_DrawAuraState = DAS_NEVER;
-    DrawAuraWithCtrlPressed = true;
-    ScreenshotFormat = SF_PNG;
-    m_ScaleImagesInPaperdollSlots = true;
+    m_ClientFPS                       = 32;
+    m_ReduceFPSUnactiveWindow         = true;
+    StandartCharactersAnimationDelay  = false;
+    StandartItemsAnimationDelay       = true;
+    m_UseScaling                      = false;
+    RemoveTextWithBlending            = true;
+    m_DrawStatusState                 = DCSS_NO_DRAW;
+    DrawStatusConditionState          = DCSCS_LOWER;
+    DrawStatusConditionValue          = 70;
+    m_DrawStumps                      = false;
+    m_MarkingCaves                    = false;
+    m_NoVegetation                    = false;
+    m_NoAnimateFields                 = false;
+    LockGumpsMoving                   = true;
+    m_ConsoleNeedEnter                = false;
+    HiddenCharactersRenderMode        = 0;
+    HiddenAlpha                       = 0x7F;
+    UseHiddenModeOnlyForSelf          = true;
+    TransparentSpellIcons             = 1u;
+    m_SpellIconAlpha                  = 0x7F;
+    m_OldStyleStatusbar               = false;
+    m_ApplyStateColorOnCharacters     = false;
+    m_OriginalPartyStatusbar          = false;
+    m_ChangeFieldsGraphic             = false;
+    m_PaperdollSlots                  = true;
+    RemoveStatusbarsWithoutObjects    = false;
+    ShowDefaultConsoleEntryMode       = true;
+    m_DrawAuraState                   = DAS_NEVER;
+    DrawAuraWithCtrlPressed           = true;
+    ScreenshotFormat                  = SF_PNG;
+    m_ScaleImagesInPaperdollSlots     = true;
     RemoveOrCreateObjectsWithBlending = true;
-    DrawHelmetsOnShroud = false;
-    m_UseGlobalMapLayer = false;
-    m_NoDrawRoofs = false;
-    HighlightTargetByType = true;
-    AutoDisplayWorldMap = false;
-    DisableMacroInChat = false;
-    CheckPing = true;
-    m_PingTimer = 10;
-    CancelNewTargetSystemOnShiftEsc = false;
-    DrawStatusForHumanoids = true;
+    DrawHelmetsOnShroud               = false;
+    m_UseGlobalMapLayer               = false;
+    m_NoDrawRoofs                     = false;
+    HighlightTargetByType             = true;
+    AutoDisplayWorldMap               = false;
+    DisableMacroInChat                = false;
+    CheckPing                         = true;
+    m_PingTimer                       = 10;
+    CancelNewTargetSystemOnShiftEsc   = false;
+    DrawStatusForHumanoids            = true;
 }
 
 void CConfigManager::DefaultPage3()
 {
-    DEBUG_TRACE_FUNCTION;
-    UseToolTips = true;
+    UseToolTips       = true;
     ToolTipsTextColor = 0xFFFF;
-    ToolTipsTextFont = 0;
-    ToolTipsDelay = 200;
+    ToolTipsTextFont  = 0;
+    ToolTipsDelay     = 200;
 }
 
 void CConfigManager::DefaultPage4()
 {
-    DEBUG_TRACE_FUNCTION;
-    ChatColorInputText = 0xFFFF;
-    ChatColorMenuOption = 0xFFFF;
-    ChatColorPlayerInMemberList = 0xFFFF;
-    ChatColorText = 0xFFFF;
-    ChatColorPlayerNameWithout = 0xFFFF;
-    ChatColorMuted = 0xFFFF;
+    ChatColorInputText            = 0xFFFF;
+    ChatColorMenuOption           = 0xFFFF;
+    ChatColorPlayerInMemberList   = 0xFFFF;
+    ChatColorText                 = 0xFFFF;
+    ChatColorPlayerNameWithout    = 0xFFFF;
+    ChatColorMuted                = 0xFFFF;
     ChatColorChannelModeratorName = 0xFFFF;
     ChatColorChannelModeratorText = 0xFFFF;
-    ChatColorMyName = 0xFFFF;
-    ChatColorMyText = 0xFFFF;
-    ChatColorSystemMessage = 0xFFFF;
-    ChatColorBGOutputText = 0xFFFF;
-    ChatColorBGInputText = 0xFFFF;
-    ChatColorBGUserList = 0xFFFF;
-    ChatColorBGConfList = 0xFFFF;
-    ChatColorBGCommandList = 0xFFFF;
+    ChatColorMyName               = 0xFFFF;
+    ChatColorMyText               = 0xFFFF;
+    ChatColorSystemMessage        = 0xFFFF;
+    ChatColorBGOutputText         = 0xFFFF;
+    ChatColorBGInputText          = 0xFFFF;
+    ChatColorBGUserList           = 0xFFFF;
+    ChatColorBGConfList           = 0xFFFF;
+    ChatColorBGCommandList        = 0xFFFF;
 
     ChatFont = 0;
 }
 
 void CConfigManager::DefaultPage6()
 {
-    DEBUG_TRACE_FUNCTION;
-    EnablePathfind = true;
-    HoldTabForCombat = true;
-    OffsetInterfaceWindows = true;
-    AutoArrange = true;
-    AlwaysRun = false;
-    DisableMenubar = false;
-    GrayOutOfRangeObjects = false;
-    DisableNewTargetSystem = true;
-    m_ItemPropertiesMode = OPM_FOLLOW_MOUSE;
-    m_ItemPropertiesIcon = false;
-    ObjectHandles = false;
-    HoldShiftForContextMenus = false;
+    EnablePathfind             = true;
+    HoldTabForCombat           = true;
+    OffsetInterfaceWindows     = true;
+    AutoArrange                = true;
+    AlwaysRun                  = false;
+    DisableMenubar             = false;
+    GrayOutOfRangeObjects      = false;
+    DisableNewTargetSystem     = true;
+    m_ItemPropertiesMode       = OPM_FOLLOW_MOUSE;
+    m_ItemPropertiesIcon       = false;
+    ObjectHandles              = false;
+    HoldShiftForContextMenus   = false;
     HoldShiftForEnablePathfind = false;
-    m_CharacterBackpackStyle = CBS_DEFAULT;
+    m_CharacterBackpackStyle   = CBS_DEFAULT;
 }
 
 void CConfigManager::DefaultPage7()
 {
-    DEBUG_TRACE_FUNCTION;
-    GameWindowWidth = 800;
-    GameWindowHeight = 600;
-    SpeechDelay = 500;
-    ScaleSpeechDelay = true;
-    SpeechColor = 0x02B2;
-    EmoteColor = 0x0021;
-    PartyMessageColor = 0x0044;
-    GuildMessageColor = 0x0044;
-    AllianceMessageColor = 0x0057;
-    IgnoreGuildMessage = false;
-    IgnoreAllianceMessage = false;
-    DarkNights = false;
-    ColoredLighting = true;
+    GameWindowWidth        = 800;
+    GameWindowHeight       = 600;
+    SpeechDelay            = 500;
+    ScaleSpeechDelay       = true;
+    SpeechColor            = 0x02B2;
+    EmoteColor             = 0x0021;
+    PartyMessageColor      = 0x0044;
+    GuildMessageColor      = 0x0044;
+    AllianceMessageColor   = 0x0057;
+    IgnoreGuildMessage     = false;
+    IgnoreAllianceMessage  = false;
+    DarkNights             = false;
+    ColoredLighting        = true;
     LockResizingGameWindow = false;
 }
 
 void CConfigManager::DefaultPage8()
 {
-    DEBUG_TRACE_FUNCTION;
-    InnocentColor = 0x005A;
-    FriendlyColor = 0x0044;
-    SomeoneColor = 0x03B2;
-    CriminalColor = 0x03B2;
-    EnemyColor = 0x0031;
-    MurdererColor = 0x0023;
+    InnocentColor        = 0x005A;
+    FriendlyColor        = 0x0044;
+    SomeoneColor         = 0x03B2;
+    CriminalColor        = 0x03B2;
+    EnemyColor           = 0x0031;
+    MurdererColor        = 0x0023;
     CriminalActionsQuery = true;
 }
 
 void CConfigManager::DefaultPage9()
 {
-    DEBUG_TRACE_FUNCTION;
     ShowIncomingNames = true;
-    UseCircleTrans = false;
-    StatReport = true;
+    UseCircleTrans    = false;
+    StatReport        = true;
     CircleTransRadius = 64;
-    SkillReport = 1;
-    SpeechFont = 0;
+    SkillReport       = 1;
+    SpeechFont        = 0;
 }
 
 void CConfigManager::UpdateFeatures()
@@ -516,8 +508,6 @@ void CConfigManager::UpdateFeatures()
 
 void CConfigManager::SetSound(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_Sound = val;
     if (this == &g_ConfigManager && !val)
     {
@@ -527,8 +517,6 @@ void CConfigManager::SetSound(bool val)
 
 void CConfigManager::SetMusic(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_Music = val;
     if (this == &g_ConfigManager && !val)
     {
@@ -536,9 +524,8 @@ void CConfigManager::SetMusic(bool val)
     }
 }
 
-void CConfigManager::SetSoundVolume(uint8_t val)
+void CConfigManager::SetSoundVolume(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
     if (this == &g_ConfigManager && m_SoundVolume != val)
     {
         g_Orion.AdjustSoundEffects(g_Ticks + 100000, val);
@@ -547,10 +534,8 @@ void CConfigManager::SetSoundVolume(uint8_t val)
     m_SoundVolume = val;
 }
 
-void CConfigManager::SetMusicVolume(uint8_t val)
+void CConfigManager::SetMusicVolume(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (this == &g_ConfigManager && m_MusicVolume != val)
     {
         m_MusicVolume = val;
@@ -562,10 +547,8 @@ void CConfigManager::SetMusicVolume(uint8_t val)
     }
 }
 
-void CConfigManager::SetClientFPS(uint8_t val)
+void CConfigManager::SetClientFPS(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_ClientFPS = val;
     if (this == &g_ConfigManager)
     {
@@ -583,14 +566,11 @@ void CConfigManager::SetClientFPS(uint8_t val)
         {
             g_FrameDelay[WINDOW_INACTIVE] = g_FrameDelay[WINDOW_ACTIVE];
         }
-        g_OrionWindow.SetRenderTimerDelay(g_FrameDelay[g_OrionWindow.IsActive()]);
     }
 }
 
 void CConfigManager::SetUseScaling(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_UseScaling = val;
     if (!val && this == &g_ConfigManager)
     {
@@ -598,11 +578,9 @@ void CConfigManager::SetUseScaling(bool val)
     }
 }
 
-void CConfigManager::SetDrawStatusState(uint8_t val)
+void CConfigManager::SetDrawStatusState(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    uint8_t state = val;
+    u8 state = val;
     if ((g_OrionFeaturesFlags & OFF_DRAW_CHARACTERS_STATUS_IN_WORLD) == 0u)
     {
         state = DCSS_NO_DRAW;
@@ -612,7 +590,7 @@ void CConfigManager::SetDrawStatusState(uint8_t val)
     {
         if ((state != 0u) && (m_DrawStatusState == 0u))
         {
-            QFOR(item, g_World->m_Items, CGameObject *)
+            QFOR(item, g_World->m_Items, CGameObject*)
             {
                 if (item->NPC)
                 {
@@ -627,8 +605,6 @@ void CConfigManager::SetDrawStatusState(uint8_t val)
 
 void CConfigManager::SetDrawStumps(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_CHANGE_TREES_TO_STUMPS) == 0u)
     {
@@ -645,8 +621,6 @@ void CConfigManager::SetDrawStumps(bool val)
 
 void CConfigManager::SetMarkingCaves(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_MARKING_CAVES) == 0u)
     {
@@ -663,8 +637,6 @@ void CConfigManager::SetMarkingCaves(bool val)
 
 void CConfigManager::SetNoVegetation(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_NO_VEGETATION) == 0u)
     {
@@ -676,8 +648,6 @@ void CConfigManager::SetNoVegetation(bool val)
 
 void CConfigManager::SetNoAnimateFields(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_NO_FIELDS_ANIMATION) == 0u)
     {
@@ -689,8 +659,6 @@ void CConfigManager::SetNoAnimateFields(bool val)
 
 void CConfigManager::SetApplyStateColorOnCharacters(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     bool state = val;
     if ((g_OrionFeaturesFlags & OFF_COLORED_CHARACTERS_STATE) == 0u)
     {
@@ -700,11 +668,9 @@ void CConfigManager::SetApplyStateColorOnCharacters(bool val)
     m_ApplyStateColorOnCharacters = state;
 }
 
-void CConfigManager::SetDrawAuraState(uint8_t val)
+void CConfigManager::SetDrawAuraState(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    uint8_t state = val;
+    u8 state = val;
     if ((g_OrionFeaturesFlags & OFF_DRAW_AURA) == 0u)
     {
         state = DAS_NEVER;
@@ -715,8 +681,6 @@ void CConfigManager::SetDrawAuraState(uint8_t val)
 
 void CConfigManager::SetReduceFPSUnactiveWindow(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (this == &g_ConfigManager)
     {
         if (val)
@@ -727,7 +691,6 @@ void CConfigManager::SetReduceFPSUnactiveWindow(bool val)
         {
             g_FrameDelay[WINDOW_INACTIVE] = g_FrameDelay[WINDOW_ACTIVE];
         }
-        g_OrionWindow.SetRenderTimerDelay(g_FrameDelay[g_OrionWindow.IsActive()]);
     }
 
     m_ReduceFPSUnactiveWindow = val;
@@ -735,8 +698,6 @@ void CConfigManager::SetReduceFPSUnactiveWindow(bool val)
 
 void CConfigManager::SetConsoleNeedEnter(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     if (this == &g_ConfigManager && val && g_EntryPointer == &g_GameConsole)
     {
         g_EntryPointer = nullptr;
@@ -745,19 +706,18 @@ void CConfigManager::SetConsoleNeedEnter(bool val)
     m_ConsoleNeedEnter = val;
 }
 
-void CConfigManager::SetSpellIconAlpha(uint8_t val)
+void CConfigManager::SetSpellIconAlpha(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
     if (this == &g_ConfigManager && val != m_SpellIconAlpha)
     {
         float alpha = val / 255.0f;
         bool redraw = g_ConfigManager.TransparentSpellIcons != 0u;
 
-        QFOR(gump, g_GumpManager.m_Items, CGump *)
+        QFOR(gump, g_GumpManager.m_Items, CGump*)
         {
             if (gump->GumpType == GT_SPELL)
             {
-                ((CGumpSpell *)gump)->m_Blender->Alpha = alpha;
+                ((CGumpSpell*)gump)->m_Blender->Alpha = alpha;
 
                 if (redraw)
                 {
@@ -772,12 +732,10 @@ void CConfigManager::SetSpellIconAlpha(uint8_t val)
 
 void CConfigManager::SetOldStyleStatusbar(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_OldStyleStatusbar = val;
     if (this == &g_ConfigManager)
     {
-        CGump *gump = g_GumpManager.UpdateGump(g_PlayerSerial, 0, GT_STATUSBAR);
+        CGump* gump = g_GumpManager.UpdateGump(g_PlayerSerial, 0, GT_STATUSBAR);
 
         if (gump != nullptr && !gump->Minimized)
         {
@@ -788,19 +746,17 @@ void CConfigManager::SetOldStyleStatusbar(bool val)
 
 void CConfigManager::SetOriginalPartyStatusbar(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_OriginalPartyStatusbar = val;
     if (this == &g_ConfigManager)
     {
         if (g_Party.Leader != 0)
         {
-            QFOR(gump, g_GumpManager.m_Items, CGump *)
+            QFOR(gump, g_GumpManager.m_Items, CGump*)
             {
                 if (gump->GumpType == GT_STATUSBAR &&
                     (g_Party.Leader == gump->Serial || g_Party.Contains(gump->Serial)))
                 {
-                    gump->WantRedraw = true;
+                    gump->WantRedraw        = true;
                     gump->WantUpdateContent = true;
                 }
             }
@@ -810,8 +766,6 @@ void CConfigManager::SetOriginalPartyStatusbar(bool val)
 
 void CConfigManager::SetChangeFieldsGraphic(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_ChangeFieldsGraphic = val;
     if ((g_OrionFeaturesFlags & OFF_TILED_FIELDS) == 0u)
     {
@@ -820,11 +774,11 @@ void CConfigManager::SetChangeFieldsGraphic(bool val)
 
     if (this == &g_ConfigManager && g_World != nullptr)
     {
-        QFOR(item, g_World->m_Items, CGameObject *)
+        QFOR(item, g_World->m_Items, CGameObject*)
         {
             if (!item->NPC)
             {
-                ((CGameItem *)item)->CalculateFieldColor();
+                ((CGameItem*)item)->CalculateFieldColor();
             }
         }
     }
@@ -832,16 +786,14 @@ void CConfigManager::SetChangeFieldsGraphic(bool val)
 
 void CConfigManager::SetPaperdollSlots(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_PaperdollSlots = val;
     if (this == &g_ConfigManager && g_World != nullptr)
     {
-        QFOR(gump, g_GumpManager.m_Items, CGump *)
+        QFOR(gump, g_GumpManager.m_Items, CGump*)
         {
             if (gump->GumpType == GT_PAPERDOLL)
             {
-                gump->WantRedraw = true;
+                gump->WantRedraw        = true;
                 gump->WantUpdateContent = true;
             }
         }
@@ -850,16 +802,14 @@ void CConfigManager::SetPaperdollSlots(bool val)
 
 void CConfigManager::SetScaleImagesInPaperdollSlots(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_ScaleImagesInPaperdollSlots = val;
     if (this == &g_ConfigManager && g_World != nullptr)
     {
-        QFOR(gump, g_GumpManager.m_Items, CGump *)
+        QFOR(gump, g_GumpManager.m_Items, CGump*)
         {
             if (gump->GumpType == GT_PAPERDOLL)
             {
-                gump->WantRedraw = true;
+                gump->WantRedraw        = true;
                 gump->WantUpdateContent = true;
             }
         }
@@ -868,12 +818,10 @@ void CConfigManager::SetScaleImagesInPaperdollSlots(bool val)
 
 void CConfigManager::SetUseGlobalMapLayer(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_UseGlobalMapLayer = val;
     if (this == &g_ConfigManager && val)
     {
-        QFOR(gump, g_GumpManager.m_Items, CGump *)
+        QFOR(gump, g_GumpManager.m_Items, CGump*)
         {
             if (gump->GumpType == GT_WORLD_MAP)
             {
@@ -885,8 +833,6 @@ void CConfigManager::SetUseGlobalMapLayer(bool val)
 
 void CConfigManager::SetNoDrawRoofs(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_NoDrawRoofs = val;
     if ((g_OrionFeaturesFlags & OFF_TILED_FIELDS) == 0u)
     {
@@ -900,23 +846,18 @@ void CConfigManager::SetNoDrawRoofs(bool val)
     }
 }
 
-void CConfigManager::SetPingTimer(uint8_t val)
+void CConfigManager::SetPingTimer(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    m_PingTimer = std::max(std::min(val, uint8_t(120)), uint8_t(10));
-    g_PingTimer = 0;
+    m_PingTimer = Core::Max(Core::Min(val, u8(120)), u8(10));
 }
 
-void CConfigManager::SetItemPropertiesMode(uint8_t val)
+void CConfigManager::SetItemPropertiesMode(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_ItemPropertiesMode = val;
     if (this == &g_ConfigManager && g_World != nullptr)
     {
-        CGumpPropertyIcon *gump =
-            (CGumpPropertyIcon *)g_GumpManager.UpdateContent(0, 0, GT_PROPERTY_ICON);
+        CGumpPropertyIcon* gump =
+            (CGumpPropertyIcon*)g_GumpManager.UpdateContent(0, 0, GT_PROPERTY_ICON);
 
         if (gump != nullptr && (val == OPM_AT_ICON || val == OPM_ALWAYS_UP))
         {
@@ -929,31 +870,25 @@ void CConfigManager::SetItemPropertiesMode(uint8_t val)
 
 void CConfigManager::SetItemPropertiesIcon(bool val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_ItemPropertiesIcon = val;
     if (this == &g_ConfigManager && g_World != nullptr)
     {
         if (val)
         {
-            CGump *gump = g_GumpManager.UpdateContent(0, 0, GT_PROPERTY_ICON);
+            CGump* gump = g_GumpManager.UpdateContent(0, 0, GT_PROPERTY_ICON);
 
             if (gump == nullptr)
             {
-                CSize windowSize = g_OrionWindow.GetSize();
+                Core::Vec2<i32> windowSize = g_gameWindow.GetSize();
 
                 int x = GameWindowX + (int)(GameWindowWidth * 0.9f);
                 int y = GameWindowY + GameWindowHeight;
 
-                if (x + 100 >= windowSize.Width)
-                {
-                    x = windowSize.Width - 100;
-                }
+                if (x + 100 >= windowSize.x)
+                    x = windowSize.x - 100;
 
-                if (y + 60 >= windowSize.Height)
-                {
-                    y = windowSize.Height - 60;
-                }
+                if (y + 60 >= windowSize.y)
+                    y = windowSize.y - 60;
 
                 g_GumpManager.AddGump(new CGumpPropertyIcon(x, y));
             }
@@ -966,16 +901,14 @@ void CConfigManager::SetItemPropertiesIcon(bool val)
     }
 }
 
-void CConfigManager::SetCharacterBackpackStyle(uint8_t val)
+void CConfigManager::SetCharacterBackpackStyle(u8 val)
 {
-    DEBUG_TRACE_FUNCTION;
-
     m_CharacterBackpackStyle = val;
     if (this == &g_ConfigManager && g_World != nullptr)
     {
         g_GumpManager.UpdateContent(g_PlayerSerial, 0, GT_PAPERDOLL);
 
-        CGameItem *backpack = g_Player->FindLayer(OL_BACKPACK);
+        CGameItem* backpack = g_Player->FindLayer(OL_BACKPACK);
 
         if (backpack != nullptr)
         {
@@ -984,11 +917,9 @@ void CConfigManager::SetCharacterBackpackStyle(uint8_t val)
     }
 }
 
-uint16_t CConfigManager::GetColorByNotoriety(uint8_t notoriety)
+u16 CConfigManager::GetColorByNotoriety(u8 notoriety)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    uint16_t color = 0;
+    u16 color = 0;
     switch ((NOTORIETY_TYPE)notoriety)
     {
         case NT_INNOCENT: //Blue
@@ -1026,149 +957,144 @@ uint16_t CConfigManager::GetColorByNotoriety(uint8_t notoriety)
             color = 0x0034;
             break;
         }
-        default:
-            break;
+        default: break;
     }
 
     return color;
 }
 
-bool CConfigManager::LoadBin(const os_path &path)
+bool CConfigManager::LoadBin(const std::filesystem::path& path)
 {
-    DEBUG_TRACE_FUNCTION;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
-
-    bool result = false;
+    bool result     = false;
     g_DeveloperMode = DM_SHOW_FPS_ONLY;
-    Wisp::CMappedFile file;
-
-    if (file.Load(path) && (file.Size != 0u))
+    Core::MappedFile file;
+    if (file.Load(path) && (file.GetSize() != 0u))
     {
         UpdateRange = g_MaxViewRange;
-        uint8_t version = file.ReadUInt8();
+        u8 version  = file.ReadBE<u8>();
 
         //Page 1
-        uint8_t *next = file.Ptr;
-        char blockSize = file.ReadInt8();
+        u8* next       = file.GetPtr();
+        char blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 1)
+        if (file.ReadBE<i8>() == 1)
         {
-            SetSound(file.ReadUInt8() != 0u);
-            SetMusic(file.ReadUInt8() != 0u);
-            FootstepsSound = (file.ReadUInt8() != 0u);
-            CombatMusic = (file.ReadUInt8() != 0u);
-            m_SoundVolume = file.ReadUInt8();
-            m_MusicVolume = file.ReadUInt8();
-            BackgroundSound = (file.ReadUInt8() != 0u);
+            SetSound(file.ReadBE<u8>() != 0u);
+            SetMusic(file.ReadBE<u8>() != 0u);
+            FootstepsSound  = (file.ReadBE<u8>() != 0u);
+            CombatMusic     = (file.ReadBE<u8>() != 0u);
+            m_SoundVolume   = file.ReadBE<u8>();
+            m_MusicVolume   = file.ReadBE<u8>();
+            BackgroundSound = (file.ReadBE<u8>() != 0u);
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 2
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        m_UseScaling = false;
-        RemoveTextWithBlending = true;
-        m_DrawStatusState = DCSS_NO_DRAW;
-        DrawStatusConditionState = DCSCS_LOWER;
-        DrawStatusConditionValue = 70;
-        bool drawStumps = false;
-        bool markingCaves = false;
-        bool noAnimateFields = false;
-        bool noVegetation = false;
-        TransparentSpellIcons = 1u;
-        m_SpellIconAlpha = 0x7F;
-        m_OldStyleStatusbar = false;
-        m_OriginalPartyStatusbar = false;
+        m_UseScaling                     = false;
+        RemoveTextWithBlending           = true;
+        m_DrawStatusState                = DCSS_NO_DRAW;
+        DrawStatusConditionState         = DCSCS_LOWER;
+        DrawStatusConditionValue         = 70;
+        bool drawStumps                  = false;
+        bool markingCaves                = false;
+        bool noAnimateFields             = false;
+        bool noVegetation                = false;
+        TransparentSpellIcons            = 1u;
+        m_SpellIconAlpha                 = 0x7F;
+        m_OldStyleStatusbar              = false;
+        m_OriginalPartyStatusbar         = false;
         bool applyStateColorOnCharacters = false;
-        bool changeFieldsGraphic = false;
-        bool paperdollSlots = true;
-        RemoveStatusbarsWithoutObjects = false;
-        ShowDefaultConsoleEntryMode = true;
-        uint8_t drawAuraState = DAS_NEVER;
-        DrawAuraWithCtrlPressed = true;
-        ScreenshotFormat = SF_PNG;
+        bool changeFieldsGraphic         = false;
+        bool paperdollSlots              = true;
+        RemoveStatusbarsWithoutObjects   = false;
+        ShowDefaultConsoleEntryMode      = true;
+        u8 drawAuraState                 = DAS_NEVER;
+        DrawAuraWithCtrlPressed          = true;
+        ScreenshotFormat                 = SF_PNG;
         bool scaleImagesInPaperdollSlots = true;
-        DrawHelmetsOnShroud = false;
-        bool useGlobalMapLayer = false;
-        bool noDrawRoofs = false;
-        HighlightTargetByType = true;
-        AutoDisplayWorldMap = false;
-        DisableMacroInChat = false;
-        CheckPing = true;
-        m_PingTimer = 10;
-        CancelNewTargetSystemOnShiftEsc = false;
-        DrawStatusForHumanoids = true;
+        DrawHelmetsOnShroud              = false;
+        bool useGlobalMapLayer           = false;
+        bool noDrawRoofs                 = false;
+        HighlightTargetByType            = true;
+        AutoDisplayWorldMap              = false;
+        DisableMacroInChat               = false;
+        CheckPing                        = true;
+        m_PingTimer                      = 10;
+        CancelNewTargetSystemOnShiftEsc  = false;
+        DrawStatusForHumanoids           = true;
 
-        if (file.ReadInt8() == 2)
+        if (file.ReadBE<i8>() == 2)
         {
             if (blockSize > 23)
             {
-                SetClientFPS(file.ReadUInt8());
-                m_UseScaling = (file.ReadUInt8() != 0u);
-                RemoveTextWithBlending = (file.ReadUInt8() != 0u);
-                m_DrawStatusState = file.ReadUInt8();
-                drawStumps = (file.ReadUInt8() != 0u);
-                markingCaves = (file.ReadUInt8() != 0u);
-                noAnimateFields = (file.ReadUInt8() != 0u);
-                noVegetation = (file.ReadUInt8() != 0u);
-                HiddenCharactersRenderMode = file.ReadUInt8();
-                HiddenAlpha = file.ReadUInt8();
-                UseHiddenModeOnlyForSelf = (file.ReadUInt8() != 0u);
-                TransparentSpellIcons = file.ReadUInt8();
-                m_SpellIconAlpha = file.ReadUInt8();
-                m_OldStyleStatusbar = (file.ReadUInt8() != 0u);
-                m_OriginalPartyStatusbar = (file.ReadUInt8() != 0u);
-                applyStateColorOnCharacters = (file.ReadUInt8() != 0u);
-                changeFieldsGraphic = (file.ReadUInt8() != 0u);
-                paperdollSlots = (file.ReadUInt8() != 0u);
-                DrawStatusConditionState = file.ReadUInt8();
-                DrawStatusConditionValue = file.ReadUInt8();
-                RemoveStatusbarsWithoutObjects = (file.ReadUInt8() != 0u);
+                SetClientFPS(file.ReadBE<u8>());
+                m_UseScaling                   = (file.ReadBE<u8>() != 0u);
+                RemoveTextWithBlending         = (file.ReadBE<u8>() != 0u);
+                m_DrawStatusState              = file.ReadBE<u8>();
+                drawStumps                     = (file.ReadBE<u8>() != 0u);
+                markingCaves                   = (file.ReadBE<u8>() != 0u);
+                noAnimateFields                = (file.ReadBE<u8>() != 0u);
+                noVegetation                   = (file.ReadBE<u8>() != 0u);
+                HiddenCharactersRenderMode     = file.ReadBE<u8>();
+                HiddenAlpha                    = file.ReadBE<u8>();
+                UseHiddenModeOnlyForSelf       = (file.ReadBE<u8>() != 0u);
+                TransparentSpellIcons          = file.ReadBE<u8>();
+                m_SpellIconAlpha               = file.ReadBE<u8>();
+                m_OldStyleStatusbar            = (file.ReadBE<u8>() != 0u);
+                m_OriginalPartyStatusbar       = (file.ReadBE<u8>() != 0u);
+                applyStateColorOnCharacters    = (file.ReadBE<u8>() != 0u);
+                changeFieldsGraphic            = (file.ReadBE<u8>() != 0u);
+                paperdollSlots                 = (file.ReadBE<u8>() != 0u);
+                DrawStatusConditionState       = file.ReadBE<u8>();
+                DrawStatusConditionValue       = file.ReadBE<u8>();
+                RemoveStatusbarsWithoutObjects = (file.ReadBE<u8>() != 0u);
 
-                ShowDefaultConsoleEntryMode = (file.ReadUInt8() != 0u);
+                ShowDefaultConsoleEntryMode = (file.ReadBE<u8>() != 0u);
 
                 if (blockSize > 24)
                 {
-                    uint8_t auraState = file.ReadUInt8();
+                    u8 auraState = file.ReadBE<u8>();
 
-                    drawAuraState = auraState & 0x7F;
+                    drawAuraState           = auraState & 0x7F;
                     DrawAuraWithCtrlPressed = ((auraState & 0x80) != 0);
 
                     if (blockSize > 25)
                     {
-                        ScreenshotFormat = file.ReadUInt8();
+                        ScreenshotFormat = file.ReadBE<u8>();
 
                         if (blockSize > 26)
                         {
-                            scaleImagesInPaperdollSlots = (file.ReadUInt8() != 0u);
+                            scaleImagesInPaperdollSlots = (file.ReadBE<u8>() != 0u);
 
                             if (blockSize > 27)
                             {
-                                RemoveOrCreateObjectsWithBlending = (file.ReadUInt8() != 0u);
+                                RemoveOrCreateObjectsWithBlending = (file.ReadBE<u8>() != 0u);
 
                                 if (blockSize > 28)
                                 {
-                                    DrawHelmetsOnShroud = (file.ReadUInt8() != 0u);
+                                    DrawHelmetsOnShroud = (file.ReadBE<u8>() != 0u);
 
                                     if (blockSize > 29)
                                     {
-                                        useGlobalMapLayer = (file.ReadUInt8() != 0u);
+                                        useGlobalMapLayer = (file.ReadBE<u8>() != 0u);
 
                                         if (blockSize > 30)
                                         {
-                                            noDrawRoofs = (file.ReadUInt8() != 0u);
+                                            noDrawRoofs = (file.ReadBE<u8>() != 0u);
 
                                             if (blockSize > 31)
                                             {
-                                                HighlightTargetByType = (file.ReadUInt8() != 0u);
+                                                HighlightTargetByType = (file.ReadBE<u8>() != 0u);
                                             }
                                         }
                                     }
@@ -1180,58 +1106,58 @@ bool CConfigManager::LoadBin(const os_path &path)
             }
             else if (blockSize > 2)
             {
-                SetClientFPS(file.ReadUInt8());
+                SetClientFPS(file.ReadBE<u8>());
 
                 if (blockSize > 3)
                 {
-                    m_UseScaling = (file.ReadUInt8() != 0u);
+                    m_UseScaling = (file.ReadBE<u8>() != 0u);
 
                     if (blockSize > 4)
                     {
-                        RemoveTextWithBlending = (file.ReadUInt8() != 0u);
-                        m_DrawStatusState = file.ReadUInt8();
+                        RemoveTextWithBlending = (file.ReadBE<u8>() != 0u);
+                        m_DrawStatusState      = file.ReadBE<u8>();
 
                         if (blockSize > 6)
                         {
-                            drawStumps = (file.ReadUInt8() != 0u);
-                            markingCaves = (file.ReadUInt8() != 0u);
-                            noAnimateFields = (file.ReadUInt8() != 0u);
+                            drawStumps      = (file.ReadBE<u8>() != 0u);
+                            markingCaves    = (file.ReadBE<u8>() != 0u);
+                            noAnimateFields = (file.ReadBE<u8>() != 0u);
 
                             if (blockSize > 9)
                             {
-                                noVegetation = (file.ReadUInt8() != 0u);
-                                HiddenCharactersRenderMode = file.ReadUInt8();
-                                HiddenAlpha = file.ReadUInt8();
-                                UseHiddenModeOnlyForSelf = (file.ReadUInt8() != 0u);
+                                noVegetation               = (file.ReadBE<u8>() != 0u);
+                                HiddenCharactersRenderMode = file.ReadBE<u8>();
+                                HiddenAlpha                = file.ReadBE<u8>();
+                                UseHiddenModeOnlyForSelf   = (file.ReadBE<u8>() != 0u);
 
                                 if (blockSize > 13)
                                 {
-                                    TransparentSpellIcons = file.ReadUInt8();
-                                    m_SpellIconAlpha = file.ReadUInt8();
+                                    TransparentSpellIcons = file.ReadBE<u8>();
+                                    m_SpellIconAlpha      = file.ReadBE<u8>();
 
                                     if (blockSize > 15)
                                     {
-                                        m_OldStyleStatusbar = (file.ReadUInt8() != 0u);
-                                        m_OriginalPartyStatusbar = (file.ReadUInt8() != 0u);
-                                        applyStateColorOnCharacters = (file.ReadUInt8() != 0u);
+                                        m_OldStyleStatusbar         = (file.ReadBE<u8>() != 0u);
+                                        m_OriginalPartyStatusbar    = (file.ReadBE<u8>() != 0u);
+                                        applyStateColorOnCharacters = (file.ReadBE<u8>() != 0u);
 
                                         if (blockSize > 18)
                                         {
-                                            changeFieldsGraphic = (file.ReadUInt8() != 0u);
+                                            changeFieldsGraphic = (file.ReadBE<u8>() != 0u);
 
                                             if (blockSize > 19)
                                             {
-                                                paperdollSlots = (file.ReadUInt8() != 0u);
+                                                paperdollSlots = (file.ReadBE<u8>() != 0u);
 
                                                 if (blockSize > 21)
                                                 {
-                                                    DrawStatusConditionState = file.ReadUInt8();
-                                                    DrawStatusConditionValue = file.ReadUInt8();
+                                                    DrawStatusConditionState = file.ReadBE<u8>();
+                                                    DrawStatusConditionValue = file.ReadBE<u8>();
 
                                                     if (blockSize > 22)
                                                     {
                                                         RemoveStatusbarsWithoutObjects =
-                                                            (file.ReadUInt8() != 0u);
+                                                            (file.ReadBE<u8>() != 0u);
                                                     }
                                                 }
                                             }
@@ -1265,88 +1191,88 @@ bool CConfigManager::LoadBin(const os_path &path)
         SetNoVegetation(noVegetation);
         SetNoAnimateFields(noAnimateFields);
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 3
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 3)
+        if (file.ReadBE<i8>() == 3)
         {
-            UseToolTips = (file.ReadUInt8() != 0u);
-            ToolTipsTextColor = file.ReadUInt16LE();
-            ToolTipsTextFont = file.ReadUInt16LE();
-            ToolTipsDelay = file.ReadUInt16LE();
+            UseToolTips       = (file.ReadBE<u8>() != 0u);
+            ToolTipsTextColor = file.ReadLE<u16>();
+            ToolTipsTextFont  = file.ReadLE<u16>();
+            ToolTipsDelay     = file.ReadLE<u16>();
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 4
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 4)
+        if (file.ReadBE<i8>() == 4)
         {
-            ChatColorInputText = file.ReadUInt16LE();
-            ChatColorMenuOption = file.ReadUInt16LE();
-            ChatColorPlayerInMemberList = file.ReadUInt16LE();
-            ChatColorText = file.ReadUInt16LE();
-            ChatColorPlayerNameWithout = file.ReadUInt16LE();
-            ChatColorMuted = file.ReadUInt16LE();
-            ChatColorChannelModeratorName = file.ReadUInt16LE();
-            ChatColorChannelModeratorText = file.ReadUInt16LE();
-            ChatColorMyName = file.ReadUInt16LE();
-            ChatColorMyText = file.ReadUInt16LE();
-            ChatColorSystemMessage = file.ReadUInt16LE();
-            ChatFont = file.ReadUInt16LE();
-            ChatColorBGOutputText = file.ReadUInt16LE();
-            ChatColorBGInputText = file.ReadUInt16LE();
-            ChatColorBGUserList = file.ReadUInt16LE();
-            ChatColorBGConfList = file.ReadUInt16LE();
-            ChatColorBGCommandList = file.ReadUInt16LE();
+            ChatColorInputText            = file.ReadLE<u16>();
+            ChatColorMenuOption           = file.ReadLE<u16>();
+            ChatColorPlayerInMemberList   = file.ReadLE<u16>();
+            ChatColorText                 = file.ReadLE<u16>();
+            ChatColorPlayerNameWithout    = file.ReadLE<u16>();
+            ChatColorMuted                = file.ReadLE<u16>();
+            ChatColorChannelModeratorName = file.ReadLE<u16>();
+            ChatColorChannelModeratorText = file.ReadLE<u16>();
+            ChatColorMyName               = file.ReadLE<u16>();
+            ChatColorMyText               = file.ReadLE<u16>();
+            ChatColorSystemMessage        = file.ReadLE<u16>();
+            ChatFont                      = file.ReadLE<u16>();
+            ChatColorBGOutputText         = file.ReadLE<u16>();
+            ChatColorBGInputText          = file.ReadLE<u16>();
+            ChatColorBGUserList           = file.ReadLE<u16>();
+            ChatColorBGConfList           = file.ReadLE<u16>();
+            ChatColorBGCommandList        = file.ReadLE<u16>();
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 6
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 6)
+        if (file.ReadBE<i8>() == 6)
         {
-            EnablePathfind = (file.ReadUInt8() != 0u);
-            HoldTabForCombat = (file.ReadUInt8() != 0u);
-            OffsetInterfaceWindows = (file.ReadUInt8() != 0u);
-            AutoArrange = (file.ReadUInt8() != 0u);
-            AlwaysRun = (file.ReadUInt8() != 0u);
-            DisableMenubar = (file.ReadUInt8() != 0u);
-            GrayOutOfRangeObjects = (file.ReadUInt8() != 0u);
-            HoldShiftForContextMenus = true;
+            EnablePathfind             = (file.ReadBE<u8>() != 0u);
+            HoldTabForCombat           = (file.ReadBE<u8>() != 0u);
+            OffsetInterfaceWindows     = (file.ReadBE<u8>() != 0u);
+            AutoArrange                = (file.ReadBE<u8>() != 0u);
+            AlwaysRun                  = (file.ReadBE<u8>() != 0u);
+            DisableMenubar             = (file.ReadBE<u8>() != 0u);
+            GrayOutOfRangeObjects      = (file.ReadBE<u8>() != 0u);
+            HoldShiftForContextMenus   = true;
             HoldShiftForEnablePathfind = false;
 
             if (blockSize > 9)
             {
-                DisableNewTargetSystem = (file.ReadUInt8() != 0u);
-                m_ItemPropertiesMode = file.ReadUInt8();
-                m_ItemPropertiesIcon = (file.ReadUInt8() != 0u);
-                ObjectHandles = (file.ReadUInt8() != 0u);
-                SetReduceFPSUnactiveWindow(file.ReadUInt8() != 0u);
+                DisableNewTargetSystem = (file.ReadBE<u8>() != 0u);
+                m_ItemPropertiesMode   = file.ReadBE<u8>();
+                m_ItemPropertiesIcon   = (file.ReadBE<u8>() != 0u);
+                ObjectHandles          = (file.ReadBE<u8>() != 0u);
+                SetReduceFPSUnactiveWindow(file.ReadBE<u8>() != 0u);
 
                 if (blockSize > 14)
                 {
-                    HoldShiftForContextMenus = (file.ReadUInt8() != 0u);
+                    HoldShiftForContextMenus = (file.ReadBE<u8>() != 0u);
 
                     if (blockSize > 15)
                     {
-                        HoldShiftForEnablePathfind = (file.ReadUInt8() != 0u);
+                        HoldShiftForEnablePathfind = (file.ReadBE<u8>() != 0u);
 
                         if (blockSize > 16)
                         {
-                            g_ContainerRect.DefaultX = file.ReadUInt16LE();
-                            g_ContainerRect.DefaultY = file.ReadUInt16LE();
+                            g_ContainerRect.DefaultX = file.ReadLE<u16>();
+                            g_ContainerRect.DefaultY = file.ReadLE<u16>();
                         }
                     }
                 }
@@ -1354,105 +1280,105 @@ bool CConfigManager::LoadBin(const os_path &path)
             else
             {
                 DisableNewTargetSystem = true;
-                m_ItemPropertiesMode = OPM_FOLLOW_MOUSE;
-                m_ItemPropertiesIcon = false;
-                ObjectHandles = false;
+                m_ItemPropertiesMode   = OPM_FOLLOW_MOUSE;
+                m_ItemPropertiesIcon   = false;
+                ObjectHandles          = false;
                 SetReduceFPSUnactiveWindow(true);
             }
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 7
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 7)
+        if (file.ReadBE<i8>() == 7)
         {
-            GameWindowWidth = file.ReadUInt16LE();
-            GameWindowHeight = file.ReadUInt16LE();
-            SpeechDelay = file.ReadUInt16LE();
-            ScaleSpeechDelay = (file.ReadUInt16LE() != 0u);
-            SpeechColor = file.ReadUInt16LE();
-            EmoteColor = file.ReadUInt16LE();
-            PartyMessageColor = file.ReadUInt16LE();
-            GuildMessageColor = file.ReadUInt16LE();
-            AllianceMessageColor = file.ReadUInt16LE();
-            IgnoreGuildMessage = (file.ReadUInt8() != 0u);
-            IgnoreAllianceMessage = (file.ReadUInt8() != 0u);
-            DarkNights = (file.ReadUInt8() != 0u);
-            ColoredLighting = (file.ReadUInt8() != 0u);
-            StandartCharactersAnimationDelay = (file.ReadUInt8() != 0u);
-            StandartItemsAnimationDelay = (file.ReadUInt8() != 0u);
-            LockResizingGameWindow = (file.ReadUInt8() != 0u);
-            LockGumpsMoving = (file.ReadUInt8() != 0u);
+            GameWindowWidth                  = file.ReadLE<u16>();
+            GameWindowHeight                 = file.ReadLE<u16>();
+            SpeechDelay                      = file.ReadLE<u16>();
+            ScaleSpeechDelay                 = (file.ReadLE<u16>() != 0u);
+            SpeechColor                      = file.ReadLE<u16>();
+            EmoteColor                       = file.ReadLE<u16>();
+            PartyMessageColor                = file.ReadLE<u16>();
+            GuildMessageColor                = file.ReadLE<u16>();
+            AllianceMessageColor             = file.ReadLE<u16>();
+            IgnoreGuildMessage               = (file.ReadBE<u8>() != 0u);
+            IgnoreAllianceMessage            = (file.ReadBE<u8>() != 0u);
+            DarkNights                       = (file.ReadBE<u8>() != 0u);
+            ColoredLighting                  = (file.ReadBE<u8>() != 0u);
+            StandartCharactersAnimationDelay = (file.ReadBE<u8>() != 0u);
+            StandartItemsAnimationDelay      = (file.ReadBE<u8>() != 0u);
+            LockResizingGameWindow           = (file.ReadBE<u8>() != 0u);
+            LockGumpsMoving                  = (file.ReadBE<u8>() != 0u);
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 8
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 8)
+        if (file.ReadBE<i8>() == 8)
         {
-            InnocentColor = file.ReadUInt16LE();
-            FriendlyColor = file.ReadUInt16LE();
-            SomeoneColor = file.ReadUInt16LE();
-            CriminalColor = file.ReadUInt16LE();
-            EnemyColor = file.ReadUInt16LE();
-            MurdererColor = file.ReadUInt16LE();
-            CriminalActionsQuery = (file.ReadUInt8() != 0u);
+            InnocentColor        = file.ReadLE<u16>();
+            FriendlyColor        = file.ReadLE<u16>();
+            SomeoneColor         = file.ReadLE<u16>();
+            CriminalColor        = file.ReadLE<u16>();
+            EnemyColor           = file.ReadLE<u16>();
+            MurdererColor        = file.ReadLE<u16>();
+            CriminalActionsQuery = (file.ReadBE<u8>() != 0u);
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 9
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 9)
+        if (file.ReadBE<i8>() == 9)
         {
-            ShowIncomingNames = (file.ReadUInt8() != 0u);
-            UseCircleTrans = (file.ReadUInt8() != 0u);
-            StatReport = (file.ReadUInt8() != 0u);
-            SetConsoleNeedEnter(file.ReadUInt8() != 0u);
-            CircleTransRadius = file.ReadUInt8();
-            SkillReport = file.ReadUInt8();
-            SpeechFont = file.ReadUInt16LE();
+            ShowIncomingNames = (file.ReadBE<u8>() != 0u);
+            UseCircleTrans    = (file.ReadBE<u8>() != 0u);
+            StatReport        = (file.ReadBE<u8>() != 0u);
+            SetConsoleNeedEnter(file.ReadBE<u8>() != 0u);
+            CircleTransRadius = file.ReadBE<u8>();
+            SkillReport       = file.ReadBE<u8>();
+            SpeechFont        = file.ReadLE<u16>();
         }
 
         g_CircleOfTransparency.Create(CircleTransRadius);
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //Page 10
-        next = file.Ptr;
-        blockSize = file.ReadInt8();
+        next      = file.GetPtr();
+        blockSize = file.ReadBE<i8>();
         next += blockSize;
 
-        if (file.ReadInt8() == 10)
+        if (file.ReadBE<i8>() == 10)
         {
         }
 
-        file.Ptr = next;
+        file.SetPtr(next);
 
         //No page
-        blockSize = file.ReadInt8();
+        blockSize = file.ReadBE<i8>();
 
-        if (file.ReadInt8() == 0)
+        if (file.ReadBE<i8>() == 0)
         {
-            GameWindowX = file.ReadInt16LE();
+            GameWindowX = file.ReadLE<i16>();
 
             if (GameWindowX < 0)
             {
                 GameWindowX = 0;
             }
 
-            GameWindowY = file.ReadInt16LE();
+            GameWindowY = file.ReadLE<i16>();
 
             if (GameWindowY < 0)
             {
@@ -1461,24 +1387,24 @@ bool CConfigManager::LoadBin(const os_path &path)
 
             if (blockSize > 6)
             {
-                bool zoomed = file.ReadUInt8() != 0u;
+                bool zoomed = file.ReadBE<u8>() != 0u;
 
-                int windowX = file.ReadInt16LE();
+                int windowX = file.ReadLE<i16>();
 
                 if (windowX < 0)
                 {
                     windowX = 0;
                 }
 
-                int windowY = file.ReadInt16LE();
+                int windowY = file.ReadLE<i16>();
 
                 if (windowY < 0)
                 {
                     windowY = 0;
                 }
 
-                int windowWidth = file.ReadInt16LE();
-                int windowHeight = file.ReadInt16LE();
+                int windowWidth  = file.ReadLE<i16>();
+                int windowHeight = file.ReadLE<i16>();
 
                 if (g_GameState >= GS_GAME)
                 {
@@ -1504,34 +1430,35 @@ bool CConfigManager::LoadBin(const os_path &path)
                 }
                 else
                 {
-                    windowWidth = 640;
+                    windowWidth  = 640;
                     windowHeight = 480;
                 }
 
                 if (zoomed)
                 {
-                    g_OrionWindow.MaximizeWindow();
+                    g_gameWindow.Maximize();
                 }
                 else
                 {
-                    g_OrionWindow.SetPositionSize(windowX, windowY, windowWidth, windowHeight);
+                    g_gameWindow.SetPosition(Core::TWindowPosition(windowX, windowY));
+                    g_gameWindow.SetSize(Core::TWindowSize(windowWidth, windowHeight));
                 }
 
                 g_GL.UpdateRect();
 
                 if (blockSize > 15)
                 {
-                    ToggleBufficonWindow = (file.ReadUInt8() != 0u);
+                    ToggleBufficonWindow = (file.ReadBE<u8>() != 0u);
 
                     if (blockSize == 17)
                     {
-                        g_DeveloperMode = (DEVELOPER_MODE)file.ReadUInt8();
+                        g_DeveloperMode = (DEVELOPER_MODE)file.ReadBE<u8>();
                     }
                 }
             }
             else
             {
-                g_OrionWindow.MaximizeWindow();
+                g_gameWindow.Maximize();
             }
         }
 
@@ -1562,7 +1489,7 @@ bool CConfigManager::LoadBin(const os_path &path)
     }
     else
     {
-        GameWindowWidth = 640;
+        GameWindowWidth  = 640;
         GameWindowHeight = 480;
     }
 
@@ -1571,27 +1498,22 @@ bool CConfigManager::LoadBin(const os_path &path)
     return result;
 }
 
-bool CConfigManager::Load(const os_path &path)
+bool CConfigManager::Load(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-    if (!fs_path_exists(path))
-    {
+    if (!std::filesystem::exists(a_path))
         return false;
-    }
 
-    int screenX, screenY;
-    GetDisplaySize(&screenX, &screenY);
-    screenX -= 20;
-    screenY -= 60;
+    Core::Rect<int> display = Core::Platform::GetDisplayArea();
+    int screenX = display.size.x - 20;
+    int screenY = display.size.y - 60;
 
-    Wisp::CTextFileParser file(path, "=", "#;", "");
-
-    bool zoomed = false;
-    int windowX = -1;
-    int windowY = -1;
-    int windowWidth = -1;
+    Core::TextFileParser file(a_path, "=", "#;", "");
+    bool zoomed      = false;
+    int windowX      = -1;
+    int windowY      = -1;
+    int windowWidth  = -1;
     int windowHeight = -1;
-    UpdateRange = g_MaxViewRange;
+    UpdateRange      = g_MaxViewRange;
 
     while (!file.IsEOF())
     {
@@ -1607,83 +1529,45 @@ bool CConfigManager::Load(const os_path &path)
             switch (code)
             {
                 //Page 1
-                case CMKC_SOUND:
-                    SetSound(ToBool(strings[1]));
-                    break;
-                case CMKC_SOUND_VOLUME:
-                    m_SoundVolume = atoi(strings[1].c_str());
-                    break;
-                case CMKC_MUSIC:
-                    SetMusic(ToBool(strings[1]));
-                    break;
-                case CMKC_MUSIC_VOLUME:
-                    m_MusicVolume = atoi(strings[1].c_str());
-                    break;
-                case CMKC_FOOTSTEPS_SOUND:
-                    FootstepsSound = ToBool(strings[1]);
-                    break;
-                case CMKC_COMBAT_MUSIC:
-                    CombatMusic = ToBool(strings[1]);
-                    break;
-                case CMKC_BACKGROUND_SOUND:
-                    BackgroundSound = ToBool(strings[1]);
-                    break;
+                case CMKC_SOUND: SetSound(Core::ToBool(strings[1])); break;
+                case CMKC_SOUND_VOLUME: m_SoundVolume = atoi(strings[1].c_str()); break;
+                case CMKC_MUSIC: SetMusic(Core::ToBool(strings[1])); break;
+                case CMKC_MUSIC_VOLUME: m_MusicVolume = atoi(strings[1].c_str()); break;
+                case CMKC_FOOTSTEPS_SOUND: FootstepsSound = Core::ToBool(strings[1]); break;
+                case CMKC_COMBAT_MUSIC: CombatMusic = Core::ToBool(strings[1]); break;
+                case CMKC_BACKGROUND_SOUND: BackgroundSound = Core::ToBool(strings[1]); break;
 
                 //Page 2
-                case CMKC_CLIENT_FPS:
-                    SetClientFPS(atoi(strings[1].c_str()));
-                    break;
-                case CMKC_USE_SCALING:
-                    m_UseScaling = ToBool(strings[1]);
-                    break;
+                case CMKC_CLIENT_FPS: SetClientFPS(atoi(strings[1].c_str())); break;
+                case CMKC_USE_SCALING: m_UseScaling = Core::ToBool(strings[1]); break;
                 case CMKC_REMOVE_TEXT_WITH_BLENDING:
-                    RemoveTextWithBlending = ToBool(strings[1]);
+                    RemoveTextWithBlending = Core::ToBool(strings[1]);
                     break;
-                case CMKC_DRAW_STATUS_STATE:
-                    m_DrawStatusState = atoi(strings[1].c_str());
-                    break;
-                case CMKC_DRAW_STUMPS:
-                    SetDrawStumps(ToBool(strings[1]));
-                    break;
-                case CMKC_MARKING_CAVES:
-                    SetMarkingCaves(ToBool(strings[1]));
-                    break;
-                case CMKC_NO_ANIMATE_FIELDS:
-                    SetNoAnimateFields(ToBool(strings[1]));
-                    break;
-                case CMKC_NO_VEGETATION:
-                    SetNoVegetation(ToBool(strings[1]));
-                    break;
+                case CMKC_DRAW_STATUS_STATE: m_DrawStatusState = atoi(strings[1].c_str()); break;
+                case CMKC_DRAW_STUMPS: SetDrawStumps(Core::ToBool(strings[1])); break;
+                case CMKC_MARKING_CAVES: SetMarkingCaves(Core::ToBool(strings[1])); break;
+                case CMKC_NO_ANIMATE_FIELDS: SetNoAnimateFields(Core::ToBool(strings[1])); break;
+                case CMKC_NO_VEGETATION: SetNoVegetation(Core::ToBool(strings[1])); break;
                 case CMKC_HIDDEN_CHARACTERS_RENDER_MODE:
                     HiddenCharactersRenderMode = atoi(strings[1].c_str());
                     break;
-                case CMKC_HIDDEN_ALPHA:
-                    HiddenAlpha = atoi(strings[1].c_str());
-                    break;
+                case CMKC_HIDDEN_ALPHA: HiddenAlpha = atoi(strings[1].c_str()); break;
                 case CMKC_USE_HIDDEN_MODE_ONLY_FOR_SELF:
-                    UseHiddenModeOnlyForSelf = ToBool(strings[1]);
+                    UseHiddenModeOnlyForSelf = Core::ToBool(strings[1]);
                     break;
                 case CMKC_TRANSPARENT_SPELL_ICONS:
                     TransparentSpellIcons = atoi(strings[1].c_str());
                     break;
-                case CMKC_SPELL_ICON_ALPHA:
-                    m_SpellIconAlpha = atoi(strings[1].c_str());
-                    break;
-                case CMKC_OLD_STYLE_STATUSBAR:
-                    m_OldStyleStatusbar = ToBool(strings[1]);
-                    break;
+                case CMKC_SPELL_ICON_ALPHA: m_SpellIconAlpha = atoi(strings[1].c_str()); break;
+                case CMKC_OLD_STYLE_STATUSBAR: m_OldStyleStatusbar = Core::ToBool(strings[1]); break;
                 case CMKC_ORIGINAL_PARTY_STATUSBAR:
-                    m_OriginalPartyStatusbar = ToBool(strings[1]);
+                    m_OriginalPartyStatusbar = Core::ToBool(strings[1]);
                     break;
                 case CMKC_APPLY_STATE_COLOR_ON_CHARACTERS:
-                    SetApplyStateColorOnCharacters(ToBool(strings[1]));
+                    SetApplyStateColorOnCharacters(Core::ToBool(strings[1]));
                     break;
-                case CMKC_CHANGE_FIELDS_GRAPHIC:
-                    SetChangeFieldsGraphic(ToBool(strings[1]));
-                    break;
-                case CMKC_PAPERDOLL_SLOTS:
-                    SetPaperdollSlots(ToBool(strings[1]));
-                    break;
+                case CMKC_CHANGE_FIELDS_GRAPHIC: SetChangeFieldsGraphic(Core::ToBool(strings[1])); break;
+                case CMKC_PAPERDOLL_SLOTS: SetPaperdollSlots(Core::ToBool(strings[1])); break;
                 case CMKC_DRAW_STATUS_CONDITION_STATE:
                     DrawStatusConditionState = atoi(strings[1].c_str());
                     break;
@@ -1691,70 +1575,44 @@ bool CConfigManager::Load(const os_path &path)
                     DrawStatusConditionValue = atoi(strings[1].c_str());
                     break;
                 case CMKC_REMOVE_STATUSBARS_WITHOUT_OBJECTS:
-                    RemoveStatusbarsWithoutObjects = ToBool(strings[1]);
+                    RemoveStatusbarsWithoutObjects = Core::ToBool(strings[1]);
                     break;
                 case CMKC_SHOW_DEFAULT_CONSOLE_ENTRY_MODE:
-                    ShowDefaultConsoleEntryMode = ToBool(strings[1]);
+                    ShowDefaultConsoleEntryMode = Core::ToBool(strings[1]);
                     break;
-                case CMKC_DRAW_AURA_STATE:
-                    SetDrawAuraState(atoi(strings[1].c_str()));
-                    break;
+                case CMKC_DRAW_AURA_STATE: SetDrawAuraState(atoi(strings[1].c_str())); break;
                 case CMKC_DRAW_AURA_WITH_CTRL_PRESSED:
-                    DrawAuraWithCtrlPressed = ToBool(strings[1]);
+                    DrawAuraWithCtrlPressed = Core::ToBool(strings[1]);
                     break;
-                case CMKC_SCREENSHOT_FORMAT:
-                    ScreenshotFormat = atoi(strings[1].c_str());
-                    break;
+                case CMKC_SCREENSHOT_FORMAT: ScreenshotFormat = atoi(strings[1].c_str()); break;
                 case CMKC_SCALE_IMAGES_IN_PAPERDOLL_SLOTS:
-                    SetScaleImagesInPaperdollSlots(ToBool(strings[1]));
+                    SetScaleImagesInPaperdollSlots(Core::ToBool(strings[1]));
                     break;
                 case CMKC_REMOVE_OR_CREATE_OBJECTS_WITH_BLENDING:
-                    RemoveOrCreateObjectsWithBlending = ToBool(strings[1]);
+                    RemoveOrCreateObjectsWithBlending = Core::ToBool(strings[1]);
                     break;
-                case CMKC_DRAW_HELMETS_ON_SHROUD:
-                    DrawHelmetsOnShroud = ToBool(strings[1]);
-                    break;
-                case CMKC_USE_GLOBAL_MAP_LAYER:
-                    SetUseGlobalMapLayer(ToBool(strings[1]));
-                    break;
-                case CMKC_NO_DRAW_ROOFS:
-                    SetNoDrawRoofs(ToBool(strings[1]));
-                    break;
+                case CMKC_DRAW_HELMETS_ON_SHROUD: DrawHelmetsOnShroud = Core::ToBool(strings[1]); break;
+                case CMKC_USE_GLOBAL_MAP_LAYER: SetUseGlobalMapLayer(Core::ToBool(strings[1])); break;
+                case CMKC_NO_DRAW_ROOFS: SetNoDrawRoofs(Core::ToBool(strings[1])); break;
                 case CMKC_HIGHLIGHT_TARGET_BY_TYPE:
-                    HighlightTargetByType = ToBool(strings[1]);
+                    HighlightTargetByType = Core::ToBool(strings[1]);
                     break;
-                case CMKC_AUTO_DISPLAY_WORLD_MAP:
-                    AutoDisplayWorldMap = ToBool(strings[1]);
-                    break;
-                case CMKC_DISABLE_MACRO_IN_CHAT:
-                    DisableMacroInChat = ToBool(strings[1]);
-                    break;
-                case CMKC_CHECK_PING:
-                    CheckPing = ToBool(strings[1]);
-                    break;
-                case CMKC_PING_TIMER:
-                    SetPingTimer(atoi(strings[1].c_str()));
-                    break;
+                case CMKC_AUTO_DISPLAY_WORLD_MAP: AutoDisplayWorldMap = Core::ToBool(strings[1]); break;
+                case CMKC_DISABLE_MACRO_IN_CHAT: DisableMacroInChat = Core::ToBool(strings[1]); break;
+                case CMKC_CHECK_PING: CheckPing = Core::ToBool(strings[1]); break;
+                case CMKC_PING_TIMER: SetPingTimer(atoi(strings[1].c_str())); break;
                 case CMKC_CANCEL_NEW_TARGET_SYSTEM_ON_SHIFT_ESC:
-                    CancelNewTargetSystemOnShiftEsc = ToBool(strings[1]);
+                    CancelNewTargetSystemOnShiftEsc = Core::ToBool(strings[1]);
                     break;
                 case CMKC_DRAW_STATUS_FOR_HUMANOIDS:
-                    DrawStatusForHumanoids = ToBool(strings[1]);
+                    DrawStatusForHumanoids = Core::ToBool(strings[1]);
                     break;
 
                 //Page 3
-                case CMKC_USE_TOOLTIPS:
-                    UseToolTips = ToBool(strings[1]);
-                    break;
-                case CMKC_TOOLTIPS_TEXT_COLOR:
-                    ToolTipsTextColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_TOOLTIPS_TEXT_FONT:
-                    ToolTipsTextFont = atoi(strings[1].c_str());
-                    break;
-                case CMKC_TOOLTIPS_DELAY:
-                    ToolTipsDelay = atoi(strings[1].c_str());
-                    break;
+                case CMKC_USE_TOOLTIPS: UseToolTips = Core::ToBool(strings[1]); break;
+                case CMKC_TOOLTIPS_TEXT_COLOR: ToolTipsTextColor = atoi(strings[1].c_str()); break;
+                case CMKC_TOOLTIPS_TEXT_FONT: ToolTipsTextFont = atoi(strings[1].c_str()); break;
+                case CMKC_TOOLTIPS_DELAY: ToolTipsDelay = atoi(strings[1].c_str()); break;
 
                 //Page 4
                 case CMKC_CHAT_COLOR_INPUT_TEXT:
@@ -1766,33 +1624,23 @@ bool CConfigManager::Load(const os_path &path)
                 case CMKC_CHAT_COLOR_PLAYER_IN_MEMBER_LIST:
                     ChatColorPlayerInMemberList = atoi(strings[1].c_str());
                     break;
-                case CMKC_CHAT_COLOR_TEXT:
-                    ChatColorText = atoi(strings[1].c_str());
-                    break;
+                case CMKC_CHAT_COLOR_TEXT: ChatColorText = atoi(strings[1].c_str()); break;
                 case CMKC_CHAT_COLOR_PLAYER_NAME_WITHOUT:
                     ChatColorPlayerNameWithout = atoi(strings[1].c_str());
                     break;
-                case CMKC_CHAT_COLOR_MUTED:
-                    ChatColorMuted = atoi(strings[1].c_str());
-                    break;
+                case CMKC_CHAT_COLOR_MUTED: ChatColorMuted = atoi(strings[1].c_str()); break;
                 case CMKC_CHAT_COLOR_CHANNEL_MODERATOR_NAME:
                     ChatColorChannelModeratorName = atoi(strings[1].c_str());
                     break;
                 case CMKC_CHAT_COLOR_CHANNEL_MODERATOR_TEXT:
                     ChatColorChannelModeratorText = atoi(strings[1].c_str());
                     break;
-                case CMKC_CHAT_COLOR_MY_NAME:
-                    ChatColorMyName = atoi(strings[1].c_str());
-                    break;
-                case CMKC_CHAT_COLOR_MY_TEXT:
-                    ChatColorMyText = atoi(strings[1].c_str());
-                    break;
+                case CMKC_CHAT_COLOR_MY_NAME: ChatColorMyName = atoi(strings[1].c_str()); break;
+                case CMKC_CHAT_COLOR_MY_TEXT: ChatColorMyText = atoi(strings[1].c_str()); break;
                 case CMKC_CHAT_COLOR_SYSTEM_MESSAGE:
                     ChatColorSystemMessage = atoi(strings[1].c_str());
                     break;
-                case CMKC_CHAT_FONT:
-                    ChatFont = atoi(strings[1].c_str());
-                    break;
+                case CMKC_CHAT_FONT: ChatFont = atoi(strings[1].c_str()); break;
                 case CMKC_CHAT_COLOR_BG_OUTPUT_TEXT:
                     ChatColorBGOutputText = atoi(strings[1].c_str());
                     break;
@@ -1810,47 +1658,33 @@ bool CConfigManager::Load(const os_path &path)
                     break;
 
                 //Page 6
-                case CMKC_ENABLE_PATHFIND:
-                    EnablePathfind = ToBool(strings[1]);
-                    break;
-                case CMKC_HOLD_TAB_FOR_COMBAT:
-                    HoldTabForCombat = ToBool(strings[1]);
-                    break;
+                case CMKC_ENABLE_PATHFIND: EnablePathfind = Core::ToBool(strings[1]); break;
+                case CMKC_HOLD_TAB_FOR_COMBAT: HoldTabForCombat = Core::ToBool(strings[1]); break;
                 case CMKC_OFFSET_INTERFACE_WINDOWS:
-                    OffsetInterfaceWindows = ToBool(strings[1]);
+                    OffsetInterfaceWindows = Core::ToBool(strings[1]);
                     break;
-                case CMKC_AUTO_ARRANGE:
-                    AutoArrange = ToBool(strings[1]);
-                    break;
-                case CMKC_ALWAYS_RUN:
-                    AlwaysRun = ToBool(strings[1]);
-                    break;
-                case CMKC_DISABLE_MENUBAR:
-                    DisableMenubar = ToBool(strings[1]);
-                    break;
+                case CMKC_AUTO_ARRANGE: AutoArrange = Core::ToBool(strings[1]); break;
+                case CMKC_ALWAYS_RUN: AlwaysRun = Core::ToBool(strings[1]); break;
+                case CMKC_DISABLE_MENUBAR: DisableMenubar = Core::ToBool(strings[1]); break;
                 case CMKC_GRAY_OUT_OF_RANGE_OBJECTS:
-                    GrayOutOfRangeObjects = ToBool(strings[1]);
+                    GrayOutOfRangeObjects = Core::ToBool(strings[1]);
                     break;
                 case CMKC_DISABLE_NEW_TARGET_SYSTEM:
-                    DisableNewTargetSystem = ToBool(strings[1]);
+                    DisableNewTargetSystem = Core::ToBool(strings[1]);
                     break;
                 case CMKC_ITEMP_ROPERTIES_MODE:
                     m_ItemPropertiesMode = atoi(strings[1].c_str());
                     break;
-                case CMKC_ITEMP_ROPERTIES_ICON:
-                    m_ItemPropertiesIcon = ToBool(strings[1]);
-                    break;
-                case CMKC_OBJECT_HANDLES:
-                    ObjectHandles = ToBool(strings[1]);
-                    break;
+                case CMKC_ITEMP_ROPERTIES_ICON: m_ItemPropertiesIcon = Core::ToBool(strings[1]); break;
+                case CMKC_OBJECT_HANDLES: ObjectHandles = Core::ToBool(strings[1]); break;
                 case CMKC_REDUCE_FPS_UNACTIVE_WINDOW:
-                    SetReduceFPSUnactiveWindow(ToBool(strings[1]));
+                    SetReduceFPSUnactiveWindow(Core::ToBool(strings[1]));
                     break;
                 case CMKC_HOLD_SHIFT_FOR_CONTEXT_MENUS:
-                    HoldShiftForContextMenus = ToBool(strings[1]);
+                    HoldShiftForContextMenus = Core::ToBool(strings[1]);
                     break;
                 case CMKC_HOLD_SHIFT_FOR_ENABLE_PATHFIND:
-                    HoldShiftForEnablePathfind = ToBool(strings[1]);
+                    HoldShiftForEnablePathfind = Core::ToBool(strings[1]);
                     break;
                 case CMKC_CONTAINER_DEFAULT_X:
                     g_ContainerRect.DefaultX = atoi(strings[1].c_str());
@@ -1860,130 +1694,64 @@ bool CConfigManager::Load(const os_path &path)
                     break;
 
                 //Page 7
-                case CMKC_GAME_WINDOW_WIDTH:
-                    GameWindowWidth = atoi(strings[1].c_str());
-                    break;
-                case CMKC_GAME_WINDOW_HEIGHT:
-                    GameWindowHeight = atoi(strings[1].c_str());
-                    break;
-                case CMKC_SPEECH_DELAY:
-                    SpeechDelay = atoi(strings[1].c_str());
-                    break;
-                case CMKC_SCALE_SPEECH_DELAY:
-                    ScaleSpeechDelay = ToBool(strings[1]);
-                    break;
-                case CMKC_SPEECH_COLOR:
-                    SpeechColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_EMOTE_COLOR:
-                    EmoteColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_PARTY_MESSAGE_COLOR:
-                    PartyMessageColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_GUILD_MESSAGE_COLOR:
-                    GuildMessageColor = atoi(strings[1].c_str());
-                    break;
+                case CMKC_GAME_WINDOW_WIDTH: GameWindowWidth = atoi(strings[1].c_str()); break;
+                case CMKC_GAME_WINDOW_HEIGHT: GameWindowHeight = atoi(strings[1].c_str()); break;
+                case CMKC_SPEECH_DELAY: SpeechDelay = atoi(strings[1].c_str()); break;
+                case CMKC_SCALE_SPEECH_DELAY: ScaleSpeechDelay = Core::ToBool(strings[1]); break;
+                case CMKC_SPEECH_COLOR: SpeechColor = atoi(strings[1].c_str()); break;
+                case CMKC_EMOTE_COLOR: EmoteColor = atoi(strings[1].c_str()); break;
+                case CMKC_PARTY_MESSAGE_COLOR: PartyMessageColor = atoi(strings[1].c_str()); break;
+                case CMKC_GUILD_MESSAGE_COLOR: GuildMessageColor = atoi(strings[1].c_str()); break;
                 case CMKC_ALLIANCE_MESSAGE_COLOR:
                     AllianceMessageColor = atoi(strings[1].c_str());
                     break;
-                case CMKC_IGNORE_GUILD_MESSAGE:
-                    IgnoreGuildMessage = ToBool(strings[1]);
-                    break;
+                case CMKC_IGNORE_GUILD_MESSAGE: IgnoreGuildMessage = Core::ToBool(strings[1]); break;
                 case CMKC_IGNORE_ALLIANCE_MESSAGE:
-                    IgnoreAllianceMessage = ToBool(strings[1]);
+                    IgnoreAllianceMessage = Core::ToBool(strings[1]);
                     break;
-                case CMKC_DARK_NIGHTS:
-                    DarkNights = ToBool(strings[1]);
-                    break;
-                case CMKC_COLORED_LIGHTING:
-                    ColoredLighting = ToBool(strings[1]);
-                    break;
+                case CMKC_DARK_NIGHTS: DarkNights = Core::ToBool(strings[1]); break;
+                case CMKC_COLORED_LIGHTING: ColoredLighting = Core::ToBool(strings[1]); break;
                 case CMKC_STANDART_CHARACTERS_ANIMATION_DELAY:
-                    StandartCharactersAnimationDelay = ToBool(strings[1]);
+                    StandartCharactersAnimationDelay = Core::ToBool(strings[1]);
                     break;
                 case CMKC_STANDART_ITEMS_ANIMATION_DELAY:
-                    StandartItemsAnimationDelay = ToBool(strings[1]);
+                    StandartItemsAnimationDelay = Core::ToBool(strings[1]);
                     break;
                 case CMKC_LOCK_RESIZING_GAME_WINDOW:
-                    LockResizingGameWindow = ToBool(strings[1]);
+                    LockResizingGameWindow = Core::ToBool(strings[1]);
                     break;
-                case CMKC_LOCK_GUMPS_MOVING:
-                    LockGumpsMoving = ToBool(strings[1]);
-                    break;
+                case CMKC_LOCK_GUMPS_MOVING: LockGumpsMoving = Core::ToBool(strings[1]); break;
 
                 //Page 8
-                case CMKC_INNOCENT_COLOR:
-                    InnocentColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_FRIENDLY_COLOR:
-                    FriendlyColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_SOMEONE_COLOR:
-                    SomeoneColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_CRIMINAL_COLOR:
-                    CriminalColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_ENEMY_COLOR:
-                    EnemyColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_MURDERER_COLOR:
-                    MurdererColor = atoi(strings[1].c_str());
-                    break;
-                case CMKC_CRIMINAL_ACTIONS_QUERY:
-                    CriminalActionsQuery = ToBool(strings[1]);
-                    break;
+                case CMKC_INNOCENT_COLOR: InnocentColor = atoi(strings[1].c_str()); break;
+                case CMKC_FRIENDLY_COLOR: FriendlyColor = atoi(strings[1].c_str()); break;
+                case CMKC_SOMEONE_COLOR: SomeoneColor = atoi(strings[1].c_str()); break;
+                case CMKC_CRIMINAL_COLOR: CriminalColor = atoi(strings[1].c_str()); break;
+                case CMKC_ENEMY_COLOR: EnemyColor = atoi(strings[1].c_str()); break;
+                case CMKC_MURDERER_COLOR: MurdererColor = atoi(strings[1].c_str()); break;
+                case CMKC_CRIMINAL_ACTIONS_QUERY: CriminalActionsQuery = Core::ToBool(strings[1]); break;
 
                 //Page 9
-                case CMKC_SHOW_INCOMING_NAMES:
-                    ShowIncomingNames = ToBool(strings[1]);
-                    break;
-                case CMKC_USE_CIRCLE_TRANS:
-                    UseCircleTrans = ToBool(strings[1]);
-                    break;
-                case CMKC_STAT_REPORT:
-                    StatReport = ToBool(strings[1]);
-                    break;
-                case CMKC_CONSOLE_NEED_ENTER:
-                    SetConsoleNeedEnter(ToBool(strings[1]));
-                    break;
+                case CMKC_SHOW_INCOMING_NAMES: ShowIncomingNames = Core::ToBool(strings[1]); break;
+                case CMKC_USE_CIRCLE_TRANS: UseCircleTrans = Core::ToBool(strings[1]); break;
+                case CMKC_STAT_REPORT: StatReport = Core::ToBool(strings[1]); break;
+                case CMKC_CONSOLE_NEED_ENTER: SetConsoleNeedEnter(Core::ToBool(strings[1])); break;
                 case CMKC_CIRCLE_TRANS_RADIUS:
                     CircleTransRadius = atoi(strings[1].c_str());
                     g_CircleOfTransparency.Create(CircleTransRadius);
                     break;
-                case CMKC_SKILL_REPORT:
-                    SkillReport = atoi(strings[1].c_str());
-                    break;
-                case CMKC_SPEECH_FONT:
-                    SpeechFont = atoi(strings[1].c_str());
-                    break;
+                case CMKC_SKILL_REPORT: SkillReport = atoi(strings[1].c_str()); break;
+                case CMKC_SPEECH_FONT: SpeechFont = atoi(strings[1].c_str()); break;
 
                 //No page
-                case CMKC_GAME_WINDOW_X:
-                    GameWindowX = atoi(strings[1].c_str());
-                    break;
-                case CMKC_GAME_WINDOW_Y:
-                    GameWindowY = atoi(strings[1].c_str());
-                    break;
-                case CMKC_ZOOMED:
-                    zoomed = ToBool(strings[1]);
-                    break;
-                case CMKC_REAL_X:
-                    windowX = atoi(strings[1].c_str());
-                    break;
-                case CMKC_REAL_Y:
-                    windowY = atoi(strings[1].c_str());
-                    break;
-                case CMKC_REAL_WIDTH:
-                    windowWidth = atoi(strings[1].c_str());
-                    break;
-                case CMKC_REAL_HEIGHT:
-                    windowHeight = atoi(strings[1].c_str());
-                    break;
-                case CMKC_TOGGLE_BUFFICON_WINDOW:
-                    ToggleBufficonWindow = ToBool(strings[1]);
-                    break;
+                case CMKC_GAME_WINDOW_X: GameWindowX = atoi(strings[1].c_str()); break;
+                case CMKC_GAME_WINDOW_Y: GameWindowY = atoi(strings[1].c_str()); break;
+                case CMKC_ZOOMED: zoomed = Core::ToBool(strings[1]); break;
+                case CMKC_REAL_X: windowX = atoi(strings[1].c_str()); break;
+                case CMKC_REAL_Y: windowY = atoi(strings[1].c_str()); break;
+                case CMKC_REAL_WIDTH: windowWidth = atoi(strings[1].c_str()); break;
+                case CMKC_REAL_HEIGHT: windowHeight = atoi(strings[1].c_str()); break;
+                case CMKC_TOGGLE_BUFFICON_WINDOW: ToggleBufficonWindow = Core::ToBool(strings[1]); break;
                 case CMKC_DEVELOPER_MODE:
                     g_DeveloperMode = (DEVELOPER_MODE)atoi(strings[1].c_str());
                     break;
@@ -2002,8 +1770,7 @@ bool CConfigManager::Load(const os_path &path)
                 case CMKC_CHARACTER_BACKPACK_STYLE:
                     m_CharacterBackpackStyle = atoi(strings[1].c_str());
                     break;
-                default:
-                    break;
+                default: break;
             }
         }
     }
@@ -2054,186 +1821,190 @@ bool CConfigManager::Load(const os_path &path)
         }
         else
         {
-            windowWidth = 640;
+            windowWidth  = 640;
             windowHeight = 480;
         }
 
         if (zoomed)
         {
-            //g_OrionWindow.MaximizeWindow();
-            g_GameScreen.SetZoom(true);
+            g_gameWindow.Maximize();
         }
         else
         {
-            g_OrionWindow.SetPositionSize(windowX, windowY, windowWidth, windowHeight);
+            g_gameWindow.SetPosition(Core::TWindowPosition(windowX, windowY));
+            g_gameWindow.SetSize(Core::TWindowSize(windowWidth, windowHeight));
         }
 
         g_GL.UpdateRect();
     }
     else
     {
-        g_OrionWindow.MaximizeWindow();
+        g_gameWindow.Maximize();
     }
 
     return true;
 }
 
-void CConfigManager::Save(const os_path &path)
+void CConfigManager::Save(const std::filesystem::path& a_path)
 {
-    DEBUG_TRACE_FUNCTION;
-
-    Wisp::CTextFileWriter writer(path);
-    if (writer.Opened())
+    Core::File file(a_path, "w");
+    if (file)
     {
         //Page 1
-        writer.WriteBool("Sound", m_Sound);
-        writer.WriteInt("SoundVolume", m_SoundVolume);
-        writer.WriteBool("Music", m_Music);
-        writer.WriteInt("MusicVolume", m_MusicVolume);
-        writer.WriteBool("FootstepsSound", FootstepsSound);
-        writer.WriteBool("CombatMusic", CombatMusic);
-        writer.WriteBool("BackgroundSound", BackgroundSound);
+        file.Print("Sound=%s\n", (m_Sound ? "yes" : "no"));
+        file.Print("SoundVolume=%i\n", m_SoundVolume);
+        file.Print("Music=%s\n", (m_Music ? "yes" : "no"));
+        file.Print("MusicVolume=%i\n", m_MusicVolume);
+        file.Print("FootstepsSound=%s\n", (FootstepsSound ? "yes" : "no"));
+        file.Print("CombatMusic=%s\n", (CombatMusic ? "yes" : "no"));
+        file.Print("BackgroundSound=%s\n", (BackgroundSound ? "yes" : "no"));
 
         //Page 2
-        writer.WriteInt("ClientFPS", m_ClientFPS);
-        writer.WriteBool("UseScaling", m_UseScaling);
-        writer.WriteBool("RemoveTextWithBlending", RemoveTextWithBlending);
-        writer.WriteInt("DrawStatusState", m_DrawStatusState);
-        writer.WriteBool("DrawStumps", m_DrawStumps);
-        writer.WriteBool("MarkingCaves", m_MarkingCaves);
-        writer.WriteBool("NoAnimateFields", m_NoAnimateFields);
-        writer.WriteBool("NoVegetation", m_NoVegetation);
-        writer.WriteInt("HiddenCharactersRenderMode", HiddenCharactersRenderMode);
-        writer.WriteInt("HiddenAlpha", HiddenAlpha);
-        writer.WriteBool("UseHiddenModeOnlyForSelf", UseHiddenModeOnlyForSelf);
-        writer.WriteInt("TransparentSpellIcons", TransparentSpellIcons);
-        writer.WriteInt("SpellIconAlpha", m_SpellIconAlpha);
-        writer.WriteBool("OldStyleStatusbar", m_OldStyleStatusbar);
-        writer.WriteBool("OriginalPartyStatusbar", m_OriginalPartyStatusbar);
-        writer.WriteBool("ApplyStateColorOnCharacters", m_ApplyStateColorOnCharacters);
-        writer.WriteBool("ChangeFieldsGraphic", m_ChangeFieldsGraphic);
-        writer.WriteBool("PaperdollSlots", m_PaperdollSlots);
-        writer.WriteInt("DrawStatusConditionState", DrawStatusConditionState);
-        writer.WriteInt("DrawStatusConditionValue", DrawStatusConditionValue);
-        writer.WriteBool("RemoveStatusbarsWithoutObjects", RemoveStatusbarsWithoutObjects);
-        writer.WriteBool("ShowDefaultConsoleEntryMode", ShowDefaultConsoleEntryMode);
-        writer.WriteInt("DrawAuraState", m_DrawAuraState);
-        writer.WriteBool("DrawAuraWithCtrlPressed", DrawAuraWithCtrlPressed);
-        writer.WriteInt("ScreenshotFormat", ScreenshotFormat);
-        writer.WriteBool("ScaleImagesInPaperdollSlots", m_ScaleImagesInPaperdollSlots);
-        writer.WriteBool("RemoveOrCreateObjectsWithBlending", RemoveOrCreateObjectsWithBlending);
-        writer.WriteBool("DrawHelmetsOnShroud", DrawHelmetsOnShroud);
-        writer.WriteBool("UseGlobalMapLayer", m_UseGlobalMapLayer);
-        writer.WriteBool("NoDrawRoofs", m_NoDrawRoofs);
-        writer.WriteBool("HighlightTargetByType", HighlightTargetByType);
-        writer.WriteBool("AutoDisplayWorldMap", AutoDisplayWorldMap);
-        writer.WriteBool("DisableMacroInChat", DisableMacroInChat);
-        writer.WriteBool("CheckPing", CheckPing);
-        writer.WriteInt("PingTimer", m_PingTimer);
-        writer.WriteBool("CancelNewTargetSystemOnShiftEsc", CancelNewTargetSystemOnShiftEsc);
-        writer.WriteBool("DrawStatusForHumanoids", DrawStatusForHumanoids);
+        file.Print("ClientFPS=%i\n", m_ClientFPS);
+        file.Print("UseScaling=%s\n", (m_UseScaling ? "yes" : "no"));
+        file.Print("RemoveTextWithBlending=%s\n", (RemoveTextWithBlending ? "yes" : "no"));
+        file.Print("DrawStatusState=%i\n", m_DrawStatusState);
+        file.Print("DrawStumps=%s\n", (m_DrawStumps ? "yes" : "no"));
+        file.Print("MarkingCaves=%s\n", (m_MarkingCaves ? "yes" : "no"));
+        file.Print("NoAnimateFields=%s\n", (m_NoAnimateFields ? "yes" : "no"));
+        file.Print("NoVegetation=%s\n", (m_NoVegetation ? "yes" : "no"));
+        file.Print("HiddenCharactersRenderMode=%i\n", HiddenCharactersRenderMode);
+        file.Print("HiddenAlpha=%i\n", HiddenAlpha);
+        file.Print("UseHiddenModeOnlyForSelf=%s\n", (UseHiddenModeOnlyForSelf ? "yes" : "no"));
+        file.Print("TransparentSpellIcons=%i\n", TransparentSpellIcons);
+        file.Print("SpellIconAlpha=%i\n", m_SpellIconAlpha);
+        file.Print("OldStyleStatusbar=%s\n", (m_OldStyleStatusbar ? "yes" : "no"));
+        file.Print("OriginalPartyStatusbar=%s\n", (m_OriginalPartyStatusbar ? "yes" : "no"));
+        file.Print(
+            "ApplyStateColorOnCharacters=%s\n", (m_ApplyStateColorOnCharacters ? "yes" : "no"));
+        file.Print("ChangeFieldsGraphic=%s\n", (m_ChangeFieldsGraphic ? "yes" : "no"));
+        file.Print("PaperdollSlots=%s\n", (m_PaperdollSlots ? "yes" : "no"));
+        file.Print("DrawStatusConditionState=%i\n", DrawStatusConditionState);
+        file.Print("DrawStatusConditionValue=%i\n", DrawStatusConditionValue);
+        file.Print(
+            "RemoveStatusbarsWithoutObjects=%s\n", (RemoveStatusbarsWithoutObjects ? "yes" : "no"));
+        file.Print(
+            "ShowDefaultConsoleEntryMode=%s\n", (ShowDefaultConsoleEntryMode ? "yes" : "no"));
+        file.Print("DrawAuraState=%i\n", m_DrawAuraState);
+        file.Print("DrawAuraWithCtrlPressed=%s\n", (DrawAuraWithCtrlPressed ? "yes" : "no"));
+        file.Print("ScreenshotFormat=%i\n", ScreenshotFormat);
+        file.Print(
+            "ScaleImagesInPaperdollSlots=%s\n", (m_ScaleImagesInPaperdollSlots ? "yes" : "no"));
+        file.Print(
+            "RemoveOrCreateObjectsWithBlending=%s\n",
+            (RemoveOrCreateObjectsWithBlending ? "yes" : "no"));
+        file.Print("DrawHelmetsOnShroud=%s\n", (DrawHelmetsOnShroud ? "yes" : "no"));
+        file.Print("UseGlobalMapLayer=%s\n", (m_UseGlobalMapLayer ? "yes" : "no"));
+        file.Print("NoDrawRoofs=%s\n", (m_NoDrawRoofs ? "yes" : "no"));
+        file.Print("HighlightTargetByType=%s\n", (HighlightTargetByType ? "yes" : "no"));
+        file.Print("AutoDisplayWorldMap=%s\n", (AutoDisplayWorldMap ? "yes" : "no"));
+        file.Print("DisableMacroInChat=%s\n", (DisableMacroInChat ? "yes" : "no"));
+        file.Print("CheckPing=%s\n", (CheckPing ? "yes" : "no"));
+        file.Print("PingTimer=%i\n", m_PingTimer);
+        file.Print(
+            "CancelNewTargetSystemOnShiftEsc=%s\n",
+            (CancelNewTargetSystemOnShiftEsc ? "yes" : "no"));
+        file.Print("DrawStatusForHumanoids=%s\n", (DrawStatusForHumanoids ? "yes" : "no"));
 
         //Page 3
-        writer.WriteBool("UseToolTips", UseToolTips);
-        writer.WriteInt("ToolTipsTextColor", ToolTipsTextColor);
-        writer.WriteInt("ToolTipsTextFont", ToolTipsTextFont);
-        writer.WriteInt("ToolTipsDelay", ToolTipsDelay);
+        file.Print("UseToolTips=%s\n", (UseToolTips ? "yes" : "no"));
+        file.Print("ToolTipsTextColor=%i\n", ToolTipsTextColor);
+        file.Print("ToolTipsTextFont=%i\n", ToolTipsTextFont);
+        file.Print("ToolTipsDelay=%i\n", ToolTipsDelay);
 
         //Page 4
-        writer.WriteInt("ChatColorInputText", ChatColorInputText);
-        writer.WriteInt("ChatColorMenuOption", ChatColorMenuOption);
-        writer.WriteInt("ChatColorPlayerInMemberList", ChatColorPlayerInMemberList);
-        writer.WriteInt("ChatColorText", ChatColorText);
-        writer.WriteInt("ChatColorPlayerNameWithout", ChatColorPlayerNameWithout);
-        writer.WriteInt("ChatColorMuted", ChatColorMuted);
-        writer.WriteInt("ChatColorChannelModeratorName", ChatColorChannelModeratorName);
-        writer.WriteInt("ChatColorChannelModeratorText", ChatColorChannelModeratorText);
-        writer.WriteInt("ChatColorMyName", ChatColorMyName);
-        writer.WriteInt("ChatColorMyText", ChatColorMyText);
-        writer.WriteInt("ChatColorSystemMessage", ChatColorSystemMessage);
-        writer.WriteInt("ChatFont", ChatFont);
-        writer.WriteInt("ChatColorBGOutputText", ChatColorBGOutputText);
-        writer.WriteInt("ChatColorBGInputText", ChatColorBGInputText);
-        writer.WriteInt("ChatColorBGUserList", ChatColorBGUserList);
-        writer.WriteInt("ChatColorBGConfList", ChatColorBGConfList);
-        writer.WriteInt("ChatColorBGCommandList", ChatColorBGCommandList);
+        file.Print("ChatColorInputText=%i\n", ChatColorInputText);
+        file.Print("ChatColorMenuOption=%i\n", ChatColorMenuOption);
+        file.Print("ChatColorPlayerInMemberList=%i\n", ChatColorPlayerInMemberList);
+        file.Print("ChatColorText=%i\n", ChatColorText);
+        file.Print("ChatColorPlayerNameWithout=%i\n", ChatColorPlayerNameWithout);
+        file.Print("ChatColorMuted=%i\n", ChatColorMuted);
+        file.Print("ChatColorChannelModeratorName=%i\n", ChatColorChannelModeratorName);
+        file.Print("ChatColorChannelModeratorText=%i\n", ChatColorChannelModeratorText);
+        file.Print("ChatColorMyName=%i\n", ChatColorMyName);
+        file.Print("ChatColorMyText=%i\n", ChatColorMyText);
+        file.Print("ChatColorSystemMessage=%i\n", ChatColorSystemMessage);
+        file.Print("ChatFont=%i\n", ChatFont);
+        file.Print("ChatColorBGOutputText=%i\n", ChatColorBGOutputText);
+        file.Print("ChatColorBGInputText=%i\n", ChatColorBGInputText);
+        file.Print("ChatColorBGUserList=%i\n", ChatColorBGUserList);
+        file.Print("ChatColorBGConfList=%i\n", ChatColorBGConfList);
+        file.Print("ChatColorBGCommandList=%i\n", ChatColorBGCommandList);
 
         //Page 6
-        writer.WriteBool("EnablePathfind", EnablePathfind);
-        writer.WriteBool("HoldTabForCombat", HoldTabForCombat);
-        writer.WriteBool("OffsetInterfaceWindows", OffsetInterfaceWindows);
-        writer.WriteBool("AutoArrange", AutoArrange);
-        writer.WriteBool("AlwaysRun", AlwaysRun);
-        writer.WriteBool("DisableMenubar", DisableMenubar);
-        writer.WriteBool("GrayOutOfRangeObjects", GrayOutOfRangeObjects);
-        writer.WriteBool("DisableNewTargetSystem", DisableNewTargetSystem);
-        writer.WriteInt("ItemPropertiesMode", m_ItemPropertiesMode);
-        writer.WriteBool("ItemPropertiesIcon", m_ItemPropertiesIcon);
-        writer.WriteBool("ObjectHandles", ObjectHandles);
-        writer.WriteBool("ReduceFPSUnactiveWindow", m_ReduceFPSUnactiveWindow);
-        writer.WriteBool("HoldShiftForContextMenus", HoldShiftForContextMenus);
-        writer.WriteBool("HoldShiftForEnablePathfind", HoldShiftForEnablePathfind);
-        writer.WriteInt("ContainerDefaultX", g_ContainerRect.DefaultX);
-        writer.WriteInt("ContainerDefaultY", g_ContainerRect.DefaultY);
-        writer.WriteInt("CharacterBackpackStyle", GetCharacterBackpackStyle());
+        file.Print("EnablePathfind=%s\n", (EnablePathfind ? "yes" : "no"));
+        file.Print("HoldTabForCombat=%s\n", (HoldTabForCombat ? "yes" : "no"));
+        file.Print("OffsetInterfaceWindows=%s\n", (OffsetInterfaceWindows ? "yes" : "no"));
+        file.Print("AutoArrange=%s\n", (AutoArrange ? "yes" : "no"));
+        file.Print("AlwaysRun=%s\n", (AlwaysRun ? "yes" : "no"));
+        file.Print("DisableMenubar=%s\n", (DisableMenubar ? "yes" : "no"));
+        file.Print("GrayOutOfRangeObjects=%s\n", (GrayOutOfRangeObjects ? "yes" : "no"));
+        file.Print("DisableNewTargetSystem=%s\n", (DisableNewTargetSystem ? "yes" : "no"));
+        file.Print("ItemPropertiesMode=%i\n", m_ItemPropertiesMode);
+        file.Print("ItemPropertiesIcon=%s\n", (m_ItemPropertiesIcon ? "yes" : "no"));
+        file.Print("ObjectHandles=%s\n", (ObjectHandles ? "yes" : "no"));
+        file.Print("ReduceFPSUnactiveWindow=%s\n", (m_ReduceFPSUnactiveWindow ? "yes" : "no"));
+        file.Print("HoldShiftForContextMenus=%s\n", (HoldShiftForContextMenus ? "yes" : "no"));
+        file.Print("HoldShiftForEnablePathfind=%s\n", (HoldShiftForEnablePathfind ? "yes" : "no"));
+        file.Print("ContainerDefaultX=%i\n", g_ContainerRect.DefaultX);
+        file.Print("ContainerDefaultY=%i\n", g_ContainerRect.DefaultY);
+        file.Print("CharacterBackpackStyle=%i\n", GetCharacterBackpackStyle());
 
         //Page 7
-        writer.WriteInt("GameWindowWidth", GameWindowWidth);
-        writer.WriteInt("GameWindowHeight", GameWindowHeight);
-        writer.WriteInt("SpeechDelay", SpeechDelay);
-        writer.WriteBool("ScaleSpeechDelay", ScaleSpeechDelay);
-        writer.WriteInt("SpeechColor", SpeechColor);
-        writer.WriteInt("EmoteColor", EmoteColor);
-        writer.WriteInt("PartyMessageColor", PartyMessageColor);
-        writer.WriteInt("GuildMessageColor", GuildMessageColor);
-        writer.WriteInt("AllianceMessageColor", AllianceMessageColor);
-        writer.WriteBool("IgnoreGuildMessage", IgnoreGuildMessage);
-        writer.WriteBool("IgnoreAllianceMessage", IgnoreAllianceMessage);
-        writer.WriteBool("DarkNights", DarkNights);
-        writer.WriteBool("ColoredLighting", ColoredLighting);
-        writer.WriteBool("StandartCharactersAnimationDelay", StandartCharactersAnimationDelay);
-        writer.WriteBool("StandartItemsAnimationDelay", StandartItemsAnimationDelay);
-        writer.WriteBool("LockResizingGameWindow", LockResizingGameWindow);
-        writer.WriteBool("LockGumpsMoving", LockGumpsMoving);
+        file.Print("GameWindowWidth=%i\n", GameWindowWidth);
+        file.Print("GameWindowHeight=%i\n", GameWindowHeight);
+        file.Print("SpeechDelay=%i\n", SpeechDelay);
+        file.Print("ScaleSpeechDelay=%s\n", (ScaleSpeechDelay ? "yes" : "no"));
+        file.Print("SpeechColor=%i\n", SpeechColor);
+        file.Print("EmoteColor=%i\n", EmoteColor);
+        file.Print("PartyMessageColor=%i\n", PartyMessageColor);
+        file.Print("GuildMessageColor=%i\n", GuildMessageColor);
+        file.Print("AllianceMessageColor=%i\n", AllianceMessageColor);
+        file.Print("IgnoreGuildMessage=%s\n", (IgnoreGuildMessage ? "yes" : "no"));
+        file.Print("IgnoreAllianceMessage=%s\n", (IgnoreAllianceMessage ? "yes" : "no"));
+        file.Print("DarkNights=%s\n", (DarkNights ? "yes" : "no"));
+        file.Print("ColoredLighting=%s\n", (ColoredLighting ? "yes" : "no"));
+        file.Print(
+            "StandartCharactersAnimationDelay=%s\n",
+            (StandartCharactersAnimationDelay ? "yes" : "no"));
+        file.Print(
+            "StandartItemsAnimationDelay=%s\n", (StandartItemsAnimationDelay ? "yes" : "no"));
+        file.Print("LockResizingGameWindow=%s\n", (LockResizingGameWindow ? "yes" : "no"));
+        file.Print("LockGumpsMoving=%s\n", (LockGumpsMoving ? "yes" : "no"));
 
         //Page 8
-        writer.WriteInt("InnocentColor", InnocentColor);
-        writer.WriteInt("FriendlyColor", FriendlyColor);
-        writer.WriteInt("SomeoneColor", SomeoneColor);
-        writer.WriteInt("CriminalColor", CriminalColor);
-        writer.WriteInt("EnemyColor", EnemyColor);
-        writer.WriteInt("MurdererColor", MurdererColor);
-        writer.WriteBool("CriminalActionsQuery", CriminalActionsQuery);
+        file.Print("InnocentColor=%i\n", InnocentColor);
+        file.Print("FriendlyColor=%i\n", FriendlyColor);
+        file.Print("SomeoneColor=%i\n", SomeoneColor);
+        file.Print("CriminalColor=%i\n", CriminalColor);
+        file.Print("EnemyColor=%i\n", EnemyColor);
+        file.Print("MurdererColor=%i\n", MurdererColor);
+        file.Print("CriminalActionsQuery=%s\n", (CriminalActionsQuery ? "yes" : "no"));
 
         //Page 9
-        writer.WriteBool("ShowIncomingNames", ShowIncomingNames);
-        writer.WriteBool("UseCircleTrans", UseCircleTrans);
-        writer.WriteBool("StatReport", StatReport);
-        writer.WriteBool("ConsoleNeedEnter", m_ConsoleNeedEnter);
-        writer.WriteInt("CircleTransRadius", CircleTransRadius);
-        writer.WriteInt("SkillReport", SkillReport);
-        writer.WriteInt("SpeechFont", SpeechFont);
+        file.Print("ShowIncomingNames=%s\n", (ShowIncomingNames ? "yes" : "no"));
+        file.Print("UseCircleTrans=%s\n", (UseCircleTrans ? "yes" : "no"));
+        file.Print("StatReport=%s\n", (StatReport ? "yes" : "no"));
+        file.Print("ConsoleNeedEnter=%s\n", (m_ConsoleNeedEnter ? "yes" : "no"));
+        file.Print("CircleTransRadius=%i\n", CircleTransRadius);
+        file.Print("SkillReport=%i\n", SkillReport);
+        file.Print("SpeechFont=%i\n", SpeechFont);
 
         //No page
-        writer.WriteInt("GameWindowX", GameWindowX);
-        writer.WriteInt("GameWindowY", GameWindowY);
+        file.Print("GameWindowX=%i\n", GameWindowX);
+        file.Print("GameWindowY=%i\n", GameWindowY);
 
-        writer.WriteBool("Zoomed", g_OrionWindow.IsMaximizedWindow());
+        file.Print("Zoomed=%s\n", (g_gameWindow.IsMaximized() ? "yes" : "no"));
 
-        int x, y, w, h;
-        g_OrionWindow.GetPositionSize(&x, &y, &w, &h);
+        Core::TWindowPosition windowPos = g_gameWindow.GetPosition();
+        Core::TWindowSize windowSize = g_gameWindow.GetSize();
 
-        writer.WriteInt("RealX", x);
-        writer.WriteInt("RealY", y);
-        writer.WriteInt("RealWidth", w);
-        writer.WriteInt("RealHeight", h);
+        file.Print("RealX=%i\n", windowPos.x);
+        file.Print("RealY=%i\n", windowPos.y);
+        file.Print("RealWidth=%i\n", windowSize.x);
+        file.Print("RealHeight=%i\n", windowSize.y);
 
-        writer.WriteBool("ToggleBufficonWindow", ToggleBufficonWindow);
-        writer.WriteInt("DeveloperMode", g_DeveloperMode);
-
-        writer.WriteString("LastServer", g_ServerList.LastServerName);
-        writer.WriteString("LastCharacter", g_CharacterList.LastCharacterName);
-
-        writer.Close();
+        file.Print("ToggleBufficonWindow=%s\n", (ToggleBufficonWindow ? "yes" : "no"));
+        file.Print("DeveloperMode=%i\n", g_DeveloperMode);
     }
 }

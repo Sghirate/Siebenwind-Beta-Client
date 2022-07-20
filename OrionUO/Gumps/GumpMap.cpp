@@ -1,13 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
-#include <SDL_rect.h>
 #include "GumpMap.h"
-#include "../OrionUO.h"
-#include "../SelectedObject.h"
-#include "../PressedObject.h"
-#include "../Managers/MouseManager.h"
-#include "../Network/Packets.h"
+#include "Globals.h"
+#include "OrionUO.h"
+#include "SelectedObject.h"
+#include "PressedObject.h"
+#include "Managers/MouseManager.h"
+#include "Network/Packets.h"
 
 enum
 {
@@ -20,8 +17,8 @@ enum
 };
 
 CGumpMap::CGumpMap(
-    uint32_t serial,
-    uint16_t graphic,
+    u32 serial,
+    u16 graphic,
     int startX,
     int startY,
     int endX,
@@ -36,7 +33,6 @@ CGumpMap::CGumpMap(
     , Width(width)
     , Height(height)
 {
-    DEBUG_TRACE_FUNCTION;
     Graphic = graphic;
 
     Add(new CGUIResizepic(0, 0x1432, 0, 0, Width + 44, Height + 61)); //Map Gump
@@ -72,7 +68,6 @@ CGumpMap::~CGumpMap()
 
 void CGumpMap::SetPlotState(int val)
 {
-    DEBUG_TRACE_FUNCTION;
     m_PlotState = val;
     m_PlotCourse->Visible = (val == 0);
     m_StopPlotting->Visible = (val == 1);
@@ -83,7 +78,6 @@ void CGumpMap::SetPlotState(int val)
 
 int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
 {
-    DEBUG_TRACE_FUNCTION;
     int tempX = x2 - x1;
     int tempY = y2 - y1;
 
@@ -118,25 +112,21 @@ int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
     int endX2 = x1 + offsX;
     int endY2 = y1 + offsY;
 
-    tempX = g_MouseManager.Position.X - x1;
-    tempY = g_MouseManager.Position.Y - y1;
+    tempX = g_MouseManager.GetPosition().x - x1;
+    tempY = g_MouseManager.GetPosition().y - y1;
 
     offsX = (int)((tempX * cosA) - (tempY * sinA));
     offsY = (int)((tempX * sinA) + (tempY * cosA));
 
-    SDL_Point mousePoint = { x1 + offsX, y1 + offsY };
-
+    Core::Vec2<int> mousePos(x1 + offsX, y1 + offsY);
     const int polyOffset = 5;
 
     int result = 0;
 
     if (!inverseCheck)
     {
-        SDL_Rect lineRect = {
-            x1 - polyOffset, y1 - polyOffset, endX2 + polyOffset, endY2 + polyOffset
-        };
-
-        if (SDL_PointInRect(&mousePoint, &lineRect) != 0u)
+        Core::Rect<int> lineRect(x1 - polyOffset, y1 - polyOffset, endX2 + polyOffset, endY2 + polyOffset);
+        if (lineRect.contains(mousePos))
         {
             x1 = x1 + ((x2 - x1) / 2);
             y1 = y1 + ((y2 - y1) / 2);
@@ -146,11 +136,8 @@ int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
     }
     else
     {
-        SDL_Rect lineRect = {
-            endX2 - polyOffset, endY2 - polyOffset, x1 + polyOffset, y1 + polyOffset
-        };
-
-        if (SDL_PointInRect(&mousePoint, &lineRect) != 0u)
+        Core::Rect<int> lineRect(endX2 - polyOffset, endY2 - polyOffset, x1 + polyOffset, y1 + polyOffset);
+        if (lineRect.contains(mousePos))
         {
             x1 = x2 + ((x1 - x2) / 2);
             y1 = y2 + ((y1 - y2) / 2);
@@ -164,7 +151,6 @@ int CGumpMap::LineUnderMouse(int &x1, int &y1, int x2, int y2)
 
 void CGumpMap::PrepareContent()
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_DataBox != nullptr)
     {
         int serial = 1;
@@ -182,9 +168,9 @@ void CGumpMap::PrepareContent()
         {
             if (m_PinOnCursor == nullptr)
             {
-                CPoint2Di offset = g_MouseManager.LeftDroppedOffset();
+                Core::TMousePos offset = g_MouseManager.GetLeftDroppedOffset();
 
-                if (((offset.X != 0) || (offset.Y != 0)) &&
+                if (((offset.x != 0) || (offset.y != 0)) &&
                     g_PressedObject.LeftSerial > ID_GM_PIN_LIST &&
                     g_PressedObject.LeftSerial < ID_GM_PIN_LIST_INSERT && m_PinTimer > g_Ticks)
                 {
@@ -194,13 +180,10 @@ void CGumpMap::PrepareContent()
 
             if (m_PinOnCursor != nullptr)
             {
-                int newX = g_MouseManager.Position.X - (m_X + 20);
-                int newY = g_MouseManager.Position.Y - (m_Y + 30);
-
-                WantRedraw = (m_PinOnCursor->GetX() != newX || m_PinOnCursor->GetY() != newY);
-
-                m_PinOnCursor->SetX(newX);
-                m_PinOnCursor->SetY(newY);
+                Core::TMousePos newPos = g_MouseManager.GetPosition() - Core::TMousePos(m_X + 20, m_Y + 30);
+                WantRedraw = (m_PinOnCursor->GetX() != newPos.x || m_PinOnCursor->GetY() != newPos.y);
+                m_PinOnCursor->SetX(newPos.x);
+                m_PinOnCursor->SetY(newPos.y);
             }
         }
 
@@ -210,7 +193,6 @@ void CGumpMap::PrepareContent()
 
 void CGumpMap::GenerateFrame(bool stop)
 {
-    DEBUG_TRACE_FUNCTION;
 
     //m_Labels
 
@@ -305,15 +287,12 @@ void CGumpMap::GenerateFrame(bool stop)
 
 CRenderObject *CGumpMap::Select()
 {
-    DEBUG_TRACE_FUNCTION;
     CRenderObject *selected = CGump::Select();
 
     if (m_DataBox != nullptr)
     {
-        CPoint2Di oldPos = g_MouseManager.Position;
-        g_MouseManager.Position =
-            CPoint2Di(oldPos.X - (int)g_GumpTranslate.X, oldPos.Y - (int)g_GumpTranslate.Y);
-
+        Core::TMousePos oldPos = g_MouseManager.GetPosition();
+        g_MouseManager.SetPosition(oldPos - Core::TMousePos(g_GumpTranslate.x, g_GumpTranslate.y));
         QFOR(item, m_DataBox->m_Items, CBaseGUI *)
         {
             int drawX = item->GetX() + 18;
@@ -342,16 +321,13 @@ CRenderObject *CGumpMap::Select()
                 g_SelectedObject.Serial = item->Serial + ID_GM_PIN_LIST;
             }
         }
-
-        g_MouseManager.Position = oldPos;
+        g_MouseManager.SetPosition(oldPos);
     }
-
     return selected;
 }
 
 void CGumpMap::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GM_PLOT_COURSE || serial == ID_GM_STOP_PLOTTING) //Plot Course /Stop Plotting
     {
         CPacketMapMessage(Serial, MM_EDIT, m_PlotState).Send();
@@ -371,7 +347,6 @@ void CGumpMap::GUMP_BUTTON_EVENT_C
 
 void CGumpMap::OnLeftMouseButtonDown()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonDown();
 
     m_PinTimer = g_Ticks + 300;
@@ -379,7 +354,6 @@ void CGumpMap::OnLeftMouseButtonDown()
 
 void CGumpMap::OnLeftMouseButtonUp()
 {
-    DEBUG_TRACE_FUNCTION;
     CGump::OnLeftMouseButtonUp();
 
     if (m_DataBox != nullptr && g_PressedObject.LeftObject != nullptr)
@@ -430,8 +404,8 @@ void CGumpMap::OnLeftMouseButtonUp()
 
                 if (g_Orion.PolygonePixelsInXY(x, y, Width, Height))
                 {
-                    x = g_MouseManager.Position.X - x - 4;
-                    y = g_MouseManager.Position.Y - y - 2;
+                    x = g_MouseManager.GetPosition().x - x - 4;
+                    y = g_MouseManager.GetPosition().y - y - 2;
 
                     CPacketMapMessage(Serial, MM_ADD, 0, x, y).Send();
 
@@ -451,8 +425,8 @@ void CGumpMap::OnLeftMouseButtonUp()
 
         if (g_Orion.PolygonePixelsInXY(x, y, Width, Height))
         {
-            x = g_MouseManager.Position.X - (x - 4);
-            y = g_MouseManager.Position.Y - (y - 2);
+            x = g_MouseManager.GetPosition().x - (x - 4);
+            y = g_MouseManager.GetPosition().y - (y - 2);
 
             m_PinOnCursor->SetX(x);
             m_PinOnCursor->SetY(y);

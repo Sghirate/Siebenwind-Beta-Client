@@ -1,10 +1,7 @@
-﻿// MIT License
-// Copyright (C) August 2016 Hotride
-
 #pragma once
 
 #include "BaseGUI.h"
-#include "../Backend.h"
+#include "Backend.h"
 
 class CGUIBlending : public CBaseGUI
 {

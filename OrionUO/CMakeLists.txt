@@ -1,40 +1,3 @@
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-  add_definitions(-DNOMINMAX)
-  add_definitions(-DUNICODE)
-  add_definitions(-D_UNICODE)
-  add_definitions(-DWIN32_LEAN_AND_MEAN)
-  add_definitions(-D_WIN32_WINNT=0x0602)
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-else()
-  #thread sanitizer - issues to fix
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  #set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -fsanitize-blacklist=blacklist.txt")
-  #set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=memory -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -fsanitize-blacklist=blacklist.txt")
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=undefined")
-  #set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=undefined")
-endif()
-
-if(ORION_WISP)
-  add_definitions(-DUSE_WISP=1)
-else()
-  add_definitions(-DUSE_WISP=0)
-endif()
-
-if(ORION_BASS)
-  add_definitions(-DUSE_BASS=1)
-else()
-  add_definitions(-DUSE_BASS=0)
-endif()
-
-if(ORION_THREADED)
-    add_definitions(-DUSE_TIMERTHREAD=1)
-else()
-    add_definitions(-DUSE_TIMERTHREAD=0)
-endif()
-
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   # enable the latest C++ standard feature set,
   # and also disable MSVC specific extensions
@@ -58,20 +21,34 @@ endif()
 add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 
-set(wisp_src
-  Wisp/WispApplication.cpp
-  Wisp/WispConnection.cpp
-  Wisp/WispMouse.cpp
-  Wisp/WispPacketReader.cpp
-  Wisp/WispThread.cpp
-  Wisp/WispWindow.cpp
-  Wisp/WispBinaryFileWriter.cpp
-  Wisp/WispDataStream.cpp
-  Wisp/WispMappedFile.cpp
-  Wisp/WispPacketMessage.cpp
-  Wisp/WispTextFileParser.cpp
-  Wisp/WispThreadedTimer.cpp
+set(core_src
+  Core/App.cpp
+  Core/CommandLine.cpp
+  Core/Connection.cpp
+  Core/Console.cpp
+  Core/Core.cpp
+  Core/DataStream.cpp
+  Core/File.cpp
+  Core/Log.cpp
+  Core/MappedFile.cpp
+  Core/PacketMessage.cpp
+  Core/PacketReader.cpp
+  Core/Platform.cpp
+  Core/Random.cpp
+  Core/Sockets.cpp
+  Core/StringUtils.cpp
+  Core/Time.cpp
+  Core/TextFileParser.cpp
 )
+if(ORION_WITH_SDL2)
+  set(core_src ${core_src}
+    Core/SDL2/SDL2App.cpp
+    Core/SDL2/SDL2Input.cpp
+    Core/SDL2/SDL2Platform.cpp
+    Core/SDL2/SDL2Thread.cpp
+    Core/SDL2/SDL2Window.cpp
+  )
+endif()
 
 set(gameobjects_src
   GameObjects/CustomHouseMultiObject.cpp
@@ -102,7 +79,6 @@ set(glengine_src
   GLEngine/GLTextTexture.cpp
   GLEngine/GLTextureCircleOfTransparency.cpp
   GLEngine/GLTexture.cpp
-  GLEngine/GLVector.cpp
 )
 
 set(gui_src
@@ -236,7 +212,6 @@ set(managers_src
   Managers/ObjectPropertiesManager.cpp
   Managers/OptionsMacroManager.cpp
   Managers/PacketManager.cpp
-  Managers/PluginManager.cpp
   Managers/ProfessionManager.cpp
   Managers/ScreenEffectManager.cpp
   Managers/SkillGroupManager.cpp
@@ -278,7 +253,7 @@ set(textengine_src
 
 set(utility_src
   Utility/AutoResetEvent.cpp
-  Utility/PingThread.cpp
+  Utility/Pinger.cpp
 )
 
 set(walker_src
@@ -297,28 +272,25 @@ set(crypt_src
   Crypt/CryptEntry.cpp
 )
 
-set(orion_src
-  Logging.cpp
-  Point.cpp
-  Misc.cpp
-  
+set(orion_src  
   BaseQueue.cpp
   CharacterList.cpp
   CityList.cpp
   ClickObject.cpp
-  CommonInterfaces.cpp
   Container.cpp
   ContainerStack.cpp
   DateTimeStamp.cpp
   Globals.cpp
   ImageBounds.cpp
   IndexObject.cpp
+  GameInput.cpp
+  GameVars.cpp
+  GameWindow.cpp
   Macro.cpp
   Multi.cpp
   MultiMap.cpp
   OrionApplication.cpp
   OrionUO.cpp
-  OrionWindow.cpp
   Party.cpp
   PartyObject.cpp
   PressedObject.cpp
@@ -339,9 +311,7 @@ set(orion_src
   Weather.cpp
   WeatherEffect.cpp
 
-  FileSystem.cpp
-  Sockets.cpp
-  OrionMain.cpp
+  Main.cpp
   Platform.cpp
   Config.cpp
   SiebenwindClient.cpp
@@ -350,11 +320,20 @@ set(orion_src
 if(ORION_WINDOWS)
   set(orion_src ${orion_src}
     VMQuery.cpp                 # FIXME: windows only, rap, coredump
-    StackWalker.cpp             # FIXME: windows only, wrap, use backtrace
-    ExceptionFilter.cpp         # FIXME: exception handler, wrap, use signals
     OrionUO.rc
   )
 endif()
+
+res_add_library(shaders
+  NAMESPACE shaders
+  WHENCE shaders
+  shaders/ColorizerShader.frag
+  shaders/DeathShader.frag
+  shaders/FontColorizerShader.frag
+  shaders/LightColorizerShader.frag
+  shaders/Shader.vert
+)
+set(LIBS_BASE ${LIBS_BASE} shaders)
 
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/GameObjects")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/GLEngine")
@@ -366,25 +345,25 @@ include_directories("${PROJECT_SOURCE_DIR}/OrionUO/ScreenStages")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/TextEngine")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/Utility")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/Walker")
-include_directories("${PROJECT_SOURCE_DIR}/OrionUO/Wisp")
 include_directories("${PROJECT_SOURCE_DIR}/OrionUO/")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  #target_link_libraries(wisp PUBLIC dl rt)
   add_definitions(-DNULL=nullptr)
 endif()
+
+file(GLOB core_headers Core/*.h)
 
 macro(orion_library TARGET SRCS)
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
+  set(headers "${headers}" "${core_headers}")
   add_library(${TARGET} ${SRCS} ${headers})
   set_target_properties(${TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")
   cotire(${TARGET})
 endmacro()
 
 if(ORION_BUILD_MODULES)
-  orion_library(wisp "${wisp_src}")
+  orion_library(core "${core_src}")
   orion_library(gameobjects "${gameobjects_src}")
   orion_library(glengine "${glengine_src}")
   orion_library(gui "${gui_src}")
@@ -398,44 +377,26 @@ if(ORION_BUILD_MODULES)
   orion_library(crypt "${crypt_src}")
 
   string(REPLACE ".cpp" ".h" orion_hdr "${orion_src}")
-  string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
+  string(REPLACE "Crypt/twofish.h" "" orion_hdr "${headers}")
+  set(orion_hdr "${orion_hdr}" "${core_headers}")
 
   add_executable(OrionUO ${orion_src} ${orion_hdr})
   target_link_libraries(screenstages PRIVATE gumps)
   target_link_libraries(gumps PRIVATE managers)
-  target_link_libraries(OrionUO PUBLIC managers network gumps screenstages gameobjects glengine gui textengine utility walker crypt wisp)
+  target_link_libraries(OrionUO PUBLIC managers network gumps screenstages gameobjects glengine gui textengine utility walker crypt)
 else()
-  set(SRCS ${orion_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src} ${wisp_src})
+  set(SRCS ${orion_src} ${core_src} ${gameobjects_src} ${glengine_src} ${gui_src} ${gumps_src} ${managers_src} ${network_src} ${screenstages_src} ${textengine_src} ${utility_src} ${walker_src} ${crypt_src})
   string(REPLACE ".cpp" ".h" headers "${SRCS}")
   string(REPLACE "Crypt/twofish.h" "" headers "${headers}")
-  string(REPLACE "CommonInterfaces.h" "plugin/commoninterfaces.h" headers "${headers}")
+  set(headers "${headers}" "${core_headers}")
 
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0") 
     source_group("${PROJECT_SOURCE_DIR}/OrionUO/" FILES ${SRCS} ${headers})
   else()
-    source_group(TREE "${PROJECT_SOURCE_DIR}/OrionUO/" FILES ${SRCS} ${headers})
+    source_group(TREE "${PROJECT_SOURCE_DIR}/OrionUO" FILES ${SRCS} ${headers})
   endif()
 
-  if(NOT ORION_WINDOWS)
-    add_library(orion SHARED ${SRCS} ${headers})
-    target_link_libraries(orion PUBLIC ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${THREAD})
-    set_target_properties(orion PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")
-    cotire(orion)
-    if(ORION_OSX)
-      add_custom_command(TARGET orion POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/liborion.dylib" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-      add_custom_command(TARGET orion_unity POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/unity/liborion.dylib" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-    else()
-      add_custom_command(TARGET orion POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/liborion.so" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-      add_custom_command(TARGET orion_unity POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/unity/liborion.so" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/orion.so")
-    endif()
-    add_executable(OrionUO OrionApp.cpp)
-    target_link_libraries(OrionUO PUBLIC -ldl ${THREAD})
-    add_dependencies(orion OrionUO)
-    add_dependencies(orion_unity OrionUO)
-  else()
     add_executable(OrionUO ${SRCS} ${headers})
-  endif()
 endif()
 
 # Link correct libraries
@@ -459,17 +420,23 @@ if (DEFINES_RELEASE)
   target_compile_definitions(OrionUO PUBLIC "$<$<CONFIG:RELEASE>:DEFINES_RELEASE>")
 endif()
 # Copy binaries
-set(BINS_COPY
-  ${BINS_BASE}
-  $<$<CONFIG:debug>:${BINS_DEBUG}>$<$<CONFIG:release>:${BINS_RELEASE}>)
-if(BINS_COPY)
-  add_custom_command(TARGET OrionUO POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${BINS_COPY}" $<TARGET_FILE_DIR:OrionUO> COMMAND_EXPAND_LISTS)
-endif()
+# if(ORION_WINDOWS)
+#   set(BINS_COPY
+#     ${BINS_BASE}
+#     $<$<CONFIG:debug>:${BINS_DEBUG}>$<$<CONFIG:release>:${BINS_RELEASE}>)
+#   if(BINS_COPY)
+#     add_custom_command(TARGET OrionUO POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy "${BINS_COPY}" $<TARGET_FILE_DIR:OrionUO> COMMAND_EXPAND_LISTS)
+#   endif()
+# endif()
 
 if(ORION_WINDOWS)
   set_target_properties(OrionUO PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "OrionPCH.h")
   cotire(OrionUO)
   set_target_properties(OrionUO PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
   set_target_properties(OrionUO_unity PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+endif()
+
+if(ORION_WITH_TRACY)
+  target_link_libraries(OrionUO PUBLIC Tracy::TracyClient)
 endif()

@@ -3,33 +3,34 @@
 
 #pragma once
 
+#include "Core/Minimal.h"
+#include <string>
+
 struct Config
 {
-    string Login;
-    string Password;
-    string ClientVersionString = "7.0.33.1";
-    string CustomPath;
-    string ServerAddress;
-    uint16_t ServerPort = 2593;
-    uint16_t ClientFlag = 0;
+    std::string Login;
+    std::string Password;
+    std::string CustomPath;
+    std::string ServerAddress;
+    u16 ServerPort    = 2593;
+    u16 ClientFlag    = 0;
     bool SavePassword = false;
-    bool AutoLogin = false;
-    bool TheAbyss = false;
-    bool Asmut = false;
-    bool UseVerdata = false;
-    bool UseCrypt = false;
+    bool AutoLogin    = false;
+    bool TheAbyss     = false;
+    bool Asmut        = false;
+    bool UseVerdata   = false;
+    bool UseCrypt     = false;
 
     // Calculated stuff that are not saved back
-    uint16_t Seed = 0x1357;
-    uint32_t Key1 = 0;
-    uint32_t Key2 = 0;
-    uint32_t Key3 = 0;
-    uint32_t ClientVersion = CV_LATEST;
-    uint32_t EncryptionType = 0;
+    u16 Seed           = 0x1357;
+    u32 Key1           = 0;
+    u32 Key2           = 0;
+    u32 Key3           = 0;
+    u32 EncryptionType = 0;
 };
 
-void GetClientVersion(uint32_t *major, uint32_t *minor, uint32_t *rev, uint32_t *proto = nullptr);
 void LoadGlobalConfig();
 void SaveGlobalConfig();
+void ClientVersionFixup(u32 a_version);
 
 extern Config g_Config;

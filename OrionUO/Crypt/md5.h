@@ -1,5 +1,3 @@
-// MIT License
-
 #pragma once
 
 typedef struct tagmd5_state

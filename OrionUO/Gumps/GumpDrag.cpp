@@ -1,13 +1,10 @@
-// MIT License
-// Copyright (C) August 2016 Hotride
-
 #include "GumpDrag.h"
-#include "../OrionUO.h"
-#include "../Managers/ConfigManager.h"
-#include "../Managers/GumpManager.h"
-#include "../GameObjects/GameWorld.h"
-#include "../GameObjects/ObjectOnCursor.h"
-#include "../TextEngine/GameConsole.h"
+#include "OrionUO.h"
+#include "Managers/ConfigManager.h"
+#include "Managers/GumpManager.h"
+#include "GameObjects/GameWorld.h"
+#include "GameObjects/ObjectOnCursor.h"
+#include "TextEngine/GameConsole.h"
 
 enum
 {
@@ -20,7 +17,7 @@ enum
     ID_GD_COUNT,
 };
 
-CGumpDrag::CGumpDrag(uint32_t serial, short x, short y)
+CGumpDrag::CGumpDrag(u32 serial, short x, short y)
     : CGump(GT_DRAG, serial, x, y)
 {
 }
@@ -31,7 +28,6 @@ CGumpDrag::~CGumpDrag()
 
 void CGumpDrag::UpdateContent()
 {
-    DEBUG_TRACE_FUNCTION;
     Clear();
 
     Add(new CGUIGumppic(0x085C, 0, 0));
@@ -68,7 +64,6 @@ void CGumpDrag::UpdateContent()
 
 void CGumpDrag::GUMP_BUTTON_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (serial == ID_GD_OKAY)
     { //Button Okay
         OnOkayPressed();
@@ -77,13 +72,11 @@ void CGumpDrag::GUMP_BUTTON_EVENT_C
 
 void CGumpDrag::GUMP_SLIDER_CLICK_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     OnSliderMove(serial);
 }
 
 void CGumpDrag::GUMP_SLIDER_MOVE_EVENT_C
 {
-    DEBUG_TRACE_FUNCTION;
     if (m_StartText)
     {
         m_StartText = false;
@@ -97,7 +90,6 @@ void CGumpDrag::GUMP_SLIDER_MOVE_EVENT_C
 
 void CGumpDrag::OnOkayPressed()
 {
-    DEBUG_TRACE_FUNCTION;
     if (!g_ObjectInHand.Enabled)
     {
         RemoveMark = true;
@@ -114,11 +106,10 @@ void CGumpDrag::OnOkayPressed()
     }
 }
 
-void CGumpDrag::OnTextInput(const TextEvent &ev)
+void CGumpDrag::OnTextInput(const Core::TextEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
-    const auto ch = EvChar(ev);
+    const auto ch = ev.text[0];
     if (ch >= '0' && ch <= '9')
     {
         if (m_StartText)
@@ -142,21 +133,18 @@ void CGumpDrag::OnTextInput(const TextEvent &ev)
     }
 }
 
-void CGumpDrag::OnKeyDown(const KeyEvent &ev)
+void CGumpDrag::OnKeyDown(const Core::KeyEvent &ev)
 {
-    DEBUG_TRACE_FUNCTION;
 
     CGameItem *item = g_World->FindWorldItem(Serial);
     if (item == nullptr)
     {
         return;
     }
-
-    auto key = EvKey(ev);
-    switch (key)
+    switch (ev.key)
     {
-        case KEY_RETURN:
-        case KEY_RETURN2:
+        case Core::EKey::Key_Return:
+        case Core::EKey::Key_Return2:
         {
             OnOkayPressed();
             if (g_ConfigManager.GetConsoleNeedEnter())
@@ -169,12 +157,12 @@ void CGumpDrag::OnKeyDown(const KeyEvent &ev)
             }
             break;
         }
-        case KEY_HOME:
-        case KEY_END:
-        case KEY_LEFT:
-        case KEY_RIGHT:
+        case Core::EKey::Key_Home:
+        case Core::EKey::Key_End:
+        case Core::EKey::Key_Left:
+        case Core::EKey::Key_Right:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
 
             if (m_StartText)
             {
@@ -184,10 +172,10 @@ void CGumpDrag::OnKeyDown(const KeyEvent &ev)
             WantRedraw = true;
             break;
         }
-        case KEY_DELETE:
-        case KEY_BACK:
+        case Core::EKey::Key_Delete:
+        case Core::EKey::Key_Backspace:
         {
-            g_EntryPointer->OnKey(this, key);
+            g_EntryPointer->OnKey(this, ev.key);
 
             if (m_StartText)
             {
