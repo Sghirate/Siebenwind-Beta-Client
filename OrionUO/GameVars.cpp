@@ -29,6 +29,7 @@ static void OnClientVersionChanged()
     g_clientVersion = ClientVersionFromString(uo_client_version.GetValue());
     ClientVersionFixup(g_clientVersion);
 }
+
 } // <anonymous> namespace
 
 u32 GameVars::GetClientVersion()
@@ -66,6 +67,6 @@ Core::ConsoleVariable<std::string> uo_login("uo_login", "", Core::ConsoleFlags::
 Core::ConsoleVariable<std::string> uo_password("uo_password", "", Core::ConsoleFlags::User);
 Core::ConsoleVariable<u8> uo_save_password("uo_save_password", 0, Core::ConsoleFlags::User);
 Core::ConsoleVariable<u8> uo_auto_login("uo_auto_login", 0, Core::ConsoleFlags::User);
-Core::ConsoleVariable<u8> uo_use_scaling("uo_use_scaling", 0, Core::ConsoleFlags::User);
+Core::ConsoleVariable<u8> uo_use_scaling("uo_use_scaling", 0, Core::ConsoleFlags::Disabled); // TODO: re-enable
 Core::ConsoleVariable<u8> uo_render_extra_pixels("uo_render_extra_pixels", 100, Core::ConsoleFlags::User);
 //Core::ConsoleVariable uo_client_flag("uo_client_flag", "", Core::ConsoleFlags::Persistent);

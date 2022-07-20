@@ -85,6 +85,7 @@ if (ORION_WINDOWS OR ORION_LINUX)
 endif()
 
 # GLEW
+set(BUILD_UTILS OFF)
 add_subdirectory("${EXTERNAL_DIR}/GLEW/build/cmake")
 set(LIBS_BASE
 	"${LIBS_BASE}"

@@ -46,7 +46,7 @@
 #include "TextEngine/GameConsole.h"
 #include "TextEngine/TextData.h"
 
-namespace 
+namespace
 {
 
 static int Sgn(int val)
@@ -55,7 +55,7 @@ static int Sgn(int val)
 }
 static int GetFacing(int shiftX, int shiftY, int current_facing)
 {
-    int hashf  = 100 * (Sgn(shiftX) + 2) + 10 * (Sgn(shiftY) + 2);
+    int hashf = 100 * (Sgn(shiftX) + 2) + 10 * (Sgn(shiftY) + 2);
     if ((shiftX != 0) && (shiftY != 0))
     {
         shiftX = std::abs(shiftX);
@@ -105,7 +105,7 @@ static int GetFacing(int shiftX, int shiftY, int current_facing)
     return current_facing;
 }
 
-}
+} // namespace
 
 CGameScreen g_GameScreen;
 RENDER_VARIABLES_FOR_GAME_WINDOW g_RenderBounds;
@@ -1763,11 +1763,11 @@ void CGameScreen::PrepareContent()
     {
         Core::IGamepad* gamepad = Core::Input::GetGamepad(0);
         Core::Vec2<float> stick = gamepad->GetStickValues(Core::EGamepadStick::Left);
-        int shiftX = (int)(stick.x * 1000.0f);
-        int shiftY = (int)(stick.y * 1000.0f);
+        int shiftX              = (int)(stick.x * 1000.0f);
+        int shiftY              = (int)(stick.y * 1000.0f);
         if (stick.length() > 0.2f)
         {
-            int dir =  GetFacing(shiftX, shiftY, 1);
+            int dir = GetFacing(shiftX, shiftY, 1);
             if (dir == 0)
                 dir = 8;
             g_PathFinder.Walk(stick.length() > 0.75f, dir - 1);
@@ -1933,8 +1933,8 @@ void CGameScreen::Render()
     {
         char dbf[100] = { 0 };
 
-        Core::TMousePos pos = g_MouseManager.GetPosition();
-        Core::IGamepad* gamepad = Core::Input::GetGamepad(0);
+        Core::TMousePos pos         = g_MouseManager.GetPosition();
+        Core::IGamepad* gamepad     = Core::Input::GetGamepad(0);
         Core::Vec2<float> leftStick = gamepad->GetStickValues(Core::EGamepadStick::Left);
 
         sprintf_s(
@@ -1944,7 +1944,8 @@ void CGameScreen::Render()
             g_FrameDelay[WINDOW_ACTIVE],
             g_GlobalScale,
             g_Orion.GetPingString().c_str(),
-            pos.x, pos.y,
+            pos.x,
+            pos.y,
             g_MouseManager.IsLeftButtonDown() ? 1 : 0,
             g_MouseManager.IsMiddleButtonDown() ? 1 : 0,
             g_MouseManager.IsRightButtonDown() ? 1 : 0,
@@ -2150,40 +2151,63 @@ void CGameScreen::SelectObject()
             }
             else
             {
-                g_GlobalScale            = oldScale;
+                // TODO: FIX
                 Core::TMousePos oldMouse = g_MouseManager.GetPosition();
+                // int centerX = g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth / 2;
+                // int centerY = g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight / 2;
+                // int offsetX = oldMouse.x - centerX;
+                // int offsetY = oldMouse.y - centerY;
+                // g_MouseManager.SetPosition(Core::Vec2<i32>(
+                //     centerX + (int)roundf((float)offsetX * g_GlobalScale),
+                //     centerY + (int)roundf((float)offsetY * g_GlobalScale)));
 
-                //g_MouseManager.Position = Core::Vec2<i32>((int)((oldMouse.X - (g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale)) * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX, (int)((oldMouse.Y - (g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)) * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY);
+                g_GlobalScale = oldScale;
 
-                //g_MouseManager.Position = Core::Vec2<i32>((int)((oldMouse.X * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale), (int)((oldMouse.Y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale));
+                // g_MouseManager.SetPosition(Core::Vec2<i32>(
+                //     (int)((oldMouse.x - (g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale)) * g_GlobalScale) +
+                //         g_RenderBounds.GameWindowScaledOffsetX,
+                //     (int)((oldMouse.y - (g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)) * g_GlobalScale) +
+                //         g_RenderBounds.GameWindowScaledOffsetY));
+                // g_MouseManager.SetPosition(Core::Vec2<i32>(
+                //     (int)((oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale),
+                //     (int)((oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale)));
 
-                int mouseX =
-                    (int)((oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale);
-                int mouseY =
-                    (int)((oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale);
+                //int mouseX = (int)(oldMouse.x + offsetX);
+                //(int)((oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale);
+                //int mouseY = (int)(oldMouse.y + offsetY);
+                //(int)((oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale);
 
-                /*g_MouseManager.Position = Core::Vec2<i32>
-                (
-                    //(int)((oldMouse.X * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX)
-                    mouseX
-                    ,
-                    //(int)((oldMouse.Y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY)
-                    mouseY
-                );*/
+                /*int newX = (int)(oldMouse.x * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetX / g_GlobalScale;
+                int newY = (int)(oldMouse.y * g_GlobalScale) + g_RenderBounds.GameWindowScaledOffsetY / g_GlobalScale;
+                g_MouseManager.SetPosition(Core::Vec2<i32>(newX, newY));*/
 
-                /*GLdouble left = (GLdouble)g_RenderBounds.GameWindowPosX;
-                GLdouble right = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
-                GLdouble top = (GLdouble)g_RenderBounds.GameWindowPosY;
+                GLdouble left   = (GLdouble)g_RenderBounds.GameWindowPosX;
+                GLdouble right  = (GLdouble)(g_RenderBounds.GameWindowWidth + left);
+                GLdouble top    = (GLdouble)g_RenderBounds.GameWindowPosY;
                 GLdouble bottom = (GLdouble)(g_RenderBounds.GameWindowHeight + top);
 
-                GLdouble newRight = right * g_GlobalScale;
+                GLdouble newRight  = right * g_GlobalScale;
                 GLdouble newBottom = bottom * g_GlobalScale;
 
-                g_RenderBounds.GameWindowScaledOffsetX = (int)((left * g_GlobalScale) - (newRight - right));
-                g_RenderBounds.GameWindowScaledOffsetY = (int)((top * g_GlobalScale) - (newBottom - bottom));
+                g_RenderBounds.GameWindowScaledOffsetX =
+                    (int)((left * g_GlobalScale) - (newRight - right));
+                g_RenderBounds.GameWindowScaledOffsetY =
+                    (int)((top * g_GlobalScale) - (newBottom - bottom));
 
-                g_RenderBounds.GameWindowScaledWidth = (int)(newRight - g_RenderBounds.GameWindowScaledOffsetX);
-                g_RenderBounds.GameWindowScaledHeight = (int)(newBottom - g_RenderBounds.GameWindowScaledOffsetY);*/
+                g_RenderBounds.GameWindowScaledWidth =
+                    (int)(newRight - g_RenderBounds.GameWindowScaledOffsetX);
+                g_RenderBounds.GameWindowScaledHeight =
+                    (int)(newBottom - g_RenderBounds.GameWindowScaledOffsetY);
+
+                int newX =
+                    g_RenderBounds.GameWindowScaledOffsetX +
+                    g_RenderBounds.GameWindowScaledWidth / 2 +
+                    (int)((float)(oldMouse.x - (g_RenderBounds.GameWindowPosX + g_RenderBounds.GameWindowWidth / 2)) / g_GlobalScale);
+                int newY =
+                    g_RenderBounds.GameWindowScaledOffsetY +
+                    g_RenderBounds.GameWindowScaledHeight / 2 +
+                    (int)((float)(oldMouse.y - (g_RenderBounds.GameWindowPosY + g_RenderBounds.GameWindowHeight / 2)) / g_GlobalScale);
+                g_MouseManager.SetPosition(Core::Vec2<i32>(newX, newY));
 
                 DrawGameWindow(false);
                 g_MouseManager.SetPosition(oldMouse);

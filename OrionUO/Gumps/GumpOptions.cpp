@@ -322,6 +322,8 @@ void CGumpOptions::Init()
     m_MacroPointer       = (Macro*)g_OptionsMacroManager.m_Items;
     m_MacroObjectPointer = (MacroObject*)m_MacroPointer->m_Items;
 
+    g_OptionsConfig.SetUseScaling(uo_use_scaling.GetValue() > 0);
+
     WantUpdateContent = true;
 }
 
@@ -1161,11 +1163,14 @@ void CGumpOptions::DrawPage2()
     checkbox->Checked = g_OptionsConfig.StandartItemsAnimationDelay;
     checkbox->SetTextParameters(0, L"Standard items animation delay", g_OptionsTextColor);
 
+    // TODO: Re-enable:
+    /*
     checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_ENABLE_SCALING, 0x00D2, 0x00D3, 0x00D2, 0, 80));
     checkbox->Checked = g_OptionsConfig.GetUseScaling();
     checkbox->SetTextParameters(
         0, L"Use scaling in game window (BETA VERSION!!!)", g_OptionsTextColor);
+    */
 
     checkbox = (CGUICheckbox*)html->Add(
         new CGUICheckbox(ID_GO_P2_REMOVE_TEXT_WITH_BLENDING, 0x00D2, 0x00D3, 0x00D2, 0, 100));
@@ -3971,7 +3976,7 @@ void CGumpOptions::ApplyPageChanges()
         case 2: //Orion's configuration
         {
             g_ConfigManager.SetClientFPS(g_OptionsConfig.GetClientFPS());
-            g_ConfigManager.SetUseScaling(g_OptionsConfig.GetUseScaling());
+            uo_use_scaling.SetValue(g_OptionsConfig.GetUseScaling() ? 1 : 0);
             g_ConfigManager.RemoveTextWithBlending = g_OptionsConfig.RemoveTextWithBlending;
             g_ConfigManager.SetDrawStatusState(g_OptionsConfig.GetDrawStatusState());
             g_ConfigManager.SetDrawStumps(g_OptionsConfig.GetDrawStumps());

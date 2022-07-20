@@ -87,7 +87,6 @@ bool Connection::Read(int a_maxSize)
         const int size = m_socket.Receive(&data[0], a_maxSize);
         if (size > 0)
         {
-            LOG_INFO("Connection", "Read size=%i", size);
             data.resize(size);
             data = Decompress(data);
             m_messageParser->Append(data);
