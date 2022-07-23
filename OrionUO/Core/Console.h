@@ -4,6 +4,7 @@
 #include "Core/StringUtils.h"
 #include <string>
 #include <vector>
+#include <filesystem>
 
 namespace Core
 {
