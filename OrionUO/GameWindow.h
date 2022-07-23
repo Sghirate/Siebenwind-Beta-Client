@@ -9,7 +9,7 @@ struct GameWindow : public Core::Window
     ~GameWindow();
 
     // Core::Window
-    void OnCreated() override;
+    bool OnCreate() override;
     void OnDestroy() override;
     void OnResized() override;
     void OnDragging() override;

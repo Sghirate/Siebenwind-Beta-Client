@@ -42,8 +42,7 @@ bool Window::Create(
     }
     m_handle = sdlWindow;
     SDL_SetWindowData(sdlWindow, CORE_WINDOW_DATA_NAME, this);
-    OnCreated();
-    return true;
+    return OnCreate();
 }
 
 TWindowSize Window::GetSize() const
@@ -258,10 +257,11 @@ void Window::Destroy()
     }
 }
 
-void Window::OnCreated()
+bool Window::OnCreate()
 {
     if (m_handle)
         SDL_SetWindowData(static_cast<SDL_Window*>(m_handle), CORE_WINDOW_DATA_NAME, this);
+    return m_handle != nullptr;
 }
 void Window::OnDestroy()
 {

@@ -48,7 +48,7 @@ struct Window
     void Close();
     void Destroy();
 
-    virtual void OnCreated();
+    virtual bool OnCreate();
     virtual void OnDestroy();
     virtual void OnResized();
     virtual void OnDragging();
