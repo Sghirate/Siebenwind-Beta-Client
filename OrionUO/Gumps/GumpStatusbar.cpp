@@ -1739,6 +1739,10 @@ bool CGumpStatusbar::OnLeftMouseButtonDoubleClick()
         }
         return true;
     }
+    else
+    {
+        g_Orion.DoubleClick(Serial);
+    }
     if (!Minimized)
     {
         g_Orion.PaperdollReq(Serial);

@@ -5,6 +5,10 @@
 #include "Core/Log.h"
 #include "Globals.h"
 
+#if _WIN32
+#include <shellapi.h>
+#endif
+
 namespace Platform
 {
 #if _WIN32
@@ -71,8 +75,7 @@ void SetLanguageFromSystemLocale()
 
 void OpenBrowser(const std::string &url)
 {
-    // TODO: Support again
-    //ShellExecuteA(0, "Open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    ShellExecuteA(0, "Open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
 #elif __unix__ // Linux and MacOSX
