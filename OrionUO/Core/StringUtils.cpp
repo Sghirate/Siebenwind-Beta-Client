@@ -291,13 +291,11 @@ std::wstring ToCamelCaseW(const std::wstring& a_str)
 
 std::string ToString(const std::wstring& a_str)
 {
-    static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.to_bytes(a_str);
+    return EncodeUTF8(a_str);
 }
 std::wstring ToWString(const std::string& a_str)
 {
-    static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(a_str);
+    return DecodeUTF8(a_str);
 }
 
 std::string Trim(const std::string& a_str)
