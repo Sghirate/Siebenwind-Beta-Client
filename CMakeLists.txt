@@ -45,7 +45,6 @@ include(Compiler)
 include(CheckCCompilerFlag)
 include(CCache)
 include(ClangFormat)
-#include(WindowsDeps)
 include(Revision)
 include(EmbeddedResources)
 
