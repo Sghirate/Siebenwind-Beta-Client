@@ -39,6 +39,7 @@ set(core_src
   Core/StringUtils.cpp
   Core/Time.cpp
   Core/TextFileParser.cpp
+  Core/Vars.cpp
 )
 if(ORION_WITH_SDL2)
   set(core_src ${core_src}

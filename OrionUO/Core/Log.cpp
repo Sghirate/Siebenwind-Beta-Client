@@ -2,6 +2,7 @@
 #include "Core/File.h"
 #include "Core/Platform.h"
 #include "Core/Time.h"
+#include "Core/Vars.h"
 #include <debugbreak.h>
 #include <stdio.h>
 #include <time.h>
@@ -85,7 +86,7 @@ static struct FileLogListener : public ILogListener
 protected:
     void OnLogMessage(LogVerbosity a_verbosity, const char* a_message) override
     {
-        if(m_file.IsOpen())
+        if(a_verbosity <= Core::Vars::GetFileLogVerbosity() && m_file.IsOpen())
         {
             m_file.Print(a_message);
             m_file.Flush();
@@ -105,9 +106,12 @@ static struct PrintLogListener : public ILogListener
 protected:
     void OnLogMessage(LogVerbosity a_verbosity, const char* a_message) override
     {
-        FILE* stream = a_verbosity >= LogVerbosity::Error ? stderr : stdout;
-        fprintf(stream, "%s", a_message);
-        fflush(stream);
+        if (a_verbosity <= Core::Vars::GetConsoleLogVerbosity())
+        {
+            FILE* stream = a_verbosity >= LogVerbosity::Error ? stderr : stdout;
+            fprintf(stream, "%s", a_message);
+            fflush(stream);
+        }
     }
 
 } g_corePrintLogListener;
