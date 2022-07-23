@@ -8,7 +8,13 @@ namespace Core
 template<typename T>
 struct Vec2
 {
-    T x, y;
+    union
+    {
+        T v[2];
+        struct {
+            T x, y;
+        };
+    };
 
     Vec2(T a_value = (T)0) : x(a_value), y(a_value) {}
     Vec2(T a_x, T a_y) : x(a_x), y(a_y) {}
@@ -25,7 +31,7 @@ struct Vec2
     Vec2 operator/=(T a_d) { return *this = (*this / a_d); }
     bool operator==(const Vec2& a_v) const { return x == a_v.x && y == a_v.y; }
     bool operator!=(const Vec2& a_v) const { return !(*this == a_v); }
-    T const& operator[](int a_index) const { return *reinterpret_cast<T*>(reinterpret_cast<void*>(this) + sizeof(T) * a_index); }
+    T const& operator[](int a_index) const { return v[a_index]; }
 
     Vec2 set(const T a_x, const T a_y) { x = a_x; y = a_y; return *this; }
     double dot(const Vec2& a_v) const { return (x * a_v.x) + (y * a_v.y); }
@@ -37,7 +43,14 @@ struct Vec2
 template<typename T>
 struct Vec3
 {
-    T x, y, z;
+    union
+    {
+        T v[3];
+        struct
+        {
+            T x, y, z;
+        };
+    };
 
     Vec3(T a_value = (T)0) : x(a_value), y(a_value), z(a_value) {}
     Vec3(T a_x, T a_y, T a_z) : x(a_x), y(a_y), z(a_z) {}
@@ -54,7 +67,7 @@ struct Vec3
     Vec3 operator/=(T a_d) { return *this = (*this / a_d); }
     bool operator==(const Vec3& a_v) const { return x == a_v.x && y == a_v.y && z == a_v.z; }
     bool operator!=(const Vec3& a_v) const { return !(*this == a_v); }
-    T const& operator[](int a_index) const { return *reinterpret_cast<T*>(reinterpret_cast<void*>(this) + sizeof(T) * a_index); }
+    T const& operator[](int a_index) const { return v[a_index]; }
 
     Vec3 set(const T a_x, const T a_y, const T a_z) { x = a_x; y = a_y; z = a_z; return *this; }
     double dot(const Vec3& a_v) const { return (x * a_v.x) + (y * a_v.y) + (z * a_v.z); }
@@ -68,10 +81,17 @@ struct Vec3
 template<typename T>
 struct Vec4
 {
-    T x, y, z, w;
+    union
+    {
+        T v[4];
+        struct 
+        {
+            T x, y, z, w;
+        };
+    };
 
     Vec4(T a_value = (T)0) : x(a_value), y(a_value), z(a_value), w(a_value) {}
-    Vec4(T a_x, T a_y, T a_z) : x(a_x), y(a_y), x(a_x) {}
+    Vec4(T a_x, T a_y, T a_z, T a_w) : x(a_x), y(a_y), z(a_x), w(a_w) {}
 
     Vec4 operator+(const Vec4& a_v) const { return Vec4(x + a_v.x, y + a_v.y, z + a_v.z, w + a_v.w); }
     Vec4 operator-(const Vec4& a_v) const { return Vec4(x - a_v.x, y - a_v.y, z - a_v.z, w - a_v.w); }
@@ -85,7 +105,7 @@ struct Vec4
     Vec4 operator/=(T a_d) { return *this = (*this / a_d); }
     bool operator==(const Vec4& a_v) const { return x == a_v.x && y == a_v.y && z == a_v.z && w == a_v.w; }
     bool operator!=(const Vec4& a_v) const { return !(*this == a_v); }
-    T const& operator[](int a_index) const { return *reinterpret_cast<T*>(reinterpret_cast<void*>(this) + sizeof(T) * a_index); }
+    T const& operator[](int a_index) const { return v[a_index]; }
 
     Vec4 set(const T a_x, const T a_y, const T a_z, const T a_w) { x = a_x; y = a_y; z = a_z; w = a_w; return *this; }
     double dot(const Vec4& a_v) const { return (x * a_v.x) + (y * a_v.y) + (z * a_v.z) + (w * a_v.w); }
