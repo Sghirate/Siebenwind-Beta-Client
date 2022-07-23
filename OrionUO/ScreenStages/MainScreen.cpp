@@ -220,10 +220,22 @@ void CMainScreen::Load()
 
 void CMainScreen::Save()
 {
-    uo_auto_login.SetValue(m_AutoLogin->Checked ? 1 : 0);
-    uo_save_password.SetValue(m_SavePassword->Checked ? 1 : 0);
-    uo_password.SetValue(uo_save_password.GetValue() > 0 ? m_Password->GetTextA() : "");
-    uo_login.SetValue(m_Account->GetTextA());
+    if (m_AutoLogin) 
+    {
+        uo_auto_login.SetValue(m_AutoLogin->Checked ? 1 : 0);
+    }
+    if (m_SavePassword)
+    {
+        uo_save_password.SetValue(m_SavePassword->Checked ? 1 : 0);
+    }
+    if (m_Password)
+    {
+        uo_password.SetValue(uo_save_password.GetValue() > 0 ? m_Password->GetTextA() : "");
+    }
+    if (m_Account)
+    {
+        uo_login.SetValue(m_Account->GetTextA());
+    }
 }
 
 void CMainScreen::Reset() const
