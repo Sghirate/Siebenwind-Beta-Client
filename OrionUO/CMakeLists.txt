@@ -8,7 +8,7 @@ else()
   # CMAKE_CXX_STANDARD cannot be used here because we require C++14 or newer, not any standard.
   check_and_add_flag(CXX17 -std=c++17)
   if(NOT FLAG_CXX_CXX17)
-    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_EXTENSIONS OFF)
   endif()

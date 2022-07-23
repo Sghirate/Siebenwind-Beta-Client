@@ -1,10 +1,14 @@
 #include "Main.h"
 #include "Core/Core.h"
+#include "Core/Log.h"
 #include "Core/Window.h"
 #include "Config.h"
 #include "GameWindow.h"
+#include "Managers/ConfigManager.h"
 #include "OrionApplication.h"
 #include "SiebenwindClient.h"
+#include "plugin/enumlist.h"
+#include <cstring>
 
 static bool g_isHeadless = false;
 

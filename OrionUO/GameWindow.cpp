@@ -28,21 +28,25 @@ GameWindow::~GameWindow()
 {
 }
 
-void GameWindow::OnCreated()
+bool GameWindow::OnCreate()
 {
-    Core::Window::OnCreated();
+    if (!Core::Window::OnCreate())
+    {
+        return false;
+    }
     // TODO: REMOVE
     if (!g_GL.Install())
     {
         LOG_ERROR("GameWindow", "Could not install OpenGL!");
-        return;
+        return false;
     }
     if (!g_Orion.Install())
     {
-        return;
+        return false;
     }
     g_GL.UpdateRect();
     GameInput::Get().Init();
+    return true;
     // ~TODO: REMOVE
 }
 
