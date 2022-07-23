@@ -86,7 +86,7 @@ static struct FileLogListener : public ILogListener
 protected:
     void OnLogMessage(LogVerbosity a_verbosity, const char* a_message) override
     {
-        if(a_verbosity <= Core::Vars::GetFileLogVerbosity() && m_file.IsOpen())
+        if(Core::Vars::GetFileLogVerbosity() <= a_verbosity && m_file.IsOpen())
         {
             m_file.Print(a_message);
             m_file.Flush();
@@ -106,7 +106,7 @@ static struct PrintLogListener : public ILogListener
 protected:
     void OnLogMessage(LogVerbosity a_verbosity, const char* a_message) override
     {
-        if (a_verbosity <= Core::Vars::GetConsoleLogVerbosity())
+        if (Core::Vars::GetConsoleLogVerbosity() <= a_verbosity)
         {
             FILE* stream = a_verbosity >= LogVerbosity::Error ? stderr : stdout;
             fprintf(stream, "%s", a_message);
