@@ -111,7 +111,6 @@ void CGumpTextEntryDialog::GUMP_BUTTON_EVENT_C
 
 void CGumpTextEntryDialog::OnTextInput(const Core::TextEvent &ev)
 {
-
     const auto ch = ev.text[0];
     if (Variant == 2) // Only numbers
     {
@@ -133,7 +132,7 @@ void CGumpTextEntryDialog::OnTextInput(const Core::TextEvent &ev)
     {
         if ((int)g_EntryPointer->Length() < m_MaxLength)
         {
-            g_EntryPointer->Insert(ch);
+            g_EntryPointer->Insert(ev.wtext[0]);
             WantRedraw = true;
         }
     }

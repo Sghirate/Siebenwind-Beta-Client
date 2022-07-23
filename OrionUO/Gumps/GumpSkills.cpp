@@ -752,9 +752,7 @@ bool CGumpSkills::OnLeftMouseButtonDoubleClick()
 
 void CGumpSkills::OnTextInput(const Core::TextEvent &ev)
 {
-
-    const auto ch = ev.text[0];
-    g_EntryPointer->Insert(ch);
+    g_EntryPointer->Insert(ev.wtext[0]);
     int val = g_FontManager.GetWidthA(6, g_EntryPointer->c_str());
     if (val > 170)
     {

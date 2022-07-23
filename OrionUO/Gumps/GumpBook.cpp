@@ -546,11 +546,9 @@ void CGumpBook::OnTextInput(const Core::TextEvent& ev)
     {
         return;
     }
-
-    const auto ch = ev.text[0];
     if (g_EntryPointer == &m_EntryTitle->m_Entry || g_EntryPointer == &m_EntryAuthor->m_Entry)
     {
-        if (g_EntryPointer->Insert(ch))
+        if (g_EntryPointer->Insert(ev.wtext[0]))
         {
             if (Unicode)
             {
@@ -586,7 +584,7 @@ void CGumpBook::OnTextInput(const Core::TextEvent& ev)
     }
     else
     {
-        InsertInContent(ch);
+        InsertInContent(ev.wtext[0]);
     }
 }
 

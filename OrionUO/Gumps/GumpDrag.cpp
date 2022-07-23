@@ -108,7 +108,6 @@ void CGumpDrag::OnOkayPressed()
 
 void CGumpDrag::OnTextInput(const Core::TextEvent &ev)
 {
-
     const auto ch = ev.text[0];
     if (ch >= '0' && ch <= '9')
     {

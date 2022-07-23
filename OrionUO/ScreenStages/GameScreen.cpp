@@ -2663,7 +2663,6 @@ void CGameScreen::OnTextInput(const Core::TextEvent& ev)
     {
         return; //Ignore no print keys
     }
-
     const auto ch = ev.text[0];
     if (g_EntryPointer != &g_GameConsole && ch != 0x11 && ch != 0x17)
     {
@@ -2672,7 +2671,6 @@ void CGameScreen::OnTextInput(const Core::TextEvent& ev)
             return;
         }
     }
-
     const auto mod         = SDL_GetModState();
     const bool altGR       = (mod & KMOD_RALT) != 0;
     const bool altPressed  = (mod & KMOD_ALT) != 0;
@@ -2686,7 +2684,7 @@ void CGameScreen::OnTextInput(const Core::TextEvent& ev)
         (altGR || (!altPressed && !ctrlPressed)) &&
         (int)g_EntryPointer->Length() < Core::Max(g_EntryPointer->MaxLength, 60))
     {
-        g_EntryPointer->Insert(ch);
+        g_EntryPointer->Insert(ev.wtext[0]);
     }
 }
 

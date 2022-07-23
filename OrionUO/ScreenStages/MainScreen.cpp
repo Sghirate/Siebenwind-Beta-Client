@@ -114,7 +114,6 @@ void CMainScreen::Paste()
 
 void CMainScreen::OnTextInput(const Core::TextEvent &ev)
 {
-
     const auto ch = ev.text[0];
     if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {

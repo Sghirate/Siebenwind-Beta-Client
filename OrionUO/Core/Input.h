@@ -86,6 +86,7 @@ struct TextEvent
     struct Window* focus;
     u32 length;
     char* text;
+    wchar_t* wtext;
 };
 struct IKeyboardListener
 {

@@ -135,9 +135,7 @@ bool CGumpProfile::OnLeftMouseButtonDoubleClick()
 
 void CGumpProfile::OnTextInput(const Core::TextEvent &ev)
 {
-
-    const auto ch = ev.text[0];
-    g_EntryPointer->Insert(ch);
+    g_EntryPointer->Insert(ev.wtext[0]);
     RecalculateHeight();
     Changed = true;
     WantRedraw = true;
