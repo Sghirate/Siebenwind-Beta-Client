@@ -92,5 +92,6 @@ LogVerbosity Vars::GetFileLogVerbosity()
 
 }
 
-Core::ConsoleVariable<std::string> core_console_verbosity("core_console_verbosity", kDefaultConsoleLogVerbosity, Core::ConsoleFlags::User, OnConsoleLogVerbosityChanged);
-Core::ConsoleVariable<std::string> core_file_verbosity("core_file_verbosity", kDefaultFileLogVerbosity, Core::ConsoleFlags::User, OnFileLogVerbosityChanged);
+Core::ConsoleVariable<std::string> core_console_verbosity("core_console_verbosity", kDefaultConsoleLogVerbosity, Core::ConsoleFlags::User, OnConsoleLogVerbosityChanged, OnConsoleLogVerbosityChanged);
+Core::ConsoleVariable<std::string> core_file_verbosity("core_file_verbosity", kDefaultFileLogVerbosity, Core::ConsoleFlags::User, OnFileLogVerbosityChanged, OnFileLogVerbosityChanged);
+Core::ConsoleVariable<int> core_no_sound("core_no_sound", 0, Core::ConsoleFlags::User);

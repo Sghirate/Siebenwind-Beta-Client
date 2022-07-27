@@ -1,6 +1,39 @@
 #include "Connection.h"
+#include "Core/Console.h"
 #include "Core/Log.h"
 #include "Core/PacketMessage.h"
+
+namespace
+{
+static const char* LCAT = "Core::Connection";
+Core::ConsoleVariable<int> dbg_net_packets("dbg_net_packets", 0);
+static void LogNetData(const char* a_prefix, const u8* a_data, const int a_size)
+{
+    if (dbg_net_packets.GetValue() > 0)
+    {
+        if (a_size > 0)
+        {
+            static char pktbuf[512];
+            int n = a_size >= 256 ? (256-3) : a_size;
+            char* buf = pktbuf;
+            for (int i = 0; i < n; ++i)
+            {
+                buf += sprintf(buf, "%02X", a_data[i]);
+            }
+            if (a_size > n)
+            {
+                buf += sprintf(buf, "...");
+            }
+            *buf = '\0';
+            LOG_INFO(LCAT, "%s: %s, %i", a_prefix, pktbuf, a_size);
+        }
+        else
+        {
+            LOG_INFO(LCAT, "%s: - (0)", a_prefix);
+        }
+    }
+}
+}
 
 namespace Core
 {
@@ -85,6 +118,7 @@ bool Connection::Read(int a_maxSize)
     {
         std::vector<u8> data(a_maxSize);
         const int size = m_socket.Receive(&data[0], a_maxSize);
+        LogNetData("Recv", data.data(), size);
         if (size > 0)
         {
             data.resize(size);
@@ -105,6 +139,7 @@ bool Connection::Read(int a_maxSize)
 
 int Connection::Send(u8* a_data, int a_size)
 {
+    LogNetData("Send", a_data, a_size);
     return (m_connected && m_socket.IsOpen()) ? m_socket.Send(a_data, a_size) : 0;
 }
 

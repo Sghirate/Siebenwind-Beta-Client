@@ -50,6 +50,21 @@
 #include <windows.h>
 #endif
 
+namespace
+{
+#if !defined(ORION_WINDOWS)
+static void EnsureLocale()
+{
+    static bool isInitialized = false;
+    if (!isInitialized) 
+    {
+        setlocale(LC_ALL, "");
+        isInitialized = true;
+    }
+}
+#endif
+}
+
 namespace Core
 {
 
@@ -201,10 +216,11 @@ void EncodeUTF8(const std::wstring& a_str, std::string& inout_buffer)
         inout_buffer.resize(size); // inout_buffer[size] = 0;
     }
 #else
+    EnsureLocale();
     mbstate_t state{};
     auto p = a_str.data();
-    const auto size = wcsrtombs(nullptr, &p, 0, &state);
-    if (size > 0)
+    const size_t size = wcsrtombs(nullptr, &p, 0, &state);
+    if (size != -1)
     {
         inout_buffer.resize(size + 1);
         wcsrtombs(&inout_buffer[0], &p, size, &state);
@@ -231,20 +247,20 @@ void DecodeUTF8(const std::string& a_str, std::wstring& inout_buffer)
         inout_buffer.resize(size); // inout_buffer[size] = 0;
     }
 #else
+    EnsureLocale();
     mbstate_t state{};
     auto p = a_str.data();
     const size_t size = mbsrtowcs(nullptr, &p, 0, &state);
-    if (size == -1)
+    if (size != -1)
     {
-        LOG_ERROR("Core", "DecodeUTF8 Failed: %s", a_str.c_str());
-        return L"Invalid UTF8 sequence found";
-    }
-
-    if (size > 0)
-    {
-        inout_buffer.resize(size) + 1;
+        inout_buffer.resize(size + 1);
         mbsrtowcs(&inout_buffer[0], &p, size, &state);
         inout_buffer.resize(size); // inout_buffer[size] = 0;
+    }
+    else
+    {
+        LOG_ERROR("Core", "DecodeUTF8 Failed: %s", a_str.c_str());
+        inout_buffer = std::wstring(L"Invalid UTF8 sequence found");
     }
 #endif
 }

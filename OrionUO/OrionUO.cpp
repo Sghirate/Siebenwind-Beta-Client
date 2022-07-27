@@ -17,6 +17,7 @@
 #include "Core/StringUtils.h"
 #include "Core/TextFileParser.h"
 #include "Core/Time.h"
+#include "Core/Vars.h"
 
 #include "GameWindow.h"
 #include "Macro.h"
@@ -503,9 +504,11 @@ bool COrion::Install()
         return false;
     }
 
-    if (!g_SoundManager.Init() && g_ShowWarnings)
-    {
-        LOG_WARNING("Client", "Failed to init audio system");
+    if (core_no_sound.GetValue() == 0) {
+        if (!g_SoundManager.Init() && g_ShowWarnings)
+        {
+            LOG_WARNING("Client", "Failed to init audio system");
+        }
     }
 
     LoadContainerOffsets();

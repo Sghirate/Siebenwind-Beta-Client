@@ -10,31 +10,19 @@
 namespace
 {
 static const char* CLIENT_VARS_FILENAME = "client.cfg";
+static const char* DEBUG_VARS_FILENAME = "debug.cfg";
 static const char* USER_VARS_FILENAME = "user.cfg";
-static struct VarFiles
+static const char* VAR_LOAD_ORDER[] = {
+    CLIENT_VARS_FILENAME,
+    DEBUG_VARS_FILENAME,
+    USER_VARS_FILENAME,
+};
+static void DetermineVarFilePath(const char* a_fileName, std::filesystem::path& out_path)
 {
-    VarFiles()
-    {
-        DeterminePath(CLIENT_VARS_FILENAME, m_clientPath);
-        DeterminePath(USER_VARS_FILENAME, m_userPath);
-    }
-
-    const std::filesystem::path& client() const { return m_clientPath; }
-    const std::filesystem::path& user() const { return m_userPath; }
-
-private:
-    void DeterminePath(const char* a_fileName, std::filesystem::path& out_path)
-    {
-        out_path = Core::Platform::GetBinaryPath().parent_path() / a_fileName;
-        if (!std::filesystem::exists(out_path))
-            out_path = std::filesystem::current_path() / a_fileName;
-    }
-
-    std::filesystem::path m_clientPath;
-    std::filesystem::path m_userPath;
-} g_varFiles;
-
-    
+    out_path = Core::Platform::GetBinaryPath().parent_path() / a_fileName;
+    if (!std::filesystem::exists(out_path))
+        out_path = std::filesystem::current_path() / a_fileName;
+}   
 } // namespace
 
 namespace Core
@@ -80,8 +68,12 @@ void Console::Init()
 {
     g_coreConsoleListeners.reserve(8);
 
-    ApplyFileVariables(g_varFiles.client());
-    ApplyFileVariables(g_varFiles.user());
+    for (int i = 0; i < sizeof(VAR_LOAD_ORDER)/sizeof(VAR_LOAD_ORDER[0]); ++i)
+    {
+        std::filesystem::path path;
+        DetermineVarFilePath(VAR_LOAD_ORDER[i], path);
+        ApplyFileVariables(path);
+    }
 
     ConsoleInteraction* cur = g_coreConsoleRegistry;
     while (cur)
@@ -111,7 +103,9 @@ void Console::Init()
 
 void Console::Shutdown()
 {
-    Core::File file(g_varFiles.user(), "w");
+    std::filesystem::path userPath;
+    DetermineVarFilePath(USER_VARS_FILENAME, userPath);
+    Core::File file(userPath, "w");
     std::string value;
 
     ConsoleInteraction* cur = g_coreConsoleRegistry;

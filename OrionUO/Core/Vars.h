@@ -17,3 +17,4 @@ static LogVerbosity GetFileLogVerbosity();
 
 extern Core::ConsoleVariable<std::string> core_console_verbosity;
 extern Core::ConsoleVariable<std::string> core_file_verbosity;
+extern Core::ConsoleVariable<int> core_no_sound;
