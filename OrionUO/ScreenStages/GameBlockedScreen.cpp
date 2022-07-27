@@ -68,12 +68,10 @@ void CGameBlockedScreen::OnLeftMouseButtonUp()
 
 void CGameBlockedScreen::OnTextInput(const Core::TextEvent &ev)
 {
-
     if (g_EntryPointer == nullptr || g_EntryPointer == &g_GameConsole)
     {
         return;
     }
-
     g_GumpManager.OnTextInput(ev, true);
 }
 

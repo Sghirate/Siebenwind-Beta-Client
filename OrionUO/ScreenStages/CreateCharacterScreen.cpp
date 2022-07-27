@@ -89,7 +89,6 @@ void CCreateCharacterScreen::OnLeftMouseButtonDown()
 
 void CCreateCharacterScreen::OnTextInput(const Core::TextEvent &ev)
 {
-
     const auto ch = ev.text[0];
     if (ch >= 0x0100 || !g_FontManager.IsPrintASCII((u8)ch))
     {
@@ -102,7 +101,7 @@ void CCreateCharacterScreen::OnTextInput(const Core::TextEvent &ev)
 
     if (g_EntryPointer->Length() < 20)
     { //add char to text field
-        g_EntryPointer->Insert(ch);
+        g_EntryPointer->Insert(ev.wtext[0]);
     }
 
     Name = g_EntryPointer->c_str();

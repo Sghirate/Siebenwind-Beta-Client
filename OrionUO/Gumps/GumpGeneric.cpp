@@ -175,9 +175,7 @@ bool CGumpGeneric::OnLeftMouseButtonDoubleClick()
 
 void CGumpGeneric::OnTextInput(const Core::TextEvent &ev)
 {
-
-    const auto ch = ev.text[0];
-    g_EntryPointer->Insert(ch);
+    g_EntryPointer->Insert(ev.wtext[0]);
     WantRedraw = true;
 }
 

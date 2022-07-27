@@ -190,16 +190,15 @@ std::wstring Iso8859ToUtf16(const std::string& utf8)
     return Utf8ToUtf16(Iso8859ToUtf8(utf8));
 }
 
-std::string EncodeUTF8(const std::wstring& a_str)
+void EncodeUTF8(const std::wstring& a_str, std::string& inout_buffer)
 {
-    std::string result{};
 #if defined(ORION_WINDOWS)
     int size = ::WideCharToMultiByte(CP_UTF8, 0, &a_str[0], (int)a_str.size(), nullptr, 0, nullptr, nullptr);
     if (size > 0)
     {
-        result.resize(size + 1);
-        ::WideCharToMultiByte(CP_UTF8, 0, &a_str[0], (int)a_str.size(), &result[0], size, nullptr, nullptr);
-        result.resize(size); // result[size] = 0;
+        inout_buffer.resize(size + 1);
+        ::WideCharToMultiByte(CP_UTF8, 0, &a_str[0], (int)a_str.size(), &inout_buffer[0], size, nullptr, nullptr);
+        inout_buffer.resize(size); // inout_buffer[size] = 0;
     }
 #else
     mbstate_t state{};
@@ -207,24 +206,29 @@ std::string EncodeUTF8(const std::wstring& a_str)
     const auto size = wcsrtombs(nullptr, &p, 0, &state);
     if (size > 0)
     {
-        result.resize(size + 1);
-        wcsrtombs(&result[0], &p, size, &state);
-        result.resize(size);
+        inout_buffer.resize(size + 1);
+        wcsrtombs(&inout_buffer[0], &p, size, &state);
+        inout_buffer.resize(size); // inout_buffer[size] = 0;
     }
 #endif
+}
+
+std::string EncodeUTF8(const std::wstring& a_str)
+{
+    std::string result{};
+    EncodeUTF8(a_str, result);
     return result;
 }
 
-std::wstring DecodeUTF8(const std::string& a_str)
+void DecodeUTF8(const std::string& a_str, std::wstring& inout_buffer)
 {
-    std::wstring result = {};
 #if defined(ORION_WINDOWS)
     int size = ::MultiByteToWideChar(CP_UTF8, 0, &a_str[0], (int)a_str.size(), nullptr, 0);
     if (size > 0)
     {
-        result.resize(size + 1);
-        ::MultiByteToWideChar(CP_UTF8, 0, &a_str[0], (int)a_str.size(), &result[0], size);
-        result.resize(size); // result[size] = 0;
+        inout_buffer.resize(size + 1);
+        ::MultiByteToWideChar(CP_UTF8, 0, &a_str[0], (int)a_str.size(), &inout_buffer[0], size);
+        inout_buffer.resize(size); // inout_buffer[size] = 0;
     }
 #else
     mbstate_t state{};
@@ -238,11 +242,23 @@ std::wstring DecodeUTF8(const std::string& a_str)
 
     if (size > 0)
     {
-        result.resize(size);
-        mbsrtowcs(&result[0], &p, size, &state);
+        inout_buffer.resize(size) + 1;
+        mbsrtowcs(&inout_buffer[0], &p, size, &state);
+        inout_buffer.resize(size); // inout_buffer[size] = 0;
     }
 #endif
+}
+
+std::wstring DecodeUTF8(const std::string& a_str)
+{
+    std::wstring result = {};
+    DecodeUTF8(a_str, result);
     return result;
+}
+
+bool IsPrintable(wchar_t a_wideChar)
+{
+    return iswprint(a_wideChar);
 }
 
 std::string ToCamelCaseA(const std::string& a_str)
@@ -291,13 +307,11 @@ std::wstring ToCamelCaseW(const std::wstring& a_str)
 
 std::string ToString(const std::wstring& a_str)
 {
-    static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.to_bytes(a_str);
+    return EncodeUTF8(a_str);
 }
 std::wstring ToWString(const std::string& a_str)
 {
-    static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(a_str);
+    return DecodeUTF8(a_str);
 }
 
 std::string Trim(const std::string& a_str)

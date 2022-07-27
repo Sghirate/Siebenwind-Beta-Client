@@ -78,7 +78,7 @@ void OpenBrowser(const std::string &url)
     ShellExecuteA(0, "Open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
-#elif __unix__ // Linux and MacOSX
+#elif defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
 
 #include <stdlib.h>
 

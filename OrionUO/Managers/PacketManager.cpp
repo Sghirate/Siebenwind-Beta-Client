@@ -2202,6 +2202,11 @@ PACKET_HANDLER(OpenPaperdoll)
         gump = new CGumpPaperdoll(serial, 0, 0, false);
         g_GumpManager.AddGump(gump);
     }
+    else 
+    {
+        gump->SetX(10);
+        gump->SetY(10);
+    }
 
     gump->CanLift = ((flags & 0x02) != 0);
     gump->UpdateDescription(text);

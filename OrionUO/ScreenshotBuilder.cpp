@@ -58,9 +58,9 @@ void CScreenshotBuilder::SaveScreen(int a_x, int a_y, int a_w, int a_h)
     char buf[100]{};
     sprintf_s(
         buf,
-        "/%d%d%d_%d%d%d",
+        "%04d%02d%02d_%02d%02d%02d",
         now.tm_year + 1900,
-        now.tm_mon,
+        now.tm_mon + 1,
         now.tm_mday,
         now.tm_hour,
         now.tm_min,

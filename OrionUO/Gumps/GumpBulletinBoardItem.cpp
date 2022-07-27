@@ -268,7 +268,7 @@ void CGumpBulletinBoardItem::GUMP_BUTTON_EVENT_C
 
 void CGumpBulletinBoardItem::OnTextInput(const Core::TextEvent& ev)
 {
-    g_EntryPointer->Insert(ev.text[0]);
+    g_EntryPointer->Insert(ev.wtext[0]);
     RecalculateHeight();
     WantRedraw = true;
 }

@@ -1,12 +1,15 @@
 #include "GameInput.h"
 #include "ClickObject.h"
 #include "Core/Input.h"
+#include "Core/StringUtils.h"
 #include "GameWindow.h"
 #include "Globals.h"
 #include "Managers/ConfigManager.h"
 #include "Managers/ScreenEffectManager.h"
 #include "PressedObject.h"
+#include "ScreenshotBuilder.h"
 #include "ScreenStages/BaseScreen.h"
+#include "ScreenStages/MainScreen.h"
 #include "SelectedObject.h"
 
 namespace
@@ -318,18 +321,6 @@ void GameInput::OnKeyDown(const Core::KeyEvent& a_event)
     {
         g_CurrentScreen->OnKeyDown(a_event);
     }
-    // TODO:
-    // else if (ch == 0x16 && g_EntryPointer != nullptr)
-    // {
-    //     if (g_GameState == GS_MAIN)
-    //     {
-    //         g_MainScreen.Paste();
-    //     }
-    //     else
-    //     {
-    //         g_EntryPointer->Paste();
-    //     }
-    // }
 }
 
 void GameInput::OnKeyUp(const Core::KeyEvent& a_event)
@@ -338,18 +329,29 @@ void GameInput::OnKeyUp(const Core::KeyEvent& a_event)
     {
         g_CurrentScreen->OnKeyUp(a_event);
     }
-    // TODO:
-    // const auto key = EvKey(ev);
-    // if (key == KEY_PRINTSCREEN)
-    // {
-    //     g_ScreenshotBuilder.SaveScreen();
-    // }
+    if (a_event.key == Core::EKey::Key_PrintScreen)
+    {
+        g_ScreenshotBuilder.SaveScreen();
+    }
 }
 
 void GameInput::OnText(const Core::TextEvent& a_event)
 {
-    if (IsInputPossible())
+    char ch = a_event.text[0];
+    if (IsInputPossible() &&
+        (Core::IsPrintable(a_event.wtext[0]) || (g_GameState >= GS_GAME && (ch == 0x11 || ch == 0x17))))
     {
         g_CurrentScreen->OnTextInput(a_event);
+    }
+    else if (ch == 0x16 && g_EntryPointer != nullptr)
+    {
+        if (g_GameState == GS_MAIN)
+        {
+            g_MainScreen.Paste();
+        }
+        else
+        {
+            g_EntryPointer->Paste();
+        }
     }
 }
