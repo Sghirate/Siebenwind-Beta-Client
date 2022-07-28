@@ -224,8 +224,7 @@ void CTarget::Plugin_SendTargetObject(int serial)
 
         if (obj != nullptr && obj->NPC && ((CGameCharacter*)obj)->MaxHits == 0)
         {
-            CPacketStatusRequest packet(serial);
-            // TODO: reimplement: UOMsg_Send(packet.GetData().data(), packet.GetData().size());
+            CPacketStatusRequest(serial).Send();
         }
     }
 

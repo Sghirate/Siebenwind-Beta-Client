@@ -6240,8 +6240,7 @@ void COrion::OpenStatus(u32 a_serial)
 
 void COrion::DisplayStatusbarGump(int a_serial, int a_x, int a_y)
 {
-    CPacketStatusRequest packet(a_serial);
-    // TODO: reimplement: UOMsg_Send(packet.GetData().data(), packet.GetData().size());
+    CPacketStatusRequest(a_serial).Send();
 
     CGump* gump = g_GumpManager.GetGump(a_serial, 0, GT_STATUSBAR);
 

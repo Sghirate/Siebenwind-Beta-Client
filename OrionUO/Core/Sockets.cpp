@@ -111,15 +111,35 @@ namespace Socket
 
     u32 GetLocalAddress()
     {
+#if !defined(ORION_WINDOWS)
+        struct sockaddr_in server_addr, my_addr;
+        int s;
+        if ((s = socket(AF_INET, SOCK_STREAM, 0)) >= 0)
+        {
+            bzero(&server_addr, sizeof(server_addr));
+            server_addr.sin_family = AF_INET;
+            server_addr.sin_addr.s_addr = inet_addr("1.1.1.1");
+            server_addr.sin_port = htons(80);
+            if (connect(s, (struct sockaddr *) &server_addr, sizeof(server_addr)) >= 0)
+            {
+                bzero(&my_addr, sizeof(my_addr));
+                socklen_t len = sizeof(my_addr);
+                getsockname(s, (struct sockaddr *) &my_addr, &len);
+                return (u32)my_addr.sin_addr.s_addr;
+            }
+            closesocket(s);
+        }
+#endif
         char hostName[1024]{};
-        if (gethostname(hostName, sizeof(hostName)) != 0)
-            return 0;
-
-        LPHOSTENT lphost = gethostbyname(hostName);
-        if (!lphost)
-            return 0;
-
-        return ((LPIN_ADDR)lphost->h_addr)->s_addr;
+        if (gethostname(hostName, sizeof(hostName)) == 0)
+        {
+            LPHOSTENT lphost = gethostbyname(hostName);
+            if (lphost)
+            {
+                return ((LPIN_ADDR)lphost->h_addr)->s_addr;
+            }
+        }
+        return 0;
     }
 
     bool AddressToString(u32 a_addr, char* out_buffer, size_t a_bufferSize)
@@ -229,7 +249,7 @@ int TCPSocket::Select()
     struct timeval tv = { 0, 0 };
     FD_ZERO(&rfds);
     FD_SET(s, &rfds);
-    return select((int)s, &rfds, nullptr, nullptr, &tv);
+    return select((int)(s+1), &rfds, nullptr, nullptr, &tv);
 }
 
 int TCPSocket::Receive(u8* a_data, size_t a_size)

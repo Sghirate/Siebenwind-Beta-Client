@@ -132,14 +132,16 @@ bool Window::IsActive() const
 
 bool Window::HasMouseFocus() const
 {
+    if (m_handle)
+        return (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_MOUSE_FOCUS) == SDL_WINDOW_MOUSE_FOCUS;
     return false;
-    // TODO: implement
 }
 
 bool Window::HasKeyboardFocus() const
 {
+    if (m_handle)
+        return (SDL_GetWindowFlags(static_cast<SDL_Window*>(m_handle)) & SDL_WINDOW_INPUT_FOCUS) == SDL_WINDOW_INPUT_FOCUS;
     return false;
-    // TODO: implement
 }
 
 bool Window::IsMinimized() const
